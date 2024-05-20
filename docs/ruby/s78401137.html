@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7: リッチ テキスト領域に画像をアップロードすると表示されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7: リッチ テキスト領域に画像をアップロードすると表示されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7: リッチ
+テキスト領域に画像をアップロードすると表示されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails
+                    のホームページでこのビデオをフォローしています:
+                    https://rubyonrails.org/
+                    。これらは私のステップです</p>
+                    <pre><code>rails new demo
+rails generate scaffold post title:string content:text
+rails db:migrate
+rails server
+http://localhost:3000/
+http://localhost:3000/posts
+http://localhost:3000/posts/1
+http://localhost:3000/posts/1/edit
+http://localhost:3000/posts/new
+</code></pre>
+                    <p>ファイル D:\2024_04_29pp
+                    iewspplication.html.erb</p>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Demo&lt;/title&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+  &lt;%= csrf_meta_tags %&gt;
+  &lt;%= csp_meta_tag %&gt;
+
+  &lt;%= stylesheet_link_tag &quot;application&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.simplecss.org/simple.min.css&quot;&gt;
+  &lt;%= javascript_importmap_tags %&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+&lt;%= yield %&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>http://localhost:3000/posts.json
+                    http://localhost:3000/posts/2.json</p>
+                    <p>検証</p>
+                    <p>ファイル D:\2024_04_29pp.rb</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+    validates_presence_of :title
+end
+</code></pre>
+                    <pre><code>rails console
+rails c
+Post.first
+Post.create! title:”From the console”, content: “Nice!”
+Post.where(created_at: Time.now.all_day).to_sql
+
+Post.where(created_at: Time.now.all_day)
+
+
+irb(main):008&gt; Post.where(created_at: Time.now.yesterday.all_day)
+
+irb(main):008&gt; Post.where(created_at: Time.now.yesterday.all_day).to_sql
+</code></pre>
+                    <pre><code>rails action_text:install
+bundle
+rails db:migrate
+</code></pre>
+                    <p>ファイル D:\2024_04_29pp.rb</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+    validates_presence_of :title
+    has_rich_text :content
+end
+</code></pre>
+                    <p>ファイル D:\2024_04_29pp iews_form.html.erb</p>
+                    <pre><code>&lt;%= form_with(model: post) do |form| %&gt;
+  &lt;% if post.errors.any? %&gt;
+    &lt;div style=&quot;color: red&quot;&gt;
+      &lt;h2&gt;&lt;%= pluralize(post.errors.count, &quot;error&quot;) %&gt; prohibited this post from being saved:&lt;/h2&gt;
+
+      &lt;ul&gt;
+        &lt;% post.errors.each do |error| %&gt;
+          &lt;li&gt;&lt;%= error.full_message %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :title, style: &quot;display: block&quot; %&gt;
+    &lt;%= form.text_field :title %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :content, style: &quot;display: block&quot; %&gt;
+    &lt;%= form.rich_text_area :content %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>データベースを調べてみました</p>
+                    <p>ソースコード:
+                    https://github.com/donhuvy/rails7demo</p>
+                    <p>私の画像が表示されなかったのはなぜですか?それを修正するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、列posts.contentをテキストデータ型として作成することです。</p>
+                    <p>アクションテキストはモデルテーブルに列を必要としません。アクション
+                    テキストは、record_id 列と Record_type
+                    列による多態性の関連付けを使用して他のモデルと関連付けられるある種のモデルです。</p>
+                    <p>まず、コマンドを使用してアクションテキストのテーブル、スタイル、部分を作成する必要があります（存在しない場合）。</p>
+                    <pre><code>bin/rails action_text:install
+</code></pre>
+                    <p>私は Rails
+                    ジェネレーターは好きではありませんが、最初のコマンドは次のようにする必要があります。</p>
+                    <pre><code>bin/rails g scaffold post title:string content:rich_text
+</code></pre>
+                    <p>(単なるテキストではなくリッチテキスト)</p>
+                    <p>このコマンドは新しい列を作成せず、モデルやビューなどに
+                    has_rich_text 表記を追加するだけです。</p>
+                    <p>「posts.content」列を削除する必要があります</p>
+                    <p>画像を変換する場合は、システム ライブラリ
+                    (デフォルトでは libvips)
+                    が必要になることにも注意してください。</p>
+                    <p>続きを読む：</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://edgeguides.rubyonrails.org/action_text_overview.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

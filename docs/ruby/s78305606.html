@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails でシリアル化されたフィールドを更新する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails でシリアル化されたフィールドを更新する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+でシリアル化されたフィールドを更新する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    モデルにシリアル化された属性があり、それを更新しようとしています。
+                    Block#preferences 属性は、最初は移行によってテキスト
+                    タイプとして生成されました。
+                    Postgresql14を使用しています。</p>
+                    <pre><code># == Schema Information
+#
+# Table name: blocks
+#
+#  id          :bigint           not null, primary key
+#  name        :string
+#  preferences :text
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  page_id     :bigint           not null
+#
+class Block &lt; ApplicationRecord
+  belongs_to :page
+
+  serialize :preferences, JSON
+end
+</code></pre>
+                    <p>強力なパラメーターの要点は、任意のパラメーターを許可しないことだと理解しています。しかし、質問したいのですが、許可されていないパラメーターをログに記録せずに、シリアル化された属性を通じて動的キーを更新できるようにするにはどうすればよいですか。</p>
+                    <p>以下は、更新アクションに渡されるパラメーターです。</p>
+                    <pre><code>Parameters: {
+  &quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, 
+  &quot;block&quot;=&gt;{
+     &quot;title_text&quot;=&gt;&quot;Hello world!&quot;, 
+     &quot;description_text&quot;=&gt;&quot;Send us a message.&quot;,
+     &quot;hero_image&quot;=&gt;&quot;placeholder/block01.jpg&quot;,
+     &quot;bg_color&quot;=&gt;&quot;#652020&quot;
+  },
+  &quot;commit&quot;=&gt;&quot;Update Block&quot;,
+  &quot;id&quot;=&gt;&quot;23&quot;
+}
+</code></pre>
+                    <p>これらは設定として保存されます:
+                    {“title_text”=&gt;“Rent with
+                    us”、“description_text”=&gt;“Send us a
+                    message.”、“hero_image”=&gt;“placeholder/block01.jpg”、“bg_color”=&gt;”
+                    Block オブジェクトの
+                    #000000”}。これらの設定属性は単なる例であり、logo_text
+                    や links_alignment
+                    などの他の属性もあります。このリストは増え続けています。</p>
+                    <p>更新アクションは、更新する属性として設定属性を指定した場合に機能します。</p>
+                    <pre><code>def update
+  @block = Block.find(params[:id])
+
+  respond_to do |format|
+    if @block.update(preferences: params[:block])
+    end
+  end
+end
+
+private
+
+def block_params
+  params.require(:block).permit(
+    :name,
+    :preferences
+  )
+end
+</code></pre>
+                    <p>ただし、block_params を指定して update
+                    を呼び出すと、フィールドが許可されていないことがログに表示されます。</p>
+                    <p>許可されていないパラメータ:
+                    :title_text、:description_text、:hero_image、:bg_color。</p>
+                    <pre><code>def update
+  @block = Block.find(params[:id])
+
+  respond_to do |format|
+    if @block.update(block_params)
+    end
+  end
+end
+
+private
+
+def block_params
+  params.require(:block).permit(
+    :name,
+    :preferences
+  )
+end
+</code></pre>
+                    <p>これは私たちの環境では少し斬新なように見えるので、serialize
+                    が params[:block]
+                    から設定をマッピングできるが、block_params
+                    を使用して update
+                    を呼び出すことができない方法を学習しようとしています。ご指導をよろしくお願いいたします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パラメーターのホワイトリスト登録は、スキーマやモデルが一般的にデータに対して行っている処理とはほとんど関係がありません。</p>
+                    <p>ActionContoller::Parameters
+                    は単なるハッシュのようなオブジェクトであり、これを
+                    ActiveRecord 永続化メソッド (new、create、update
+                    など) に渡すと、渡されたパラメーター
+                    インスタンスに許可フラグが設定されていない場合に発生します。これは、ActionContoller::Parameters
+                    のネストされたインスタンスにも当てはまります。</p>
+                    <p>さらに、ActionContoller::Parameters には
+                    action_on_unpermitted_parameters
+                    設定オプションがあり、permit
+                    を呼び出したときにホワイトリストにないキーが存在する場合に、ログに記録したり、発生させたり、何も行わなかったりします。</p>
+                    <p>一括割り当て保護を完全に無効にするには、permit!
+                    を使用できます。</p>
+                    <pre><code>def block_params
+  params.require(:block).permit!
+end
+</code></pre>
+                    <p>これにより、ActionContoller::Parameters
+                    のこのインスタンスのすべてのキーとネストされたパラメーターが許可されます。</p>
+                    <p>任意のキーを持つハッシュを処理する核の少ないオプションが必要な場合は、受信パラメータのキーのリストを渡すだけです。</p>
+                    <pre><code>def block_params
+  params.require(:block).permit(*params[:block].keys.map(&amp;:to_sym))
+end
+</code></pre>
+                    <p>ここでの違いは、許可されるスカラー値のみが許可され、配列やハッシュは許可されないことです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

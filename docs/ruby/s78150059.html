@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>完了した注文を ShopifyAPI::Order.All に含める | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "完了した注文を ShopifyAPI::Order.All に含める",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>完了した注文を ShopifyAPI::Order.All
+に含める</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Shopify
+                    アプリケーションの一部として、すべての注文のローカル
+                    エクスポートを保持したいと考えています。ここで必要なことのほとんどを実現する
+                    Ruby
+                    スクリプトがありますが、それは未履行の注文を取得するだけです。</p>
+                    <p>次のようなパラメータを追加して、ShopifyAPI::Order.allを微調整してみました</p>
+                    <p>fullfilled_orders=ShopifyAPI::Order.all(params: {
+                    ステータス: ‘任意’, フルフィルメントステータス:
+                    ‘フルフィルド’})</p>
+                    <p>両方のフィールドで「any」と「fulfilled」のバリエーションを試し、パラメータなしで実行しても、出力は同じままです。</p>
+                    <p>アプリケーションにはストアの設定ページで可能なすべての権限があり、Ruby
+                    のアプリケーション
+                    スコープはこれに設定されています。</p>
+                    <p>スコープ: ‘read_all_orders read_orders
+                    read_customers read_users’,</p>
+                    <p>これが関数のスニペットです</p>
+                    <pre><code>def order_dl()
+    # Load API credentials from file
+    config = YAML.load_file(&#39;config.yml&#39;)
+
+
+    # Shopify API credentials
+    session = ShopifyAPI::Auth::Session.new(
+    shop: config[&#39;shop&#39;],
+    access_token: config[&#39;access_token&#39;],
+    )
+
+    ShopifyAPI::Context.setup(
+    api_key: config[&#39;api_key&#39;],
+    api_secret_key: config[&#39;api_secret_key&#39;],
+    api_version: &#39;2024-01&#39;, # Example: &#39;2024-01&#39;
+    scope: &#39;read_all_orders read_orders read_customers read_users&#39;,
+    is_private: false, # Set to true if you are using a private app
+    is_embedded: true # Set to true if you are using an embedded app
+    )
+
+    ShopifyAPI::Context.activate_session(session)
+
+    client = ShopifyAPI::Clients::Rest::Admin.new(
+    session: session
+    )
+    test_session = ShopifyAPI::Context.active_session
+
+
+    #retrieve order details
+    orders = ShopifyAPI::Order.all(params: { status: &#39;any&#39;, fulfillment_status: &#39;any&#39;})
+    infos=[]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>オプションを間違って渡しているようです。ドキュメントによると、status
+                    とfulfillment_statusはキーワード引数であり、次のように渡す必要があります。</p>
+                    <pre><code>ShopifyAPI::Order.all( status: &#39;any&#39;, fulfillment_status: &#39;any&#39;)
+</code></pre>
+                    <p>デフォルトでは最初の 50
+                    件のみが取得されることに注意してください。 API
+                    ドキュメント。</p>
+                    <p>limit: 250; を使用して制限を 250
+                    に設定できます。ただし、一度に 250
+                    レコードを超えるレコードを取得することはできないため、すべてのレコードを実際に受信するには、since
+                    または updated_at_min
+                    のようなオフセットを使用してこのプロセスを複数回ループする必要がある場合があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

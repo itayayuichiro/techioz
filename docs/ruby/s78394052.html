@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby OOP クラスの相互作用: インスタンス変数を更新する方法はどれですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby OOP クラスの相互作用: インスタンス変数を更新する方法はどれですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby OOP クラスの相互作用:
+インスタンス変数を更新する方法はどれですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Game と Player の 2
+                    つのクラスがあります。これは三目並べゲームです。</p>
+                    <pre><code>class Game
+    attr_accessor :player_1, :player_2, :numbers, :board
+
+    def initialize(player_1, player_2)
+        @player_1 = player_1
+        @player_2 = player_2
+        @numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    end
+end
+</code></pre>
+                    <pre><code>class Player
+
+    attr_reader :name
+    attr_accessor :selection
+
+    def initialize(name)
+        @name = name
+        @selection = []
+    end
+
+    def play(game)
+        print &quot;#{name}, please pick a number: &quot;
+        number = gets.chomp.to_i
+        print &quot;#{name} selected #{number}&quot;
+        puts
+        
+        selection &lt;&lt; number
+        index = game.numbers.find_index(number)
+
+        if (name == &#39;player_1&#39;)
+            game.numbers[index] = &#39;X&#39;
+        else
+            game.numbers[index] = &#39;O&#39;
+        end
+    end
+end
+</code></pre>
+                    <p>プレーヤーとゲームを初期化するコード:</p>
+                    <pre><code>p1 = Player.new(&#39;player_1&#39;)
+p2 = Player.new(&#39;player_2&#39;)
+game = Game.new(p1, p2)
+</code></pre>
+                    <p>プレーヤーが番号を選択するたびに (例:
+                    p1.play(game)
+                    を使用)、その番号がプレーヤーの選択範囲に保存され、ゲーム内の番号が「x」/「o」で更新されるようにプレーヤーをセットアップします。
+                    。</p>
+                    <p>上記の手順が完了したら、Game の :player_1 と
+                    :player_2 を次のように更新します。</p>
+                    <p>game.player_1 = p1 &amp; game.player_2 = p2</p>
+                    <p>game.player_1.selection
+                    を出力すると、期待どおりの結果が得られます。しかし、間違って
+                    game.player_1 = p1 &amp; game.player_2 = p2
+                    を一度スキップして、もう一度 game.player_1.selection
+                    を出力してしまいました。驚いたことに、game.player_1
+                    = p1 &amp; game.player_2 = p2
+                    を実行しても、どちらの方法でも結果は同じです。</p>
+                    <p>そこで、OOP
+                    の世界の初心者として、説明を求めたいと思います。私の場合、player_1
+                    / player_2
+                    を更新する正しい方法は何ですか?ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>変数はオブジェクトを参照するために使用されます。
+                    =
+                    を介して変数に代入することでオブジェクトを設定します。例:</p>
+                    <pre><code>a = &quot;hello&quot;
+</code></pre>
+                    <p>これで、a
+                    を介して「hello」を参照できるようになります。</p>
+                    <pre><code>a &lt;&lt; &quot; world&quot;
+
+a #=&gt; &quot;hello world&quot;
+</code></pre>
+                    <p>この使用法のため、a
+                    を変更したと思われるかもしれません。しかし、これは完全に正しくありません。実際には、
+                    a が参照しているオブジェクト、つまり文字列 “hello”
+                    が “hello world” に変更されました。</p>
+                    <p>この区別は、オブジェクトを複数の変数に割り当てる場合に重要です。例:</p>
+                    <pre><code>a = &quot;hello&quot;
+b = a
+
+a &lt;&lt; &quot; world&quot;
+
+a #=&gt; &quot;hello world&quot;
+b #=&gt; &quot;hello world&quot;
+</code></pre>
+                    <p>b = a は、b が a
+                    が参照しているのと同じオブジェクトを参照します。私はそれを次のように考えます。</p>
+                    <pre><code>variable  object
+   a ───────┐
+          &quot;hello&quot;
+   b ───────┘
+</code></pre>
+                    <p>&lt;&lt; ” world”
+                    を呼び出すと、オブジェクトが変更されます。つまり、次のようになります。</p>
+                    <pre><code>variable  object
+   a ───────┐
+          &quot;hello world&quot;
+   b ───────┘
+</code></pre>
+                    <p>その後 a と b
+                    を検査すると、その変更が示されるだけです。</p>
+                    <p>その必要はありません。コードでは、p1 と
+                    game.player_1 はすでに同じオブジェクト、つまり
+                    Player
+                    のインスタンスを参照しています。したがって、プレーヤー
+                    インスタンスを更新するだけで済みます。</p>
+                    <p>game.player_1 = p1 の設定は、game.player_1
+                    がすでに p1
+                    を参照しているため、実際には不要です。まったく同じオブジェクトを再割り当てしているだけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

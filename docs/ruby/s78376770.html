@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SQLite バイナリ データ ダンプをメモリ内の読み取り専用データベース インスタンスにロードするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SQLite バイナリ データ ダンプをメモリ内の読み取り専用データベース インスタンスにロードするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SQLite バイナリ データ
+ダンプをメモリ内の読み取り専用データベース
+インスタンスにロードするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>約 10MB の SQLite バイナリ
+                    ダンプがあります。ダンプされたデータベースにはカタログ
+                    データが含まれており、Ruby
+                    アプリケーションから非常に高速に (ミリ秒未満)
+                    読み取ることができる必要があります。したがって、データダンプを
+                    SQLite
+                    のメモリ内の読み取り専用インスタンスにロードしようと考えていましたが、正確にどのようにすればよいのかわかりません。</p>
+                    <p>私は次のようなことを試しましたが、データベースをメモリ内に保持しません。</p>
+                    <pre><code>require &#39;sqlite3&#39;
+require &#39;fileutils&#39;
+
+# Path to the binary database dump
+binary_dump_path = &#39;path_to_your_binary_dump.db&#39;
+
+# Create a temporary file
+temp_db_path = &#39;temp_database.db&#39;
+FileUtils.copy(binary_dump_path, temp_db_path)
+
+# Open the temporary database
+db = SQLite3::Database.new(temp_db_path)
+
+# Optionally, set the database to read-only mode
+db.execute(&#39;PRAGMA query_only = ON&#39;)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>SQLite3::Backup クラスを使用してソース
+                    データベースをメモリにコピーし、それを使用できます。</p>
+                    <pre><code># Load source DB
+src_db = SQLite3::Database.new(&#39;source.db&#39;)
+
+# Create destination memory DB 
+mem_db = SQLite3::Database.new(&#39;:memory:&#39;)
+
+# Copy the source DB into the the memory DB
+backup = SQLite3::Backup.new(mem_db, &#39;main&#39;, src_db, &#39;main&#39;)
+backup.step(-1)
+backup.finish
+
+# Do your work on the memory DB
+mem_db.execute(&#39;SELECT ...&#39;) { |row|
+  ...
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

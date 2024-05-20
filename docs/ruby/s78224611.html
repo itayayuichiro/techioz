@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関係 RubyGems、Ruby バージョン、バンドラー バージョン、RVM および Capistrano の競合 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関係 RubyGems、Ruby バージョン、バンドラー バージョン、RVM および Capistrano の競合",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関係 RubyGems、Ruby バージョン、バンドラー
+バージョン、RVM および Capistrano の競合</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Capistrano インストール プロセスを使用する古い
+                    Ruby on Rails プロジェクトがあります。現在、Ruby
+                    2.5.1 と Rails 5.2
+                    が実行されています。私は更新バージョンの開発に取り組んでいますが、そうしている間に古いインストールが台無しになってしまった可能性があります。現時点では、新しい状況に移行する前に、Capistrano
+                    デプロイメント
+                    プロセスを修復して修正プログラムをインストールする必要があります。</p>
+                    <p>私は RVM を使用して、さまざまな Ruby
+                    バージョンを管理します。</p>
+                    <p>私のローカルマシンでは、アプリは Ruby 2.5.1、gem
+                    3.2.3、bundle 1.17.3
+                    を使用して正常に動作します。これは、Gemfile.lock
+                    に記載されているバンドルのバージョンでもあります。</p>
+                    <p>サーバー上には、ruby 2.5.1、gem 2.7.6、バンドル
+                    1.16.1 があります。 (rvm
+                    もインストールされています。)
+                    デプロイ時に、「rubygems.rb:289:in
+                    ‘find_spec_for_exe’: can’t find gembundler (&gt;=
+                    0.a) with executable Bundle
+                    (Gem::GemNotFoundException)」というエラー
+                    メッセージが表示されます。実際、現在のディレクトリ
+                    (まだ実行中のソフトウェアのバージョン) で gem list
+                    バンドルを実行すると、バンドルの現在のバージョンが
+                    1.16.1
+                    であることがわかります。ただし、現在実行中のソフトウェアのバージョンの
+                    Gemfile.lock には、1.17.3
+                    にバンドルされていると記載されています。</p>
+                    <p>実際にはバンドル 1.17.3 が
+                    (/home/deploy/.rvm/gems/ruby-2.5.1/gems/ に)
+                    インストールされていないように見えるため、おそらくサーバーにバンドル
+                    1.17.3
+                    をインストールする必要があると思います。ただし、実行中の運用サーバーにインストールを開始する前に、自分が何をしているのかを明確にする必要があると思うので、質問します。</p>
+                    <p>最後に、私はいつも混乱してしまうので、さらに詳しく説明します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RubyGems は、Ruby
+                    とともにインストールされるライブラリ (Ruby
+                    コードの束) です。このライブラリを使用すると、Gem
+                    をインストールすることができ (gem install
+                    something)、プログラムからそれらの gem
+                    をロードすることもできます
+                    (「some_gem」が必要)。要約すると、これは gem と gem
+                    エコシステムに付属するすべてのもの
+                    (インストール、管理、使用法)
+                    を利用できるようにするコードの束です。</p>
+                    <p>物理的には、RubyGems コードはここにあります。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rubygems/rubygems</p>
+                    <p>そのリポジトリの説明を読むことができます。</p>
+                    <p>gem は、上で参照した RubyGems ライブラリ
+                    コードを人間が操作できるようにするコマンドです。</p>
+                    <p>それ以上でもそれ以下でも複雑ではありません。 gem
+                    コマンドを実行すると、Ruby インストールから RubyGems
+                    ライブラリ コードがロードされます (GitHub
+                    でコードを見つける場所を示したばかりです)。次に、gem
+                    コマンドは、リクエスト (gem の削除、gem
+                    のインストール、gem に関する情報のクエリなど)
+                    を満たすために、このライブラリ内の適切なメソッドを呼び出します。</p>
+                    <p>Bundler と Bundle コマンドに違いはありません。
+                    Bundler もコードのライブラリであり、bundler
+                    はこのコードとインターフェイスするためのコマンドですが、RubyGems
+                    のようにシステム全体で gem
+                    をインストールおよび管理するのではなく、Bundler
+                    を使用するとプロジェクト ベースでのみ gem
+                    を管理およびインストールできます。
+                    。したがって、Bundler はプロジェクトから独立した gem
+                    マネージャーのようなものだと考えてください。これは、システム全体の
+                    gem マネージャーである RubyGems とは対照的です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

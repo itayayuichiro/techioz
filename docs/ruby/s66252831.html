@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この可変借用はなぜその範囲を超えて存続するのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この可変借用はなぜその範囲を超えて存続するのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この可変借用はなぜその範囲を超えて存続するのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>可変借用が終了すると予想した後、可変借用と不変借用を同時に使用すると、混乱を招くエラーが発生しました。私は同様の質問（1、2、3、4、5）について多くの調査を行った結果、私の問題は字句の有効期間に関係があると考えるようになりました（ただし、NLL機能をオンにして夜間にコンパイルすると、問題は解決されません）。結果は変わりません）、何が何だか分かりません。私の状況は他の質問のどのシナリオにも当てはまらないようです。</p>
+                    <pre><code>pub enum Chain&lt;&#39;a&gt; {
+    Root {
+        value: String,
+    },
+    Child {
+        parent: &amp;&#39;a mut Chain&lt;&#39;a&gt;,
+    },
+}
+
+impl Chain&lt;&#39;_&gt; {
+    pub fn get(&amp;self) -&gt; &amp;String {
+        match self {
+            Chain::Root { ref value } =&gt; value,
+            Chain::Child { ref parent } =&gt; parent.get(),
+        }
+    }
+
+    pub fn get_mut(&amp;mut self) -&gt; &amp;mut String {
+        match self {
+            Chain::Root { ref mut value } =&gt; value,
+            Chain::Child { ref mut parent } =&gt; parent.get_mut(),
+        }
+    }
+}
+
+#[test]
+fn test() {
+    let mut root = Chain::Root { value: &quot;foo&quot;.to_string() };
+
+    {
+        let mut child = Chain::Child { parent: &amp;mut root };
+
+        *child.get_mut() = &quot;bar&quot;.to_string();
+    } // I expect child&#39;s borrow to go out of scope here
+
+    assert_eq!(&quot;bar&quot;.to_string(), *root.get());
+}
+</code></pre>
+                    <p>遊び場</p>
+                    <p>エラーは次のとおりです。</p>
+                    <pre><code>error[E0502]: cannot borrow `root` as immutable because it is also borrowed as mutable
+  --&gt; example.rs:36:36
+   |
+31 |         let mut child = Chain::Child { parent: &amp;mut root };
+   |                                                --------- mutable borrow occurs here
+...
+36 |     assert_eq!(&quot;bar&quot;.to_string(), *root.get());
+   |                                    ^^^^
+   |                                    |
+   |                                    immutable borrow occurs here
+   |                                    mutable borrow later used here
+</code></pre>
+                    <p>そこで不変の借用が発生する理由は理解できますが、そこで可変の借用がどのように使用されるのかがわかりません。両方を同じ場所で使用するにはどうすればよいですか?何が起こっているのか、そしてそれを回避する方法を誰かが説明してくれることを願っています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>つまり、&amp;’a mut Chain&lt;’a&gt;
+                    は非常に限定的であり、広範囲に適用されます。</p>
+                    <p>不変参照 &amp;T&lt;’a&gt;
+                    の場合、コンパイラは、他のライフタイムと一致させるために必要な場合、または
+                    NLL の一部として、’a
+                    のライフタイムを短縮することができます
+                    (これは常に当てはまるわけではなく、T
+                    が何であるかによって異なります)。ただし、可変参照
+                    &amp;mut T&lt;’a&gt;
+                    の場合はそうすることができません。それ以外の場合は、より短い有効期間の値を割り当てることができます。</p>
+                    <p>したがって、参照とパラメーターが &amp;’a mut
+                    T&lt;’a&gt;
+                    にリンクされているときにコンパイラーが有効期間を調整しようとすると、参照の有効期間は概念的にパラメーターの有効期間と一致するように拡張されます。これは本質的に、決して解放されない変更可能な借用を作成したことを意味します。</p>
+                    <p>その知識を質問に適用すると、参照ベースの階層を作成できるのは、入れ子になった値が存続期間にわたって共変する場合にのみ可能です。以下を除きます。</p>
+                    <p>プレイグラウンドのこれらのバリエーションを参照して、これらがどのように期待どおりに機能しないかを確認してください。</p>
+                    <p>以下も参照してください。</p>
+                    <p>他のコンパイラ
+                    エラーにより、これらのライフタイムを一致させる必要があると思われる場合は、「自己参照構造体」を作成している可能性があります。それが実際に機能しない理由をここで参照してください。</p>
+                    <p>楽しみのために、Rust
+                    標準ライブラリがこの種のことを意図的に行うケースを含めます。
+                    std::thread::scope の署名は次のようになります。</p>
+                    <pre><code>pub fn scope&lt;&#39;env, F, T&gt;(f: F) -&gt; T
+where
+    F: for&lt;&#39;scope&gt; FnOnce(&amp;&#39;scope Scope&lt;&#39;scope, &#39;env&gt;) -&gt; T
+</code></pre>
+                    <p>ユーザー定義関数に提供されるスコープは、意図された方法でのみ使用されるように、その有効期間が意図的に結び付けられています。構造体はジェネリック型に対して共変または反変である可能性があるため、これは常に当てはまるわけではありませんが、スコープは不変であるように定義されています。また、呼び出すことができる唯一の関数は
+                    .spawn() です。これは意図的に &amp;’scope self
+                    を自己パラメータとしても取り、参照の有効期間がスコープで指定されたものよりも短くならないようにします。</p>
+                    <p>内部的には、標準ライブラリには次のドキュメント
+                    (ソース) が含まれています。</p>
+                    <p>参照の存続期間がそれ自体に関して不変であっても、不変参照と内部可変性を使用するため、上記の多くの問題は回避されます。
+                    .spawn() のパラメータに &amp;’scope mut self
+                    が必要な場合、これは機能せず、複数のスレッドを生成しようとすると上記と同じ問題が発生します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エビの宝石が付いたダイナミックヘッダー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エビの宝石が付いたダイナミックヘッダー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エビの宝石が付いたダイナミックヘッダー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>render_header メソッドに渡された report_date
+                    引数を使用してヘッダーをレンダリング中に問題が発生しました。毎回異なる
+                    report_date 値を渡しても、PDF
+                    には常に同じ日付が表示されますが、これは予期しない動作です。</p>
+                    <p>私の期待では、PDF は render_header
+                    メソッドに渡される report_date
+                    値を使用してレンダリングされるはずです。ただし、report_date
+                    引数がメソッド内で正しく利用されていないようです。</p>
+                    <pre><code>      def render_pages(pdf)
+        grouped_items = rows.group_by { |item| item[0] }
+
+        grouped_items.each_with_index do |(report_date, booking_items), index|
+          render_page(pdf, report_date, booking_items)
+          pdf.start_new_page unless index == grouped_items.size - 1
+        end
+      end
+
+      # Renders a page of the PDF
+      #
+      # @param pdf [Prawn::Document] The PDF object
+      def render_page(pdf, report_date, booking_items)
+        pdf.repeat(:all, dynamic: true) do
+          pdf.bounding_box([pdf.bounds.left, pdf.bounds.top], width: pdf.bounds.width) do
+            render_header(pdf, report_date, organisation_name)
+          end
+          pdf.bounding_box([pdf.bounds.left, pdf.bounds.bottom + 150 ], width: pdf.bounds.width) do
+            render_footer(pdf)
+          end
+        end
+        render_body(pdf, report_date , booking_items)
+      end
+
+      def render_header(pdf, report_date, organisation_name)
+        pdf.image open(&quot;https://s3.amazonaws.com/www-inside-design/uploads/2019/05/woolmarkimagelogo-1024x576.png&quot;), width: 80, height: 80, position: :center
+        pdf.text &quot;HEY #{report_date}&quot;
+        pdf.table(
+          [
+            [&quot;#{&quot;Sumanth Samala PVT LTD&quot;} - #{format_report_date(report_date)} \n Attendance Register&quot;, &quot;Customer to complete all sections below \n Generated on #{Time.now.strftime(&quot;%d/%m/%Y %H:%M&quot;)}&quot;]
+          ],
+          width: pdf.bounds.width,
+          row_colors: [&quot;808080&quot;],
+          cell_style: header_cell_style
+        ) do |table|
+          table.column(0).width = 464
+        end
+      end
+    ```
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでは暗中模索ですが、コメントするには長すぎます。</p>
+                    <p>各レポート日付の開始ページと終了ページを追跡しながら、すべてのページをレンダリングできます。</p>
+                    <p>次に、それらの範囲で繰り返しを使用してヘッダーを生成できます。</p>
+                    <pre><code>def render_pages(pdf)
+  grouped_items = rows.group_by(&amp;:first)
+
+  page_breaks = grouped_items.map.with_index(1) do |(report_date, booking_items), index|
+    start_page = pdf.page_number
+    render_page(pdf, report_date, booking_items)
+    end_page = pdf.page_number 
+    pdf.start_new_page unless index == grouped_items.size
+    {pages: (start_page..end_page), report_date: report_date}
+  end
+  render_header_footer(pdf,page_breaks)
+end
+
+def render_page(pdf, report_date, booking_items)
+  render_body(pdf, report_date , booking_items)
+end
+
+def render_header_footer(pdf,pages_headers)
+  pages_headers.each do |page_data|
+    pdf.repeat(page_data[:pages], dynamic: true) do
+      pdf.bounding_box([pdf.bounds.left, pdf.bounds.top], width: pdf.bounds.width) do
+        render_header(pdf, page_data[:report_date], organisation_name)
+      end
+      pdf.bounding_box([pdf.bounds.left, pdf.bounds.bottom + 150 ], width: pdf.bounds.width) do
+        render_footer(pdf)
+      end
+    end
+  end
+end 
+
+def render_header(pdf, report_date, organisation_name)
+  pdf.image open(&quot;https://s3.amazonaws.com/www-inside-design/uploads/2019/05/woolmarkimagelogo-1024x576.png&quot;), width: 80, height: 80, position: :center
+  pdf.text &quot;HEY #{report_date}&quot;
+  pdf.table(
+    [
+      [&quot;#{&quot;Sumanth Samala PVT LTD&quot;} - #{format_report_date(report_date)} \n Attendance Register&quot;, &quot;Customer to complete all sections below \n Generated on #{Time.now.strftime(&quot;%d/%m/%Y %H:%M&quot;)}&quot;]
+    ],
+    width: pdf.bounds.width,
+    row_colors: [&quot;808080&quot;],
+    cell_style: header_cell_style
+  ) do |table|
+    table.column(0).width = 464
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

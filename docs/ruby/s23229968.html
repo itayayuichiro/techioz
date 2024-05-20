@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>更新しようとすると Paperclip Rails エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "更新しようとすると Paperclip Rails エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>更新しようとすると Paperclip Rails
+エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のユーザーモデル:</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  has_attached_file :avatar, :styles =&gt; { :profile =&gt; &quot;200x200&gt;&quot;, :collab =&gt; &quot;300x200&gt;&quot;, :msg =&gt; &quot;50x50&gt;&quot; }, :default_url =&gt; &quot;missing.png&quot;
+  validates_attachment_content_type :avatar, :content_type =&gt; /\Aimage\/.*\Z/
+  ...
+</code></pre>
+                    <p>:msg スタイルと :profile
+                    スタイルを追加したばかりで、ビューに適切に表示されるように更新しようとしています。</p>
+                    <p>実行してみました:</p>
+                    <pre><code>rake paperclip:refresh CLASS=User
+</code></pre>
+                    <p>そして私はこのエラーを受け取ります:</p>
+                    <pre><code>rake aborted!
+ArgumentError: wrong number of arguments (0 for 1)
+/home/rails/cs480/app/models/user.rb:44:in `hash&#39;
+/home/.rvm/gems/ruby-2.1.0/gems/paperclip-4.1.1/lib/paperclip/attachment_registry.rb:42:in `names_for&#39;
+/home/.rvm/gems/ruby-2.1.0/gems/paperclip-4.1.1/lib/paperclip/attachment_registry.rb:16:in `names_for&#39;
+/home/rails/cs480/lib/tasks/paperclip.rake:15:in `obtain_attachments&#39;
+</code></pre>
+                    <p>これは user.rb の 44 行目です
+                    (なぜこれがペーパークリップと関係があるのかわかりません)</p>
+                    <pre><code>def User.hash(token)
+    Digest::SHA1.hexdigest(token.to_s)
+end
+</code></pre>
+                    <p>railstutorial.orgに従ってアバターを追加しようとしていました。</p>
+                    <p>編集：また、アバターを表示しようとしているすべてのビューでは、他の2つのうちの1つを表示しようとしている場合でも、「:msg」が表示されます。つまり、</p>
+                    <pre><code>&lt;%= image_tag user.avatar.url(:profile) %&gt;
+</code></pre>
+                    <p>は 50x50 のアバターを表示しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初の問題については、このSOの質問から</p>
+                    <p>object#hash のような Ruby のコア
+                    メソッドをオーバーライドすべきではありません。これらのメソッドは特定の理由で作成されており、その動作を変更すると予期しない結果が生じる可能性があります。どうやらチュートリアルの後半でこれが次のように変更されるようです。</p>
+                    <pre><code>def User.digest(token)
+  Digest::SHA1.hexdigest(token.to_s)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SQLite3 は外部キーの使用を「忘れる」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SQLite3 は外部キーの使用を「忘れる」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SQLite3 は外部キーの使用を「忘れる」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は SQLite3 で Ruby を使用していますが、Sqlite3
+                    で外部キーを使用しようとしましたが、残念ながら成功しませんでした。
+                    sqlite3 –version によると、バージョン 3.7.13
+                    がインストールされています。私の知る限り、Sqlite3
+                    はバージョン 3.6.x
+                    以降外部キーをサポートしています。</p>
+                    <p>外部キーはデフォルトで非アクティブ化されており、PRAGMA
+                    foreign_keys = ON;
+                    でアクティブ化する必要があることはわかっています。私の
+                    Ruby db-create-script
+                    では、次のようなことを行っています。</p>
+                    <pre><code>sql = &lt;&lt;-SQL
+  PRAGMA foreign_keys = ON;
+  CREATE TABLE apps (
+    id ....
+  );
+  CREATE TABLE requests (
+    ...
+    app_id INTEGER NOT NULL,
+    FOREIGN KEY(app_id) REFERENCES apps(id),
+  );
+  ...
+SQL
+db.execute_batch(sql)
+</code></pre>
+                    <p>残念ながら、不明なアプリ ID
+                    を持つリクエストに行を挿入することはできます。それは機能しますが、当然、そうすべきではありません。</p>
+                    <p>興味深いことに、sqlite3
+                    シェルを直接使用すると、次の動作が観察できます。</p>
+                    <pre><code>$ sqlite3 database.db
+sqlite&gt; PRAGMA foreign_keys = ON;
+sqlite&gt; PRAGMA foreign_keys;
+1 // as expected
+sqlite&gt; .quit
+$ sqlite3 database.db
+sqlite&gt; PRAGMA foreign_keys;
+0 // off ?!
+</code></pre>
+                    <p>sqlite3
+                    シェルを終了せずに、外部キーをアクティブ化した後
+                    (シェルを終了しないで) 外部キーが機能し、不明な
+                    app_id を持つ行を挿入することはできません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は自分の質問に答えることができると思います：ドキュメントには次のように書かれています：外部キー制約はデフォルトで無効になっています（下位互換性のため）。そのため、データベース接続ごとに個別に有効にする必要があります。面倒ですが、ようやく使えるようになりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

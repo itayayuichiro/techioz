@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ファイル入力フィールドを備えた Rails フォーム - ファイル名を文字列として指定するだけ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ファイル入力フィールドを備えた Rails フォーム - ファイル名を文字列として指定するだけ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ファイル入力フィールドを備えた Rails フォーム
+- ファイル名を文字列として指定するだけ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>フォームにファイル入力フィールドを埋め込みたいと考えています。
+                    ただし、送信時には、param
+                    値は単なるファイル名であり、StringIO
+                    などはなく、ファイル名を含む文字列だけです。</p>
+                    <p>形状：</p>
+                    <pre><code>    &lt;%= form_tag(controller: &#39;search&#39;, action: &#39;confirm_new_search&#39;, method: &#39;post&#39;, multipart: true) do %&gt;
+        [....]
+        &lt;div class=&quot;custom-file field&quot; id=&quot;inc_form&quot;&gt;
+          &lt;%= file_field :post, :file_inc_sellerslist, class: &quot;custom-file-input&quot; %&gt;
+          &lt;label class=&quot;custom-file-label&quot; for=&quot;file_inc_sellerslist&quot;&gt;
+            &lt;%= t(&#39;dashboard.new_search.extra_search_options_entries.choose_file&#39;) %&gt;
+          &lt;/label&gt;
+        &lt;/div&gt;
+        [....]
+</code></pre>
+                    <p>何が間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>form_tag() 構文が正しくありません。 form_tag は 2
+                    つのハッシュを引数として受け取ります。1 つは URL
+                    用、もう 1 つは HTML 属性用です。</p>
+                    <p>http://api.rubyonrails.org/v5.1/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag</p>
+                    <p>以下は私にとってはうまくいきます:</p>
+                    <pre><code>&lt;%= form_tag({controller: &#39;search&#39;, action: &#39;confirm_new_search&#39;},
+  method: &#39;post&#39;, 
+  multipart: true) do %&gt;
+</code></pre>
+                    <p>以下は、form_tag()
+                    呼び出しで何が起こるかの例です。</p>
+                    <pre><code>def go(x={}, y={})
+  p x
+  p y
+end
+
+go(a: 1, b:2, c:3)
+
+--output:
+{:a=&gt;1, :b=&gt;2, :c=&gt;3}
+{}
+</code></pre>
+                    <p>その結果、form_for()
+                    に指定したすべてのキーと値のペアがハッシュに集められ、パラメーター変数
+                    url_for_options
+                    に割り当てられます。その結果、form_tag() は HTML
+                    オプション multipart を true に設定しません。 HTML
+                    のソースを見ると、次のようになります。</p>
+                    <pre><code>&lt;form action=&quot;/search/confirm_new_search?method=post&amp;amp;multipart=true&quot; 
+      accept-charset=&quot;UTF-8&quot; 
+      method=&quot;post&quot;&gt;
+</code></pre>
+                    <p>その HTML を form_tag()
+                    呼び出しと比較すると、次のようになります。</p>
+                    <pre><code>form_tag(controller: &#39;search&#39;, 
+         action: &#39;confirm_new_search&#39;, 
+         method: &#39;post&#39;, 
+         multipart: true)
+</code></pre>
+                    最後の 2 つのキーと値のペアが URL
+                    のクエリ文字列に追加されていることは明らかです。その動作はどこにも文書化されていないようですが、ルールは次のようです:
+                    url_for()
+                    が認識しないキーについては、キーと対応する値がクエリ文字列に追加されます。また、クエリ文字列内のキーと値のペアは、
+                    <form>
+                    <p>タグの HTML 属性とは何の関係もありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby net/http PUT リクエストでのストリーミング データ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby net/http PUT リクエストでのストリーミング データ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby net/http PUT リクエストでのストリーミング
+データ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby-doc Net/HTTP
+                    には、ストリーミング応答本文の詳細な例が記載されています。これは、大きなファイルをダウンロードしようとするときに適用されます。</p>
+                    <p>PUT
+                    経由でファイルをアップロードするための同等のコード
+                    スニペットを探しています。コードを機能させるためにかなりの時間を費やしましたが、うまくいきませんでした。特定のインターフェイスを実装し、それを
+                    request.body_stream に渡す必要があると思います</p>
+                    <p>ストリーミングが必要なのは、ファイルのアップロード中にファイルの内容を変更するため、アップロード中にバッファリングされたチャンクにアクセスできるようにしたいためです。ストリーミングを使用できる限り、http.rb
+                    やrest-client
+                    などのライブラリを喜んで使用します。</p>
+                    <p>前もって感謝します！
+                    参考までに、動作する非ストリーミングバージョンを以下に示します。</p>
+                    <pre><code>
+    uri = URI(&quot;http://localhost:1234/upload&quot;)
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Put.new uri
+
+      File.open(&quot;/home/files/somefile&quot;) do |f|
+        request.body = f.read()
+      end
+
+      # Ideally I would need to use **request.body_stream** instead of **body** to get streaming
+
+      http.request request do |response|
+        response.read_body do |result|
+          # display the operation result   
+          puts result
+        end
+      end
+    end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>#body_stream= は「IO
+                    のような」オブジェクトを期待します。ありがたいことに、ファイルはすでに
+                    1
+                    つです。以下は、ファイルをチャンクでストリーミングするように例を適応させています。これは、使用可能なメモリに収まらない大きなファイルでも機能します。
+                    #request
+                    を呼び出すときは、ファイルがまだ開いている必要があることに注意してください。</p>
+                    <pre><code>require &#39;net/http&#39;
+
+uri = URI(&quot;http://localhost:1234/upload&quot;)
+
+response = Net::HTTP.start(uri.host, uri.port) do |http|
+  request = Net::HTTP::Put.new uri
+  File.open(&#39;/home/files/somefile&#39;) do |file|
+    request[&#39;Content-Length&#39;] = file.size
+    request.body_stream = file
+    http.request(request)
+  end
+end
+
+puts response.body
+</code></pre>
+                    <p>サーバーは解析をどこで停止するかを認識する必要があるため、プロトコルにはアップフロント長またはチャンク転送エンコーディングのいずれかが必要です。事前に長さがわからない場合は、Content-Length
+                    を次のものに置き換えます。 Net::HTTP
+                    はチャンク化を自動的に処理します。</p>
+                    <pre><code>request[&#39;Transfer-Encoding&#39;] = &#39;chunked&#39;
+</code></pre>
+                    <p>ファイル以外をストリーミングする場合は、#body_stream=
+                    オブジェクトに IO#read を実装します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

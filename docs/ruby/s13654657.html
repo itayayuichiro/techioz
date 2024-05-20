@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PostgreSQL のプライマリ ID 列に対して LIKE クエリを実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PostgreSQL のプライマリ ID 列に対して LIKE クエリを実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PostgreSQL のプライマリ ID 列に対して LIKE
+クエリを実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>数値 (88 など) があり、Rails でプライマリ ID
+                    列に対して LIKE クエリを実行して、ID
+                    の末尾にその数値 (IE: 88、288 など)
+                    を含むすべてのレコードを返したい場合は、どうすればいいでしょうか？結果を生成するコードは次のとおりです。SQLLite
+                    では正常に動作します。</p>
+                    <pre><code>@item = Item.where(&quot;id like ?&quot;, &quot;88&quot;).all
+</code></pre>
+                    <p>PostgreSQL で、次のエラーが発生します。</p>
+                    <pre><code>PG::Error: ERROR:  operator does not exist: integer ~~ unknown
+</code></pre>
+                    <p>どうすればいいでしょうか？数値を文字列に変換しようとしましたが、それも機能しないようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アーウィンの答えに基づいて:
+                    これは非常に古い質問ですが、誰かがそれを必要とする場合に備えて、::text
+                    キャストを使用する非常に簡単な答えが 1
+                    つあります。</p>
+                    <pre><code>Item.where(&quot;(id::text LIKE ?)&quot;, &quot;%#{numeric_variable}%&quot;).all
+</code></pre>
+                    <p>こうすることで、文字列内の任意の場所で数値を見つけることができます。
+                    数値を文字列の末尾にしたい場合にのみ、左側に %
+                    ワイルドカードを使用します。
+                    文字列内の任意の場所に数値を入れたい場合は、右側にも
+                    % ワイルドカードを使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

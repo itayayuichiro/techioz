@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ペーパークリップを使用したRails 7でのサイズとコンテンツタイプの検証が機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ペーパークリップを使用したRails 7でのサイズとコンテンツタイプの検証が機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ペーパークリップを使用したRails
+7でのサイズとコンテンツタイプの検証が機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は現在、rails
+                    3とruby-1.9.3で構築された古いシステムをrails
+                    7.1.3.2とruby-3.3.0に改修しています。古いアプリではすべての添付ファイルにペーパークリップを使用していたため、新しいアプリでもペーパークリップを使用します。私の古いアプリでは、すべての検証はコンテンツタイプとサイズのように機能しますが、新しいアプリが使用しているRails
+                    7での検証の作業に問題があります。</p>
+                    <p>これは私のモデルコードです。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  base_url = &quot;/home/muhammadans41/Downloads/paperclip/comments/:id/:style/:basename.:extension&quot;
+  base_path = &quot;/home/muhammadans41/Downloads/paperclip/comments/:id/:style/:basename.:extension&quot;
+  has_attached_file :avatar, storage: :filesystem, styles: { small: &quot;264x204&gt;&quot;, large: &quot;800x800&gt;&quot;}, path: &quot;#{base_path}&quot;, url: &quot;#{base_url}&quot;
+  validates_attachment_content_type :avatar, content_type: [&quot;image/jpeg&quot;, &quot;image/jpg&quot;, &quot;application/pdf&quot;]
+  validates_attachment_size :avatar, :less_than =&gt; 2.megabytes
+end
+</code></pre>
+                    <p>これが私のスキーマです</p>
+                    <pre><code>create_table &quot;users&quot;, force: :cascade do |t|
+  t.string &quot;username&quot;
+  t.datetime &quot;created_at&quot;, null: false
+  t.datetime &quot;updated_at&quot;, null: false
+  t.string &quot;avatar_file_name&quot;
+  t.integer &quot;avatar_file_size&quot;
+  t.string &quot;avatar_content_type&quot;
+  t.datetime &quot;avatar_updated_at&quot;
+end
+</code></pre>
+                    <p>これが私のフォームです</p>
+                    <pre><code>&lt;%= form_with(model: user) do |form| %&gt;
+  &lt;% if user.errors.any? %&gt;
+    &lt;div style=&quot;color: red&quot;&gt;
+      &lt;h2&gt;&lt;%= pluralize(user.errors.count, &quot;error&quot;) %&gt; prohibited this user from being saved:&lt;/h2&gt;
+      &lt;ul&gt;
+        &lt;% user.errors.each do |error| %&gt;
+          &lt;li&gt;&lt;%= error.full_message %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+  &lt;div&gt;
+    &lt;%= form.label :username, style: &quot;display: block&quot; %&gt;
+    &lt;%= form.text_field :username %&gt;
+  &lt;/div&gt;
+   &lt;div&gt;
+    &lt;%= form.file_field :avatar %&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これは私のコントローラーです</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  before_action :set_user, only: %i[ show edit update destroy ]
+
+  # GET /users or /users.json
+  def index
+    @users = User.all
+  end
+
+  # GET /users/1 or /users/1.json
+  def show
+  end
+
+  # GET /users/new
+  def new
+    @user = User.new
+  end
+
+  # GET /users/1/edit
+  def edit
+  end
+
+  # POST /users or /users.json
+  def create
+    @user = User.new(user_params)
+
+    respond_to do |format|
+      if @user.save
+        format.html { redirect_to user_url(@user), notice: &quot;User was successfully created.&quot; }
+        format.json { render :show, status: :created, location: @user }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /users/1 or /users/1.json
+  def update
+    respond_to do |format|
+      if @user.update(user_params)
+        format.html { redirect_to user_url(@user), notice: &quot;User was successfully updated.&quot; }
+        format.json { render :show, status: :ok, location: @user }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /users/1 or /users/1.json
+  def destroy
+    @user.destroy!
+
+    respond_to do |format|
+      format.html { redirect_to users_url, notice: &quot;User was successfully destroyed.&quot; }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_user
+      @user = User.find(params[:id])
+    end
+
+    # Only allow a list of trusted parameters through.
+    def user_params
+      params.require(:user).permit(:username, :avatar)
+    end
+end
+</code></pre>
+                    <p>問題の説明</p>
+                    <ol start="4" type="1">
+                    <li>Ruby 3.3.0 Rails 7.1.3.2 ペーパークリップ
+                    6.1</li>
+                    </ol>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、Paperclip が現在使用している Ruby
+                    のバージョンと互換性がないように見えます。引数の数に関するエラーは、Ruby
+                    の名前付き引数構文の変更に関連している可能性があります。</p>
+                    <p>Paperclip
+                    は現在メンテナンスされていませんが、メンテナンスされているフォーク
+                    kt-paperclip
+                    があります。それに切り替えて、問題が解決するかどうかを確認することをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

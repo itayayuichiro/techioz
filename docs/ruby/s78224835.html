@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>別の has_many 関連付けから項目をフィルターするだけの has_many 関連付けを作成する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "別の has_many 関連付けから項目をフィルターするだけの has_many 関連付けを作成する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>別の has_many
+関連付けから項目をフィルターするだけの has_many
+関連付けを作成する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>基本的には has_many
+                    関連付けがあります。元の関連付けから項目をフィルターするだけの別の関連付けを作成したいと考えています。</p>
+                    <pre><code>class Track
+  belongs_to :playlist
+end
+
+class Playlist
+  has_many :tracks
+
+  has_many :five_start_tracks, -&gt; { what to write here? }
+  has_many :long_tracks, -&gt; { ... }
+end
+</code></pre>
+                    <p>それを行う方法はありますか、それともそのまま使用する必要がありますか</p>
+                    <pre><code>def five_star_tracks
+  tracks.where(rating: 5)
+end
+def long_tracks
+  tracks.where(&quot;duration_seconds &gt; ?&quot;, 600)
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、has_many
+                    関連付けにスコープを追加できます。ただし、Ruby on
+                    Rails
+                    では名前からクラス名を推測できなくなっているため、関連付けにクラス名も追加する必要があります。</p>
+                    <pre><code>class Playlist
+  has_many :tracks
+
+  has_many :five_start_tracks, -&gt; { where(rating: 5) }, class_name: &#39;Track&#39;
+  has_many :long_tracks, -&gt; { where(&#39;duration_seconds &gt; ?&#39;, 600) }, class_name: &#39;Track&#39;
+end
+</code></pre>
+                    <p>または、特殊な関連付けの長いリストを定義するときに読みやすさを向上させる
+                    with_options を使用します。</p>
+                    <pre><code>class Playlist
+  has_many :tracks
+
+  with_options class_name: &#39;Track&#39; do
+    has_many :five_start_tracks, -&gt; { where(rating: 5) }
+    has_many :long_tracks, -&gt; { where(&#39;duration_seconds &gt; ?&#39;, 600) }
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

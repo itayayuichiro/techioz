@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのキーワードとは一体何なのでしょうか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのキーワードとは一体何なのでしょうか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのキーワードとは一体何なのでしょうか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ドキュメントでは、not は単なる !
+                    の綴りであると主張しています。
+                    (優先順位が異なると思われます)。</p>
+                    <p>パーサーはこう言っています</p>
+                    <pre><code>expr        : command_call
+                | keyword_not &#39;\n&#39;? expr
+                    {
+                        $$ = call_uni_op(p, method_cond(p, $3, &amp;@3), METHOD_NOT, &amp;@1, &amp;@$);
+                    /*% ripper: unary!(ID2VAL(idNOT), $:3) %*/
+                    }
+</code></pre>
+                    <p>ただし、すべての式が有効であるわけではありません。かなり括弧が必要です。これは本当に求められているのでしょうか？</p>
+                    <pre><code>irb&gt; x = !true
+=&gt; false
+
+irb&gt; not true
+=&gt; false
+
+irb&gt; x = !true
+=&gt; false
+
+irb&gt; x = not true
+/Users/akim/.gem/ruby/3.3.0/gems/irb-1.12.0/lib/irb/workspace.rb:117:in `eval&#39;: (irb):3: syntax error, unexpected `true&#39;, expecting &#39;(&#39; (SyntaxError)
+x = not true
+        ^~~~
+
+    from &lt;internal:kernel&gt;:187:in `loop&#39;
+    from /Users/akim/.gem/ruby/3.3.0/gems/irb-1.12.0/exe/irb:9:in `&lt;top (required)&gt;&#39;
+    from /opt/local/bin/irb:25:in `load&#39;
+    from /opt/local/bin/irb:25:in `&lt;main&gt;&#39;
+
+irb&gt; x = not(true)
+=&gt; false
+
+irb&gt; x = (not true)
+=&gt; false
+</code></pre>
+                    <p>(IRB の動作は MRI の動作と正確に一致します。)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はいでもいいえでも、それはユースケースによって異なります。代入の場合、not
+                    の優先順位が低いことは、代入演算子のために括弧が必要になるため、実際には役に立ちません。</p>
+                    <p>ただし、if
+                    と組み合わせると、優先順位が低いため、括弧を省略できます。</p>
+                    <pre><code>if not a == b
+  # do something
+end
+</code></pre>
+                    <p>とは対照的に
+                    ！これは優先順位が最も高いため、括弧が必要です。</p>
+                    <pre><code>if !(a == b)
+  # do something
+end
+</code></pre>
+                    <p>(ここでは、Unless
+                    を使用することもできますが、場合によっては、If Not
+                    のほうがより明示的で読みやすい場合もあります)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

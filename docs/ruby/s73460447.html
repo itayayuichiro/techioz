@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 を使用したテスト環境で複数のデータベース/レプリカが機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 を使用したテスト環境で複数のデータベース/レプリカが機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6
+を使用したテスト環境で複数のデータベース/レプリカが機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Distribution_reads からネイティブの Rails 6
+                    の複数データベースのサポートに移行しようとしているときに、奇妙な動作に遭遇しました。それがバグなのか設定の問題なのかはまだわかりません。</p>
+                    <pre><code>// database.yml
+default: &amp;default
+  adapter: postgresql
+  encoding: unicode
+  pool: 10
+  reaping_frequency: 10
+  timeout: 5000
+  username: my_username
+  password: my_password
+  database: my_database
+  schema_search_path: &#39;public,utils&#39;
+
+development: &amp;development
+  primary:
+    &lt;&lt;: *default
+    database: my_database
+    host: &#39;localhost&#39;
+  primary_replica:
+    &lt;&lt;: *default
+    database: my_database
+    host: &#39;localhost&#39;
+    replica: true
+  third_replica:
+    &lt;&lt;: *default
+    database: my_database
+    host: &#39;localhost&#39;
+    replica: true
+
+test: &amp;test
+  primary:
+    &lt;&lt;: *default
+    database: &#39;my_database_test&#39;
+    host: &#39;localhost&#39;
+  primary_replica:
+    &lt;&lt;: *default
+    database: &#39;my_database_test&#39;
+    host:&#39;localhost&#39;
+    replica: true
+  third_replica:
+    &lt;&lt;: *default
+    database: &#39;my_database_test&#39;
+    host: &#39;localhost&#39;
+    replica: true
+</code></pre>
+                    <p>このコードベースのすべてのレコードに接続する
+                    ApplicationRecord も変更しました。</p>
+                    <pre><code># application_record.rb
+connects_to shards: {
+  default: { writing: :primary, reading: :primary_replica },
+  admin: { writing: :primary, reading: :third_replica }
+}
+</code></pre>
+                    <p>開発中は、正しく動作します</p>
+                    <pre><code>&gt; ActiveRecord::Base.connected_to(role: :reading, shard: :default, prevent_writes: true) do
+  EventType.count
+end
+   (72.3ms)  SELECT COUNT(*) FROM &quot;event_types&quot; /*line:(pry):2:in `block in &lt;main&gt;&#39;*/
+=&gt; 2
+</code></pre>
+                    <p>これは正しいレコード数です。テストを実行して同じ行を使用すると、ラッパーの外側にある
+                    EventType.count
+                    も正しい数をカウントしますが、どのモデルでもどのレコードをチェックしていても、connected_to
+                    の結果は 0 になります。</p>
+                    <pre><code>&gt; EventType.count
+=&gt; 1
+&gt; ActiveRecord::Base.connected_to(role: :reading, shard: :default, prevent_writes: true) do
+  EventType.count
+end
+=&gt; 0
+</code></pre>
+                    <p>開発/テストのレプリカは実際には同じデータベースであるため、私の場合は
+                    0 を取得することはできないはずです。</p>
+                    <p>書き込みロールを使用する場合は機能しますが、</p>
+                    <pre><code>&gt; ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+  EventType.count
+end
+=&gt; 1
+</code></pre>
+                    <p>shards: の部分は、database:
+                    を介した簡易バージョンでも壊れ、 third_replica
+                    がないため、重要ではないようです。</p>
+                    <p>この Rails
+                    機能について何か足りないものはありますか?これと互換性のないテストに関連するものはありますか?これに関連するドキュメントは見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局、問題はテスト設定全体を通して発生したトランザクションに起因していました。</p>
+                    <pre><code>DatabaseCleaner.strategy = :transaction
+</code></pre>
+                    <p>そして、それが私たちのコードベース全体ではるかに大きな問題であるという証拠を示しました。クエリをトランザクションにラップし、connected_to
+                    を使用すると、基本的にそのトランザクションから抜け出すことになり、この特定のケースでは多くの一貫性の問題が発生します。これは純粋に論理的ですが、これをスタックに追加すると、最初に存在したものと互換性がなくなる可能性があります。</p>
+                    <p>結論としては、トランザクションを使用するときとリードレプリカを扱うときは注意する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

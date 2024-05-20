@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのパンダ関数の構文 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのパンダ関数の構文",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのパンダ関数の構文</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Python スクリプトを Ruby
+                    に変換する必要があります。そのために、作業を非常に簡単にする宝石
+                    Pandas と Numpy を使用します。</p>
+                    <p>たとえば、次のような行があります。</p>
+                    <pre><code># python
+# DF is a dataframe from Pandas
+
+DF[&#39;VAL&#39;].ewm(span = vDAY).mean()
+DF[&#39;VOLAT&#39;].rolling(vDAY).std()
+</code></pre>
+                    <p>したがって、質問はありません。次のように変換します。</p>
+                    <pre><code># ruby
+df[&#39;VAL&#39;].ewm(span: vDAY).mean
+df[&#39;VOLAT&#39;].rolling(vDAY).std
+</code></pre>
+                    <p>簡単。</p>
+                    <p>しかし、最初の引数として関数を取るPandasから関数適用を持っていますが、それをRubyで変換する方法が本当にわかりません。
+                    それは次のようなものです:</p>
+                    <pre><code># python
+import numpy as np
+
+DF[&#39;VAL&#39;].rolling(vDAY).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0])
+# output=&gt; NaN or Float
+</code></pre>
+                    <p>ラムダを次のように分解してみました。</p>
+                    <pre><code># ruby
+polyfit = -&gt;(x) { t = Numpy.polyfit((0...x.size).to_a, x, 1); t[0] }
+
+puts polyfit.call(&lt;insert Array argument&gt;) 
+#=&gt; I have a satisfying output for my lambda
+
+# but...
+df[&#39;VAL&#39;].rolling(vDAY).apply(&amp;polyfit)
+# output=&gt; `apply&#39;: &lt;class &#39;TypeError&#39;&gt;: must be real number, not NoneType (PyCall::PyError)
+
+# or
+df[&#39;VAL&#39;].rolling(vDAY).apply{ |x| polyfit.call(x) }
+# output=&gt; `apply&#39;: &lt;class &#39;TypeError&#39;&gt;: apply() missing 1 required positional argument: &#39;func&#39; (PyCall::PyError)
+
+# or
+df[&#39;VAL&#39;].rolling(vDAY).apply(polyfit)
+#output=&gt; `apply&#39;: &lt;class &#39;TypeError&#39;&gt;: must be real number, not NoneType (PyCall::PyError)
+
+# or
+df[&#39;VAL&#39;].rolling(vDAY).apply(:polyfit)
+# output=&gt; `apply&#39;: &lt;class &#39;TypeError&#39;&gt;: &#39;str&#39; object is not callable (PyCall::PyError)
+</code></pre>
+                    <p>明らかに機能していません。問題は、Python
+                    インライン構文のこの「x」引数ですが、「Ruby
+                    の方法」でそれを取得する方法が本当にわかりません。</p>
+                    <p>誰かがこの適用関数をPython構文からRubyに「翻訳」できれば、本当に素晴らしいでしょう:)</p>
+                    <p>ただ、私は Ruby/Rails 開発者であり、Python
+                    については専門的には知らないことを指摘しておきたいと思います。</p>
+                    <p>アップデート：</p>
+                    <p>OK、これは私の Python
+                    コードに対する完全な誤解です。apply
+                    には呼び出し可能なオブジェクトとして関数の引数が必要です。したがって、Rubyではラムダではなく、Procが必要です。</p>
+                    <p>したがって、同じ問題に遭遇した人のための解決策は次のとおりです。</p>
+                    <pre><code># ruby
+polyfit = Proc.new { t = Numpy.polyfit((0...x.size).to_a, x, 1); t[0] }
+df[&#39;VAL&#39;].rolling(vDAY).apply(polyfit)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>解決策は、Proc を使用することです
+                    (元の質問の「UPDATE」セクションを参照)</p>
+                    <pre><code># ruby
+polyfit = Proc.new { t = Numpy.polyfit((0...x.size).to_a, x, 1); t[0] }
+df[&#39;VAL&#39;].rolling(vDAY).apply(polyfit)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

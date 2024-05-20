@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の RSpec テストで不正なリクエストをどのように処理しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の RSpec テストで不正なリクエストをどのように処理しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の RSpec
+テストで不正なリクエストをどのように処理しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のテスト データベースには、API 専用の Rails 5
+                    アプリで API
+                    呼び出しを行っているレビューがあります。</p>
+                    <p>これまでのところ、インデックスのテストを作成し、ReviewController
+                    のアクションを表示しました。</p>
+                    <p>エラー/不正なリクエストの処理はどのようにすればよいですか?たとえば、誰かが存在しないルートに移動しようとした場合、または誰かが既存の
+                    ID なしで show Route に移動しようとした場合、RSpec
+                    ではどのように行われるのでしょうか?</p>
+                    <pre><code># spec/controllers/api/v1/reviews_controller_spec.rb
+require &#39;rails_helper&#39;
+
+RSpec.describe Api::V1::ReviewsController do
+  describe &quot;GET #index&quot; do
+    before do
+      get :index
+    end
+
+    it &quot;returns HTTP Success&quot; do
+      expect(response).to have_http_status(:success)
+    end
+
+    it &quot;JSON body response contains expected review attributes&quot; do
+      json_response = JSON.parse(response.body)
+      json_response[&quot;status&quot;].should == &quot;SUCCESS&quot;
+    end
+  end
+
+  describe &quot;GET #show&quot; do
+    before do
+      get :show, params: { id: 1 }
+    end
+
+    it &quot;returns HTTP Success&quot; do
+      expect(response).to have_http_status(:success)
+    end
+
+    it &quot;JSON body response contains expected review attributes&quot; do
+      json_response = JSON.parse(response.body)
+      json_response[&quot;status&quot;].should == &quot;SUCCESS&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>レビューコントローラー:</p>
+                    <pre><code># spec/controllers/api/v1/reviews_controller.rb
+module Api
+  module V1
+    class ReviewsController &lt; ApplicationController
+      def index
+        @reviews = Review.order(created_at: :desc)
+        render json: { status: &#39;SUCCESS&#39;, message: &#39;loaded reviews&#39;, data: @reviews }
+      end
+
+      def show
+        @review = Review.find(params[:id])
+        render json: { status: &#39;SUCCESS&#39;, message: &#39;loaded the review&#39;, data: @review }
+      end
+
+      private
+
+      def review_params
+        params.require(:review).permit(:title, :star, :content, :name, :date)
+      end
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コントローラーのテストでは、ID
+                    が存在しない場合にコントローラーが
+                    ActiveRecord::RecordNotFound
+                    を生成するように指定できます。</p>
+                    <pre><code>describe &quot;GET #show&quot; do
+  context &quot;with a valid id&quot; do
+    before { get :show, params: { id: 1 } }
+
+    it &quot;returns HTTP Success&quot; do
+      expect(response).to have_http_status(:success)
+    end
+
+    it &quot;JSON body response contains expected review attributes&quot; do
+      json_response = JSON.parse(response.body)
+      json_response[&quot;status&quot;].should == &quot;SUCCESS&quot;
+    end
+  end
+
+  context &quot;with an invalid id&quot; do
+    it &quot;raises an error&quot; do
+      expect { 
+        get :show, params: { id: &quot;invalid-identifier&quot; }
+      }.to raise_error ActiveRecord::RecordNotFound
+    end
+  end
+end
+</code></pre>
+                    <p>本番環境でコントローラーが
+                    ActiveRecord::RecordNotFound
+                    を発生させると、デフォルトが変更されていない場合、Ruby
+                    on Rails は 404 (見つからない)
+                    を返すことに注意してください。この動作の詳細については、Rails
+                    ガイドを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

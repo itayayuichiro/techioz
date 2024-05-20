@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>データを POST して新しいページに移動し、データベースを使用せずにそのデータを Rails に保存しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "データを POST して新しいページに移動し、データベースを使用せずにそのデータを Rails に保存しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>データを POST
+して新しいページに移動し、データベースを使用せずにそのデータを Rails
+に保存しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>POST
+                    リクエストがナビゲーションを目的としたものではないことは承知していますが、自分に課せられたことが可能かどうかを確認したいだけです。</p>
+                    <p>Rails アプリにページがあります。それを cars#index
+                    と呼びます。このページで車を選択し、その選択内容を送信すると、car_sales
+                    の新しいページが表示され、選択内容が別のテーブルにリストされます。</p>
+                    <p>車を選択できるテーブルがあり、このデータを POST
+                    して、以前に選択した車のリストを含む新しいページを
+                    car_sales#new
+                    にレンダリングしたいと考えています。</p>
+                    <p>これも可能でしょうか？</p>
+                    <pre><code>   # POST car_sales#new
+
+   def new
+    @cars = Car.where(id: selected_car_id_params)
+
+    respond_to do |format|
+      format.html
+    end
+   end
+</code></pre>
+                    <p>通常、作成アクションに POST
+                    すると、データベースに保存されている車をクエリする他のページにリダイレクトされます。ここでの違いは、まだ
+                    DB に永続化したくないことです。</p>
+                    <p>cars#index ページからデータを POST
+                    するところまではできましたが、ネットワーク
+                    タブに返されるのは car_sales#new ページの HTML
+                    です。つまり、ブラウザは同じページに留まりますが、リダイレクトされません。</p>
+                    <p>誰かがこれが起こる技術的な理由を説明できますか?</p>
+                    <p>これが私のインデックス方法ですが、ここでは関係ないと思います:-</p>
+                    <pre><code>   # GET cars#index
+
+   def index
+    @cars = Car.all
+   end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、POST
+                    ルートを追加するだけで非常に簡単に実現できます。</p>
+                    <pre><code>resources :car_sales do
+  post :new
+end
+</code></pre>
+                    <pre><code># GET  /car_sales/new
+# POST /car_sales/new
+def new
+  # @todo rewrite so it checks if param is present.
+  @cars = Car.where(id: selected_car_id_params)
+  respond_to do |format|
+    format.html
+  end
+end
+</code></pre>
+                    <pre><code>&lt;%= form_with(url: new_car_sales_path, method: :post, data: { turbo: false }) do |form| %&gt;
+  # ...
+&lt;% end %&gt;
+</code></pre>
+                    <p>しかし、実際には「でもなぜ？」という疑問が生じます。冪等なフォーム送信には
+                    POST を使用する必要はありません。標準の GET
+                    ルートをそのまま使用できます。</p>
+                    <p>フォームの送信に応じて何かを永続化することを強制するものは何もありません。それは単なる慣例です。また、追加の入力を使用してビューをレンダリングするだけなので、実際に何かを永続化する必要はありません。</p>
+                    <p>実際に必要な場合
+                    (実際に必要でない場合)、クエリ文字列またはセッションを通じてパラメーターを転送することもできます。</p>
+                    <p>あなたは間違ったことを期待しています。フォームの送信によってリダイレクトは発生しません。これはサーバーへの
+                    GET/POST
+                    リクエストであり、サーバーは必要に応じてそれに応答できます。</p>
+                    <p>あなたの場合、コントローラーは応答として暗黙的にビューをレンダリングし、デフォルトの
+                    200 - OK
+                    ステータスコードを送信します。実際にリダイレクトが必要な場合
+                    (必要ない場合)、サーバーは 3XX ステータス
+                    コードと場所ヘッダーで応答する必要があります。これは
+                    redirect_to で行います。</p>
+                    <p>クライアントが新しいビューをレンダリングしない理由については、リクエストが
+                    XHR
+                    リクエストとして送信されているか、実際には正しいリクエストを送信していない、または自分が思っているものをレンダリングしていないのではないかと推測することしかできません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

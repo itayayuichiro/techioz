@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsクエリはコンソールでは機能しますが、コントローラーでは機能しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsクエリはコンソールでは機能しますが、コントローラーでは機能しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsクエリはコンソールでは機能しますが、コントローラーでは機能しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>名前フィールドを持つテーブル Doctors
+                    を持つアプリケーションがあります。ユーザーは、そこに任意のバージョンの名前を入力できます。インデックスビューにレコードを表示する前に、姓（文字列の最後の単語）に基づいてレコードを並べ替えようとしています。</p>
+                    <p>コンソールでは機能するが、コントローラーで実行するとエラーが発生するクエリを思いつきました。</p>
+                    <p>クエリは次のとおりです。</p>
+                    <pre><code>current_user.doctors.select(&quot;doctors.*, split_part(doctors.name, &#39; &#39;, -1) AS lastname&quot;).order(&#39;lastname ASC&#39;)
+</code></pre>
+                    <p>私のテーブルの移行:</p>
+                    <pre><code>class CreateDoctors &lt; ActiveRecord::Migration[7.1]
+  def change
+    create_table :doctors do |t|
+      t.string :name
+      t.string :field
+      t.string :address
+      t.string :phone
+      t.string :fax
+      t.string :website
+      t.string :portal
+      t.binary :active, default: true
+      t.string :group
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>私のコントローラーコード:</p>
+                    <pre><code>def index
+  @doctors = 
+       current_user.doctors.select(&quot;doctors.*, split_part(doctors.name, &#39; &#39;, -1) AS lastname&quot;).order(&#39;lastname ASC&#39;)
+end
+</code></pre>
+                    <p>そして私のビューコード:</p>
+                    <pre><code>&lt;%= turbo_frame_tag Doctor.new %&gt;
+&lt;%= turbo_frame_tag &quot;doctors&quot; do %&gt;
+  &lt;% @doctors.each do |doctor| %&gt;
+    &lt;%= render &#39;doctor_index&#39;, doctor: doctor %&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>得られるエラーは次のとおりです。</p>
+                    <pre><code>17:16:53 web.1  | Started GET &quot;/doctors&quot; for ::1 at 2024-03-16 17:16:53 -0600
+17:16:53 web.1  |   ActiveRecord::SchemaMigration Load (1.0ms)  SELECT &quot;schema_migrations&quot;.&quot;version&quot; FROM &quot;schema_migrations&quot; ORDER BY &quot;schema_migrations&quot;.&quot;version&quot; ASC
+17:16:53 web.1  | Processing by DoctorsController#index as HTML
+17:16:53 web.1  |   User Load (1.0ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = $1 ORDER BY &quot;users&quot;.&quot;id&quot; ASC LIMIT $2  [[&quot;id&quot;, 2], [&quot;LIMIT&quot;, 1]]
+17:16:53 web.1  |   Rendering layout layouts/application.html.erb
+17:16:53 web.1  |   Rendering doctors/index.html.erb within layouts/application
+17:16:53 web.1  |   Rendered shared/_nav-tabs.erb (Duration: 1.2ms | Allocations: 482)
+17:16:53 web.1  |   Doctor Count (21.8ms)  SELECT COUNT(doctors.*, split_part(doctors.name, &#39; &#39;, -1) AS lastname) FROM &quot;doctors&quot; WHERE &quot;doctors&quot;.&quot;user_id&quot; = $1  [[&quot;user_id&quot;, 2]]
+17:16:53 web.1  |   ↳ app/views/doctors/index.html.erb:12
+17:16:53 web.1  |   Rendered doctors/index.html.erb within layouts/application (Duration: 83.8ms | Allocations: 17358)
+17:16:53 web.1  |   Rendered layout layouts/application.html.erb (Duration: 84.2ms | Allocations: 17477)
+17:16:53 web.1  | Completed 500 Internal Server Error in 254ms (ActiveRecord: 42.9ms | Allocations: 54020)
+17:16:53 web.1  |
+17:16:53 web.1  |
+17:16:53 web.1  |
+17:16:53 web.1  | ActionView::Template::Error (PG::SyntaxError: ERROR:  syntax error at or near &quot;AS&quot;
+17:16:53 web.1  | LINE 1: ...OUNT(doctors.*, split_part(doctors.name, &#39; &#39;, -1) AS lastnam...
+17:16:53 web.1  |                                                              ^
+17:16:53 web.1  | ):
+17:16:53 web.1  |      9:   &lt;/div&gt;
+17:16:53 web.1  |     10:   &lt;%= turbo_frame_tag Doctor.new %&gt;
+17:16:53 web.1  |     11:   &lt;%= turbo_frame_tag &quot;doctors&quot; do %&gt;
+17:16:53 web.1  |     12:     &lt;% if @doctors.count != 0 %&gt;
+17:16:53 web.1  |     13:       &lt;% @doctors.each do |doctor| %&gt;
+17:16:53 web.1  |     14:         &lt;%= render &#39;doctor_index&#39;, doctor: doctor %&gt;
+17:16:53 web.1  |     15:       &lt;% end %&gt;
+17:16:53 web.1  |
+</code></pre>
+                    <p>これをコンソールで実行すると、探している結果が得られます。これは、姓順に並べられた医師のレコードのリストです。</p>
+                    <p>これは Rails クエリから psql
+                    クエリへの変換の問題であると確信していますが、希望どおりに動作するように書き直す方法がわかりません。なぜコンソールでは機能するのにコントローラーでは機能しないのか、私は混乱しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>声明は次のとおりです。</p>
+                    <pre><code>SELECT COUNT(doctors.*, split_part(doctors.name, &#39; &#39;, -1) AS lastname)
+</code></pre>
+                    <p>そのカウントはどこから来たのでしょうか?エラーメッセージを見てみましょう。</p>
+                    <pre><code>17:16:53 web.1  |      9:   &lt;/div&gt;
+17:16:53 web.1  |     10:   &lt;%= turbo_frame_tag Doctor.new %&gt;
+17:16:53 web.1  |     11:   &lt;%= turbo_frame_tag &quot;doctors&quot; do %&gt;
+17:16:53 web.1  |     12:     &lt;% if @doctors.count != 0 %&gt;
+17:16:53 web.1  |     13:       &lt;% @doctors.each do |doctor| %&gt;
+17:16:53 web.1  |     14:         &lt;%= render &#39;doctor_index&#39;, doctor: doctor %&gt;
+17:16:53 web.1  |     15:       &lt;% end %&gt;
+</code></pre>
+                    <p>&lt;% if <span class="citation"
+                    data-cites="doctors.count">@doctors.count</span> !=
+                    0 %&gt; からのものです。 select を count
+                    とともに使用すると、選択された列がカウントされます。</p>
+                    <p>おそらくお気づきかと思いますが、<span
+                    class="citation"
+                    data-cites="doctors.count">@doctors.count</span>
+                    をチェックすることに意味はありません。 <span
+                    class="citation"
+                    data-cites="doctors">@doctors</span>
+                    が空の場合、<span class="citation"
+                    data-cites="doctors.each">@doctors.each</span>
+                    は何も行いません。追加のカウント
+                    クエリは追加のクエリであり、競合状態も引き起こしますが、この特定のケースではおそらく重要ではありません。</p>
+                    <p>おそらく行をローカルで削除しましたが、保存または展開しませんでした。</p>
+                    <p>姓で並べ替えたいだけの場合は、order
+                    を直接使用して、選択した列をそのままにしておくことができます。</p>
+                    <pre><code>current_user.doctors.order(&quot;split_part(doctors.name, &#39; &#39;, -1) asc&quot;)
+</code></pre>
+                    <p>これを頻繁に実行し、医師が多数いる場合は、インデックス付きクエリを実行するとよいでしょう。その特定の式にインデックスを追加できます…</p>
+                    <pre><code>create index doctor_lastname_idx on doctors(split_part(name, &#39; &#39;, -1))
+</code></pre>
+                    <p>または、生成された列として追加することもできます。医師テーブルに姓列を追加し、before_save
+                    コールバックでこれを行うことができます…</p>
+                    <pre><code>class Doctor &lt; ApplicationRecord
+  ...
+
+  before_save :set_lastname
+
+  private def set_lastname
+    self[:lastname] = name.rpartition(/\s+/).last
+  end
+end
+</code></pre>
+                    <p>または、実際の仮想列を使用してデータベース内で直接実行することもできます。</p>
+                    <pre><code>change_table :users do |t|
+  t.virtual :lastname, type: :string, as: &#39;split_part(doctors.name, &#39; &#39;, -1)&#39;, stored: true
+  t.index(:lastname)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

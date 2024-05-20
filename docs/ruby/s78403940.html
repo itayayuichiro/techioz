@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>バンドラーによるジェムの自動ロード | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "バンドラーによるジェムの自動ロード",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>バンドラーによるジェムの自動ロード</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、https://github.com/scionx-io/safe-eth-ruby/tree/bm-improve-test
+                    でホストされている、safe-eth-ruby という Ruby gem
+                    を開発しました。 gem
+                    はエラーなしでインストールおよびロードされますが、bundle
+                    exec irb で初期化された IRB
+                    内の特定のモジュールに直接アクセスしようとすると、初期化されていない定数に関する問題が発生します。</p>
+                    <p>例えば：</p>
+                    <pre><code>irb(main):001&gt; SafeEthRuby::Protocol
+# Results in: uninitialized constant SafeEthRuby::Protocol (NameError)
+</code></pre>
+                    <p>ただし、セッション内で gem
+                    を手動で要求する場合は、次のようになります。</p>
+                    <pre><code>irb(main):004&gt; require &quot;safe_eth_ruby&quot;
+=&gt; true
+irb(main):005&gt; SafeEthRuby::Protocol
+=&gt; SafeEthRuby::Protocol
+</code></pre>
+                    <p>手動で要求した後は、すべてが期待どおりに機能します。
+                    gem
+                    のコンポーネントが自動的に読み込まれない理由と、コンソールで毎回手動で
+                    gem
+                    を要求せずに確実に利用できるように設定する方法を理解したいと思います。私の
+                    gem セットアップに何が欠けているのか、または Ruby
+                    構成に関するヒントがあれば、ご提案をいただければ幸いです。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Bundle exec irb は、irb セッションで必要な gem
+                    を単純に制限します。自動的に必要になるわけではありません。</p>
+                    <p>バンドル
+                    コンソールは自動的に「バンドル」をプリロードします。</p>
+                    <p>ファイルは次のようになります (デフォルト)。</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+require &quot;bundler/setup&quot;
+require &quot;safe_eth_ruby&quot;
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+# (If you use this, don&#39;t forget to add pry to your Gemfile!)
+# require &quot;pry&quot;
+# Pry.start
+
+require &quot;irb&quot;
+IRB.start(__FILE__)
+</code></pre>
+                    <p>現在の bin/コンソール ファイルには、require
+                    ‘safe_eth_ruby’ ではなく、require ‘safe’
+                    が含まれています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

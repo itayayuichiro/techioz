@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 PostgreSQL接続を自動再接続するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 PostgreSQL接続を自動再接続するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6
+PostgreSQL接続を自動再接続するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかのワーカープロセスを備えたRails
+                    6アプリケーションがあります。このアプリは DB として
+                    PostgreSQL を使用します。場合によっては、DB
+                    が再起動し (マイナー
+                    バージョンのアップグレードなど)、ワーカーの接続が失われます。自動的に再接続されることを期待していましたが、それは起こりません。</p>
+                    <p>私はdatabase.ymlでreconnect:
+                    trueフラグを使用しようとしました。同じ話です。まだ「PG::UnableToSend:
+                    サーバーへの接続がありません」というメッセージが表示されます。このオプションは
+                    PostgresqlAdapter でも使用できません。
+                    MySQLアダプターのオプションのみだと思います。</p>
+                    <p>ワーカーは Rails Runner で実行する単純なサービス
+                    クラスです</p>
+                    <p>何ができるでしょうか？答えは簡単なはずだと私は信じています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>PG自動再接続用のActiveRecordパッチを作成しました。</p>
+                    <p>例外の処理は最適化できますが、PG::UnableToSend、PG::ConnectionBad、PG::Error
+                    が奇妙に混在していたので、代わりに例外名を比較します。</p>
+                    <pre><code>module PostgreSQLAdapterAutoReconnectPatch
+  QUERY_EXCEPTIONS = [
+    &quot;SSL connection has been closed unexpectedly&quot;,
+    &quot;server closed the connection unexpectedly&quot;,
+    &quot;no connection to the server&quot;,
+  ].freeze
+
+  CONNECTION_EXCEPTIONS = [
+    &quot;could not connect to server&quot;,
+    &quot;the database system is starting up&quot;,
+  ].freeze
+
+  def exec_query(*args)
+    super(*args)
+  rescue ActiveRecord::StatementInvalid =&gt; e
+    raise unless recoverable_query?(e.message)
+
+    in_transaction = transaction_manager.current_transaction.open?
+    try_reconnect
+    in_transaction ? raise : retry
+  end
+
+  private
+
+  def recoverable_query?(error_message)
+    QUERY_EXCEPTIONS.any? { |e| error_message.include?(e) }
+  end
+
+  def recoverable_connection?(error_message)
+    CONNECTION_EXCEPTIONS.any? { |e| error_message.include?(e) }
+  end
+
+  def try_reconnect
+    sleep_times = [0.1, 0.5, 1, 2, 4, 8, 16, 32]
+
+    begin
+      reconnect!
+    rescue PG::Error =&gt; e
+      sleep_time = sleep_times.shift
+      if sleep_time &amp;&amp; recoverable_connection?(e.message)
+        logger.warn(&quot;DB Server timed out, retrying in #{sleep_time} sec&quot;)
+        sleep sleep_time
+        retry
+      else
+        logger.error(e)
+        raise
+      end
+    end
+  end
+end
+
+require &quot;active_record/connection_adapters/postgresql_adapter&quot;
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.prepend(PostgreSQLAdapterAutoReconnectPatch)
+</code></pre>
+                    <p>に触発された</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

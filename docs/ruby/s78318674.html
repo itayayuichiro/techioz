@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby http ライブラリで予期しない文字エンコーディングが発生するのはなぜですか? (カーブ、エクスコン vs シェルアウト) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby http ライブラリで予期しない文字エンコーディングが発生するのはなぜですか? (カーブ、エクスコン vs シェルアウト)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby http
+ライブラリで予期しない文字エンコーディングが発生するのはなぜですか?
+(カーブ、エクスコン vs シェルアウト)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>外部リクエスト ライブラリ (curb、excon)
+                    から応答本文を ascii-8bit
+                    として取得していますが、utf-8
+                    が期待されています。</p>
+                    <p>私の Ruby 環境はデフォルトで utf-8
+                    エンコーディングに設定されています。</p>
+                    <pre><code>Encoding.default_external
+=&gt; #&lt;Encoding:UTF-8&gt;
+Encoding.default_internal
+=&gt; #&lt;Encoding:UTF-8&gt;
+</code></pre>
+                    <p>このリクエストでは URL や (明らかに)
+                    認証トークンを明らかにすることはできませんが、curl
+                    にシェルアウトすると有効な utf-8
+                    レスポンスが得られます。</p>
+                    <pre><code>text = `curl -H &quot;Authorization: Bearer #{token}&quot; &quot;#{url}&quot;`
+text[28782..28786]
+=&gt; &quot;Maté,&quot;
+text.encoding
+=&gt; #&lt;Encoding:UTF-8&gt;
+</code></pre>
+                    <p>しかし、Ruby
+                    ライブラリのいずれかを使用すると、異なる結果が得られます</p>
+                    <p>縁石：</p>
+                    <pre><code>curl = Curl::Easy.new(url)
+curl.headers[&quot;Authorization&quot;] = &quot;Bearer #{client.auth_token}&quot;
+curl.http_get
+body = curl.body_str
+body[28782..28786]
+=&gt; &quot;Mat\xC3\xA9&quot;
+body.encoding
+=&gt; #&lt;Encoding:ASCII-8BIT&gt;
+</code></pre>
+                    <p>エクスコン:</p>
+                    <pre><code>connection = Excon.new(url, headers: {&quot;Authorization&quot; =&gt; &quot;Bearer #{token}&quot;})
+response = connection.get
+response_body = response.body
+response_body[28782..28786]
+=&gt; &quot;Mat\xC3\xA9&quot;
+response_body.encoding
+=&gt; #&lt;Encoding:ASCII-8BIT&gt;
+</code></pre>
+                    <p>これにより、応答データを他の外部サービスに保存するときに問題が発生します。この場合、通話の終わりにforce_encoding(“utf-8”)を単に叩き込むだけで済むことはわかっていますが、これは応急処置のように思えます。そこで私の質問は、これらの
+                    http ライブラリの応答はどのようにして ascii-8bit
+                    として解釈されるのでしょうか、またそれをシステム的に変更するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここで問題が発生していることを残念に思います。私は
+                    excon
+                    の主な開発者および保守者なので、少なくともあなたの質問のその部分について話すことができます。</p>
+                    <p>HTTP/1.1
+                    は多くの場合バイトカウントを重視しているため、マルチバイト文字などについて心配することなく、ASCII
+                    を使用することが簡単な方法でした。</p>
+                    <p>そうは言っても、応答が UTF-8
+                    であると確信できる場合 (コンテンツ タイプ
+                    ヘッダーにその旨が示されているかどうかが良い指標となります)、強制的に「UTF-8」エンコードにするのが安全/合理的であると思います。この状況で私ならそうするだろう、少なくとも試してみる価値はあると思います。</p>
+                    <p>これに関して、絆創膏のように感じたり、長期的な解決策として合理的ではないと感じたりするような特別な懸念はありますか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

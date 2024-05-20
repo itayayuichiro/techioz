@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ホームページのページネーション - http://website.com/?page=2 ではなく http://website.com/submissions/?page=2 が必要です | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ホームページのページネーション - http://website.com/?page=2 ではなく http://website.com/submissions/?page=2 が必要です",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ホームページのページネーション -
+http://website.com/?page=2 ではなく
+http://website.com/submissions/?page=2 が必要です</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ページネーションには Pagy Gem
+                    を使用しています。私がやろうとしているのは、ページネーションを使用してホームページの部分をレンダリングすることです（これは現在希望どおりに機能しています）が、1、2、3
+                    Next &gt; の 2 を http://website
+                    に移動したいのです。 http://website.com/?page=2
+                    ではなく、com/submissions/?page=2。これをホームページの
+                    2 ページ目ではなく、投稿インデックスの 2
+                    ページ目に直接挿入したいと考えています。</p>
+                    <p>これにオプションを追加する方法はありますか?これを調べたり、いろいろと動かしてみたりしましたが、理解できないようです。助けていただければ幸いです。</p>
+                    <p>ホームフォルダーのindex.html.erbに部分をレンダリングしています。</p>
+                    <pre><code>&lt;%= render &quot;submissions/submissions&quot;, submission: @submission %&gt;
+</code></pre>
+                    <p>この部分には、表示したいコード (提出項目)
+                    と、それらの提出項目の下にページネーション番号を出力するためにドキュメントが提供する高速ヘルパーが含まれています。</p>
+                    <pre><code>&lt;%== pagy_nav(@pagy) %&gt;
+</code></pre>
+                    <pre><code>include Pagy::Backend
+</code></pre>
+                    <pre><code>include Pagy::Frontend
+</code></pre>
+                    <pre><code>def index 
+ @pagy @submissions = pagy(Submission.all)
+end
+</code></pre>
+                    <pre><code>root to: &quot;home#index&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の意見によれば、ルートを更新することで問題は解決します
+                    Routes.rb ファイルで次のようなことを行います</p>
+                    <pre><code>resources :submissions, only: [:index] do
+end
+</code></pre>
+                    <p>これにより、必要なルートが生成されますが、ホーム
+                    フォルダーの .html.erb
+                    ファイルを次のように調整する必要があります。</p>
+                    <pre><code>app/views/submissions/index.html.erb
+</code></pre>
+                    <p>それに応じて応答をレンダリングします</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

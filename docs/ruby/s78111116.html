@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby JSONのシリアライズとデシリアライズ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby JSONのシリアライズとデシリアライズ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby JSONのシリアライズとデシリアライズ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ゲームの状態をシリアル化および逆シリアル化するために、この
+                    2
+                    つの関数があります。無事に動作しました。しかし、それは非常に乱雑で乱雑に感じます。これを行うためのより良いアプローチはありますか?</p>
+                    <p>2 つの異なるクラス変数があり、1 つは Main
+                    クラスから、3 つはguess クラスの親である Game
+                    クラスからシリアル化する必要があります。以下のメソッドは
+                    Main クラスから呼び出されます。</p>
+                    <pre><code>  def save_game(obj)
+    saved_data = {
+      score: obj.score,
+      secret_word: obj.new_guess.secret_word,
+      running_guess: obj.new_guess.running_guess,
+      not_in_word: obj.new_guess.not_in_word
+    }.to_json
+    save_file(saved_data)
+  end
+
+  def load_game(obj)
+    saved_data = JSON.load_file(&#39;saved/saved_game.json&#39;)
+    obj.score = saved_data[&#39;score&#39;]
+    obj.new_guess.secret_word, = saved_data[&#39;secret_word&#39;]
+    obj.new_guess.running_guess = saved_data[&#39;running_guess&#39;]
+    obj.new_guess.not_in_word = saved_data[&#39;not_in_word&#39;]
+    display_secret_hidden(obj.new_guess.running_guess)
+    display_not_included_letters(obj.new_guess.not_in_word)
+    play_rounds
+  end
+</code></pre>
+                    <p>私はこれを理解しようとしていますが、別の解決策を見つけることができますが、これまでのところ別の方法でこれを行うことができません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それが Ruby の新しい Data Object の 1
+                    つであれ、お母さんが昔作ったような昔ながらの Struct
+                    であれ、各要素をさまざまな場所でオンザフライでシリアル化しようとするよりも、ある種のデータ構造のインスタンス変数を渡す方が良いでしょう。</p>
+                    <p>JSON、YAML、または Marshal
+                    のようなバイナリ形式にシリアル化する場合でも、コードをよりクリーンにする方法があります。
+                    Marshal と YAML
+                    はオブジェクトのシリアル化をより適切に実行します。
+                    JSON
+                    は、明示的な手順を踏まない限り、その点でもう少し制限があります。そこで、Marshal
+                    を使用して、serializd
+                    オブジェクトを簡単に復活させる方法をデモンストレーションします。</p>
+                    <p>次の例では、<span class="citation"
+                    data-cites="file">@file</span> と <span
+                    class="citation"
+                    data-cites="save_data">@save_data</span>
+                    のアクセス可能な属性を使用して、ゲームの保存を Games
+                    クラスにラップします。次のことを考慮してください。</p>
+                    <pre><code>class Game
+  attr_accessor :file, :save_data
+  SaveData =
+    Struct.new *%i[score secret_word running_guess not_in_word]
+
+  def initialize(filename=&quot;game_save.bin&quot;, **kwargs)
+    @file = filename
+    @save_data = SaveData.new
+    @save_data.members.map { @save_data[_1] = kwargs[_1] }
+  end
+
+  def save
+    File.open(@file, ?w) { Marshal.dump @save_data, _1 }
+  end
+
+  def load
+    @save_data = Marshal.load File.read(file)
+  end
+end
+
+if __FILE__ == $0
+  # create a new game and populate some data.
+  game = Game.new score: 1, foo: 2, not_in_word: 3
+
+  # save the game to a file, then clobber the file
+  # and display the now-empty Struct.
+  game.save
+  game.save_data = Game::SaveData.new
+  game.save_data
+
+  # load and display the previous save
+  game.load
+end
+</code></pre>
+                    <p>Struct を使用すると、受け渡すことができるデータ
+                    オブジェクトが得られるため、この目的には最適です。
+                    Struct
+                    オブジェクトとグロブ化されたキーワード引数の分解を組み合わせることで、何も失うことなくコードが大幅に簡素化され、ドライアップされます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

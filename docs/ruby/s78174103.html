@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Web サイトのリダイレクトはテスト段階では失敗しますが、通常の状態では問題ないようです | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Web サイトのリダイレクトはテスト段階では失敗しますが、通常の状態では問題ないようです",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Web
+サイトのリダイレクトはテスト段階では失敗しますが、通常の状態では問題ないようです</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これが、rails test:controllers
+                    が私にもたらしたものです。</p>
+                    <pre><code>Failure:
+StoriesControllerTest#test_adds_a_story [test/controllers/stories_controller_test.rb:42]:
+Expected response to be a redirect to &lt;http://www.example.com/stories/980190962&gt; but was a redirect to &lt;http://www.example.com/stories/980190963&gt;.
+Expected &quot;http://www.example.com/stories/980190962&quot; to be === &quot;http://www.example.com/stories/980190963&quot;.
+</code></pre>
+                    <p>ストーリーURLを1つオフセットしているようです</p>
+                    <p>これは失敗する特定のテストです。
+                    assert_redirected_to story_url(<span
+                    class="citation"
+                    data-cites="story">@story</span>)</p>
+                    <p>テストで何を言うべきかを変更しようとしましたが、それはエラーまたは失敗につながります。</p>
+                    <p>失敗したテストは次のとおりです。</p>
+                    <pre><code>  test &quot;adds a story&quot; do
+  assert_difference &quot;Story.count&quot; do
+    post stories_path, params: {
+      story: {
+        name: &#39;test story&#39;,
+        link: &#39;http://www.test.com/&#39;
+      }
+    }
+  end
+  assert_redirected_to story_url(@story)
+  assert_not_nil flash[:notice]
+  end
+</code></pre>
+                    <p>そしてこれがコントローラーのアクションです</p>
+                    <pre><code>  def create
+    @story = Story.new(story_params)
+
+    respond_to do |format|
+      if @story.save
+        format.html { redirect_to story_url(@story), notice: &quot;Story was successfully created.&quot; }
+        format.json { render :show, status: :created, location: @story }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @story.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントですでに述べたように、使用するときは</p>
+                    <pre><code>setup do 
+  @story = stories(:one) 
+end
+</code></pre>
+                    <p>その場合、テスト中に作成されたばかりのストーリーではなく、フィクスチャによって作成された
+                    1 つのストーリーが <span class="citation"
+                    data-cites="story">@story</span>
+                    に割り当てられます。</p>
+                    <p>代わりに、テストを次のように変更することをお勧めします。</p>
+                    <pre><code>test &quot;adds a story&quot; do
+  assert_difference &quot;Story.count&quot; do
+    post stories_path, 
+         params: { story: { name: &#39;test story&#39;, link: &#39;http://www.test.com/&#39; } }
+  end
+
+  assert_redirected_to story_url(Story.last)
+  assert_equal &quot;Story was successfully created.&quot;, flash[:notice]
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

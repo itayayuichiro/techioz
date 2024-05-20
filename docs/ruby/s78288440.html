@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>bsearch が 2 つの値を持つ配列の最初の要素と一致する場合、nil を返します。なぜ？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "bsearch が 2 つの値を持つ配列の最初の要素と一致する場合、nil を返します。なぜ？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>bsearch が 2
+つの値を持つ配列の最初の要素と一致する場合、nil を返します。なぜ？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列に2つの値があるときに、bsearchメソッドがnilを返す理由がわかりません。</p>
+                    <pre><code>arr = [1, 2]
+
+arr.bsearch { |el| el &lt; 2 }
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ドキュメントを検索する</p>
+                    <p>Array#bsearch
+                    のドキュメントを注意深く読む必要があります。 bsearch
+                    には 2
+                    つの形式またはモードがあると述べられています。「最小値検索モードと任意の検索モード。どちらの場合も、配列の要素はブロックに関して単調
+                    (またはソート) でなければなりません。」 find-minimum
+                    モードでは、ブロックは true または false
+                    を返します。 find-any
+                    モードでは、配列の要素と同じクラスの値がブロックによって返されます。したがって、find-minimum
+                    モードを使用していることになります。</p>
+                    <p>また、ドキュメントから、find-minimum
+                    モードでは、次のようにインデックス i, 0 &lt;= i
+                    &lt;= ary.size が存在する必要があります。</p>
+                    <p>このメソッドは i 番目の要素を返します。 i が
+                    ary.size に等しい場合、nil を返します。」</p>
+                    <p>コードを調べる</p>
+                    <p>次に、少し変更したステートメントを調べてみましょう。</p>
+                    <pre><code>arr = [1, 2, 3]
+arr.bsearch { |el| el &lt; 2 } #=&gt; nil
+</code></pre>
+                    <p>bsearch
+                    の使用によって課せられる要件を満たすインデックス
+                    0、1、または 2 を見つけたいと考えています。</p>
+                    <p>対象のインデックスが 0
+                    であるとします。ゼロより小さいインデックスはないため、arr[1]
+                    &lt; 2 と arr[2] &lt; 2 (2 &lt; 2 および 3 &lt; 2)
+                    が両方とも真かどうかをテストします。実際にはどちらも誤りです。したがって、インデックス
+                    0 は考慮から除外されます。</p>
+                    <p>ここで、ドキュメントで参照されているインデックスが
+                    1 だったとします。arr[0] &lt; 2 が false
+                    であることが必要ですが、これは true
+                    です。したがって、インデックス 1
+                    を除外できます。</p>
+                    <p>インデックスが 2 に等しくなるには、arr[0] &lt; 2
+                    と arr[1] &lt; 2 の両方が false
+                    である必要がありますが、実際には両方とも true
+                    です。</p>
+                    <p>besearchを使用するための要件を満たすインデックスが存在しないため、nilが返されます。</p>
+                    <p>コードを修正する</p>
+                    <p>arr = [1, 2, 3]
+                    の場合、式は次のように記述する必要があることは明らかです。</p>
+                    <pre><code>arr.bsearch { |el| el &gt;= 2 }      #=&gt; 2
+arr.bsearch { |el| el &gt; 2  }      #=&gt; 3
+arr.bsearch { |el| el &gt; 0  }      #=&gt; 1
+arr.bsearch { |el| el &gt; 3  }      #=&gt; nil
+</code></pre>
+                    <p>その他の例</p>
+                    <p>配列に整数が含まれる例をさらにいくつか示します。</p>
+                    <pre><code>ary = [2, 4, 6]
+
+ary.bsearch { |el| el &gt; -99 }     #=&gt; 2
+ary.bsearch { |el| el &gt; 1 }       #=&gt; 2
+ary.bsearch { |el| el &gt; 2 }       #=&gt; 4
+ary.bsearch { |el| el &gt;= 2 }      #=&gt; 2
+ary.bsearch { |el| el &gt;= 6 }      #=&gt; 6
+ary.bsearch { |el| el &gt; 6 }       #=&gt; nil
+</code></pre>
+                    <p>配列は増加しないこともできます</p>
+                    <p>配列は非減少である必要はなく、単調である必要があることに注意してください。これは、非減少または非増加を意味します。以下は、配列が増加していない
+                    (実際には厳密に減少している)
+                    例です。もちろん、ブロック計算もそれに応じて調整する必要があります。</p>
+                    <pre><code>ary = [6, 4, 2]
+
+ary.bsearch { |el| el &lt;= 7 }    #=&gt; 6
+ary.bsearch { |el| el &lt;= 99}    #=&gt; 6
+ary.bsearch { |el| el &lt; 5 }     #=&gt; 4
+ary.bsearch { |el| el &lt;= 4 }    #=&gt; 4
+ary.bsearch { |el| el &lt; 4 }     #=&gt; 2
+ary.bsearch { |el| el &lt;= 2 }    #=&gt; 2
+ary.bsearch { |el| el &lt; 2 }     #=&gt; nil  
+ary.bsearch { |el| el &lt;= 1 }    #=&gt; nil
+</code></pre>
+                    <p>配列には数値以外の値が含まれる場合があります</p>
+                    <p>唯一の要件は、要素のペアが宇宙船演算子 &lt;=&gt;
+                    と比較できることです。 a &lt;=&gt; b は、a &lt; b
+                    の場合は -1 を返し、a == b の場合は 0 を返し、a &gt;
+                    b の場合は 1 を返します。</p>
+                    <p>たとえば、文字列の場合、bsearch では
+                    String#&lt;=&gt;
+                    が使用されます。ここではいくつかの例を示します。</p>
+                    <pre><code>ary = [&#39;brush&#39;, &#39;keep&#39;, &#39;task&#39;]
+
+ary.bsearch { |s| s &gt;= &#39;hi&#39; }     #=&gt; &quot;keep&quot;
+ary.bsearch { |s| s &gt;= &#39;align&#39; }  #=&gt; &quot;brush&quot;
+ary.bsearch { |s| s &gt;= &#39;mama&#39; }   #=&gt; &quot;task&quot;
+ary.bsearch { |s| s &gt;= &#39;tar&#39; }    #=&gt; &quot;task&quot;
+ary.bsearch { |s| s &gt;= &#39;tax&#39; }    #=&gt; &quot;nil&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

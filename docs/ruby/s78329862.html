@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Python でのネストされた Ruby ハッシュ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Python でのネストされた Ruby ハッシュ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Python でのネストされた Ruby ハッシュ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>誰か、このコードが Ruby
+                    で何をするのか説明してもらえますか?</p>
+                    <pre><code>x = -&gt;(h, k) { h[k] = Hash.new(&amp;x) }
+@abc = Hash.new(&amp;x)
+</code></pre>
+                    <p>検索しましたが、実際に何が起こっているのかわかりませんでした。
+                    ネストされたハッシュを作成することを目的としているのでしょうか？</p>
+                    <p>また、Python
+                    で書きたい場合、これはどのように変換されるでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby コードを使用すると、Hash.new
+                    に渡されるラムダによって定義される動的なデフォルト値を使用して、新しいハッシュ
+                    (Python に相当するものは辞書) を作成します。 Python
+                    では、これはコンストラクターに渡される (匿名の)
+                    関数とみなすことができます。</p>
+                    <p>このラムダ
+                    (ここでは重要ではないいくつかの間接指定を伴います)
+                    は、ハッシュ内の未定義のキーがアクセスされるたびに呼び出されます。ラムダによって返される値はキーの値であるとみなされます。ラムダには、ハッシュにデフォルト値を追加するという副作用もあります。</p>
+                    <p>したがって、これは Python の defaultdict
+                    コレクションと非常によく似た働きをします。</p>
+                    <p>現在、デフォルト値は常に新しいハッシュ
+                    オブジェクトになり、未定義のキーがアクセスされたときに新しいハッシュ
+                    オブジェクトを設定して返すように再度設定されます。</p>
+                    <pre><code>x = -&gt;(h, k) { h[k] = Hash.new(&amp;x) }
+@abc = Hash.new(&amp;x)
+
+@abc[:a]
+# =&gt; {}
+
+@abc[:b]
+# =&gt; {}
+
+@abc[:a].equal? @abc[:a]
+=&gt; true
+
+@abc[:a].equal? @abc[:b]
+=&gt; false
+
+@abc[:custom] = 123
+@abc[:x][:y][:z] = &#39;abc&#39;
+@abc
+# =&gt; {:a=&gt;{}, :b=&gt;{}, :custom=&gt;123, :x=&gt;{:y=&gt;{:z=&gt;&quot;abc&quot;}}}
+</code></pre>
+                    <p>同等の Python データ構造は次の defaultdict
+                    のようなものになると思います。</p>
+                    <pre><code>from collections import defaultdict
+
+x = lambda defaultdict(lambda: x())
+abc = defaultdict(lambda: x())
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Vite + Rails でホットリロードが機能しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Vite + Rails でホットリロードが機能しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Vite + Rails
+でホットリロードが機能しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリを作成し、vite_rails gem
+                    をインストールしました。私のJavaScriptはapp/frontendフォルダーにあります。</p>
+                    <p>ただし、JS
+                    ファイルを保存するときのホットリロードが機能しません。</p>
+                    <p>vite-plugin-full-reload NPM
+                    パッケージをインストールして試してみました。これは私のviteの設定です:</p>
+                    <pre><code>// vite.config.js
+import { fileURLToPath, URL } from &#39;node:url&#39;
+
+import { defineConfig } from &#39;vite&#39;
+import FullReload from &#39;vite-plugin-full-reload&#39;
+import RubyPlugin from &#39;vite-plugin-ruby&#39;
+import vue from &#39;@vitejs/plugin-vue&#39;
+
+export default defineConfig({
+  plugins: [
+    RubyPlugin(),
+    vue(),
+    FullReload([&#39;config/routes.rb&#39;, &#39;app/views/**/*&#39;, &#39;app/frontend/**/*&#39;]),
+  ],
+  resolve: {
+    alias: {
+      &#39;@&#39;: fileURLToPath(new URL(&#39;./app/frontend/internal&#39;, import.meta.url)),
+    },
+  },
+})
+</code></pre>
+                    <p>Docker 構成:</p>
+                    <pre><code># docker-compose.yml
+services:
+  db:
+    image: postgres
+    env_file: .env.development
+  web:
+    image: rails
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - &quot;3000:3000&quot;
+    depends_on:
+      - db
+    env_file: .env.development
+</code></pre>
+                    <pre><code>FROM ruby:3.3
+
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential apt-utils libpq-dev nodejs npm
+
+COPY . /app
+WORKDIR /app
+
+RUN gem install bundler rails &amp;&amp; bundle
+
+CMD rm tmp/pids/server.pid &amp;&amp; rails s -b 0.0.0.0
+</code></pre>
+                    <p>まだリロードされません、なぜですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下は、vite-dev で動作する docker-compose.yml
+                    の例です。</p>
+                    <pre><code>  app:
+    build:
+      context: .
+    depends_on:
+      - database
+      - redis
+      - vite
+    entrypoint: ./entrypoints/docker-entrypoint.sh
+    command: [&quot;rails&quot;, &quot;server&quot;, &quot;-b&quot;, &quot;0.0.0.0&quot;]
+    ports:
+      - 3000:3000
+    env_file: .env
+    environment:
+      RAILS_ENV: development
+      DOCKER: true
+      VITE_RUBY_HOST: vite
+      VITE_RUBY_PORT: 5173
+    stdin_open: true
+    tty: true
+
+  vite:
+    build:
+      context: .
+    entrypoint: ./entrypoints/docker-vite.sh
+    environment:
+      DEBUG: &#39;*vite*&#39;
+      RAILS_ENV: development
+      VITE_RUBY_HOST: 0.0.0.0
+      VITE_RUBY_PORT: 5173
+    ports:
+      - 5173:5173
+</code></pre>
+                    <p>entrypoints/docker-vite.sh は次のとおりです。</p>
+                    <pre><code>#!/bin/sh
+
+yarn install
+bin/vite dev
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

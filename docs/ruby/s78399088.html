@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カスタムピッカー初期化メソッドでの「タイプの戻り式を変換できません」エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カスタムピッカー初期化メソッドでの「タイプの戻り式を変換できません」エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カスタムピッカー初期化メソッドでの「タイプの戻り式を変換できません」エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>SwiftUI Picker
+                    で拡張機能をビルドしようとしていますが、コンパイルしようとするとコンテンツ
+                    クロージャ内で次のエラーが発生します。</p>
+                    <p>コードは次のとおりです。</p>
+                    <pre><code>extension Picker where SelectionValue: Identifiable, Label == Text {
+    
+    init&lt;Data&gt;(_ title: String, selection: Binding&lt;SelectionValue&gt;, items: Data, @ViewBuilder itemContent: @escaping (Data.Element) -&gt; some View) where Data: RandomAccessCollection, Data.Element == SelectionValue {
+        self.init(title, selection: selection, content: {
+            ForEach(items) { item in
+                itemContent(item).tag(item)
+            }
+        })
+    }
+}
+</code></pre>
+                    <p>ForEach は View に準拠する必要があるため、Content
+                    type の要件を満たす必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コンテンツを何にも制約していないため、init
+                    はコンテンツ タイプ
+                    パラメーターが任意のビューであるピッカーを作成できることが期待されています。ただし、init
+                    で作成したピッカーのコンテンツ タイプは
+                    ForEach&lt;…&gt; です。</p>
+                    <p>これは、コンテンツに制約を追加する必要があることを意味します。</p>
+                    <pre><code>// note that you should also parameterise this with ItemContent
+// you can&#39;t use (Data.Element) -&gt; some View anymore, because you need the return type
+// of that to constrain Content
+init&lt;Data, ItemContent&gt;(
+    _ title: String,
+    selection: Binding&lt;SelectionValue&gt;,
+    items: Data,
+    @ViewBuilder itemContent: @escaping (Data.Element) -&gt; ItemContent
+) where
+    Data: RandomAccessCollection,
+    Data.Element == SelectionValue,
+    Content == ??? // &lt;=== here
+</code></pre>
+                    <p>では、ForEach(items) { … } の型は何でしょうか?
+                    .tag
+                    修飾子が返す型がわからないため、実際にはわかりません。</p>
+                    <p>これを回避する簡単な方法の 1 つは、この ForEach
+                    をラップする独自のビューを作成することです。</p>
+                    <pre><code>struct PickerContentHelper&lt;Data, Content&gt;: View
+    where Data: RandomAccessCollection, 
+        Data.Element: Hashable,
+        Data.Element: Identifiable,
+        Content: View
+{
+    
+    let items: Data
+    let itemContent: (Data.Element) -&gt; Content
+    
+    init(_ items: Data, @ViewBuilder itemContent: @escaping (Data.Element) -&gt; Content) {
+        self.items = items
+        self.itemContent = itemContent
+    }
+    
+    var body: some View {
+        ForEach(items) { item in
+            itemContent(item).tag(item)
+        }
+    }
+}
+</code></pre>
+                    <p>次に、Content を PickerContentHelper&lt;Data,
+                    ItemsContent&gt; に制限できます。</p>
+                    <pre><code>extension Picker where SelectionValue: Identifiable, Label == Text {
+    
+    init&lt;Data, ItemContent&gt;(
+        _ title: String,
+        selection: Binding&lt;SelectionValue&gt;,
+        items: Data,
+        @ViewBuilder itemContent: @escaping (Data.Element) -&gt; ItemContent
+    ) where
+        Data: RandomAccessCollection,
+        Data.Element == SelectionValue,
+        Content == PickerContentHelper&lt;Data, ItemContent&gt;
+    {
+        self.init(title, selection: selection) {
+            PickerContentHelper(items, itemContent: itemContent)
+        }
+    }
+}
+</code></pre>
+                    <p>これは、他の多くの SwiftUI
+                    ビューで見られる一般的なパターンです。これらの「ヘルパー
+                    ビュー」の多くは、「サポートするタイプ」セクションにあります。たとえば、ShareLink
+                    には DefaultShareLinkLabel
+                    があり、init(item:subject:message:)
+                    などの初期化子は、Label タイプ
+                    パラメーターをこのタイプに制約します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

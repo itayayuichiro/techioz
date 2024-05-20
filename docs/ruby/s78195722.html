@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ransackable_scopes のスコープでの activeadmin フィルターの作成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ransackable_scopes のスコープでの activeadmin フィルターの作成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ransackable_scopes のスコープでの activeadmin
+フィルターの作成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>User モデルと関連付けられたモデルのページに
+                    activeadmin フィルターを作成したいと考えています。
+                    first_name フィールドと last_name
+                    フィールドを組み合わせたカスタム
+                    スコープmatches_nameを使用したいと思います。そのスコープをモデルの
+                    ransackable_scopes メソッドに追加したので、Rails
+                    コンソールでクエリできるようになりました。</p>
+                    <p>次のようにフィルターを指定しました。</p>
+                    <pre><code>filter :user_matches_name, as: :string, label: &quot;User&quot;
+</code></pre>
+                    <p>ただし、ページをロードすると、次のメッセージが表示されてエラーになります。</p>
+                    <pre><code>undefined method `user_matches_name_contains&#39; for Ransack::Search&lt;class: MyModel, base: Grouping &lt;combinator: and&gt;&gt;:Ransack::Search
+</code></pre>
+                    <p>同様のエラーが発生することなく、ユーザー
+                    activeadmin ページにフィルターを作成できました。</p>
+                    <pre><code>filter :matches_name, as: :string, label: &quot;User&quot;
+</code></pre>
+                    <p>ransack または activeadmin
+                    がフィルターの最後に余分な _contains
+                    を追加しないようにする方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ransacker を使用して、User クラスの first_name と
+                    last_name (full_name など) を結合し、User
+                    モデルに関連付けられている ActiveAdmin リソース
+                    ファイルから次のフィルターを使用できます。
+                    フィルター:user_full_name、as: :string、ラベル:
+                    ‘ユーザー’</p>
+                    <p>私のモデルリソースの登録</p>
+                    <pre><code>ActiveAdmin.register MyModel do
+  actions :index
+
+  filter :user_full_name, as: :string, label: &#39;User&#39;
+end
+</code></pre>
+                    <p>ユーザーリソースの登録</p>
+                    <pre><code>ActiveAdmin.register User do
+  actions :index
+end
+</code></pre>
+                    <p>ユーザーモデルとMyModelモデル</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  belongs_to :user
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user]
+  end
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at id id_value updated_at user_id]
+  end
+end
+
+class User &lt; ApplicationRecord
+  ransacker :full_name do |parent|
+    Arel::Nodes::InfixOperation.new(&#39;||&#39;, parent.table[:first_name], parent.table[:last_name])
+  end
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at first_name full_name id id_value last_name updated_at]
+  end
+end
+</code></pre>
+                    <p>このコードは、ActiveAdmin gem の 3.x.x
+                    バージョンと 2.x.x
+                    バージョンの両方で適切に動作するはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

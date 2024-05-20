@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Webpacker は Docker でコンパイルが非常に遅い | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Webpacker は Docker でコンパイルが非常に遅い",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Webpacker は Docker
+でコンパイルが非常に遅い</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>数日前に Docker 化した Rails 6
+                    アプリケーションがあります
+                    (現時点では開発環境用)。イメージにいくつか問題がありましたが、なんとか修正できました。今ではアプリケーション全体がスムーズに動作し、Docker
+                    ですべてが正常に動作します。</p>
+                    <p>唯一の問題は、Webpacker
+                    のコンパイルに時間がかかりすぎることです。 Docker
+                    を使用する前はすでに 30
+                    秒ほどかかっていましたが、現在では最大 5
+                    分、最短でも 3 分かかることがあります。</p>
+                    <p>ボリュームを利用して、packs
+                    フォルダーをキャッシュしてみました。 -
+                    ./public/packs:/app_name/public/packs:cached
+                    しかし、何も変わっていなかったようです。</p>
+                    <p>他の解決策はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="β.εηοιτ.βε">@β.εηοιτ.βε</span>
+                    が述べているように、開発にはローカルに (ファイル
+                    システム上に直接)
+                    マウントされたボリュームを使用できます。</p>
+                    <p>以下に、マルチステージを活用するために docker
+                    compose と Dockerfile
+                    を考慮したアプローチの組み合わせを追加した例を示します
+                    (私が提案しているのは一般的なソリューションであることに留意してください)。</p>
+                    <p>docker-compose.yml</p>
+                    <pre><code>version: &#39;3.9&#39;
+
+services:
+  api: # or whatever name you use
+    build:
+      dockerfile: Dockerfile
+      context: .
+      # use just the development stage
+      target: development
+    command: &lt;command to start in dev mode&gt;
+    expose:
+      - ${PORT}
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    volumes:
+      # use the local folder mapped to `/app` in container volume
+      - .:/app
+      - &lt;directory_you_want_to_include_in_volume&gt;:/app/&lt;target_in_volume&gt;
+
+volumes:
+  &lt;directory_you_want_to_include_in_volume&gt;:
+    driver: local
+</code></pre>
+                    <p>Dockerfile</p>
+                    <pre><code>FROM &lt;your_image&gt; as development
+
+# Create app directory
+WORKDIR /app
+
+# Copy source files
+COPY . .
+
+# Install with options as needed
+RUN bundle install 
+
+# Build API
+RUN &lt;any command to build/bundle your app&gt;
+
+# here the development build will stop, 
+# and the start command of the docker compose file will take care.
+
+FROM &lt;your_image&gt; as production
+
+# Create app directory
+WORKDIR /app
+
+# Copy necessary files to run the app
+COPY --from=development /app/&lt;whatever_needed&gt; ./
+
+# Install only production dependencies
+RUN &lt;specific_production_bundler&gt;
+
+EXPOSE 80
+
+CMD [&quot;bundle&quot;, &quot;exec&quot;, &quot;rails&quot;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

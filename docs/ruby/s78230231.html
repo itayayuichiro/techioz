@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>正しいアルファベット順 - プラットフォーム全体のソリューション | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "正しいアルファベット順 - プラットフォーム全体のソリューション",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>正しいアルファベット順 -
+プラットフォーム全体のソリューション</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、私たちのアプリでは、データをアルファベット順に並べるシステムのデフォルトの方法をオーバーライドせず、大文字を小文字よりも優先して並べ替えます。</p>
+                    <p>照合順序を変更せずに、アプリケーション全体で大文字と小文字を区別しないようにするにはどうすればよいですか?</p>
+                    <p>データベース: PostgreSQL</p>
+                    <p>これについて何かアイデアはありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>手っ取り早い回避策は、次のようなスコープを
+                    ApplicationRecord に追加することです。</p>
+                    <pre><code>scope :order_ci, -&gt;(attribute) { order(&quot;LOWER(#{attribute})&quot;) }
+</code></pre>
+                    <p>または、特定の照合順序を使用して次のようにします。</p>
+                    <pre><code>scope :order_ci, -&gt;(attribute) { order(&quot;#{attribute} COLLATE en_US.UTF-8&quot;) }
+</code></pre>
+                    <p>そして、そのスコープを Foo.order(:name)
+                    の代わりに Foo.order_ci(:name)
+                    のように使用します。</p>
+                    <p>ただし、この「ソリューション」には多くの欠陥があることに注意してください。Ruby
+                    on Rails
+                    に付属する順序メソッドは、多くのデータ型と形式
+                    (単一の値、ハッシュ、文字列、リスト)
+                    を受け入れ、同時に 1
+                    つだけではなく多くの属性を受け入れます。 Rails
+                    メソッドは入力を正しくサニタイズしましたが、このメソッドはサニタイズしません。</p>
+                    <p>つまり、データベースの照合順序を修正する代わりに、このような回避策を使用したい場合です。次に、オーバーライドされたメソッドが基本的にすべてのデータ形式を処理でき、Ruby
+                    on Rails
+                    メソッドと同様に適切なサニタイズを実行できることを確認する必要があります。そうしないと、最良の場合にはバグが発生する危険があり、最悪の場合にはセキュリティ上の脆弱性が発生する危険があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

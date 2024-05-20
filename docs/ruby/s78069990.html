@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アプリの Azure ドメインのブロックを解除するためのミドルウェアの構成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アプリの Azure ドメインのブロックを解除するためのミドルウェアの構成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アプリの Azure
+ドメインのブロックを解除するためのミドルウェアの構成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Railsアプリケーションを開発しています。他のユーザーがテスト目的で
+                    Rails アプリにアクセスできるように、Azure 上に Web
+                    アプリを作成しました。 Azure
+                    に関してはすべて構成しましたが、Web
+                    アプリにログオンしようとすると、ブロックされたホスト
+                    エラーが発生します。</p>
+                    <pre><code>Blocked hosts: &lt;web app name&gt;.azurewebsites.net
+
+To allow requests to these hosts, make sure they are valid hostnames (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:
+
+    config.hosts &lt;&lt; &quot;&lt;web app name&gt;.azurewebsites.net&quot;
+</code></pre>
+                    <p>ドキュメントへのリンクにアクセスしましたが、まだ同じ問題が発生しています。追加してみました:</p>
+                    <pre><code>Rails.application.config.hosts &lt;&lt; &quot;&lt;web app name&gt;.azurewebsites.net&quot;
+</code></pre>
+                    <p>config/environments/development.rb
+                    ファイルの最後とこれの他のバリエーションに追加しましたが、依然として同じエラーが発生します。私はRailsに少し慣れていないので、誰かが何か提案を持っていれば、とても感謝されます。</p>
+                    <p>編集:
+                    これらのコマンドを実行するときに、「<Web アプリ名>」ではなく、実際の
+                    Web アプリ名を入力すると仮定します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このドキュメントに従って、WSL を使用して Windows
+                    10 上で Ruby on Rails をセットアップしました。</p>
+                    <p>Windows Subsystem for Linux (WSL) を使用して
+                    Windows 10 に Ruby on Rails
+                    をインストールするには、次の手順に従います。</p>
+                    <p>wsl –install -d Ubuntu</p>
+                    <pre><code>cd
+git clone https://github.com/excid3/asdf.git ~/.asdf
+echo &#39;. &quot;$HOME/.asdf/asdf.sh&quot;&#39; &gt;&gt; ~/.bashrc
+echo &#39;. &quot;$HOME/.asdf/completions/asdf.bash&quot;&#39; &gt;&gt; ~/.bashrc
+echo &#39;legacy_version_file = yes&#39; &gt;&gt; ~/.asdfrc
+echo &#39;export EDITOR=&quot;code --wait&quot;&#39; &gt;&gt; ~/.bashrc
+exec $SHELL
+</code></pre>
+                    <p>asdf プラグインで Ruby を追加
+                    asdfプラグインでnodejsを追加</p>
+                    <pre><code>Then install the desired versions of Ruby and Node.js:
+</code></pre>
+                    <pre><code>asdf install ruby 3.3.0
+asdf global ruby 3.3.0
+gem update --system
+asdf install nodejs 20.11.0
+asdf global nodejs 20.11.0
+npm install -g yarn
+</code></pre>
+                    <p>sudo apt install postgresql libpq-dev</p>
+                    <p>sudoサービスpostgresqlの開始</p>
+                    <p>次に、データベースを作成する権限を持つユーザーを作成します。</p>
+                    <pre><code>sudo -u postgres createuser &lt;your_username&gt; -s
+sudo -u postgres psql
+postgres=# \password &lt;your_username&gt;
+</code></pre>
+                    <p>Railsの新しいウェブログ</p>
+                    <p>CD ウェブログ</p>
+                    <p>レールサーバー</p>
+                    <p>（または）</p>
+                    <pre><code>`rails new myapp -d postgresql
+cd myapp
+rake db:create
+rails server`
+</code></pre>
+                    <p>出力：</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

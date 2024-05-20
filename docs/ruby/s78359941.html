@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Chrubyをインストールしようとしたときの問題、ターミナルの問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Chrubyをインストールしようとしたときの問題、ターミナルの問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Chrubyをインストールしようとしたときの問題、ターミナルの問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Jekyll サイトに記載されているように、Chruby
+                    をインストールして使用して Jekyll
+                    をインストールしようとしています。ただし、コマンドを実行すると、</p>
+                    <pre><code>&quot;source $(brew --prefix)/opt/chruby/share/chruby/chruby.sh&quot; &gt;&gt; ~/.zshrc
+</code></pre>
+                    <p>次のエラーが表示されます。</p>
+                    <pre><code>zsh: no such file or directory: source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
+</code></pre>
+                    <p>私はこれらのターミナル操作がすべて苦手なので、誰かがプロセスを段階的に説明したり、何が間違っているのかを段階的に教えてくれませんか?ありがとう。</p>
+                    <p>chruby
+                    がインストールされているかどうかを確認したところ、インストールされていると表示されました。
+                    Homebrew
+                    を使用してすべてをインストールし、すべてのファイルが正しくインストールされました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、chruby
+                    コマンドが正しくインストールされていない
+                    (間違った場所にインストールされているか、まったくインストールされていない)
+                    ことを示しています。 Web
+                    サイトでソースコマンドの前に実行するように指示されたコマンドを実行しましたか?</p>
+                    <pre><code># 1. Install Brew
+/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot; 
+
+# 2. Install chruby, ruby-install, and xz
+brew install chruby ruby-install xz
+
+# 3. Install ruby through chruby
+ruby-install ruby 3.1.3
+
+# 4. Make zsh use chruby&#39;s version of ruby instead of the system version
+echo &quot; $(brew --prefix)/opt/chruby/share/chruby/chruby.sh&quot; &gt;&gt; ~/.zshrc
+echo &quot;source $(brew --prefix)/opt/chruby/share/chruby/auto.sh&quot; &gt;&gt; ~/.zshrc
+echo &quot;chruby ruby-3.1.3&quot; &gt;&gt; ~/.zshrc # run &#39;chruby&#39; to see actual version
+</code></pre>
+                    <p>編集:
+                    申し訳ありませんが、これらのコマンドを既に実行したと言っていたのを見逃していました</p>
+                    <p>これらのコマンドを実行したようなので、これを試してください。</p>
+                    <pre><code># 1. find the chruby path. Mine, for example, is 
+# /usr/local/Cellar/chruby/0.3.9/share/chruby/chruby.sh
+find / -name &quot;chruby.sh&quot; 2&gt;/dev/null
+
+# 2. find the auto.sh path. Mine is 
+/usr/local/Cellar/chruby/0.3.9/share/chruby/auto.sh
+find / -name &quot;auto.sh&quot; 2&gt;/dev/null
+
+# 3. Add the source command to your zshrc file with the found paths
+echo &quot;source {{ insert_chruby_path }}&quot; &gt;&gt; ~/.zshrc
+echo &quot;source {{ insert_auto.sh_path }}&quot; &gt;&gt; ~/.zshrc
+echo &quot;chruby {{ insert_version_number }} &gt;&gt; ~/.zshrc
+</code></pre>
+                    <p>この手動のアプローチが役に立つかもしれません。幸運を！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

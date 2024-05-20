@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コマンド自体が新しいシェルプロセスに置き換えられた後、スクリプトの実行を続行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コマンド自体が新しいシェルプロセスに置き換えられた後、スクリプトの実行を続行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コマンド自体が新しいシェルプロセスに置き換えられた後、スクリプトの実行を続行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような実行可能な Ruby
+                    スクリプトがあります。</p>
+                    <p>例：</p>
+                    <pre><code>#!/usr/bin/env ruby
+at_exit do
+  # Replace the currently running Ruby process with a new instance of the parent shell 
+  exec(`ps -p #{Process.ppid} -o comm=`.chomp)
+end
+</code></pre>
+                    <p>コマンドとして実行する場合は正常に動作しますが、それ自体を新しいシェル
+                    インスタンスに置き換えるため、実行後にコマンドが実行されないため、スクリプトでは動作しません。</p>
+                    <p>実行を継続できるようにシェル
+                    スクリプトを変更するにはどうすればよいですか?</p>
+                    <p>(私は次のようにシェルスクリプトを実行しています:
+                    bash test.sh)</p>
+                    <p>私が達成したいことのいくつかの例:</p>
+                    <p>テスト.sh:</p>
+                    <pre><code>#!/usr/bin/bash
+./example &amp;&amp; echo &quot;How do i get here&quot;
+</code></pre>
+                    <p>テスト1.sh:</p>
+                    <pre><code>#!/usr/bin/bash
+VAR=foo
+$VAR ./example &lt;argument&gt; 
+</code></pre>
+                    <p>テスト2.sh:</p>
+                    <pre><code>#!/usr/bin/bash
+cd ~ &amp;&amp; git clone https://github.com/gfxstrand/pycook
+yes | ./example 
+</code></pre>
+                    <p>テスト3.sh:</p>
+                    <pre><code>#!/usr/bin/bash
+./example || echo &quot;How do i get here&quot;
+</code></pre>
+                    <p>Ruby
+                    スクリプトの動作は変更できないことに注意してください。終了時に、Ruby
+                    スクリプト自体を親シェルの新しいインスタンスに置き換える必要があります。
+                    (例外は、Ruby
+                    スクリプトの親プロセスを親シェルの新しいインスタンスに置き換えるソリューションですが、これでも十分です)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最も単純な解決策ではないかもしれませんが、</p>
+                    <pre><code>(sh -c ./example &amp; wait)
+</code></pre>
+                    <p>機能するはずです。 example がそれ自体を親 sh
+                    プロセスに置き換えると、このプロセスはすぐに終了し、祖父母は気にならなくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

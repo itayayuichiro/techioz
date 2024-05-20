@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby DES-EDE3-CBC 暗号化データを Python で復号化する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby DES-EDE3-CBC 暗号化データを Python で復号化する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby DES-EDE3-CBC 暗号化データを Python
+で復号化する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコードによってRubyで暗号化された大量のデータがあります</p>
+                    <pre><code>text = &#39;12345678&#39;
+key = &#39;6b4f0a29d4bba86add88be9d&#39;
+cipher = OpenSSL::Cipher.new(&#39;DES-EDE3-CBC&#39;).encrypt
+cipher.key = key
+s = cipher.update(text) + cipher.final
+encrypted_text = s.unpack(&#39;H*&#39;)[0].upcase
+# =&gt; 3B223AA60F1921F34CBBBAC209ACDCE4
+</code></pre>
+                    <p>Rubyで復号化できる</p>
+                    <pre><code>cipher = OpenSSL::Cipher.new(&#39;DES-EDE3-CBC&#39;).decrypt
+cipher.key = key
+s = [encrypted_text].pack(&quot;H*&quot;).unpack(&quot;C*&quot;).pack(&quot;c*&quot;)
+cipher.update(s) + cipher.final
+# =&gt; 12345678
+</code></pre>
+                    <p>次に、Python でデータを復号化する必要があります。
+                    以下のように暗号化コードを書きました。</p>
+                    <pre><code>from Crypto.Cipher import DES3
+from Crypto import Random
+from base64 import b64encode, b64decode
+from Crypto.Util.Padding import pad, unpad
+
+key = &#39;6b4f0a29d4bba86add88be9d&#39;
+iv = Random.new().read(DES3.block_size)
+cipher = DES3.new(key, DES3.MODE_CBC, iv)
+text = &#39;12345678&#39;.encode()
+encrypted = cipher.encrypt(text)
+encrypted_text = encrypted.hex()
+print(encrypted_text)
+# =&gt; f84f555b02e3ee24
+</code></pre>
+                    <p>ご覧のとおり、暗号化されたデータは、少なくとも長さがまったく異なります。したがって、復号化部分は機能しません。
+                    Ruby と互換性を持たせるために Python
+                    コードを変更するにはどうすればよいですか?
+                    残念ながら、データは Ruby
+                    アプリケーションで入手できたので、Python
+                    のみを変更できました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby コードとの互換性を保つために、Python
+                    コードには次のものが欠けています。</p>
+                    <p>これにより、Python
+                    コードを次のように修正する必要があります。</p>
+                    <pre><code>from Crypto.Cipher import DES3
+from Crypto.Util.Padding import pad, unpad
+
+key = &#39;6b4f0a29d4bba86add88be9d&#39;
+iv = b&#39;\0&#39; *  DES3.block_size                       # apply a zero IV
+cipher = DES3.new(key, DES3.MODE_CBC, iv)
+text = pad(&#39;12345678&#39;.encode(), DES3.block_size)    # pad
+encrypted = cipher.encrypt(text)
+encrypted_text = encrypted.hex()
+print(encrypted_text.upper()) # =&gt; 3B223AA60F1921F34CBBBAC209ACDCE4
+</code></pre>
+                    <p>この変更により、Python コードは Ruby
+                    コードの結果を提供するようになりました。
+                    対応する復号化は次のとおりです。</p>
+                    <pre><code>...
+key = &#39;6b4f0a29d4bba86add88be9d&#39;
+iv = b&#39;\0&#39; *  DES3.block_size     
+cipher = DES3.new(key.encode(), DES3.MODE_CBC, iv)
+ciphertext = bytes.fromhex(&#39;3B223AA60F1921F34CBBBAC209ACDCE4&#39;)
+decrypted = cipher.decrypt(ciphertext)
+decryptedUnpadded = unpad(decrypted, DES3.block_size)
+print(decryptedUnpadded.decode(&#39;utf8&#39;)) # =&gt; 12345678
+</code></pre>
+                    <p>ただし、コードには脆弱性があることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

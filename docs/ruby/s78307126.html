@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>n個の項目の配列に一致するパターン | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "n個の項目の配列に一致するパターン",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>n個の項目の配列に一致するパターン</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails でモデルをテストしていますが、関連付けの 1
+                    つに n
+                    個の項目があることを主張したいと思います。私は、assert_pattern
+                    matcher
+                    がそれを行うための非常に良い方法であることを発見しました。</p>
+                    <pre><code>assert_pattern do
+  author.books.to_a =&gt;
+    [Book,
+    Book,
+    Book,
+    Book,
+    Book]
+end
+</code></pre>
+                    <p>ただし、そのような項目の大きなリストがあると、読むのが難しい場合があることもわかりました。
+                    Ruby で通常行う方法で配列を拡張してみました。</p>
+                    <pre><code>assert_pattern do
+  author.books.to_a =&gt; [Book]*5
+end
+</code></pre>
+                    <p>ただし、パターン
+                    マッチャー内では、これは構文エラーになります。</p>
+                    <pre><code>test/models/book_test.rb:39: syntax error, unexpected &#39;*&#39;, expecting `end&#39; or dummy end (SyntaxError)
+    author.books.to_a =&gt; [Book]*5
+                               ^
+</code></pre>
+                    <p>長さに応じたパターンを作成する簡潔な方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私はそうは思わない。 ^(expression)
+                    を使用してパターン内で任意の式を使用できますが、マッチングはまったく異なります。</p>
+                    <p>リテラル [pattern, …, *variable]
+                    構文を使用する場合、例:</p>
+                    <pre><code>ary =&gt; [Foo, Bar, Baz]
+</code></pre>
+                    <p>Ruby はまず ary の長さが 3
+                    であることを確認し、次に次のように各要素を個別に照合します。</p>
+                    <p>クラスまたはモジュールの場合、これは is_a?
+                    と同等です。チェック。</p>
+                    <p>上の例では、[Foo, Bar, Baz]
+                    は実際の配列ではないことに注意してください。パターン
+                    マッチングでは配列のような構文を使用するだけです。この構文内では、*
+                    をワイルドカードとして使用したり、値を変数にバインドしたりすることもできます。</p>
+                    <p>^(式) 構文を使用する場合、例:</p>
+                    <pre><code>ary =&gt; ^([Foo, Bar, Baz])
+</code></pre>
+                    <p>Ruby
+                    はその式の結果を単一の値として扱い、チェックを 1
+                    つだけ実行します。</p>
+                    <p>===
+                    を介して両方の配列を比較することは、各要素を個別にチェックすることと同等ではないため、あなたの場合は機能しないようです。</p>
+                    <pre><code>[Book, Book] === [Book.new, Book.new] #=&gt; false
+</code></pre>
+                    <p>カスタム === 動作を持つ配列またはマッチャー
+                    オブジェクトを構築できます。ただし、その時点では、パターン
+                    マッチングの代わりに単純なアサーションを使用する方が簡単でしょう。例:</p>
+                    <pre><code>assert do
+  author.books.count == 5 &amp;&amp; author.books.to_a.all?(Book)
+end
+</code></pre>
+                    <p>(多態性の関連付けや STI
+                    を扱っている場合を除き、型チェックは不要になる可能性があります)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

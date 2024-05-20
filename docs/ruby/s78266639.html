@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Opensearch と Ruby on Rails の統合 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Opensearch と Ruby on Rails の統合",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Opensearch と Ruby on Rails の統合</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、私の Rails アプリケーションは、統合のために
+                    Elasticsearch-model および elasticsearch-rails gems
+                    を使用して Elasticsearch を利用しています。</p>
+                    <pre><code>require &#39;elasticsearch/model&#39;
+class Article &lt; ActiveRecord::Base
+  include Elasticsearch::Model
+  include Elasticsearch::Model::Callbacks
+
+  settings :index =&gt; {
+    :number_of_shards =&gt; 1,
+    :max_result_window =&gt; MAX_RESULT_WINDOW
+  },
+  :analysis =&gt; {
+    :filter =&gt; {
+      :email =&gt; {
+        :type =&gt; &#39;pattern_capture&#39;,
+        :preserve_original =&gt; 1,
+        :patterns =&gt; [
+          &#39;([^@]+)&#39;,
+          &#39;(\\p{L}+)&#39;,
+          &#39;(\\d+)&#39;,
+          &#39;@(.+)&#39;,
+          &#39;([^-@]+)&#39;
+        ]
+      }
+    },
+    :analyzer =&gt; {
+      :email =&gt; {
+        :tokenizer =&gt; &#39;uax_url_email&#39;,
+        :filter =&gt; [
+          &#39;email&#39;,
+          &#39;lowercase&#39;,
+          &#39;unique&#39;
+        ]
+      }
+    }
+  } do
+    mappings do
+      indexes :sent_at, type: &#39;date&#39;, fields: { raw: { type: &#39;date&#39;, index: &#39;not_analyzed&#39; } }
+    end
+  end
+
+  def as_indexed_json(options={})
+    self.as_json(
+      only: [:id, :send_at, :sent_at, :category, :student_id, :delivered_email, :deleted_at],
+      methods: [:student_email, :subject, :from, :sent_at_utc,
+                :groups_name_with_format, :full_name, :deleted_at, :level, :att_name, :has_credential_capture]
+    )
+  end
+end
+
+Article.__elasticsearch__.create_index!
+Article.import
+</code></pre>
+                    <p>現在、OpenSearch
+                    に移行するつもりですが、次のような同様の機能を提供する
+                    gem が見つかりません。</p>
+                    <pre><code>Opensearch.client.import
+</code></pre>
+                    <p>この移行を実現する方法について提案がある人はいますか?ご協力をいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Searchkick は Elasticsearch と Opensearch
+                    の両方をサポートしています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/ankane/searchkick</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

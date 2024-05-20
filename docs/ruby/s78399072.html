@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Cypress type() で自動スラッシュ(/) を処理する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Cypress type() で自動スラッシュ(/) を処理する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Cypress type() で自動スラッシュ(/)
+を処理する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、eコマース Web
+                    サイトのテストを自動化しています。e2e 注文テスト
+                    フローを設計しています。支払い詳細ページで、ビザ支払いオプションが選択されています。Cypress
+                    はカード番号をなんとか type() しました
+                    (問題ありませんでした)
+                    ）しかし、カードの有効期限に到達すると、フィールドの日付がMM/YYになります。通常、MM
+                    である最初の数字を入力すると、このスラッシュ (/)
+                    が自動的に追加されます。この inout
+                    フィールドに適したロケーターをたくさん見つけましたが、Cypress
+                    がこれを入力しようとすると、テストが失敗し、有効期限が
+                    inout
+                    になります。フィールドには、日付が無効であることが示されています。ここに、私のコードの一部が示されています（企業向けの内容なので、あまり共有できません）</p>
+                    <p>///
+                    cy.get(‘[class=“braintree-credit-card-container”]’).find(‘#braintree-hosted-field-expirationDate’).click({force:
+                    true}).type(’ 5’,‘2025’)///</p>
+                    <p>誰かがこれについて私を助けてくれませんか。これに対する回避策が見つかりません。ありがとう！！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Cypress テストでは、<iframe>
+                    要素はページの残りの部分からコードをサンドボックス化するための分離されたドキュメントを作成するため、特別な処理が必要です。</p>
+                    <p>最も簡単な方法は、cypress-iframe
+                    パッケージを使用することです。</p>
+                    <pre><code>yarn add &#39;cypress-iframe&#39;
+</code></pre>
+                    <p>cypress/support/e2e.js
+                    でインポートしてパッケージをアクティブ化します。</p>
+                    <pre><code>import &#39;cypress-iframe`
+</code></pre>
+                    <p>テストでは、cy.get() の代わりに cy.iframe()
+                    を使用します。</p>
+                    <pre><code>cy.iframe(&#39;#braintree-hosted-field-expirationDate&#39;)
+  .find(&#39;input&#39;)
+  .type(&#39;0525&#39;)
+
+cy.iframe(&#39;#braintree-hosted-field-expirationDate&#39;)
+  .find(&#39;input&#39;)
+  .invoke(&#39;val&#39;)
+  .should(&#39;eq&#39;, &#39;05 / 25&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby を使用して DrRacket 関数を作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby を使用して DrRacket 関数を作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby を使用して DrRacket 関数を作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyを使用してDrRacketの追加機能をエミュレートしようとしています。ただし、試してみると、(1
+                    2 3 . 99) ではなく ((1 2 3) . 99)
+                    が返されます。既存のリストを使用して追加を正しくエミュレートすることは可能ですか、それとも最初にリストのコピーを作成する必要がありますか?できるだけ早くご返信ください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの問題には 2 つのポイントがあります。</p>
+                    <p>append は基本的に cons
+                    に似ていますが、基になるリストに項目も追加する必要があるという意味です。ただし、この例では、Pair
+                    オブジェクトの状態を変更せずに、実際には文字列を返します。</p>
+                    <p>実際に行う必要があるのは、新しい項目をペア/リスト構造の末尾に追加することです。これを実現するには、(有効なリストであると仮定して)
+                    ペアを調べて、最後の項目 (null である必要がある)
+                    が見つかるまで調べる必要があります。</p>
+                    <pre><code> def append(other)
+  return false unless list?
+  
+  if cdr.nil?
+    @value2 = other
+  else
+    cdr.append(other)
+  end
+
+  self
+end
+</code></pre>
+                    <p>例のようにインラインに配置する場合は、self
+                    を使用して「既存の」オブジェクトを返すことも重要です。</p>
+                    <p>たとえば、次のコードを考えてみましょう。</p>
+                    <pre><code>b = cons(1, Pair.null)
+c = cons(4, Pair.null)
+
+puts b.append(c)
+</code></pre>
+                    <p>ここに追加すると、次の構造が確実に作成されます。</p>
+                    <pre><code>&lt;Pair @value1=1, @value2=&lt;Pair @value1=4, @value2=nil&gt;&gt;
+</code></pre>
+                    <p>さて、リストを出力するには、さらに別の再帰的問題
+                    (最初のものと同様)
+                    が必要です。ペアのリストを確認する必要がありますが、さまざまなケースも考慮する必要があります。そのため、有効なデータ構造を維持することが非常に重要です。</p>
+                    <pre><code>def to_s
+  helper_to_s(true)
+end
+
+def helper_to_s(started = false)
+  str = &quot;&quot;
+  str += &quot;(&quot; if started
+  str += &quot;(&quot; if started &amp;&amp; car.is_a?(Pair)
+
+  if car.is_a?(Pair)
+      str += car.helper_to_s
+  else
+    str += car.to_s
+  end
+
+  if cdr.nil?
+    str += &quot;)&quot;
+  elsif cdr.is_a?(Pair)
+    str += &quot; &quot;
+    str += cdr.helper_to_s()
+  else
+    str += &quot; . #{cdr})&quot;
+  end
+
+  str
+end
+</code></pre>
+                    <p>いつ (
+                    を開くべきかを再帰呼び出しに伝えることができるように、ヘルパー関数が必要です。さらに、ネストされたペアがすぐに存在する場合も考慮する必要があります。最後に、データ構造のおかげで、cdr
+                    がいつオープンされるかを知ることができます) null
+                    ではない、つまり純粋なリストではないことを意味します。この場合、
+                    . を最後の文字列に連結するだけで、 to_s
+                    呼び出しで適切に表示されます。</p>
+                    <p>さらに質問がある場合は、ラケットのドキュメントのペアとリストのドキュメントを必ず確認してください:
+                    https://docs.racket-lang.org/guide/Pairs__Lists__and_Racket_Syntax.html
+                    これは非常に役立ちます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

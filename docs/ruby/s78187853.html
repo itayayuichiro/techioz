@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: クラスの型をチェックするグローバルメソッドを作成する (Pair) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: クラスの型をチェックするグローバルメソッドを作成する (Pair)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+クラスの型をチェックするグローバルメソッドを作成する (Pair)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>変数がペア型 (独自のカスタマイズされたクラス)
+                    であるかどうかを確認するグローバル ブール
+                    メソッドを作成しようとしています。ただし、実行しようとするとエラーが発生します</p>
+                    <pre><code>Project4.rb:83:in `&lt;main&gt;&#39;: private method `pair?&#39; called for #&lt;Pair:0x00000212de6861e8 @value1=5, @value2=7&gt; (NoMethodError)
+
+puts a.pair?
+      ^^^^^^ 
+</code></pre>
+                    <p>私は何をしますか？私のコードは以下です。</p>
+                    <pre><code>#Pair (class): Takes two values and creates a list from them. Executing the code should return a list without displaying any output.
+#   Returns: A list of at least two elements.
+#   Parameters:
+#       value1 (any class, including pair) - a value to insert into list.
+#       value2 (any class, including pair) - another value to insert into list.
+#
+#Declare class `Pair`
+class Pair
+    #Initialize
+    def initialize(value1, value2)
+        @value1 = value1
+        @value2 = value2
+    end
+
+    #Method: car - return the car of the pair.
+    def car
+        return @value1
+    end
+    
+    #Method: cdr - return the cdr of the pair.
+    def cdr
+        return @value2
+    end
+    
+    #Method: to_s - Return string representation of the pair.
+    # def to_s
+    #     &quot;(#{@value1} . #{@value2})&quot; 
+    # end
+
+    #Method: list? - returns true if pair is a valid list and false otherwise.
+    def list?
+        #If value2 is a pair...
+        if (@value2.class == Pair)
+            #...Recursively call the list? method again with the cdr.
+            cdr.list? #Recursion
+        else
+            #If value2 is a null (nil) value, then it is a list.
+            if (@value2 == nil)
+                return true
+            else
+                return false
+            end
+        end
+    end
+
+    #Method: count - If the pair is a list, return the number of items in the top level of the list. Return false otherwise.
+
+    #Method: append(other) - If the pair is a list, append should return a new list consisting of `other`` appended to the original list. 
+
+    #Method: null? -  returns true only if the pair is an empty list.
+    def null?
+
+    end
+
+    #Implement a null/empty list value.
+    def self.null
+        nil
+    end
+
+end
+
+#Implement a global `pair?` method. MUST NOT TAKE PARAMETERS!
+def pair?
+    if (is_a? Pair)
+        return true
+    else
+        return false
+    end
+end
+</code></pre>
+                    <p>できるだけ早くご返信ください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>グローバル
+                    メソッドはレシーバーを必要とせず、関数形式
+                    (たとえば、put やループ)
+                    で呼び出すことができます。ただし、このメソッドは
+                    is_a? に基づいているため、レシーバーが必要です。</p>
+                    <p>メソッドを動作するグローバル
+                    メソッドに変えるには、オブジェクトを渡す必要があります。</p>
+                    <pre><code>def pair?(obj)
+  obj.is_a?(Pair)
+end
+</code></pre>
+                    <p>さて、気づきました。おそらく、最初からグローバル
+                    メソッドではなく、Object のインスタンス
+                    メソッドが必要です。</p>
+                    <pre><code>class Object
+  def pair?
+    is_a?(Pair)
+  end
+end
+</code></pre>
+                    <p>これは、任意のオブジェクトに対して呼び出すことができるという意味で「グローバル」です。</p>
+                    <p>継承を利用することで、明示的な型チェックを省略することもできます。
+                    Object#pair
+                    を実装しますか?すべてのオブジェクトに対してデフォルト値
+                    false を提供するメソッド:</p>
+                    <pre><code>class Object
+  def pair?
+    false
+  end
+end
+</code></pre>
+                    <p>そして、Pair クラスでそれをオーバーライドして
+                    true を返します。</p>
+                    <pre><code>class Pair
+  def pair?
+    true
+  end
+end
+</code></pre>
+                    <p>例：</p>
+                    <pre><code>Object.new.pair? #=&gt; false
+&quot;a string&quot;.pair? #=&gt; false
+
+Pair.new.pair?   #=&gt; true
+</code></pre>
+                    <p>これはまさにゼロですか？動作します。Object#nil
+                    の実装を参照してください。と NilClass#nil?。</p>
+                    <p>Object
+                    にメソッドを追加すると、それらのメソッドがすべてのオブジェクトで使用可能になるため、クラスが乱雑になる可能性があることに注意してください。
+                    OOP
+                    の原則を調べるのには最適ですが、一般的には行うべきではありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku にデプロイすると GraphQL が機能しないが、ローカルでは正しく機能する (Shopify Ruby gem) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku にデプロイすると GraphQL が機能しないが、ローカルでは正しく機能する (Shopify Ruby gem)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku にデプロイすると GraphQL
+が機能しないが、ローカルでは正しく機能する (Shopify Ruby gem)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Shopify gem (バージョン 9.0.2) で Ruby
+                    アプリを使用しています</p>
+                    <p>最近まですべてがうまく機能していましたが、突然
+                    Heroku での GraphQL
+                    呼び出しを解析できなくなりました。</p>
+                    <p>しかし、同じプロセスをローカルで実行すると、うまくいきます</p>
+                    <p>たとえば、両方で次のようになります。 -
+                    認証情報、api_version を使用して ShopifyAPI
+                    を初期化しています</p>
+                    <ul>
+                    <li>以下のリクエストを行います</li>
+                    </ul>
+                    <pre><code>query_variables = {&#39;gid&#39; =&gt; gid}
+    query_str = &lt;&lt;-&#39;GRAPHQL&#39;
+      query($gid: ID!) {
+        product(id: $gid) {
+          id
+        }
+      }
+    GRAPHQL
+</code></pre>
+                    <p>-その後、クライアントを初期化します。</p>
+                    <p>client = ShopifyAPI::GraphQL.client</p>
+                    <p>ローカルでは正常に動作しますが、Heraku
+                    では次のエラーが発生します</p>
+                    <p>ローカルでは正常に動作しますが、Heraku
+                    では次のエラーが発生します</p>
+                    <p>数か月前には Heroku でもうまく動作しました</p>
+                    <p>GraphQL自体から来ているようですが、なぜこのエラーが表示されたのかわかりません
+                    Heroku 上で正しく初期化されていないかのように</p>
+                    <p>私のショップにリンクされていないようです。変更を加えずに他のものを試しましたが、まだ機能しません。</p>
+                    <p>エラーがどこから来たのか何か考えはありますか?</p>
+                    <p>エラーがどこから来たのか何か考えはありますか?</p>
+                    <p>編集: REST API には問題ありません</p>
+                    <p>Edit2：Railsコンソールのバックトレース（heroku
+                    run Rails cを使用）：</p>
+                    <pre><code>app/vendor/bundle/ruby/2.6.0/gems/graphql-client-0.19.0/lib/graphql/client/document_types.rb:62:in `rescue in analyze_types&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/graphql-client-0.19.0/lib/graphql/client/document_types.rb:45:in `analyze_types&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/graphql-client-0.19.0/lib/graphql/client.rb:189:in `parse&#39;
+/app/lib/utilities/graphql.rb:29:in `query_shopify&#39;
+/app/lib/utilities/graphql.rb:368:in `get_product_by_id&#39;
+(irb):4:in `irb_binding&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/workspace.rb:85:in `eval&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/workspace.rb:85:in `evaluate&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/context.rb:385:in `evaluate&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:493:in `block (2 levels) in eval_input&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:647:in `signal_status&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:490:in `block in eval_input&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/ruby-lex.rb:246:in `block (2 levels) in each_top_level_statement&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/ruby-lex.rb:232:in `loop&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/ruby-lex.rb:232:in `block in each_top_level_statement&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/ruby-lex.rb:231:in `catch&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb/ruby-lex.rb:231:in `each_top_level_statement&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:489:in `eval_input&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:428:in `block in run&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:427:in `catch&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:427:in `run&#39;
+/app/vendor/ruby-2.6.6/lib/ruby/2.6.0/irb.rb:383:in `start&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/commands/console/console_command.rb:64:in `start&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/commands/console/console_command.rb:19:in `start&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/commands/console/console_command.rb:96:in `perform&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/thor-1.3.1/lib/thor/command.rb:28:in `run&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/thor-1.3.1/lib/thor/invocation.rb:127:in `invoke_command&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/thor-1.3.1/lib/thor.rb:527:in `dispatch&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/command/base.rb:69:in `perform&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/command.rb:46:in `invoke&#39;
+/app/vendor/bundle/ruby/2.6.0/gems/railties-5.2.8.1/lib/rails/commands.rb:18:in `&lt;top (required)&gt;&#39;
+/app/bin/rails:4:in `require&#39;
+/app/bin/rails:4:in `&lt;main&gt;&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラーはgraphql-client gemの更新が原因でした</p>
+                    <p>この宝石は今年更新されました。以前のバージョンは
+                    2022 年のものでした</p>
+                    <p>私が使用している shopify gem バージョン (9.0.2)
+                    は、graphql-client
+                    の最後のバージョンを使用しており、このバージョンの
+                    shopify gem と互換性がありません</p>
+                    <p>Gemfile
+                    に以前のバージョンを強制的に入れたところ、再び動作するようになりました</p>
+                    <p>エンジニアmnkyの協力に感謝します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

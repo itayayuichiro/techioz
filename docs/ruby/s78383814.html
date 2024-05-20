@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Postモデルでアクションテキストリッチテキストを使用する場合、Rails 7でRansackを使用して検索するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Postモデルでアクションテキストリッチテキストを使用する場合、Rails 7でRansackを使用して検索するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Postモデルでアクションテキストリッチテキストを使用する場合、Rails
+7でRansackを使用して検索するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>誰かがなぜ機能しないのかを理解するのを手伝ってくれますか?
+                    それで、話は何ですか：ランサックバージョン4.1.1を備えたRails
+                    7（7.1.3）ブログアプリがあります</p>
+                    <p>検索フォームでは、投稿タイトルと投稿本文でテキストを検索する必要があります
+                    そしてこのエラーが発生します</p>
+                    <p>paramsでこれを見ることができます</p>
+                    <p>title_cont
+                    のようなタイトルのみで検索しようとしている場合はすべて問題ありませんが、body_cont
+                    または title_or_body_cont
+                    で検索すると前述のエラーが発生します。これは、Post
+                    モデルに body フィールドがなく、このフィールドが
+                    action_text_rich_texts
+                    テーブルにあるためだと思います。そして、Post
+                    モデルの action_text_rich_texts
+                    テーブルに関連付けを追加した後も、前述のエラーが依然として発生します。よろしくお願いいたします。</p>
+                    <p>そして私のコード</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+  has_rich_text :body
+  has_many :comments, dependent: :destroy
+  belongs_to :user
+  has_one_attached :post_image
+
+  validates :title, presence: { message: &#39;must be given please&#39; }, length: { minimum: 5 }
+  validates :body, presence: true, length: { minimum: 10 }
+  validate :post_body_length
+  validate :acceptable_image
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[title body created_at updated_at user_id]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[users action_text_rich_texts]
+  end
+
+  private
+
+  def acceptable_image
+    return unless post_image.attached?
+
+    errors.add(:post_image, &#39;is too big&#39;) unless post_image.blob.byte_size &lt;= 5.megabyte
+
+    acceptable_types = [&#39;image/jpeg&#39;, &#39;image/png&#39;]
+    return if acceptable_types.include?(post_image.content_type)
+
+    errors.add(:post_image, &#39;must be a JPEG or PNG&#39;)
+  end
+
+  def post_body_cant_be_empty
+    if self.body.blank?
+      self.errors.add(:body, &quot;can&#39;t be empty&quot;)
+    end
+  end
+
+  def post_body_length
+    if self.body.to_plain_text.length &lt; 10
+      self.errors.add(:body, &#39;is too short (minimum is 10 characters)&#39;)
+    end
+  end
+end
+
+</code></pre>
+                    <p>また、searchs_controllerもあります</p>
+                    <pre><code>class SearchesController &lt; ApplicationController
+  def index
+    @query = Post.ransack(params[:q])
+    @posts = @query.result.includes(:rich_text_body)
+  end
+end
+</code></pre>
+                    <p>そしてsearch_form</p>
+                    <pre><code>&lt;%= search_form_for @query, url: searches_path, method: :get, html: { class: &quot;d-flex&quot;, role: &quot;search&quot; } do |f| %&gt;
+  &lt;%= f.search_field :title_or_body_cont, class: &quot;form-control me-2&quot;, placeholder: &quot;Search title or body...&quot; %&gt;
+  &lt;%= f.submit &quot;Search&quot;, class: &quot;btn btn-outline-secondary-light btn-sm&quot; %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>とルート</p>
+                    <pre><code>resources :searches, only: %i[index]
+</code></pre>
+                    <p>ポストテーブルの構造</p>
+                    <pre><code> create_table &quot;posts&quot;, force: :cascade do |t|
+    t.string &quot;title&quot;, null: false
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.bigint &quot;user_id&quot;, null: false
+    t.index [&quot;user_id&quot;], name: &quot;index_posts_on_user_id&quot;
+  end
+</code></pre>
+                    <p>Action_text_rich_texts テーブル構造</p>
+                    <pre><code>create_table &quot;action_text_rich_texts&quot;, force: :cascade do |t|
+    t.string &quot;name&quot;, null: false
+    t.text &quot;body&quot;
+    t.string &quot;record_type&quot;, null: false
+    t.bigint &quot;record_id&quot;, null: false
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.index [&quot;record_type&quot;, &quot;record_id&quot;, &quot;name&quot;], name: &quot;index_action_text_rich_texts_uniqueness&quot;, unique: true
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ご提案いただきありがとうございます。それは動作します。</p>
+                    <p>Post モデルの関連付け rich_text_body
+                    をメソッドに追加します
+                    self.ransackable_associations</p>
+                    <pre><code>def self.ransackable_associations(_auth_object = nil)
+   %w[users rich_text_body]
+end
+</code></pre>
+                    <p>そして、検索フォーム search_field
+                    で検索する場所を修正します</p>
+                    <pre><code>title_or_rich_text_body_body_cont
+</code></pre>
+                    <p>この調整を行った後は、すべてが正しく機能するようになりました。</p>
+                    <p>この提案に従ってランサック初期化子を追加する必要もあります
+                    4.0.0 と ActionText::RichText
+                    へのアップグレードを捜索する</p>
+                    <pre><code>class ActionText::Record &lt; ActiveRecord::Base
+  def self.ransackable_attributes(auth_object = nil)
+    authorizable_ransackable_attributes
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

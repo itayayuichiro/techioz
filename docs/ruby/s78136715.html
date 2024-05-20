@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この Web サイトのドロップダウン リストは、自動で開いた場合と手動で開いた場合とでは、表示されるオプションの数が異なります。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この Web サイトのドロップダウン リストは、自動で開いた場合と手動で開いた場合とでは、表示されるオプションの数が異なります。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この Web サイトのドロップダウン
+リストは、自動で開いた場合と手動で開いた場合とでは、表示されるオプションの数が異なります。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>https://ttsreader.com/legacy/
+                    でプロセスを自動化しようとしています。ただし、サイトを手動で開いた場合と、自動でアクセスした場合では異なるオプションが表示されることに気付きました。具体的には、自動化を使用する場合、以下に示すように限られた数のオプションのみが表示されます。</p>
+                    <p>ただし、手動でサイトを開くと、320
+                    の言語オプションが表示されます。この矛盾に当惑しています。
+                    Edge
+                    が使用しているのと同じプロファイルを参照しようとしましたが、前の図に示されているように、依然として
+                    6
+                    つのオプションしか表示されません。対照的に、以下に示すように手動でサイトを開くと、多数のオプションが表示されます。</p>
+                    <p>誰かがこの違いの理由を教えてくれますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ありがとうございます。次のコードを試してみましたが、期待どおりに機能しました。おそらく「魔法」は、コードが実行される前に数秒待って、ページ全体、特に音声を読み込む時間を確保することです。私のテストコードは次のとおりです。</p>
+                    <pre><code>const {Builder, Browser, Select, By} = require(&#39;selenium-webdriver&#39;);
+const delay = ms =&gt; new Promise(res =&gt; setTimeout(res, ms));
+
+(async function helloSelenium() {
+  let driver = await new Builder().forBrowser(Browser.CHROME).build();
+
+  await driver.get(&#39;https://ttsreader.com/legacy/&#39;);
+  await delay(5000); // Wait 5 seconds - so that voices can load.
+
+  const selectElement = await driver.findElement(By.id(&#39;select_language&#39;))
+  const select = new Select(selectElement)
+
+  select.getOptions().then(arr=&gt;{
+    console.log(arr.length);
+  })
+
+  await select.selectByValue(&#39;Sandy (French (France))&#39;)
+
+  // Do not quit, so we can visually see the selected option exists.
+  // await driver.quit();
+})();
+</code></pre>
+                    <p>これが私のpackage.jsonです:</p>
+                    <pre><code>{
+    &quot;name&quot;: &quot;ttsreader-test&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;scripts&quot;: {
+        &quot;test&quot;: &quot;npx mocha src/hello.js --timeout 60000&quot;
+    },
+    &quot;author&quot;: &quot;Ronen Rabinovici&quot;,
+    &quot;license&quot;: &quot;Apache-2.0&quot;,
+    &quot;dependencies&quot;: {
+        &quot;assert&quot;: &quot;^2.1.0&quot;,
+        &quot;selenium-webdriver&quot;: &quot;^4.18.1&quot;
+    },
+    &quot;devDependencies&quot;: {
+        &quot;mocha&quot;: &quot;^10.2.0&quot;
+    }
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

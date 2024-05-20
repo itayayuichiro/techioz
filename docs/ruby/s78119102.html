@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでのCSVからの入力出力。コンソール出力はファイル出力とは異なります | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでのCSVからの入力出力。コンソール出力はファイル出力とは異なります",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでのCSVからの入力出力。コンソール出力はファイル出力とは異なります</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RubyでCSVアプリケーションを学習しています。</p>
+                    <p>文字列を受け取り、開始アルファベットに基づいて単語を検索する関数があります。</p>
+                    <p>今、私はたくさんの文字列を含むファイルを読み取ろうとしていますが、プログラムはそれを読み取って別のcsvファイルに出力を与える必要があります。</p>
+                    <p>私の関数は動作しており、CSVも入力されています。コンソールに出力が表示され、それが正しいためです。出力CSVに書き込めないだけで、その理由がわかりません。</p>
+                    <p>以下のようなコード</p>
+                    <pre><code>require &#39;csv&#39;
+
+# Define a hash containing adjectives for each letter
+adjectives_by_letter = {
+  &#39;a&#39; =&gt; [&#39;awesome&#39;, &#39;amazing’],
+  &#39;b&#39; =&gt; [&#39;beautiful&#39;, &#39;brave&#39;],
+  &#39;c&#39; =&gt; [&#39;calm&#39;, &#39;clever&#39;],
+}
+
+# Method to match each letter to a set of adjectives
+def match_to_adjectives(letters, adjectives)
+  matched_adjectives = {}
+
+  letters.each do |letter|
+    print &quot;#{letter.upcase}: &quot;
+    available_adjectives = adjectives[letter.downcase] - matched_adjectives.values
+    if available_adjectives.empty?
+      puts &quot;No available adjectives found for &#39;#{letter}&#39;&quot;
+    else
+      adjective = available_adjectives.sample
+      matched_adjectives[letter] = adjective
+      puts adjective.upcase
+    end
+    puts &quot;\n&quot;
+  end
+end
+
+
+# Define the input and output file paths
+input_file = &#39;names.csv&#39;
+output_file = &#39;output.csv&#39;
+
+# Open the input file for reading
+CSV.open(input_file, &#39;r&#39;) do |csv_in|
+  # Open the output file for writing
+  CSV.open(output_file, &#39;w&#39;) do |csv_out|
+    # Iterate over each row in the input CSV
+    csv_in.each do |row|
+      # Extract the name from the row
+      name = row[0]
+      letters = name.chars
+      results = match_to_adjectives(letters, adjectives_by_letter)
+      
+      # Write the name and its length to the output CSV
+      csv_out &lt;&lt; [ results ]
+    end
+  end
+end
+
+</code></pre>
+                    <p>名前を入力する</p>
+                    <p>ハイネケン ステラ</p>
+                    <p>コンソールへの出力</p>
+                    <pre><code>A: ACTIVE
+
+
+
+[Finished in 634ms]
+</code></pre>
+                    <p>Output.csvに出力</p>
+                    <pre><code>&quot;[&quot;&quot;h&quot;&quot;, &quot;&quot;e&quot;&quot;, &quot;&quot;i&quot;&quot;, &quot;&quot;n&quot;&quot;, &quot;&quot;e&quot;&quot;, &quot;&quot;k&quot;&quot;, &quot;&quot;e&quot;&quot;, &quot;&quot;n&quot;&quot;]&quot;
+&quot;[&quot;&quot;s&quot;&quot;, &quot;&quot;t&quot;&quot;, &quot;&quot;e&quot;&quot;, &quot;&quot;l&quot;&quot;, &quot;&quot;l&quot;&quot;, &quot;&quot;a&quot;&quot;]&quot;
+
+
+</code></pre>
+                    <p>csv_out で犯した間違いは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この関数は出力をコンソールに出力しますが、CSV
+                    ファイルに書き込むために外部コードで使用できるものは何も返しません。
+                    したがって、match_to_adjectives
+                    を呼び出すと、何も返されず、コンソールに出力されるだけです</p>
+                    <pre><code># Method to match each letter to a set of adjectives and return them
+def match_to_adjectives(letters, adjectives)
+  matched_adjectives = []
+  letters.each do |letter|
+    available_adjectives = adjectives[letter.downcase] || []
+    if available_adjectives.empty?
+      # Optionally, handle the case when no adjectives are found for a letter
+      matched_adjectives &lt;&lt; &quot;No adjective for &#39;#{letter}&#39;&quot;
+    else
+      adjective = available_adjectives.sample
+      matched_adjectives &lt;&lt; adjective
+    end
+  end
+  matched_adjectives
+end
+
+# Define the input and output file paths
+input_file = &#39;names.csv&#39;
+output_file = &#39;output.csv&#39;
+
+# Open the input file for reading
+CSV.open(input_file, &#39;r&#39;) do |csv_in|
+  # Open the output file for writing
+  CSV.open(output_file, &#39;w&#39;) do |csv_out|
+    # Iterate over each row in the input CSV
+    csv_in.each do |row|
+      # Extract the name from the row
+      name = row[0]
+      letters = name.chars
+      results = match_to_adjectives(letters, adjectives_by_letter)
+      
+      csv_out &lt;&lt; [name, results.join(&#39;, &#39;)] # Adjust the join delimiter as needed
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

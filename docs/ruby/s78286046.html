@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>:type を :message としてレンダリングする Flash メッセージ ビュー コンポーネント? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": ":type を :message としてレンダリングする Flash メッセージ ビュー コンポーネント?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>:type を :message としてレンダリングする Flash
+メッセージ ビュー コンポーネント?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はこの投稿
+                    https://reinteractive.com/articles/how-to-create-flash-messages-in-Rails-7
+                    に従って、tailwind で素敵な Flash
+                    メッセージを追加し、View Components
+                    を使用するようになりました。 :type
+                    を除いてすべてが機能します。</p>
+                    <p>例のように Flash
+                    メッセージを追加すると、次のようになります。</p>
+                    <pre><code>def home
+  flash[:message] = &quot;Welcome to the home page!&quot;
+  flash[:type] = :notice
+end
+</code></pre>
+                    <p>次のように表示されます。</p>
+                    <p>フラッシュメッセージのスクリーンショット</p>
+                    <p>これは、component.html.erb です。</p>
+                    <pre><code>&lt;div class=&#39;relative flex px-4 py-3 space-x-2 border &lt;%= color_classes %&gt;&#39; role=&#39;alert&#39;&gt;
+  &lt;strong class=&#39;font-bold&#39;&gt;&lt;%= message %&gt;&lt;/strong&gt;
+  &lt;span class=&#39;pl-5&#39;&gt;
+  &lt;%= heroicon &#39;x-mark&#39;, options: { &#39;data-action&#39;: &#39;click-&gt;flash-message#close&#39;, class: &#39;w-6 h-6 fill-current&#39;, role: &#39;button&#39; } %&gt;
+  &lt;/span&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>これがレンダリングされるものです:</p>
+                    <pre><code>&lt;div data-controller=&quot;flash-message&quot; class=&quot;inset-0 p-6 items-start justify-end&quot;&gt;
+  &lt;div class=&quot;flex flex-col items-center justify-center&quot;&gt;
+    &lt;div class=&quot;relative flex px-4 py-3 space-x-2 border bg-gray-100 border-gray-400 text-gray-700&quot; role=&quot;alert&quot;&gt;
+      &lt;strong class=&quot;font-bold&quot;&gt;Welcome to the home page!&lt;/strong&gt;
+
+ &lt;div class=&quot;relative flex px-4 py-3 space-x-2 border bg-gray-100 border-gray-400 text-gray-700&quot; role=&quot;alert&quot;&gt;
+  &lt;strong class=&quot;font-bold&quot;&gt;notice&lt;/strong&gt;
+</code></pre>
+                    <p>投稿に誤りはありますか、それとも過去 2
+                    か月間で何か更新されましたか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは意味がありません：</p>
+                    <pre><code>flash[:message] = &quot;Welcome to the home page!&quot;
+flash[:type] = :notice
+</code></pre>
+                    <p>そのはず：</p>
+                    <pre><code>flash[:notice] = &quot;Welcome to the home page!&quot;
+</code></pre>
+                    <p>フラッシュを検査すると、何を反復しているのかがわかります。</p>
+                    <pre><code>#&lt;ActionDispatch::Flash::FlashHash:0x00007f9ede9208b8
+ @discard=#&lt;Set: {}&gt;,
+ @flashes={&quot;notice&quot;=&gt;&quot;Welcome to the home page!&quot;},    # &lt;= this
+ @now=nil&gt;
+</code></pre>
+                    <pre><code>&lt;% flash.each do |type, message| %&gt;
+  #               │     └─ &quot;Welcome to the home page!&quot;   
+  #               └─ &quot;notice&quot;   
+  &lt;%= render FlashMessage::Component.new(type: type, message: message) %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

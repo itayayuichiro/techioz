@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>パスワードなしでワーデン/デバイスでユーザーを認証するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "パスワードなしでワーデン/デバイスでユーザーを認証するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>パスワードなしでワーデン/デバイスでユーザーを認証するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のアプリでは、ログイン時にユーザーは電子メールのみを入力し、パスワードは必要ありません。device/warden
+                    を使用して認証したいと考えています。</p>
+                    <pre><code>class Users::SessionsController &lt; Devise::SessionsController
+  include ExpireExistingToken
+
+  def new
+    super
+  end
+
+  def create
+    self.resource = warden.authenticate!(auth_options)
+    set_flash_message!(:notice, :signed_in)
+    sign_in(resource_name, resource)
+    yield resource if block_given?
+    resource.update(language: Constant::SUPPORTED_LANGUAGES.key(params[&#39;locale&#39;])) if params[&#39;locale&#39;].present?
+    resource.send_otp(force_expire: true) if resource.email_verified?
+    respond_with resource, location: after_sign_in_path_for(resource)
+    flash.delete(:notice)
+  end
+
+  def destroy
+    session.delete(:is_otp_verified)
+    super
+  end
+end
+</code></pre>
+                    <pre><code># frozen_string_literal: true
+
+# Responsible for token expiration
+module ExpireExistingToken
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :remove_existing_token, only: :new
+  end
+
+  protected
+
+  def remove_existing_token
+    uuid = session[:uuid]
+    usr = User.find_by(uuid: uuid) if uuid
+    return unless usr
+    usr.send(:clear_reset_password_token)
+    usr.save
+    session.delete(:uuid)
+  end
+end
+
+</code></pre>
+                    <p>valid_password
+                    をオーバーライドしようとしました?ユーザーモデルで実行しましたが、うまくいきませんでした。これについて私を助けてください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Devise
+                    のパスワード必須検証メソッドをオーバーライドして、保存時に
+                    false
+                    を返すことができます。特定のリソースまたは機能に対してのみ無効にしたい場合は、保存中にフォームから仮想属性を送信する必要があります。</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  attr_accessor :skip_validation  
+
+  protected
+
+  def password_required?
+    return false if skip_validation
+    super
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

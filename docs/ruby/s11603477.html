@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Koans スコアリング プロジェクト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Koans スコアリング プロジェクト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Koans スコアリング プロジェクト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby Koan
+                    に取り組んでいますが、自分が書いたメソッドの何が問題なのかを理解するのに少し苦労しています。私は
+                    about_scoring_project.rb にいて、サイコロ
+                    ゲームのスコア メソッドを書きました。</p>
+                    <pre><code>def score(dice)
+  return 0 if dice == []
+  sum = 0
+  rolls = dice.inject(Hash.new(0)) { |result, element| result[element] += 1; result; }
+  rolls.each { |key, value| 
+    # special condition for rolls of 1
+    if key == 1  
+      sum += 1000 | value -= 3 if value &gt;= 3
+      sum += 100*value
+      next
+    end
+    sum += 100*key | value -= 3 if value &gt;= 3
+    sum += 50*value if key == 5 &amp;&amp; value &gt; 0
+  }
+  return sum
+end
+</code></pre>
+                    <p>この演習に慣れていない人のために：</p>
+                    <p>ファイル内の最後のテストを実行しようとすると問題が発生します:assert_equal
+                    550,score([5,5,5,5])</p>
+                    <p>何らかの理由で、550 ではなく 551
+                    を返します。ご協力ありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私のアプローチでは 2 つのルックアップ
+                    テーブルを使用します。1
+                    つはトリプルのスコアを含み、もう 1
+                    つはシングルのスコアを含みます。テーブルを使用して各数値のスコアを計算し、inject
+                    を使用して合計を累積します。</p>
+                    <pre><code>def score(dice)
+  triple_scores = [1000, 200, 300, 400, 500, 600]
+  single_scores = [100, 0, 0, 0, 50, 0]
+  (1..6).inject(0) do |score, number|
+    count = dice.count(number)
+    score += triple_scores[number - 1] * (count / 3)
+    score += single_scores[number - 1] * (count % 3)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

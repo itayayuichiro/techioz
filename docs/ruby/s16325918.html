@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでHEADリクエストを行う | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでHEADリクエストを行う",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでHEADリクエストを行う</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby にはあまり慣れておらず、Python
+                    のバックグラウンドを持っています
+                    URLに対してヘッドリクエストを行い、ファイルがサーバー上に存在するかどうか、タイムスタンプ、etagなどの情報を確認したいのですが、RUBYではこれを行うことができません。</p>
+                    <p>Python の場合:</p>
+                    <pre><code>import httplib2
+print httplib2.Http().request(&#39;url.com/file.xml&#39;,&#39;HEAD&#39;)
+</code></pre>
+                    <p>Rubyの場合：これを試してみましたが、エラーが発生しました</p>
+                    <pre><code>require &#39;net/http&#39;
+
+Net::HTTP.start(&#39;url.com&#39;){|http|
+   response = http.head(&#39;/file.xml&#39;)
+}
+puts response
+
+
+SocketError: getaddrinfo: nodename nor servname provided, or not known
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:877:in `initialize&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:877:in `open&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:877:in `block in connect&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/timeout.rb:51:in `timeout&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:876:in `connect&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:861:in `do_start&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:850:in `start&#39;
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/lib/ruby/2.0.0/net/http.rb:582:in `start&#39;
+    from (irb):2
+    from /Users/comcast/.rvm/rubies/ruby-2.0.0-p0/bin/irb:16:in `&lt;main&gt;&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これで答えは出たと思いますが、私もいくつかの困難を経験する必要がありました。より具体的なことから始めましょう。</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+require &#39;net/http&#39;
+require &#39;net/https&#39; # for openssl
+
+uri = URI(&#39;http://stackoverflow.com&#39;)
+path = &#39;/questions/16325918/making-head-request-in-ruby&#39;
+
+response=nil
+http = Net::HTTP.new(uri.host, uri.port)
+# http.use_ssl = true                            # if using SSL
+# http.verify_mode = OpenSSL::SSL::VERIFY_NONE   # for example, when using self-signed certs
+
+response = http.head(path)
+response.each { |key, value| puts key.ljust(40) + &quot; : &quot; + value }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

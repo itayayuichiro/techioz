@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 アプリでスティミュラス コントローラーがまったく機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 アプリでスティミュラス コントローラーがまったく機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 アプリでスティミュラス
+コントローラーがまったく機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在開発中の Rails 7 アプリで Stimulus
+                    コントローラーを機能させるのに非常に苦労しています。どなたか助けていただければ幸いです。私は永遠に車輪を回し続けてきました。</p>
+                    <p>私のアプリケーション.js</p>
+                    <pre><code>// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
+import &quot;@hotwired/turbo-rails&quot;;
+import &quot;controllers&quot;;
+import &#39;bootstrap&#39;;
+</code></pre>
+                    <p>以下のように importmap.rb に Stimulus
+                    を固定しました。</p>
+                    <pre><code>pin &quot;application&quot;, preload: true
+pin &quot;@hotwired/turbo-rails&quot;, to: &quot;turbo.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus&quot;, to: &quot;stimulus.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus-loading&quot;, to: &quot;stimulus-loading.js&quot;, preload: true
+pin &quot;jquery&quot;, to: &quot;https://cdn.jsdelivr.net/npm/[email protected]/dist/jquery.js&quot;
+pin_all_from &quot;app/javascript/controllers&quot;, under: &quot;controllers&quot;
+</code></pre>
+                    <p>javascript/controllers/application.js
+                    ファイルやindex.js ファイルには触れていません。</p>
+                    <p>私の刺激コントローラー
+                    (ingredients-controller.js):</p>
+                    <pre><code>import { Controller } from &#39;@hotwired/stimulus&#39;;
+
+export default class extends Controller {
+
+  connect () {
+    console.log(&#39;HELLOOO!!!!&#39;);
+  }
+  addIngredients(event) {
+    event.preventDefault();
+    alert(&#39;test&#39;);
+  }
+}
+</code></pre>
+                    以下のビューで
+                    <div>
+                    <p>を接続しました。現時点で私が試みているのは、
+                    <button> 要素を取得して、preventDefault()
+                    を実行し、テスト
+                    アラートを実行することだけです。上記の Stimulus
+                    コントローラーからの応答が得られません。</p>
+                    <pre><code>&lt;div data-controller=&quot;ingredients&quot;&gt;
+  &lt;turbo-frame id=&lt;%= f.field_id(:ingredents) %&gt;&gt;
+    &lt;h2&gt;Add Ingredients&lt;/h2&gt;
+
+    &lt;%# Selection section %&gt;
+    &lt;div&gt;
+      &lt;h6&gt;Spirits&lt;/h6&gt;
+      &lt;%= f.collection_select :spirit_id, Spirit.all, :id, :spirit_type, {}, { :size =&gt; &quot;5&quot;, :multiple =&gt; true } %&gt;
+
+      &lt;h6&gt;Mixers&lt;/h6&gt;
+
+      &lt;%= f.collection_select :mixer_id, Mixer.all, :id, :mixer_type, {}, { :size =&gt; &quot;5&quot;, :multiple =&gt; true } %&gt;
+
+      &lt;h6&gt;Garnishes&lt;/h6&gt;
+
+      &lt;%= f.collection_select :garnish_id, Garnish.all, :id, :garnish_type, {}, { :size =&gt; &quot;5&quot;, :multiple =&gt; true } %&gt;
+    &lt;/div&gt;
+
+    &lt;%# Selected Ingredients %&gt;
+  &lt;/turbo-frame&gt;
+
+  &lt;button data-action=&quot;click-&gt;ingredients#addIngredients&quot;&gt;Add Ingredients&lt;/button&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>ここで私に何が欠けているのかご存知の方がいらっしゃいましたら、大変感謝いたします。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私も同様の問題を抱えていましたが（JSバンドラーの問題ですが）、Stimulusを手動でインストールすることで解決しました。手順はここで見つけることができます:
+                    https://github.com/hotwired/stimulus-rails</p>
+                    <p>最初に Rails Assets:clobber
+                    を実行して、既にコンパイルしたすべてのアセットを逆コンパイルする必要がある場合があります。
+                    そして、Stimulus
+                    の手動インストールが完了したら、おそらく、別の
+                    [ターミナル] タブで、yarn build –watch
+                    を実行する必要があります (rails
+                    を実行するのと同じ方法)。</p>
+                    <p>したがって、手順は次のとおりです。</p>
+                    <p>それが役に立てば幸い！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

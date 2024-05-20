@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Capistrano は、OpenSSL 3.0 との互換性がないため、Rails アプリのデプロイに失敗します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Capistrano は、OpenSSL 3.0 との互換性がないため、Rails アプリのデプロイに失敗します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Capistrano は、OpenSSL 3.0
+との互換性がないため、Rails アプリのデプロイに失敗します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 と Ruby 3 をサポートする Rails
+                    アプリケーションがあります。これは、Ubuntu
+                    22.04、ruby 3.0.2p107、Rails 7.0.2.3
+                    を搭載した開発マシンでうまく動作しています。</p>
+                    <p>現在、Ubuntu 22.04 を使用して Rails
+                    アプリをサーバーにデプロイするために Capistrano
+                    (バージョン 3.17.0)
+                    をセットアップしようとしています。ただし、次のエラーが発生するため、これを行うことができません。</p>
+                    <pre><code>SSHKit::Runner::ExecuteError: Exception while executing as username@server: rsa#set_key= is incompatible with OpenSSL 3.0
+</code></pre>
+                    <p>Capistrano は、Ubuntu 22.04 のデフォルトの
+                    OpenSSL ライブラリである OpenSSL 3.0
+                    と互換性がないようです。バグだと思いますが、それを報告する投稿は見つかりませんでした。回避策も見つかりませんでした。</p>
+                    <p>OpenSSL 1.1.1
+                    をインストールして問題を解決しようとしましたが、Rails
+                    アプリはまだ OpenSSL 3
+                    を使用しています。おそらく解決策は、
+                    –with-openssl-dir オプションを使用して OpenSSL 1.1.1
+                    で Ruby 3
+                    を再インストールすることかもしれません。</p>
+                    <p>なにか提案を？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>報告されたエラーは、rails net-ssh gem が OpenSSL
+                    3.0 をサポートしていないことが原因でした。</p>
+                    <p>幸いなことに、昨日 net-ssh gem
+                    の新しいバージョンがリリースされ、OpenSSL 3.0
+                    のサポートが提供され、問題が修正されました。</p>
+                    <p>基本的に追加するのは、</p>
+                    <pre><code>gem &#39;net-ssh&#39;, &#39;7.0.0.beta1&#39;
+</code></pre>
+                    <p>バンドルインストールを実行すると問題が解決されました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

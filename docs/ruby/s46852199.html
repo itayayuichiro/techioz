@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>aws-sdk-ruby が初期化時に「169.254.169.254」に接続するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "aws-sdk-ruby が初期化時に「169.254.169.254」に接続するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>aws-sdk-ruby
+が初期化時に「169.254.169.254」に接続するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は gem Webmock
+                    をインストールしました。これは、テスト
+                    スイート中に外部接続をブロックします。インストール後、テスト
+                    スイートを実行すると予期しない結果が得られました。</p>
+                    <p>なぜ初期化時に aws-sdk が 169.254.169.254
+                    に接続する必要があるのか少し混乱しています。</p>
+                    <pre><code>rspec spec/models/concerns/posconcern_spec.rb
+[Coveralls] Set up the SimpleCov formatter.
+[Coveralls] Using SimpleCov&#39;s &#39;rails&#39; settings.
+
+An error occurred while loading ./spec/models/concerns/posconcern_spec.rb.
+Failure/Error: require File.expand_path(&#39;../../config/environment&#39;, __FILE__)
+
+WebMock::NetConnectNotAllowedError:
+  Real HTTP connections are disabled. Unregistered request: GET http://169.254.169.254/latest/meta-data/iam/security-credentials/ with headers {&#39;Accept&#39;=&gt;&#39;*/*&#39;, &#39;Accept-Encoding&#39;=&gt;&#39;gzip;q=1.0,deflate;q=0.6,identity;q=0.3&#39;, &#39;User-Agent&#39;=&gt;&#39;Ruby&#39;}
+
+  You can stub this request with the following snippet:
+
+  stub_request(:get, &quot;http://169.254.169.254/latest/meta-data/iam/security-credentials/&quot;).
+    with(headers: {&#39;Accept&#39;=&gt;&#39;*/*&#39;, &#39;Accept-Encoding&#39;=&gt;&#39;gzip;q=1.0,deflate;q=0.6,identity;q=0.3&#39;, &#39;User-Agent&#39;=&gt;&#39;Ruby&#39;}).
+    to_return(status: 200, body: &quot;&quot;, headers: {})
+
+  ============================================================
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/webmock-3.1.0/lib/webmock/http_lib_adapters/net_http.rb:114:in `request&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:109:in `http_get&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:90:in `block (2 levels) in get_credentials&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:105:in `open_connection&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:88:in `block in get_credentials&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:121:in `retry_errors&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:87:in `get_credentials&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:73:in `block in refresh&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:121:in `retry_errors&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:72:in `refresh&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/refreshing_credentials.rb:20:in `initialize&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/instance_profile_credentials.rb:51:in `initialize&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/credential_provider_chain.rb:90:in `new&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/credential_provider_chain.rb:90:in `instance_profile_credentials&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/credential_provider_chain.rb:12:in `block in resolve&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/credential_provider_chain.rb:11:in `each&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/credential_provider_chain.rb:11:in `resolve&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/aws-sdk-core/plugins/request_signer.rb:37:in `block in &lt;class:RequestSigner&gt;&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:70:in `call&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:205:in `block in resolve_defaults&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:57:in `each&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:57:in `each&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:204:in `resolve_defaults&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:200:in `value_at&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:189:in `block in resolve&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:189:in `resolve&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:177:in `apply_defaults&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/configuration.rb:150:in `build!&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/base.rb:68:in `build_config&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/base.rb:19:in `initialize&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/aws-sdk-core-2.10.52/lib/seahorse/client/base.rb:105:in `new&#39;
+# ./config/initializers/aws.rb:1:in `&lt;top (required)&gt;&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/activesupport-4.2.9/lib/active_support/dependencies.rb:268:in `load&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/activesupport-4.2.9/lib/active_support/dependencies.rb:268:in `block in load&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/activesupport-4.2.9/lib/active_support/dependencies.rb:240:in `load_dependency&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/activesupport-4.2.9/lib/active_support/dependencies.rb:268:in `load&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/engine.rb:652:in `block in load_config_initializer&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/activesupport-4.2.9/lib/active_support/notifications.rb:166:in `instrument&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/engine.rb:651:in `load_config_initializer&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/engine.rb:616:in `block (2 levels) in &lt;class:Engine&gt;&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/engine.rb:615:in `each&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/engine.rb:615:in `block in &lt;class:Engine&gt;&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:30:in `instance_exec&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:30:in `run&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:55:in `block in run_initializers&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:44:in `each&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:44:in `tsort_each_child&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/initializable.rb:54:in `run_initializers&#39;
+# /home/andey/.rvm/gems/ruby-2.3.4/gems/railties-4.2.9/lib/rails/application.rb:352:in `initialize!&#39;
+# ./config/environment.rb:5:in `&lt;top (required)&gt;&#39;
+# ./spec/rails_helper.rb:3:in `require&#39;
+# ./spec/rails_helper.rb:3:in `&lt;top (required)&gt;&#39;
+# ./spec/models/concerns/posconcern_spec.rb:1:in `require&#39;
+# ./spec/models/concerns/posconcern_spec.rb:1:in `&lt;top (required)&gt;&#39;
+</code></pre>
+                    <p>リポジトリへの関連リンク:</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/aws/aws-sdk-ruby/blob/master/gems/aws-sdk-core/lib/aws-sdk-core/instance_profile_credentials.rb#L45</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>AWS 認証情報を取得するために AWS メタデータ
+                    サーバーに接続しようとしています。すべての AWS
+                    サーバーが内部メタデータ
+                    サーバーに接続できる必要があります。</p>
+                    <p>どうやってブロックしてるの？ファイアウォール？
+                    169.254.169.254
+                    へのトラフィックを許可するルールを追加するか、スタブ化します。</p>
+                    <p>スクリプトは AWS
+                    サービスに接続しようとしています。そのためには、さまざまな方法で提供できる資格情報が必要です。
+                    1 つの方法は、AWS IAM ロールを使用し、メタデータ
+                    サーバー (169.254.169.254)
+                    から認証情報を動的に取得することです。スクリプトは
+                    169.254.169.254
+                    に接続して資格情報を取得しています。後で AWS
+                    サービスに接続するために使用できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

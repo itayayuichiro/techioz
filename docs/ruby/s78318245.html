@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>vim 構文で Ruby Sorbet 署名を非強調コメントとして強調表示するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "vim 構文で Ruby Sorbet 署名を非強調コメントとして強調表示するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>vim 構文で Ruby Sorbet
+署名を非強調コメントとして強調表示するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>通常、Sorbet 署名は通常の Ruby
+                    と同様に構文が強調表示されます。</p>
+                    <p>ただし、おそらく代わりにコメントとして強調表示することで、ノイズの多い署名を視覚的に強調しないようにしたいと考えています。</p>
+                    <p>~/.vim/after/syntax/ruby.vim
+                    にある次のコードを実行すると、その途中まで進むことができます。</p>
+                    <pre><code>&quot; adapted from: https://github.com/zackhsi/sorbet.vim/blob/master/syntax/ruby.vim
+syntax region SigBlock matchgroup=SigBlockDelimiter start=&quot;{&quot; end=&quot;}&quot; contained transparent
+syntax region SigBlock matchgroup=SigBlockDelimiter start=&quot;\&lt;do\&gt;&quot; end=&quot;\&lt;end\&gt;&quot; contained transparent
+
+&quot; Prevent sorbet elements from being contained by vim-ruby elements.
+syntax cluster rubyNotTop add=SigBlock
+
+syntax match Sig &quot;\&lt;sig\&gt;&quot; nextgroup=SigBlock skipwhite
+
+&quot; hi def link SigBlockDelimiter rubyDefine
+
+&quot; Match vim-ruby:
+&quot; https://github.com/vim-ruby/vim-ruby/commit/19c19a54583c3e7c07dce18b844ae104695c41d7.
+syntax match rubyMagicComment &quot;\c\%&lt;10l#\s*\zs\%(typed\):&quot; contained nextgroup=rubyBoolean skipwhite
+
+&quot; de-emphasize Sorbet sig
+highlight default link Sig               Comment
+highlight default link SigBlockDelimiter Comment
+</code></pre>
+                    <p>そのようです：</p>
+                    <p>署名ブロック内のコードをコメントとしても強調表示するにはどうすればよいですか?</p>
+                    <p>参考までに、私は sheerun/vim-polyglot (つまり
+                    vim-ruby/vim-ruby) と nanotech/jellybeans.vim
+                    を使用しています。また、さらに理想的なのは、色を保持し、VSCode
+                    の byesig
+                    拡張機能のように「コントラストを下げるだけ」にすることですが、おそらく多くの新しい色と構文ルールを定義する必要があるでしょうか。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>透明にするとハイライトが継承されますが、それは望ましくありません。
+                    区切り文字を個別に強調表示したくない場合は、matchgroup
+                    を削除することもできます。</p>
+                    <pre><code>&quot; https://github.com/zackhsi/sorbet.vim/blob/master/syntax/ruby.vim
+
+syntax region SigBlock start=&quot;{&quot; end=&quot;}&quot; contained
+syntax region SigBlock start=&quot;\&lt;do\&gt;&quot; end=&quot;\&lt;end\&gt;&quot; contained
+
+syntax cluster rubyNotTop add=SigBlock
+
+syntax match Sig &quot;\&lt;sig\&gt;&quot; nextgroup=SigBlock skipwhite
+
+syntax match rubyMagicComment &quot;\c\%&lt;10l#\s*\zs\%(typed\):&quot; contained nextgroup=rubyBoolean skipwhite
+
+highlight default link Sig      Comment
+highlight default link SigBlock Comment
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

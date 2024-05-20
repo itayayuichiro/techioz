@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby クラスのコンストラクターでは、 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby クラスのコンストラクターでは、",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby クラスのコンストラクターでは、</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「なぜこれをやりたいのですか？」という質問はしないでください。私は特定の目標を念頭に置いて、Ruby
+                    の隅々まで探索しているだけです。</p>
+                    <p>一部の Ruby クラスは、 #new
+                    メソッドを明示的に呼び出すのではなく、かっこだけでインスタンス化できます。例えば、</p>
+                    <pre><code>irb&gt; require &#39;pathname&#39;
+irb&gt; p=Pathname(&#39;/etc/xdg/autostart&#39;)
+  =&gt; #&lt;Pathname:/etc/xdg/autostart&gt;
+irb&gt; n=Pathname.new(&#39;/etc/xdg/autostart&#39;)
+  =&gt; #&lt;Pathname:/etc/xdg/autostart&gt;
+irb&gt; p==n
+  =&gt; true
+</code></pre>
+                    <p>また、Integer(4.5)
+                    のように、これをキャスト/強制に使用するものもあります。そして、おそらく私がまだ出会っていない、または思い出せない他の用途があるでしょう。</p>
+                    <p>ただし、カスタム
+                    クラスでこれを行う方法は見つかりませんでした。</p>
+                    <pre><code>irb&gt; class Foo ; def initialize(*args) ; @args=args ; end ; end
+  =&gt; :initialize
+irb&gt; f1=Foo.new(1,2,3)
+  =&gt; #&lt;Foo:0x00007f330a29f4e8 @args=[1, 2, 3]&gt;
+irb&gt; fp=Foo(1,2,3)
+(irb):7:in `&lt;main&gt;&#39;: undefined method `Foo&#39; for main:Object (NoMethodError)
+Did you mean?  for
+</code></pre>
+                    <p>私が理解できる唯一のことは、Pathname と Integer
+                    (たとえば) の両方が C
+                    コードを使用しており、どういうわけかカーネル
+                    メソッドになってしまうということです。</p>
+                    <pre><code>irb&gt; Object.method(:Pathname)
+  =&gt; #&lt;Method: #&lt;Class:Object&gt;(Kernel)#Pathname(_)&gt;
+irb&gt; Object.method(:Integer)
+  =&gt; #&lt;Method: #&lt;Class:Object&gt;(Kernel)#Integer(*)&gt;
+irb&gt; Object.method(:Foo)
+(irb):10:in `method&#39;: undefined method `Foo&#39; for class `#&lt;Class:Object&gt;&#39; (NameError)
+Did you mean?  for
+</code></pre>
+                    <p>したがって、これは C/.so
+                    拡張コードによって提供されるもののようです。</p>
+                    <p>しかし、次のような手間をかけずにネイティブ Ruby
+                    コードで簡単に実行できるでしょうか?</p>
+                    <pre><code>irb&gt; Object.define_method(:Foo) { |*args| Foo.new(*args) }
+  =&gt; :Foo
+irb&gt; Foo(1,2,3)
+  =&gt; #&lt;Foo:0x00007f330a3b9018 @args=[1, 2, 3]&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これらのグローバル
+                    メソッドは、カーネルで定義されたいわゆるモジュール関数です。次の方法で独自のグローバル関数を定義できます:
+                    (メソッドの定義に Ruby 3 の短縮構文を使用)</p>
+                    <pre><code>module Kernel
+  def Foo(...) = Foo.new(...)
+  module_function :Foo
+end
+</code></pre>
+                    <p>上記は、すべての引数を Foo.new に転送するメソッド
+                    Kernel#Foo
+                    を定義しています。オブジェクトにはカーネルが含まれているため、次の方法でオブジェクト内から
+                    Foo インスタンスを作成できます。</p>
+                    <pre><code>Foo(1, 2, 3) #=&gt; #&lt;Foo:0x000000010633e120 @args=[1, 2, 3]&gt;
+</code></pre>
+                    <p>さらに、 module_function により、メソッドがクラス
+                    メソッドとして利用可能になります。</p>
+                    <pre><code>Kernel.Foo(1, 2, 3) #=&gt; #&lt;Foo:0x0000000108b00398 @args=[1, 2, 3]&gt;
+</code></pre>
+                    <p>また、インスタンス
+                    メソッドをプライベートとしてマークするため、他の明示的なレシーバーで呼び出すことはできません。</p>
+                    <pre><code>:hello.Foo(1, 2, 3)
+# NoMethodError: private method `Foo&#39; called for an instance of Symbol
+</code></pre>
+                    <p>これは、Integer、Pathname
+                    なども統合される方法です。</p>
+                    <p>クラスに対応する組み込みグローバル
+                    メソッドは、主に値をそのクラスに変換することを目的としていることに注意してください。
+                    Integer(“123”) #=&gt;
+                    123。引数を渡すだけではありません。
+                    (整数はnewにも反応しません)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

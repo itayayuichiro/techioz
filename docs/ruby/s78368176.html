@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JOINS に 3 つ以上のテーブルが含まれる場合、Ruby on Rails で関連付けをどのように処理すればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JOINS に 3 つ以上のテーブルが含まれる場合、Ruby on Rails で関連付けをどのように処理すればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JOINS に 3
+つ以上のテーブルが含まれる場合、Ruby on Rails
+で関連付けをどのように処理すればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails サーバー (v6.0.1)
+                    で作業しており、結合に 3
+                    つのテーブルが含まれる場合に、よりクリーンな
+                    ActiveRecord
+                    結合を探しています。状況を説明するために検討中の 5
+                    つのモデルのベアボーン再現をここに示します。</p>
+                    <pre><code>class Person
+  # represents a person
+end
+
+class Company
+  # represents a business entity
+  has_many :shifts
+end
+
+class Employee
+  # represents a person&#39;s link with a company.
+  belongs_to :person
+  belongs_to :company
+end
+
+class Shift
+  # represents a daily shift that a company has
+  belongs_to :company
+end
+
+class PersonShift
+  # the system maps a person to the shift to indicate they showed up
+  belongs_to :person
+  belongs_to :shift
+  enum status: { ongoing: &quot;ongoing&quot; } # and more
+end
+</code></pre>
+                    <p>従業員ではなく個人を関連付けるシステムの選択により、「現在シフトがアクティブになっている従業員は何名ですか?」という質問に答えるクエリを作成するのが少し難しくなります。単純な
+                    SQL
+                    に頼ることなく。これは決して問題ではありませんが、ActiveRecord
+                    を適切に使用してこの結果を得る方法があるかどうか知りたいです。</p>
+                    <p>今のところ、私にできる最善のことは次のとおりです。</p>
+                    <pre><code>date = Date.today
+
+PersonShift.ongoing.joins(:shift).joins(&#39;INNER JOIN employees on employees.company_id = shifts.company_id AND employees.person_id = person_shifts.person_id&#39;).where(shifts: { date: }).distinct.select(&#39;employees.id&#39;)
+</code></pre>
+                    <p>根本的な問題は、Employee を PersonShift
+                    に結合するには Shift と PersonShift
+                    を確認する必要があり、単純な結合ではないということです。
+                    has_many スルーのようなものを介して PersonShift と
+                    Employee
+                    を直接関連付ける方法があればいいのですが?</p>
+                    <p>これはレガシー
+                    システムであり、移行には多大な労力が必要になるため、チームはこれを望んでいないため、テーブルを変更することはできません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Person と Employee 間の関連付けは 1 対 1
+                    ですか、それとも 1 対多ですか?</p>
+                    <p>1 対 1
+                    の場合、従業員と人の数を数えるのは実際には同じことです。</p>
+                    <pre><code>Person.includes(:person_shifts).where(person_shift: {status: :ongoing, date: Date.today}).count
+</code></pre>
+                    <p>上記にさらに付け加えます。1 人の人間が同じ日に 2
+                    人の異なる従業員になる可能性はありますか??これら 2
+                    つの異なるテーブルが何を表すかについては詳しく説明されていないので、推測することになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

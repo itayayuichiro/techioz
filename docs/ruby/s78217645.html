@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>form_with が間違ったパスでアクションを生成しようとしています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "form_with が間違ったパスでアクションを生成しようとしています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>form_with
+が間違ったパスでアクションを生成しようとしています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ルーティングと名前空間を試しています。</p>
+                    <p>&lt;%= form_with
+                    モデルを使用してフォームを実装する場合: <span
+                    class="citation" data-cites="user">[@user,
+                    @address]</span> は |form| を実行します。 %&gt;
+                    未定義メソッド「customer_user_customer_addresses_path」というエラーが表示されます</p>
+                    <p>これはルーティングスキーマです</p>
+                    <pre><code>  namespace :customer do
+    resources :users do
+      resource :contact
+      resources :addresses
+    end
+  end
+
+  resolve(&#39;Customer::Contact&#39;) {
+    [:customer, :user, :contact]
+  }
+</code></pre>
+                    <p>Rails Routes
+                    コマンドによって出力されるすべてのルートは期待どおりです。</p>
+                    <pre><code>                 customer_user_addresses GET    /customer/users/:user_id/addresses(.:format)                                                      customer/addresses#index
+                                         POST   /customer/users/:user_id/addresses(.:format)                                                      customer/addresses#create
+               new_customer_user_address GET    /customer/users/:user_id/addresses/new(.:format)                                                  customer/addresses#new
+              edit_customer_user_address GET    /customer/users/:user_id/addresses/:id/edit(.:format)                                             customer/addresses#edit
+                   customer_user_address GET    /customer/users/:user_id/addresses/:id(.:format)                                                  customer/addresses#show
+                                         PATCH  /customer/users/:user_id/addresses/:id(.:format)                                                  customer/addresses#update
+                                         PUT    /customer/users/:user_id/addresses/:id(.:format)                                                  customer/addresses#update
+                                         DELETE /customer/users/:user_id/addresses/:id(.:format)                                                  customer/addresses#destroy
+</code></pre>
+                    <pre><code>  resolve(&#39;Customer::Contact&#39;) {
+    [:customer, :user, :contact]
+  }
+</code></pre>
+                    <p>Customer::AddressesController
+                    を実装するとき、正しいパスを要求する form_with
+                    を作成する方法がわかりません。</p>
+                    <p>これがコントローラーのアクションです</p>
+                    <pre><code>  def new
+    @breadcrumbs = []
+    @user = Customer::User.find(params[:user_id])
+    @address = @user.addresses.build
+  end
+</code></pre>
+                    <p>これが新しいテンプレートです</p>
+                    <pre><code>&lt;%= form_with model: [@user, @address] do |form| %&gt;
+</code></pre>
+                    <p>新しいアクションに移動すると、未定義のメソッド「customer_user_customer_addresses_path」というエラーが表示されます</p>
+                    <p>それを機能させるには、正しいパスを持つ URL
+                    パラメーターを渡す必要がありました: &lt;%= form_with
+                    model: <span class="citation"
+                    data-cites="user">[@user, @address]</span>, url:
+                    customer_user_addresses_path(<span class="citation"
+                    data-cites="user">@user</span>) do |form|
+                    %&gt;。</p>
+                    <p>どのような規則が欠けているのでしょうか?
+                    URLパラメータを省略する方法はありますか？</p>
+                    <p>リポジトリ:
+                    https://github.com/LuigiDeCosmis/GestionaleTest</p>
+                    <p>確認するテンプレートは
+                    customer/addresses/new.html.erb にあります</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>customer_
+                    プレフィックスはどこから来たのでしょうか?</p>
+                    <p>エラーメッセージにはユーザーとアドレスの両方に
+                    customer_ プレフィックスが表示されます</p>
+                    <pre><code>undefined method &#39;customer_user_customer_addresses_path&#39;
+</code></pre>
+                    <p>ユーザー / アドレス モデルの両方が Customer
+                    名前空間に配置されている間、モデルに基づいてパスを構築しようとしているためです。</p>
+                    <p>具体的に言うと、customer_
+                    プレフィックスはここから来ています:</p>
+                    <pre><code>Customer::User.model_name.param_key
+# =&gt; &quot;customer_user&quot;
+Customer::Address.model_name.param_key
+# =&gt; &quot;customer_address&quot;
+</code></pre>
+                    <p>これはそれを解析しようとする方法です:
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/blob/af773ae44a1ae465cc0d19b1e8bf3fc731221ef0/actionview/lib/action_view/helpers/form_helper.rb#L756</p>
+                    <p>どのような規則が欠けているのでしょうか?</p>
+                    <p>モデルにそのように名前空間を付ける必要がある理由がわかりません。</p>
+                    <p>ユーザーを顧客/管理者、またはその他のいずれかにしたい場合は、STI
+                    アプローチを使用する必要があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveRecord/Inheritance.html</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://medium.com/nyc-ruby-on-rails/single-table-inheritance-sti-ruby-on-rails-basics-2a08c81e50af</p>
+                    <p>URLパラメータを省略する方法はありますか?</p>
+                    <p>はい。モデルの Customer
+                    名前空間を削除すると、ルート内に次のようなものが表示されるようになります。</p>
+                    <pre><code>customer_user_addresses
+</code></pre>
+                    <p>モデルオプションで設定可能なルートの一例です。</p>
+                    <p>お役に立てば幸いです!幸運を！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

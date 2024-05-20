@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>URLからRailsのルートパターンを見つける方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "URLからRailsのルートパターンを見つける方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>URLからRailsのルートパターンを見つける方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>パスがわかっているラックリクエストがあるとします。
+                    /things/1、ルート参照を取得するにはどうすればよいですか。
+                    /もの/:ID?</p>
+                    <p>Rails.application.routes.recognize_path
+                    を使用してコントローラーとアクションを取得できますが、難読化されたパスを明示的に探しています。</p>
+                    <p>とにかく、controller#actionを指定して認識されたルートを取得することはできますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>レール v7.1</p>
+                    <p>彼らはそれを少し簡単にしました：</p>
+                    <pre><code>request.route_uri_pattern
+#=&gt; &quot;/users/:id/edit(.:format)&quot;
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/v7.1.3.2/classes/ActionDispatch/Request.html#method-i-route_uri_pattern</p>
+                    <p>レール v7.0</p>
+                    <p>その情報が入手できる場所を私が知っていた唯一の場所は、bin/rails
+                    ルートです。すべての情報を収集するためにインスペクターを使用しています。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/blob/v7.0.4.3/actionpack/lib/action_dispatch/routing/inspector.rb</p>
+                    <p>もしかしたら、他にも何か見つかるかもしれません。しかし、私はあなたが求めている主な部分を抽出しました：</p>
+                    <pre><code># in a controller or a template
+
+&lt;% request.routes.router.recognize(request) do |route, _params| %&gt;
+  &lt;%= route.path.spec.to_s %&gt; # =&gt; /users/:id(.:format)
+&lt;% end %&gt;
+</code></pre>
+                    <pre><code># in a console
+
+&gt;&gt; Rails.application.routes.router.recognize(
+  ActionDispatch::Request.new(Rack::MockRequest.env_for(&quot;/users/1/edit&quot;, method: :get))
+) {}.map {|_,_,route| route.path.spec.to_s }
+=&gt; [&quot;/users/:id/edit(.:format)&quot;]
+</code></pre>
+                    <p>ここでのルートは、ルートに関するすべての情報を含む
+                    ActionDispatch::Journey::Route
+                    インスタンスです。</p>
+                    <p>これが何をするのか全く分かりませんが、それは可能です:</p>
+                    <pre><code>&gt;&gt; Rails.application.routes.routes.simulator.memos(&quot;/users/1/edit&quot;).first.ast.to_s
+=&gt; &quot;/users/:id/edit(.:format)&quot;
+
+# NOTE: if route doesn&#39;t match it will `yield` and raise
+# no block given (yield) (LocalJumpError)
+# just rescue or give it an empty block.
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/blob/v7.0.4.3/actionpack/lib/action_dispatch/journey/gtg/simulator.rb#L25</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 内でのレスキュー使用 - begin なしのアクション | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 内でのレスキュー使用 - begin なしのアクション",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 内でのレスキュー使用 - begin
+なしのアクション</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>begin-キーワードなしでこれはどのように機能しますか?</p>
+                    <pre><code>def show
+  @post = BlogPost.find(params[:id])
+rescue ActiveRecord::RecordNotFound
+  redirect_to root_path
+end
+</code></pre>
+                    <p>なぜそうではないのでしょうか？</p>
+                    <pre><code>def show
+  begin
+    @post = BlogPost.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to root_path
+  end
+end
+</code></pre>
+                    <p>どちらのバリエーションも機能します。試してみました。しかし、最初のものを理解するのに苦労しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>begin/end はレスキューが使用できる場所の 1
+                    つにすぎません。 begin を def または do
+                    に置き換えるだけで、概念的には同じです。</p>
+                    <pre><code>begin
+  err
+rescue
+  &quot;error&quot;
+end
+
+def m
+  err
+rescue
+  &quot;error&quot;
+end
+
+[1].map do |i|
+  err
+rescue
+  &quot;error&quot;
+end
+</code></pre>
+                    <p>クラスとモジュールも機能しますが、何に使用するかわかりません。</p>
+                    <pre><code>class A
+  err
+rescue
+  &quot;error&quot;
+end
+
+module B
+  err
+rescue
+  &quot;error&quot;
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://docs.ruby-lang.org/en/3.3/syntax/exceptions_rdoc.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

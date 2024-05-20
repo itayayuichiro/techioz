@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>サインアップ時にベータ版の招待者に従ってください | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "サインアップ時にベータ版の招待者に従ってください",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>サインアップ時にベータ版の招待者に従ってください</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このチュートリアルに従って、ベータ版招待システムを作成しました。
+                    http://railscasts.com/episodes/124-beta-invitations。ユーザーは
+                    Rails アプリで相互にフォローすることもできます。</p>
+                    <p>サインアップ時に招待者を招待した人をフォローさせるにはどうすればよいですか?</p>
+                    <p>現在、メソッドを使用してユーザーモデルでこれを確立しようとしていますが、招待者がsender_id/user_idを介して招待者をフォローできるようにするメソッドを作成するのに苦労しています。</p>
+                    <p>これは私がこれまでに使用したコードです。</p>
+                    <p>スキーマ</p>
+                    <pre><code>  create_table &quot;users&quot;, :force =&gt; true do |t|
+    t.string   &quot;name&quot;
+    t.string   &quot;email&quot;
+    t.integer  &quot;invitation_id&quot;
+    t.integer  &quot;invitation_limit&quot;
+    t.timestamp &quot;created_at&quot;,                                :null =&gt; false
+    t.timestamp &quot;updated_at&quot;,                                :null =&gt; false
+    t.string    &quot;password_reset_token&quot;
+    t.timestamp &quot;password_reset_sent_at&quot;
+  end
+
+  create_table &quot;invitations&quot;, :force =&gt; true do |t|
+    t.integer  &quot;sender_id&quot;
+    t.string   &quot;recipient_email&quot;
+    t.string   &quot;token&quot;
+    t.datetime &quot;sent_at&quot;
+    t.datetime &quot;created_at&quot;,      :null =&gt; false
+    t.datetime &quot;updated_at&quot;,      :null =&gt; false
+  end
+</code></pre>
+                    <p>モデル</p>
+                    <p>ユーザー</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  attr_accessible :name, :email, :password, :password_confirmation, :invitation_token
+
+  has_many :relationships, foreign_key: &quot;follower_id&quot;, dependent: :destroy
+  has_many :followed_users, through: :relationships, source: :followed
+
+  has_many :reverse_relationships, foreign_key: &quot;followed_id&quot;,
+                               class_name:  &quot;Relationship&quot;,
+                               dependent:   :destroy
+  has_many :followers, through: :reverse_relationships, source: :follower
+
+  has_many :sent_invitations, :class_name =&gt; &#39;Invitations&#39;, :foreign_key =&gt; &#39;sender_id&#39;
+
+  belongs_to :invitation
+
+  after_create :follow_inviter      #---------- HERE!!
+
+  def follow_inviter                #---------- HERE!!
+    inviters = Invitation.find_by_sender_id
+    inviters.each do |invite|
+      self.follow!(invite)
+    end
+  end
+
+  def invitation_token
+    invitation.token if invitation
+  end
+
+  def invitation_token=(token)
+    self.invitation = Invitation.find_by_token(token)
+  end
+
+  def following?(other_user)
+    relationships.find_by_followed_id(other_user.id)
+  end
+
+ def follow!(other_user)
+    relationships.create!(followed_id: other_user.id)
+  end
+
+  def unfollow!(other_user)
+    relationships.find_by_followed_id(other_user.id).destroy
+  end
+
+end
+</code></pre>
+                    <p>人間関係</p>
+                    <pre><code>class Relationship &lt; ActiveRecord::Base
+
+  attr_accessible :followed_id
+
+  belongs_to :follower, class_name: &quot;User&quot;
+  belongs_to :followed, class_name: &quot;User&quot;
+
+  validates :follower_id, presence: true
+  validates :followed_id, presence: true
+end
+</code></pre>
+                    <p>招待</p>
+                    <pre><code>class Invitation &lt; ActiveRecord::Base
+  attr_accessible :recipient_email, :sender_id, :sent_at, :token
+
+  belongs_to :sender, :class_name =&gt; &quot;User&quot;
+  has_one :recipient, :class_name =&gt; &quot;User&quot;
+
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+
+  before_create :generate_token
+
+  private
+
+    def generate_token
+      self.token = Digest::SHA1.hexdigest([Time.now, rand].join)
+    end
+
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは機能するはずです。</p>
+                    <pre><code>def follow_inviter
+  if invitation = Invitation.find_by_recipient_email(email)
+    follow!(invitation.sender)
+  end
+end
+</code></pre>
+                    <p>しかし、モデルの関連付けは明確に定義されていません。たとえば、招待状の
+                    has_one :recipient, :class_name =&gt; “User”
+                    は、テーブルに受信者 ID
+                    があることを期待していますが、実際にはありません。それを見直したほうがいいよ。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

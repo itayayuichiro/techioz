@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: ネストされた名前空間により部分への奇妙なパスが生成され、MissingTemplate エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: ネストされた名前空間により部分への奇妙なパスが生成され、MissingTemplate エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:
+ネストされた名前空間により部分への奇妙なパスが生成され、MissingTemplate
+エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Book という名前の ActiveRecord モデルと
+                    Book::Author という名前のモデルがあります。著者は
+                    Book::Authorship モデル (1 対多の関連付け)
+                    を通じて多数の本を持っています。</p>
+                    <p>オフトピック：</p>
+                    <p>私のアプリでは、管理者のみが書籍と著者を作成/更新/削除できます。そこで、コントローラー用に
+                    Admin
+                    という名前空間を作成し、管理者専用にビューを作成しました。</p>
+                    <p>Routes.rb ファイルには次のものがあります。</p>
+                    <pre><code>Rails.application.routes.draw do
+  # These are for the regular users:
+  # only #index and #show actions are defined in the respective controllers:
+  namespace :books do
+    resources :authors, only: %i[index show]
+  end
+  resources :books, only: %i[index show]
+
+  # These are for the admins only:
+  # all CRUD methods are defined in the respective controllers:
+  namespace :admin do
+    namespace :books do
+      resources :authors
+    end
+
+    resources :books
+  end
+  resources :admin
+
+  root &quot;books#index&quot;
+end
+</code></pre>
+                    <p>次に、Admin::Books::AuthorsController
+                    コントローラーを作成しました。</p>
+                    <p>ビューのパスは同じパス
+                    パターンに従うことが予想されます。</p>
+                    <p>残念ながら、そうではありません。インデックス
+                    ページは機能しますが、_author.html.erb
+                    部分が見つかりません。</p>
+                    <p>/app/views/admin/books/authors/_index.html.erb
+                    で著者のリストをレンダリングしようとしている方法は次のとおりです。</p>
+                    <pre><code>  &lt;% @books_authors.each do |book_author| %&gt;
+    &lt;%= render book_author %&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>これにより、次のエラーが発生します。</p>
+                    <p>途中に 2
+                    冊の「本」があります…しかしなぜでしょうか?</p>
+                    <p>上記のコードは、テンプレートへの明示的なパスがある場合にのみ機能します。</p>
+                    <pre><code>  &lt;% @books_authors.each do |book_author| %&gt;
+    &lt;%= render &quot;admin/books/authors/author&quot;, book_author: book_author %&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>これは構成パラダイムに関する慣例を破るので、私は好きではありません。
+                    Admin::Books::
+                    名前空間の下のすべてのビューに手動でパスを入力したくありません。</p>
+                    <p>明示的なパスを使用せずに目的の機能を実現する方法を探しています。
+                    Rails が部分を検索するときにパスに「books」を 2
+                    回含めないようにするにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コントローラーの名前空間は Admin::Books
+                    で、モデルは Books::Author なので、両方とも 2
+                    つの「books」パスが得られます。ロジックは大まかに次のようになります。</p>
+                    <pre><code>[
+  File.dirname(Admin::Books::AuthorsController.new.lookup_context.prefixes.first),
+  Books::Author.new.to_partial_path
+].join(&quot;/&quot;)
+
+#=&gt; &quot;admin/books/books/authors/author&quot;
+</code></pre>
+                    <p>lookup_context は変更できるものです
+                    (おそらく良いアイデアではありません)。</p>
+                    <pre><code># app/controllers/admin/books/authors_controller.rb
+
+def index
+  lookup_context.prefixes = [&quot;admin/books&quot;, &quot;application&quot;]
+  @books_authors = Books::Author.all
+end
+</code></pre>
+                    <p>もう 1 つの方法は、Books 名前空間の 1
+                    つを削除することです。</p>
+                    <pre><code># either change your controller
+class Admin::AuthorsController &lt; ApplicationController
+  def index
+    @books_authors = Books::Author.all
+  end
+end
+
+# or model, what if someone writes a book and a post?
+class Admin::Books::AuthorsController &lt; ApplicationController
+  def index
+    @books_authors = Author.joins(:books)
+  end
+end
+</code></pre>
+                    <p>モデルをフラットに保つことは、名前空間がなくても問題なく、規則に従う一般的な方法です。</p>
+                    <pre><code>BookAuthor
+PostAuthor
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RBS でハッシュまたはキーワード引数を取ることができるメソッドの型シグネチャ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RBS でハッシュまたはキーワード引数を取ることができるメソッドの型シグネチャ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RBS
+でハッシュまたはキーワード引数を取ることができるメソッドの型シグネチャ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のメソッドの RBS
+                    に型チェックのサポートを追加しようとしています。</p>
+                    <pre><code>      def create_bridge(caps:, url:, http_client: nil)
+        Remote::Bridge.new(http_client: http_client, url: url).tap do |bridge|
+          bridge.create_session(caps)
+        end
+      end
+</code></pre>
+                    <p>このメソッドは次の方法で呼び出すことができます。</p>
+                    <pre><code>      def initialize(bridge: nil, listener: nil, **opts)
+        @devtools = nil
+        @bidi = nil
+        bridge ||= create_bridge(**opts)
+        add_extensions(bridge.browser)
+        @bridge = listener ? Support::EventFiringBridge.new(bridge, listener) : bridge
+      end
+</code></pre>
+                    <p>そして私はRBSで次のように宣言しました。</p>
+                    <pre><code>def create_bridge: (caps: untyped?, url: untyped?, http_client: untyped? ) -&gt; untyped
+</code></pre>
+                    <p>これにより、急勾配で実行すると次のエラーが発生します。</p>
+                    <pre><code>lib/selenium/webdriver/common/driver.rb:74:19: [error] More keyword arguments are required: caps, url, http_client
+│ Diagnostic ID: Ruby::InsufficientKeywordArguments
+│
+└         bridge ||= create_bridge(**opts)
+                     ~~~~~~~~~~~~~~~~~~~~~
+</code></pre>
+                    <p>ただし、すべてのキーワードをオプションにしようとすると、次のエラーが発生します。</p>
+                    <pre><code>lib/selenium/webdriver/common/driver.rb:315:24: [error] The method parameter is incompatible with the declaration `(?caps: untyped, ?url: untyped, ?http_client: untyped) -&gt; untyped`
+│ Diagnostic ID: Ruby::MethodParameterMismatch
+│
+└       def create_bridge(caps:, url:, http_client: nil)
+                          ~~~~~
+
+lib/selenium/webdriver/common/driver.rb:315:31: [error] The method parameter is incompatible with the declaration `(?caps: untyped, ?url: untyped, ?http_client: untyped) -&gt; untyped`
+│ Diagnostic ID: Ruby::MethodParameterMismatch
+│
+└       def create_bridge(caps:, url:, http_client: nil)
+</code></pre>
+                    <p>メソッド定義をオーバーロードしようとしても同じです</p>
+                    <p>正しい型シグネチャを追加するための最良の方法を教えていただけますか?</p>
+                    <p>この度は誠にありがとうございました</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>初期化で値を代入する場合はどうすればよいでしょうか?</p>
+                    <pre><code>      def initialize(bridge: nil, listener: nil, **opts)
+        @devtools = nil
+        @bidi = nil
+        caps = opts[:caps]                   # or handle nil case
+        url = opts[:url]                     # or handle nil case
+        http_client = opts[:http_client]     # or handle nil case
+        bridge ||= create_bridge(caps:, url:, http_client:) # explicitly pass attributes
+        add_extensions(bridge.browser)
+        @bridge = listener ? Support::EventFiringBridge.new(bridge, listener) : bridge
+      end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

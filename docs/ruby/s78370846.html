@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>自分の gem で別の gem のロケールを使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "自分の gem で別の gem のロケールを使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>自分の gem で別の gem
+のロケールを使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>別の gem を使用する gem
+                    があります。他の宝石には翻訳があります
+                    (I18n)。ライブラリにローカリゼーションを適用すると、テキストの代わりに翻訳が欠落している値が表示されます。</p>
+                    <pre><code>Translation missing: en.some_field.a.b.c
+</code></pre>
+                    <p>さて、私にとって解決策は 1
+                    つあります。これは、config
+                    ディレクトリをそのライブラリから自分のライブラリに移動することです。</p>
+                    <p>しかし、これらのファイルは私のライブラリには本質的に役に立たないので、コピーしたくありません。さらに、これらのファイルは保守、更新などを行う必要があります。</p>
+                    <p>これらのファイルを何らかの方法で別の gem
+                    から現在の gem
+                    に自動的にロードすることは可能ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ファイルをコピーせずに、別の gem
+                    の翻訳ファイルを現在の gem
+                    にロードできます。これは、別の gem
+                    からの翻訳ファイルのパスを追加する I18n ロード
+                    パスを設定することで実行できます。次のようになります。</p>
+                    <p>次のコードを Gem
+                    のイニシャライザまたは構成ファイルに追加します。</p>
+                    <pre><code># config/initializers/load_translations.rb
+I18n.load_path += YourOtherGem.config.i18n.load_path
+</code></pre>
+                    <p>gem
+                    から翻訳をロードするには、次の手順に従います。</p>
+                    <pre><code># lib/your_other_gem/config.rb
+module YourOtherGem
+  class Config
+    attr_accessor :i18n
+
+    def initialize
+      @i18n = OpenStruct.new(load_path: [])
+      @i18n.load_path &lt;&lt; File.expand_path(&quot;../../config/locales/*.yml&quot;, __FILE__)
+    end
+  end
+
+  def self.config
+    @config ||= Config.new
+  end
+end
+</code></pre>
+                    <p>これにより、gem
+                    の構成オブジェクトがセットアップされ、翻訳ファイルが
+                    config/locales ディレクトリから I18n.load_path
+                    に追加されます。</p>
+                    <pre><code># your_gem.gemspec
+Gem::Specification.new do |spec|
+  # ...
+  spec.add_runtime_dependency &quot;your_other_gem&quot;
+  # ...
+end
+</code></pre>
+                    <p>これにより、Gem が別の gem
+                    の翻訳をロードして使用できるようになります。他の翻訳ファイルを自分の
+                    gem にコピーする必要はありません。</p>
+                    <p>YourOtherGem と your_other_gem を、使用している
+                    gem の実際の名前に置き換えます。</p>
+                    <p>数週間前、同じことを自動化するためにシェル
+                    スクリプトを作成する必要がありました。</p>
+                    <pre><code>#!/bin/bash
+
+# Define the names of your gem and the other gem
+your_gem_initializer=&quot;path/to/your/gem/config/initializers/your_gem.rb&quot;
+your_gem_gemspec=&quot;path/to/your/gem/your_gem.gemspec&quot;
+other_gem_name=&quot;your_other_gem&quot;
+
+# Check if the initializer and gemspec files exist
+if [ ! -f &quot;$your_gem_initializer&quot; ] || [ ! -f &quot;$your_gem_gemspec&quot; ]; then
+    echo &quot;Error: Gem files not found.&quot;
+    exit 1
+fi
+
+# Add translation path to initializer
+echo &quot;Adding translation load path to initializer...&quot;
+echo &quot;I18n.load_path += $other_gem_name.config.i18n.load_path&quot; &gt;&gt; &quot;$your_gem_initializer&quot;
+
+# Add dependency to gemspec
+echo &quot;Adding runtime dependency to gemspec...&quot;
+sed -i &quot;/spec.add_runtime_dependency/a \ \ spec.add_runtime_dependency &#39;$other_gem_name&#39;&quot; &quot;$your_gem_gemspec&quot;
+
+echo &quot;Process completed successfully.&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

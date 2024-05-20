@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カートに商品を追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カートに商品を追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カートに商品を追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のグループ プロジェクトでは、Web
+                    サイトの「カートに追加」機能を作成しています。アイテムをカートに追加し、ユーザーをカート
+                    ページにリダイレクトする「カートに追加」ボタンを追加するにはどうすればよいですか?カート
+                    ページ内で、追加された商品を表示する必要があります。現時点ではボタンを作成しましたが、ユーザーはカート
+                    ページにリダイレクトされません。商品ページに残っております。</p>
+                    <p>//カートコントローラー</p>
+                    <pre><code>class CartController &lt; ApplicationController
+  def index
+    @cart = Prebuilt.all
+    render :index
+  end
+
+  def show
+    @cart = current_cart
+   end
+
+  def add_to_cart
+    current_cart.add_item(params[:prebuilt_id])
+  end
+
+end
+</code></pre>
+                    <p>//カートモデル</p>
+                    <pre><code>class Cart &lt; ApplicationRecord
+  has_many :items
+
+  def add_item(prebuilt_id)
+    item = items.where(&#39;prebuilt_id&#39;, prebuilt_id.first)
+    save
+  end
+
+end
+</code></pre>
+                    <p>//アイテムモデル</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  belongs_to :cart
+end
+</code></pre>
+                    <p>//ルート</p>
+                    <pre><code># root to: redirect(&#39;/cart&#39;)
+
+  get &#39;cart&#39;, to: &#39;cart#index&#39;, as: &#39;cart&#39;;
+
+  post &#39;/add_to_cart/:prebuilt_id&#39; =&gt; &#39;cart#add_to_cart&#39;, :as =&gt; &#39;add_to_cart&#39;
+
+  get &#39;checkout&#39;, to: &#39;pages#checkout&#39;, as: &#39;checkout&#39;;
+
+  get &#39;confirm&#39;, to: &#39;pages#confirm&#39;, as: &#39;confirm&#39;;
+</code></pre>
+                    <p>// Seeds.rb</p>
+                    <pre><code>prebuilt1 = Prebuilt.create!(
+  name: &quot;Alfred&#39;s Artistic Jet&quot;,
+  description: &quot;Designed by Alfred&quot;,
+  manufacturer: &quot;Boeing&quot;,
+  color: &quot;Mixed&quot;,
+  size: &quot;Large&quot;,
+  price: 2999999
+)
+
+prebuilt2 = Prebuilt.create!(
+  name: &quot;Brittany&#39;s Barbie Jet&quot;,
+  description: &quot;Designed by Brittany&quot;,
+  manufacturer: &quot;Boeing&quot;,
+  color: &quot;Pink&quot;,
+  size: &quot;Large&quot;,
+  price: 4499999
+)
+
+prebuilt3 = Prebuilt.create!(
+  name: &quot;Peter&#39;s Prehistoric Jet&quot;,
+  description: &quot;Designed by Peter&quot;,
+  manufacturer: &quot;Airbus&quot;,
+  color: &quot;Blue&quot;,
+  size: &quot;Small&quot;,
+  price: 7999999
+)
+
+prebuilt4 = Prebuilt.create!(
+  name: &quot;Tianna&#39;s Tractor-Themed Jet&quot;,
+  description: &quot;Designed by Tianna&quot;,
+  manufacturer: &quot;Airbus&quot;,
+  color: &quot;Mixed&quot;,
+  size: &quot;Large&quot;,
+  price: 1999999
+)
+</code></pre>
+                    <p>// 商品ページ</p>
+                    <pre><code>&lt;table class=&quot;table table-striped table-hover&quot;&gt;
+
+  &lt;thead class=&quot;table-dark&quot;&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Name&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+      &lt;th&gt;Manufacturer&lt;/th&gt;
+      &lt;th&gt;Color&lt;/th&gt;
+      &lt;th&gt;Size&lt;/th&gt;
+      &lt;th&gt;Price&lt;/th&gt;
+      &lt;th&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+
+  &lt;tbody&gt;
+    &lt;% @prebuilts.each do |prebuilt| %&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;%= prebuilt.name %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.description %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.description %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.manufacturer %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.color %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.size %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= prebuilt.price %&gt;&lt;/td&gt;
+        &lt;td class=&quot;text-nowrap&quot;&gt;
+          &lt;%= link_to &#39;show&#39;, prebuilt_path(prebuilt), class: &#39;btn btn-sm btn-outline-secondary&#39; %&gt;
+          &lt;td&gt;&lt;%= button_to &quot;add to cart&quot;, cart_path(:prebuilt_id =&gt; prebuilt), method: :post %&gt;&lt;/td&gt;
+        &lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;% end %&gt;
+  &lt;/tbody&gt;
+
+&lt;/table&gt;
+</code></pre>
+                    <p>// カートページ</p>
+                    <pre><code>&lt;table id=&quot;line_items&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Product&lt;/th&gt;
+    &lt;th&gt;Qty&lt;/th&gt;
+    &lt;th class=&quot;price&quot;&gt;Unit Price&lt;/th&gt;
+    &lt;th class=&quot;price&quot;&gt;Full Price&lt;/th&gt;
+  &lt;/tr&gt;
+
+  &lt;% for item in @cart %&gt;
+    &lt;tr class=&quot;&lt;%= cycle :odd, :even %&gt;
+       &lt;td&gt;&lt;%=h item.name %&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+   &lt;% end %&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>class CartController &lt; ApplicationController
+  def add_to_cart
+    current_cart.add_item(params[:prebuilt_id])
+    redirect_to cart_path(current_cart.id)
+  end
+end
+</code></pre>
+                    <p>項目はおそらく Prebuild
+                    にも属しているはずです</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  belongs_to :cart
+  belongs_to :prebuild
+end
+</code></pre>
+                    <p>アイテムの追加は、既存のアイテムを検索して更新したり、新しいアイテムを作成したりすることに似ています。</p>
+                    <pre><code>class Cart &lt; ApplicationRecord
+  has_many :items
+
+  def add_item(prebuilt_id)
+    item = items.find_by(prebuilt_id: prebuilt_id)
+    if item
+      item.update(count: item.count + 1)
+    else
+      items.create(prebuilt_id: prebuilt_id, count: 1)
+    end
+  end
+end
+</code></pre>
+                    <p>または、カウントがなく、各位置が 1 だけの場合</p>
+                    <pre><code>  def add_item(prebuilt_id)
+    items.find_or_create_by(prebuilt_id: prebuilt_id)
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

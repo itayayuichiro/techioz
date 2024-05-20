@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 の Zeitwerk でフォルダーを無視するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 の Zeitwerk でフォルダーを無視するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 の Zeitwerk
+でフォルダーを無視するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>単純な質問ですが、どういうわけか答えがわかりません。</p>
+                    <p>Zeitwerk を使用して Rails 6
+                    に移行すると、次のことが得られます。</p>
+                    <pre><code>Please, check the &quot;Autoloading and Reloading Constants&quot; guide for solutions.
+ (called from &lt;top (required)&gt; at APP_ROOT/config/environment.rb:7)
+rails aborted!
+Zeitwerk::NameError: wrong constant name Enforce-calls-to-come-from-aws inferred by Module from directory
+
+  APP_ROOT/app/junkyard/enforce-calls-to-come-from-aws
+
+Possible ways to address this:
+
+  * Tell Zeitwerk to ignore this particular directory.
+  * Tell Zeitwerk to ignore one of its parent directories.
+  * Rename the directory to comply with the naming conventions.
+</code></pre>
+                    <p>これは素晴らしいことだと思われます。これはジャンク
+                    フォルダーであり、決してロードすべきではないため、無視するのが完全に理にかなっています。</p>
+                    <p>https://github.com/fxn/zeitwerk の Zeitwerk
+                    ドキュメントには次のように書かれています。</p>
+                    <pre><code>tests = &quot;#{__dir__}/**/*_test.rb&quot;
+loader.ignore(tests)
+loader.setup
+</code></pre>
+                    <p>フォルダーを無視する方法です。けっこうだ。しかし、ローダーはどうやって見つければいいのでしょうか?
+                    Zeitwerk の自動ローディングに関する Rails ガイド
+                    (https://guides.rubyonrails.org/autoloading_and_reloading_constants.html)
+                    では、フォルダーを直接無視する方法については言及されていませんが、Rails.autoloaders.main
+                    に隠されているオートローダーについては言及されています。</p>
+                    <pre><code>Rails.autoloaders.main.ignore(&quot;#{__dir__}/junkyard/**/*.rb&quot;)
+</code></pre>
+                    <p>または</p>
+                    <pre><code>Rails.autoloaders.main.ignore(&quot;#{__dir__}/app/junkyard/**/*.rb&quot;)
+</code></pre>
+                    <p>それが進むべき道だろう。運がなかった。これをapplication.rbとinitializers/zeitwerk.rbに入れてみましたが、どちらも機能しませんでした。</p>
+                    <p>Rails 内で Zeitwerk
+                    を含むフォルダーを無視する場所と方法について何かアイデアはありますか?</p>
+                    <p>PS:
+                    はい、これをアプリから削除するべきであることはわかっています。そうします。しかし、その疑問は依然として悩ましい。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私もこれと同じ問題に遭遇しましたが、フォルダー名に関する問題が発生していることがわかりました。</p>
+                    <p>これを application.rb
+                    に追加するとうまくいくかもしれません:</p>
+                    <p>Rails.autoloaders.main.ignore(Rails.root.join(‘app/junkyard’))</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ポート転送を使用して同じファイルから複数の vagrant box インスタンスを実行する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ポート転送を使用して同じファイルから複数の vagrant box インスタンスを実行する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ポート転送を使用して同じファイルから複数の
+vagrant box インスタンスを実行する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ループを使用して1つのvagrantファイルから2つのボックスを起動しようとしています。
+                    それは機能していますが、ポート転送を追加しようとするまでは機能します。
+                    私はこれまで Ruby
+                    を使ってプログラミングしたことがなく、vagrant
+                    の使用に超上級者でもないので、おそらく単純で明白なことなのですが、それが何なのか理解できません。</p>
+                    <p>簡略化した例を次に示します。</p>
+                    <pre><code>  {
+    :hostname =&gt; &quot;first&quot;,
+    :ip =&gt; &quot;192.168.100.10&quot;,
+    :box =&gt; &quot;minimal/xenial64&quot;,
+    :ram =&gt; 1024,
+    :cpu =&gt; 2,
+    :port =&gt; 9080
+  },
+  {
+    :hostname =&gt; &quot;second&quot;,
+    :ip =&gt; &quot;192.168.100.11&quot;,
+    :box =&gt; &quot;minimal/xenial64&quot;,
+    :ram =&gt; 2024,
+    :cpu =&gt; 1,
+    :port =&gt; 9081
+  }
+]
+
+Vagrant.configure(2) do |config|
+    machines.each do |machine|
+        config.vm.define machine[:hostname] do |node|
+
+
+            # This is working just fine, each machine gats it&#39;s own ip, port, ram, memory
+            # as they specified in machines array above
+
+            node.vm.box = machine[:box]
+            node.vm.hostname = machine[:hostname]
+            node.vm.network &quot;private_network&quot;, ip: machine[:ip]
+            node.vm.provider &quot;virtualbox&quot; do |vb|
+                vb.customize [&quot;modifyvm&quot;, :id, &quot;--memory&quot;, machine[:ram]]
+            end
+
+
+            # But this is not working the same way for some reason,
+            # firs machine gets both ports
+            config.vm.network :forwarded_port, guest: 80, host: machine[:port]
+
+            #==&gt; first: Forwarding ports...
+            #    first: 80 (guest) =&gt; 9080 (host) (adapter 1)
+            #    first: 80 (guest) =&gt; 9081 (host) (adapter 1)
+
+            # And than second machine obviously can start because of:
+            # The forwarded port to 9080 is already in use on the host machine.
+        end
+    end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それは単純で明白なものだったと思うので、私は使用しました</p>
+                    <pre><code>config.vm.network :forwarded_port, guest: 80, host: machine[:port]
+</code></pre>
+                    <p>代わりに</p>
+                    <pre><code>node.vm.network :forwarded_port, guest: 80, host: machine[:port]
+</code></pre>
+                    <p>ノードは現在のクロージャを参照しているため、使用する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

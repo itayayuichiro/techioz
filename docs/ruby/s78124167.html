@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>最上位関数を呼び出し可能としてマップに渡します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "最上位関数を呼び出し可能としてマップに渡します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>最上位関数を呼び出し可能としてマップに渡します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>明確にしておきますが、私は eval
+                    が悪であることを認識しています。これは製品コード用ではありません。そうは言っても、ゴルフの目的で、以下を短縮できるかどうか考えようとしています。</p>
+                    <pre><code>$*.map{eval _1}
+</code></pre>
+                    <p>さらに、次の場合とほぼ同じ方法で:</p>
+                    <pre><code>$*.map{|x|x.to_i}
+# and
+$*.map{_1.to_i}
+</code></pre>
+                    <p>次のように短縮できます:</p>
+                    <pre><code>$*.map(&amp;:to_i)
+</code></pre>
+                    <p>Python
+                    のファーストクラス関数を使用すると、これが簡単になります。次のようなリストコンプ:</p>
+                    <pre><code>[eval(x)for x in sys.argv[1:]]
+</code></pre>
+                    <p>次のように短縮できます:</p>
+                    <pre><code>[*map(eval,sys.argv[1:])]
+</code></pre>
+                    <p>eval
+                    はファーストクラス関数であり、括弧がないと呼び出されないためです。しかし、渡される前に実行しようとする
+                    eval
+                    を抑制するために考えられることはすべて試しました。
+                    .map(&amp;eval)、.map(:eval)、およびそれらのバリエーションは機能しません
+                    (引数なしで eval を呼び出すか、eval
+                    関数として機能しないものを渡すため)。</p>
+                    <p>これはゴルフできない可能性がありますが、渡すことができる
+                    eval
+                    への直接参照を取得する（内部で呼び出す新しいカスタム
+                    Proc
+                    やラムダなどを作成するのではなく）方法があるかどうか興味があります。議論として？</p>
+                    <p>(念のため言っておきますが、これは実際のコードゴルフの課題ではないので、StackOverflow
+                    のトピックに留まっていると思います。たまたまゴルフのためにこれをやりたいと思っているのですが、トップレベルの関数をファーストクラスのオブジェクトに変換できるということです。ゴルフ以外でも場合によってはそれらを渡すと便利です）</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>eval は、Ruby
+                    の他のほとんどの「関数のふりをするメソッド」と同様、カーネルのメソッドであるため、Object#method
+                    を使用して参照を取得できます。次に、 &amp; to
+                    を使用してその Method を Proc に変換します。</p>
+                    <pre><code>$*.map(&amp;method(:eval))
+</code></pre>
+                    <p>したがって、method(:eval) は eval
+                    への「直接参照」になります。ただし、#map
+                    が満足するものを取得するには、#to_proc
+                    を呼び出す必要があります。</p>
+                    <p>メソッドの長さのせいでゴルフにはあまり向いていないかもしれないが、他に何も思いつかない。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

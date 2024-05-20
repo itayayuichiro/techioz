@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の JSON ライブラリで、ダンプ、生成、to_json、ロードと解析をいつ使用するべきですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の JSON ライブラリで、ダンプ、生成、to_json、ロードと解析をいつ使用するべきですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の JSON
+ライブラリで、ダンプ、生成、to_json、ロードと解析をいつ使用するべきですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この質問に対する david4dev の回答では、json
+                    ライブラリを使用してオブジェクトを JSON
+                    文字列に変換する同等の方法が 3
+                    つあると主張しています。</p>
+                    <pre><code>JSON.dump(object)
+JSON.generate(object)
+object.to_json
+</code></pre>
+                    <p>そして、JSON 文字列をオブジェクトに変換する 2
+                    つの同等の方法があります。</p>
+                    <pre><code>JSON.load(string)
+JSON.parse(string)
+</code></pre>
+                    <p>しかし、ソースコードを見ると、それぞれはかなり異なっているように見え、それらの間にはいくつかの違いがあります（例：1）。</p>
+                    <p>それらの違いは何ですか?いつどれを使うべきですか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>TL;DR:</p>
+                    <p>一般的に：</p>
+                    <p>一部の特殊な使用例では、ダンプまたはロードが必要になる場合がありますが、自分で作成したものではないデータにロードを使用するのは安全ではありません。</p>
+                    <p>詳しい説明:</p>
+                    <p>JSON::dump と JSON::generate</p>
+                    <p>JSON::generate
+                    では、引数の署名の一部として、インデント
+                    レベルや空白の詳細などのオプションを設定できます。一方、JSON::dump
+                    は、事前に設定された特定のオプションを使用してその内部で
+                    ::generate
+                    を呼び出すため、それらを自分で設定することができなくなります。</p>
+                    <p>ドキュメントによると、JSON::dump は Marshal::dump
+                    実装スキームの一部であることを意図しています。
+                    ::dump を自分で明示的に使用する主な理由は、::dump
+                    を使用すると IO のようなオブジェクトを 2
+                    番目の引数として渡すことができるため、JSON データを
+                    (たとえばソケット経由で)
+                    ストリーミングしようとしていることです。
+                    。残念ながら、生成される JSON
+                    データは、実際には生成時にストリーミングされません。これは一括して作成され、JSON
+                    が完全に作成された場合にのみ送信されます。このため、IO
+                    引数を持つことは些細な場合にのみ役立ちます。</p>
+                    <p>2 つの最後の違いは、::dump
+                    は、特定のネストの深さを超えたときに ArgumentError
+                    を発生させる制限引数を取ることもできることです。</p>
+                    <p>#to_json との比較</p>
+                    <p>#to_json
+                    はオプションを引数として受け入れるため、JSON::generate(foo,
+                    opts) と foo.to_json(opts)
+                    はほぼ同等です。内部実装が異なるため、驚くべき効果が生じる可能性があります
+                    (コメントを参照)。</p>
+                    <p>JSON::load と JSON::parse</p>
+                    <p>::dump が内部で ::generate
+                    を呼び出すのと同様に、::load は内部で ::parse
+                    を呼び出します。 ::load は、::dump と同様に IO
+                    オブジェクトを受け取ることもありますが、やはりソースは一度にすべて読み取られるため、ストリーミングは些細なケースに限定されます。ただし、::dump/::generate
+                    の二重性とは異なり、::load と ::parse
+                    は両方とも引数署名の一部としてオプションを受け入れます。</p>
+                    <p>::load には proc を渡すこともでき、この proc
+                    はデータから解析されたすべての Ruby
+                    オブジェクトで呼び出されます。また、::load
+                    は信頼できるデータでのみ使用する必要があるという警告も付いています。
+                    ::parse
+                    にはそのような制限がないため、ユーザー入力や、内容が不明なファイルやストリームなどの信頼できないデータ
+                    ソースを解析するには、JSON::parse
+                    が正しい選択です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

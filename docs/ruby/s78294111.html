@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>演算子 ?: は、特に正規表現にグループが含まれている場合、Ruby 正規表現の ( () の直後に置かれた場合に何をしますか? [重複] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "演算子 ?: は、特に正規表現にグループが含まれている場合、Ruby 正規表現の ( () の直後に置かれた場合に何をしますか? [重複]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>演算子 ?:
+は、特に正規表現にグループが含まれている場合、Ruby 正規表現の ( ()
+の直後に置かれた場合に何をしますか? [重複]</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>string = &quot;This is a paragraph with a bunch3c:77:e6:68:66:e9of random MAC addresses 1100:50:7F:E6:96:20hello world 15:00s, 00:50:56:c0:00:08 some other text is written here 00-0C-29-38-1D-61 00:11:22book.FF:DD:CC&quot;
+mac_regex = /(?:[0-9A-F]{2}[\:\-]){5}[0-9A-F]{2}/i
+mac_addresses = string.scan(mac_regex)
+print mac_addresses 
+</code></pre>
+                    <p>これは [“3c:77:e6:68:66:e9”, “00:50:7F:E6:96:20”,
+                    “00:50:56:c0:00:08”, “00-0C-”
+                    を返します29-38-1D-61”]。</p>
+                    <p>mac_regex から ?: を削除すると、mac_regex =
+                    /([0-9A-F]{2}[:-]){5}[0-9A-F]{2}/i となり、print
+                    mac_addresses が返されます。
+                    [[“66:”]、[“96:”]、[“00:”]、[“1D-”]]、つまり
+                    ([0-9A-F]{2}[:-] ){5} は、オクテットの 5
+                    つすべてをまとめて照合するのではなく、オクテットの 5
+                    番目に出現したもののみと一致します (私の理解では、5
+                    つすべてをまとめて照合することになっていると考えられています)。</p>
+                    <p>([0-9A-F]{2}[:-]){5} が 5
+                    オクテットの文字列ではなく、5
+                    番目のオクテットの一致に対応するのはなぜですか?そしてなぜ
+                    ?: が必要なのでしょうか、([0-9A-F]{2}[:-]){5} -&gt;
+                    (?:[0-9A-F]{2}[:-]) {5}、5
+                    オクテットの文字列の一致に対応させるには?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>(?:…) は非キャプチャ グループです。 String#scan
+                    には 2
+                    つの異なる動作があるため、これが使用されます。</p>
+                    <p>このパターンにはグループが 1
+                    つしかなく、キャプチャされていないため、スキャンは最初の動作を使用し、完全に一致したものだけを配列として返します。</p>
+                    <p>?: を削除すると、2 番目の動作に切り替わり、その 1
+                    つのグループのみが返されます。そして、繰り返し {5}
+                    はグループの外側にあるため、グループは 5
+                    つすべてをまとめて参照するのではなく、各オクテットのみを参照することを意味します。したがって、キャプチャされたオクテットが最後に一致したオクテットになります。</p>
+                    <p>?:
+                    を使用せずに同じ動作を実現するには、パターン全体に別のキャプチャ
+                    グループを追加し、結果からそのグループを抽出する必要があります。</p>
+                    <pre><code>mac_regex = /(([0-9A-F]{2}[\:\-]){5}[0-9A-F]{2})/i
+mac_addresses = string.scan(mac_regex).map(&amp;:first)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

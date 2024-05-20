@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ASP.NET Core Web API、Entity Framework Core、PostgreSQL で一意の番号を持つ連番サービスを作成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ASP.NET Core Web API、Entity Framework Core、PostgreSQL で一意の番号を持つ連番サービスを作成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ASP.NET Core Web API、Entity Framework
+Core、PostgreSQL
+で一意の番号を持つ連番サービスを作成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>2
+                    日前にこの質問を投稿しましたが、問題を正しく説明できていないと思うので、ここでよりわかりやすく説明しようと思います。</p>
+                    <p>リクエストが届いたときに一意の番号を返すサービスを作成したいとします。</p>
+                    <p>この番号は次のことを行う必要があります。</p>
+                    <p>次に、そのサービスを ASP.NET Core Web API、Entity
+                    Framework Core、およびデータベースとして Postgres
+                    で構築する必要があります。</p>
+                    <p>必要なものを実装する Python
+                    コードの例を次に示します。</p>
+                    <pre><code>class Numbering:
+    def __init__(self):
+        self.number = 0
+
+    def get_number(self):
+        self.number += 1
+        return self.number
+
+    def reset(self):
+        self.number = 0
+
+num = Numbering()
+
+for i in range(10):
+    print(num.get_number())
+
+num.reset()
+print(&quot;number has been reset&quot;)
+
+for i in range(10):
+    print(num.get_number())
+
+</code></pre>
+                    <p>同じものを作成したいのですが、複数のユーザーがこのサービスを要求する規模では、2
+                    つの固有の要求に同じ番号が割り当てられません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>例として:</p>
+                    <pre><code>create sequence recycle_seq maxvalue 10  cycle;
+
+create table inv_tbl(inv_no integer generated always as identity PRIMARY KEY, seq_id integer DEFAULT nextval(&#39;recycle_seq&#39;));
+
+insert into inv_tbl values (default, default), (default, default), (default, default), (default, default), (default, default), (default, default), (default, default), (default, default), (default, default), (default, default), (default, default);
+
+select * from inv_tbl;
+ inv_no | seq_id 
+--------+--------
+      1 |      1
+      2 |      2
+      3 |      3
+      4 |      4
+      5 |      5
+      6 |      6
+      7 |      7
+      8 |      8
+      9 |      9
+     10 |     10
+     11 |      1
+
+</code></pre>
+                    <p>上記は 10 までのみ進み、その後 1
+                    に戻るシーケンスを作成します。明らかに、より大きな
+                    maxvalue が必要になります。このシーケンスは、DEFAULT
+                    値として seq_id 列に付加されます。 inv_no
+                    列は、生成された always を ID
+                    として使用して、整数型で許可される最大値まで増分する
+                    DEFAULT を作成します。これは、11
+                    行が挿入されると、inv_no
+                    が増加し続ける一方で、seq_id が 10 から 1
+                    にロールオーバーされることを意味します。</p>
+                    <p>これにより、メカニズムがデータベース上に保持され、クライアント側でのコーディングの必要性が軽減されます。シーケンスを手動でリセットしたい場合は、次のようにします。</p>
+                    <p>シーケンスを変更する recycle_seq restart</p>
+                    <p>これにより、シーケンスが 1 に戻ります。</p>
+                    <p>シーケンスの使用に関する注意事項については、ここを参照してください。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.postgresql.org/docs/current/sql-createsequence.html</p>
+                    <p>「メモ」セクションにあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

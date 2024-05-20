@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JSON のキーと値のペアの間にスペースがあるログを解析できない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JSON のキーと値のペアの間にスペースがあるログを解析できない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JSON
+のキーと値のペアの間にスペースがあるログを解析できない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>json オブジェクトを含むログがあります。 json
+                    オブジェクトにスペースが含まれていない場合、ログは解析されます。キーと値のペアの間にスペースがある場合、解析されません。</p>
+                    <p>使用される設定ファイル</p>
+                    <pre><code>input {
+syslog {
+port =&gt; 3011
+}
+}
+
+filter {
+grok {
+match =&gt; { &quot;message&quot; =&gt;
+[
+&quot;%{SYSLOGTIMESTAMP:timestamp4} %{DATA:time_ms}|%{DATA:field1}|%{DATA:field2}|99|%{DATA:field3}|%{DATA:field4}|%{DATA:field5}|%{DATA:field6}|%{DATA:field7}|%{DATA:field8}|%{DATA:field9}|%{DATA:field10}|%{DATA:field11}|%{DATA:field12}|%{GREEDYDATA:field13}&quot;
+]
+}
+}
+date {
+match =&gt; [&quot;timestamp4&quot;, &quot;MMM dd HH:mm:ss&quot;]
+}
+if [field13] {
+mutate {
+add_field =&gt; {&quot;log_type&quot; =&gt; &quot;my-logs&quot;}
+}
+}
+}
+
+output {
+if [log_type] == &quot;my-logs&quot; {
+stdout { codec =&gt; rubydebug }
+elasticsearch {
+hosts =&gt; [&quot;ES_HOST:9200&quot;]
+index =&gt; &quot;my-logs-000001&quot;
+}
+}
+}
+</code></pre>
+                    <p>解析されるログ:</p>
+                    <p>echo “3 月 21 日 13:27:11
+                    11:11.366293|dataadwhw1|ebsmp4713user5_<span
+                    class="citation"
+                    data-cites="maiator">@maiator</span>|99|4064|22|SUCCESS|data|19|UA101|10.1.1.70|https|data.com|{”wrg_id”:“200000337”}|200”
+                    | NC ローカルホスト 3011 echo “3 月 21 日 13:27:11
+                    11:11.366293|dataadwhw1|ebsmp4713user5_<span
+                    class="citation"
+                    data-cites="maiator">@maiator</span>|99|4064|22|SUCCESS|data|19|UA101|10.1.1.70|https|data.com|{”wrg_id”
+                    :“200000337”}|200” | NC ローカルホスト 3011</p>
+                    <p>ログが解析されません: echo “3 月 21 日 13:27:11
+                    11:11.366293|dataadwhw1|ebsmp4713user5_<span
+                    class="citation"
+                    data-cites="maiator">@maiator</span>|99|4064|22|SUCCESS|data|19|UA101|10.1.1.70|https|data.com|{”wrg_id”:
+                    “200000337”}|200” | NC ローカルホスト 3011</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>データは | で区切られた CSV
+                    形式のようです。したがって、logstash csv
+                    パーサーを使用することをお勧めします。</p>
+                    <pre><code>filter {
+  csv {
+    separator =&gt; &quot;|&quot;
+    columns =&gt; [&quot;syslog_timestamp&quot;, &quot;hostname&quot;, &quot;username&quot;, &quot;integer1&quot;, &quot;integer2&quot;, &quot;integer3&quot;, &quot;result&quot;, &quot;category&quot;, &quot;integer4&quot;, &quot;code&quot;, &quot;ip&quot;, &quot;protocol&quot;, &quot;scheme&quot;, &quot;url_host&quot;, &quot;json_data&quot;, &quot;http_status&quot;]
+  }
+}
+</code></pre>
+                    <p>その後、空白を削除したい場合は、mutate =&gt;
+                    Stripe を使用できます。</p>
+                    <pre><code>filter {
+  mutate {
+     strip =&gt; [&quot;field1&quot;, &quot;field2&quot;]
+  }
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

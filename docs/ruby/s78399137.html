@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>一連の基準によるオブジェクトのグループ化 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "一連の基準によるオブジェクトのグループ化",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>一連の基準によるオブジェクトのグループ化</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>特定のニーズを解決したいので、簡単な例を使用してそのアイデアを示します。</p>
+                    <p>データ型:</p>
+                    <pre><code>data Activity = Activity
+  { activityName :: String
+  , purpose :: Purpose
+  , timeOfDay :: TimeOfDay
+  , location :: Location
+  }
+  deriving (Show, Eq)
+
+data Purpose = Work | Personal | Leisure
+  deriving (Show, Eq)
+
+data TimeOfDay = Morning | Afternoon | Evening
+  deriving (Show, Eq)
+
+data Location = Home | Office | Elsewhere
+  deriving (Show, Eq)
+</code></pre>
+                    <p>例：</p>
+                    <pre><code>activities =
+  [ Activity &quot;Check emails&quot; Work Morning Office
+  , Activity &quot;Attend project meeting&quot; Work Afternoon Office
+  , Activity &quot;Go for a run&quot; Leisure Afternoon Elsewhere
+  , Activity &quot;Prepare dinner&quot; Personal Evening Home
+  , Activity &quot;Watch a movie&quot; Leisure Evening Home
+  , Activity &quot;Read a book&quot; Leisure Evening Home
+  ]
+</code></pre>
+                    <p>述語:</p>
+                    <pre><code>isWorkRelated :: Activity -&gt; Bool
+isWorkRelated activity = purpose activity == Work
+
+isAfternoonActivity :: Activity -&gt; Bool
+isAfternoonActivity activity = timeOfDay activity == Afternoon
+
+isAtHome :: Activity -&gt; Bool
+isAtHome activity = location activity == Home
+</code></pre>
+                    <p>問題：</p>
+                    <p>満たす述語に従ってアクティビティをグループ化したいと考えています。それを解決するために使用できる標準的な
+                    Haskell
+                    パターンはありますか?このソリューションにより、述語を満たす任意のグループに簡単にアクセスできるようになります
+                    (もちろん、その場合、それぞれを別の方法で処理する必要があります)。</p>
+                    <p>これについて何か洞察があれば幸いです。</p>
+                    <p>PD: これは私の試みの 1 つです。</p>
+                    <pre><code>groupByCriteria :: [a -&gt; Bool] -&gt; [a] -&gt; [(a -&gt; Bool, [a])]
+groupByCriteria ps acts = [(p, filter p acts) | p &lt;- ps]
+</code></pre>
+                    <p>ただし、関数 (a -&gt; Bool)
+                    ではなく、どの述語が満たされるかを示す文字列ラベルを使用したいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のようにしてデータ型を変更するだけです。</p>
+                    <pre><code>data Group a = Group String (a -&gt; Bool)
+
+isWorkRelated :: Group Activity
+isWorkRelated = Group &quot;work-related&quot; (\activity -&gt; purpose activity == Work)
+
+isAfternoonActivity :: Group Activity
+isAfternoonActivity = Group &quot;afternoon&quot; (\activity -&gt; timeOfDay activity == Afternoon)
+
+isAtHome :: Group Activity
+isAtHome = Group &quot;at-home&quot; (\activity -&gt; location activity == Home)</code></pre>
+                    <p>次に、次のようにグループ化します。</p>
+                    <pre><code>groupByCriteria :: [Group a] -&gt; [a] -&gt; [(String, [a])]
+groupByCriteria ps acts = [(name, filter p acts) | Group name p &lt;- ps]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

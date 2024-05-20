@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この記事「debuggerAddress を使用して手動で開いた Chrome ブラウザに接続する」を使用しました。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この記事「debuggerAddress を使用して手動で開いた Chrome ブラウザに接続する」を使用しました。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この記事「debuggerAddress
+を使用して手動で開いた Chrome ブラウザに接続する」を使用しました。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Chrome ブラウザの接続については、Justin Ko
+                    による前述の記事を参照しました。私は過去に同じアプローチを使用して成功しましたが、それは私にとってはうまくいきました。ただし、現在、次のコードを使用して再試行しています。</p>
+                    <pre><code>require &#39;watir&#39;    
+browser = Watir::Browser.new(
+  :chrome,
+  &#39;chromeOptions&#39; =&gt; {&#39;debuggerAddress&#39;: &#39;127.0.0.1:8181&#39;})    
+browser.goto &#39;www.google.com&#39;    
+browser.text_field(name: &#39;q&#39;).set &#39;Raja&#39;
+</code></pre>
+                    <p>そして、このエラーメッセージが生成されます。</p>
+                    <pre><code>C:\Ruby32\bin\ruby.exe C:/A/TestBot/AppData/Example.rb
+C:/Ruby32/lib/ruby/gems/3.2.0/gems/watir-7.3.0/lib/watir/capabilities.rb:29:in `to_args&#39;: {&quot;chromeOptions&quot;=&gt;{:debuggerAddress=&gt;&quot;127.0.0.1:8181&quot;}} are unrecognized arguments for Browser constructor (ArgumentError)
+
+      raise ArgumentError, &quot;#{@options} are unrecognized arguments for Browser constructor&quot; unless @options.empty?
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        from C:/Ruby32/lib/ruby/gems/3.2.0/gems/watir-7.3.0/lib/watir/browser.rb:46:in `initialize&#39;
+        from C:/A/TestBot/AppData/Example.rb:3:in `new&#39;
+        from C:/A/TestBot/AppData/Example.rb:3:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>パラメータの受け渡し方法が変わっている可能性を考え、以下のコードを書きました。</p>
+                    <pre><code>require &#39;watir&#39;
+chrome_options = { &#39;debuggerAddress&#39;: &#39;127.0.0.1:8181&#39; }    
+browser = Watir::Browser.new :chrome, options: chrome_options    
+browser.goto &#39;www.google.com&#39;    
+browser.text_field(name: &#39;q&#39;).set &#39;Raja&#39;
+</code></pre>
+                    <p>しかし、これは次のエラーもスローします。</p>
+                    <pre><code>C:\Ruby32\bin\ruby.exe C:/A/TestBot/AppData/Example.rb
+C:/Ruby32/lib/ruby/gems/3.2.0/gems/selenium-webdriver-4.17.0/lib/selenium/webdriver/common/options.rb:118:in `as_json&#39;: These options are not w3c compliant: {:debuggerAddress=&gt;&quot;127.0.0.1:8181&quot;} (Selenium::WebDriver::Error::WebDriverError)
+        from C:/Ruby32/lib/ruby/gems/3.2.0/gems/selenium-webdriver-4.17.0/lib/selenium/webdriver/common/local_driver.rb:42:in `process_options&#39;
+</code></pre>
+                    <p>誰かがこの問題を解決するのを手伝ってくれませんか?</p>
+                    <p>最終的な目標は、Chrome
+                    で使用しているのと同じアプローチを使用して Edge
+                    ブラウザーを接続することです。ただし、まず Chrome
+                    ブラウザの接続を成功させる必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パラメーターの名前が「debuggerAddress」から「debugger_address」に変更されました。</p>
+                    <pre><code>browser = Watir::Browser.new(:chrome, options: {debugger_address: &#39;127.0.0.1:8181&#39;})
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

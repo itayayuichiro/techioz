@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyスクリプトのシェルスクリプトにファイル名を導入する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyスクリプトのシェルスクリプトにファイル名を導入する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyスクリプトのシェルスクリプトにファイル名を導入する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>シェルスクリプトを実行し、スペースを含むファイル名を渡したいRubyスクリプト。十数の方法を試してみました。ここにその
+                    1 つがあります:</p>
+                    <pre><code>filename = &quot;/Users/gscar/Pictures/_Photo Processing Folders/Watched folder for import to Photos/2024.03.25-16.09.59.gs.O.orf&quot;
+filename = filename.gsub(&#39; &#39;, &#39;\ &#39;)
+&#39;exiftool -Camera:DriveMode #{filename}&#39;
+</code></pre>
+                    <p>その他にはパスのハードコーディングが含まれます</p>
+                    <pre><code>result = %x{exiftool -Camera:DriveMode /Users/gscar/Pictures/_Photo\ Processing\ Folders/Watched\ folder\ for\ import\ to\ Photos/2024.03.25-16.09.59.gs.O.orf}
+</code></pre>
+                    <p>その結果、</p>
+                    <p>そして</p>
+                    <pre><code>system &#39;exiftool -Camera:DriveMode &quot;/Users/gscar/Pictures/_Photo Processing Folders/Watched folder for import to Photos/2024.03.25-16.09.59.gs.O.orf&quot;&#39;
+</code></pre>
+                    <p>出力なし。</p>
+                    <p>コマンドライン</p>
+                    <pre><code>➜ exiftool -Camera:DriveMode &quot;/Users/gscar/Pictures/_Photo Processing Folders/Watched folder for import to Photos/2024.03.25-16.09.59.gs.O.orf&quot;
+Drive Mode                      : Single Shot; Electronic shutter
+</code></pre>
+                    <p>エスケープされたスペースを含むコマンドラインは機能します</p>
+                    <pre><code>➜ exiftool -Camera:DriveMode /Users/gscar/Pictures/_Photo\ Processing\ Folders/Watched\ folder\ for\ import\ to\ Photos/2024.03.25-16.09.59.gs.O.orf
+Drive Mode                      : Single Shot; Electronic shutter
+</code></pre>
+                    <p>最終的に必要なのは、これが機能することです。上記は、ファイル名を機能させる方法を見つけようとしています。</p>
+                    <pre><code>filename = &quot;/Users/gscar/Pictures/_Photo Processing Folders/Watched folder for import to Photos/2024.03.25-16.09.59.gs.O.orf&quot;
+gsubfilename = filename.gsub(&#39; &#39;, &#39;\ &#39;)
+`&quot;exiftool -Camera:DriveMode #{gsubfilename}&quot;`
+</code></pre>
+                    <p>結果は次のようになります。</p>
+                    <pre><code>sh: exiftool -Camera:DriveMode /Users/gscar/Pictures/_Photo\ Processing\ Folders/Watched\ folder\ for\ import\ to\ Photos/2024.03.25-16.09.59.gs.O.orf: No such file or directory
+</code></pre>
+                    <p>もちろん、これをシェルで実行すると問題なく動作します。</p>
+                    <p>ここで私を「逃がす」とは何ですか？ありがとう</p>
+                    <p>PS mini_exiftool
+                    は「DriveMode」を処理していないようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントが示唆しているように、最善の方法はシェルを回避し、配列内の引数を使用してコマンドを呼び出すことです。具体的には、システムの場合、プログラム名以外に少なくとも
+                    1
+                    つの引数を関数に与えると、シェルは呼び出されません。</p>
+                    <pre><code>system(&#39;exiftool&#39;, &#39;-Camera:DriveMode&#39;, filename)
+</code></pre>
+                    <p>このようにして、Ruby は exiftool
+                    を直接呼び出し、指定された引数を exiftool
+                    に渡します。シェルが関与していないため、パラメーターを展開することはできません
+                    (たとえば、system(‘ls’, ’<em>’) は </em>
+                    という名前のファイルが存在しないとエラーを出します)。</p>
+                    <p>本当に引数の解析をシェルに委任したい場合は、シェル引数を正しくエスケープする方法を知っている
+                    Shellwords を使用してください。</p>
+                    <pre><code>require &#39;Shellwords&#39;
+
+system(&quot;exiftool -Camera:DriveMode #{filename.shellescape}&quot;)
+</code></pre>
+                    <p>この方法で呼び出すと、システムは /bin/zsh (例:
+                    /bin/sh)
+                    を呼び出し、渡された文字列を実行するように要求します。その後、シェルは通常と同じように文字列を処理し、文字列をコマンドと引数に分割し、パラメータの置換を実行し、コマンドを実行する前にシェルが行うその他すべての処理を実行します。したがって、system(’ls
+                    <em>’)
+                    は期待どおりの動作を行います。つまり、現在のディレクトリ内のファイルをリストします
+                    (シェルは ls を呼び出す前に </em>
+                    を複数の引数に展開しているため)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

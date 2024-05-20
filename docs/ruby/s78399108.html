@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>IOS 上の Expo Go アプリ: axios API 呼び出しでのネットワーク障害 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "IOS 上の Expo Go アプリ: axios API 呼び出しでのネットワーク障害",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>IOS 上の Expo Go アプリ: axios API
+呼び出しでのネットワーク障害</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>iPhone で反応ネイティブ アプリを実行するために
+                    expo go を使用しています。 API
+                    呼び出しを処理するレンダリングでホストされているバックエンド
+                    サービスがあります。 axios
+                    を使用してこのサービスを呼び出そうとしています。以下に、アプリ全体で
+                    API 呼び出しを処理するために作成したカスタム
+                    クラスを示します。サインインしていくつかのエンドポイントにアクセスすることはできますが、一部のエンドポイントでは「[AxiosError:
+                    Network Error]」と表示されるだけです。その場合、API
+                    には到達しませんが、ポストマンでエンドポイントに到達することはできます。アプリの起動時に「Web
+                    を開く」オプションを指定してアプリを実行した場合にも機能します。</p>
+                    <p>エキスポコマンド:</p>
+                    <pre><code>npx expo start --tunnel
+</code></pre>
+                    <p>カスタムクラス:</p>
+                    <pre><code>import axios from &#39;axios&#39;;
+
+class ApiService{
+
+    constructor() {
+        this.baseUrl =  process.env.API_URL;
+        this.axios = axios.create({
+            baseURL: this.baseUrl,
+        });
+    }
+
+    async call(method, url, data) {
+        const headers = {
+        &quot;Content-Type&quot;: &quot;application/json&quot;,
+        };
+
+        try {
+            let response = await this.axios({ method, url, data, headers });
+
+            return response.data;
+        } catch (err) {
+            return err
+        }
+    }
+}
+
+const apiService = new ApiService();
+
+export default apiService;
+</code></pre>
+                    <p>呼び出しの例 (エラー):</p>
+                    <pre><code>const res = (await apiService.call(&#39;get&#39;, `student/${student_id}/sports`)).data || [];
+</code></pre>
+                    <p>呼び出しの例 (成功):</p>
+                    <pre><code>const res= (await axios.get(process.env.API_URL + `student/${student_id}/sports`, {
+    headers: {
+        &quot;Content-Type&quot;: &quot;application/json&quot;,
+    }
+})).data?.data || [];
+</code></pre>
+                    <p>パッケージ json (関連するパッケージ):</p>
+                    <pre><code>&quot;axios&quot;: &quot;^1.6.8&quot;,
+&quot;expo&quot;: &quot;~50.0.11&quot;,
+&quot;react-native&quot;: &quot;0.73.6&quot;,
+&quot;react&quot;: &quot;18.2.0&quot;,
+&quot;react-native-dotenv&quot;: &quot;^3.4.11&quot;,
+&quot;@expo/metro-runtime&quot;: &quot;~3.1.3&quot;,
+</code></pre>
+                    <p>約 1
+                    週間前には機能していましたが、他の場所でエンドポイントにアクセスできるので、URL
+                    やバックエンドに問題はないようです。それは万博側の何かに関係しているのではないかと思います。
+                    appTransportSecurityをapp.jsonに追加し、ノードモジュールを削除して、パッケージに互換性があることを確認して再インストールしようとしましたが、うまくいきませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が遭遇した同様の問題。問題は、エンドポイントの
+                    SSL
+                    が期限切れになったか、無効になったことでした。このようなことが起こるもう
+                    1 つの理由は、エンドポイントの http
+                    にある可能性があります。 IOS は http
+                    をサポートしません。バックエンド チームに https
+                    にするよう依頼してください
+                    (基本的にエンドポイントを保護します)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

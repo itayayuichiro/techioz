@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ドライな検証。マクロにパラメータを送信する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ドライな検証。マクロにパラメータを送信する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ドライな検証。マクロにパラメータを送信する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>json (簡単な例):</p>
+                    <pre><code>{
+  &quot;person&quot;: {
+    &quot;birthday&quot;: &quot;1990-10-10&quot;
+  },
+  &quot;achievement&quot;: {
+    &quot;date_appr_r&quot;: &quot;2022-05-21&quot;
+  }
+}
+</code></pre>
+                    <p>私の契約書:</p>
+                    <pre><code>class CreateContract &lt; BaseContract
+  json do
+    required(:person).hash do
+      required(:birthday).value(:date)
+    end
+    required(:achievement).hash do
+      required(:date_appr_r).value(:date)
+    end
+  end
+
+  rule(person: :birthday).validate(:person_birthday)
+  rule(achievement: :date_appr_r).validate(:achievement_date_appr_r)
+end
+</code></pre>
+                    <p>date_appr_r
+                    が生年月日より前であってはいけないことを確認する必要があります。</p>
+                    <p>質問: 誕生日をachievement_date_appr_r
+                    マクロに渡すにはどうすればよいですか?</p>
+                    <p>すべてのドキュメントを読みましたが、何かが欠けていることを願っています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>class CreateContract &lt; BaseContract
+  params do
+    required(:person).hash do
+      required(:birthday).value(:date)
+    end
+    required(:achievement).hash do
+      required(:date_appr_r).value(:date)
+    end
+  end
+
+  rule(:person, :achievement) do
+    key(:dates).failure(:invalid) if values[:person][:birthday] &gt;= values[:achievement][:date_appr_r]
+  end
+end
+</code></pre>
+                    <p>そして通話契約</p>
+                    <pre><code>params = { person: { birthday: DateTime.new(2024, 1, 1) }, achievement: { date_appr_r: DateTime.new(2024, 1, 2) } }
+validation = CreateContract.new.call(params)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

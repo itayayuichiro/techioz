@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5.2 ポリモーフィック条件付きのポリモーフィックな関連付け | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5.2 ポリモーフィック条件付きのポリモーフィックな関連付け",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 5.2
+ポリモーフィック条件付きのポリモーフィックな関連付け</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>class Car &lt; ApplicationRecord
+  belongs_to :user
+
+  has_one  :listing, as: :listable
+  has_one  :firm, as: :firmable
+  has_one  :seller, as: :sellable
+end
+
+class Truck &lt; ApplicationRecord
+  belongs_to :user
+
+  has_one  :listing, as: :listable
+  has_one  :firm, as: :firmable
+  has_one  :seller, as: :sellable
+end
+
+class Listing &lt; ApplicationRecord
+  belongs_to :listable, polymorphic: true
+  has_many :favorites, dependent: :destroy
+  has_many :users_who_favorited, through: :favorites, source: :user
+end
+</code></pre>
+                    <p>そして、Car と Truck の両方に user_id
+                    フィールドがあると仮定します。</p>
+                    <p>Listing.includes(:listable) は、eargerloaded
+                    リストの AR 関係を返します。</p>
+                    <p>ただし、user_idでフィルタリングする必要があるので、試してみました…</p>
+                    <p>Listing.includes(:listable).where(user_id:
+                    100)</p>
+                    <p>しかし、エラーが発生します..</p>
+                    <p>リストで user_id
+                    を検索しているようです。ただし、listables
+                    テーブルでフィルターする必要があるため、Car
+                    テーブルまたは Truck
+                    テーブルのいずれかを意味します。ただし、listable
+                    は定義されています。</p>
+                    <p>私も試してみました：</p>
+                    <p>Listing.includes(listable:[:user]).where(‘users.id
+                    = 100’)</p>
+                    <p>でも分かりました…</p>
+                    <p>それから試してみました</p>
+                    <pre><code>class Listing &lt; ApplicationRecord
+  belongs_to :listable, polymorphic: true
+  has_many :favorites, dependent: :destroy
+  has_many :users_who_favorited, through: :favorites, source: :user
+
+  belongs_to :car, -&gt; { includes(:listable).where(listable: { listable_type: Car.to_s }) }, foreign_key: :listable_id
+  belongs_to :truck, -&gt; { includes(:listable).where(listable: { listable_type: Truck.to_s }) }, foreign_key: :listable_id
+
+end
+</code></pre>
+                    <p>Listing.includes(:car, :truck)
+                    を試しましたが、得られました。</p>
+                    <p>したがって、上記が機能するまで、以下を試すことはできません。</p>
+                    <p>Listing.includes(:car, :truck).where(cars: {
+                    user_id: 1 }).or(Listing.includes(:car,
+                    :truck).where(trucks: { user_id: 1 }))</p>
+                    <p>ただし、Listing.includes(:listable)
+                    を実行すると機能しますが、条件を追加すると壊れます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは私が数か月間抱いていた非常に興味深い質問です。それから私はそれに対する解決策を見つけました。</p>
+                    <p>Listing モデルにポリモーフィック
+                    モデルを含めることができるようにするには、それらが関連していることをモデルに伝える必要があります。</p>
+                    <pre><code>class Car &lt; ApplicationRecord
+  belongs_to :user
+
+  has_one  :listing, as: :listable
+  has_one  :firm, as: :firmable
+  has_one  :seller, as: :sellable
+end
+
+class Truck &lt; ApplicationRecord
+  belongs_to :user
+
+  has_one  :listing, as: :listable
+  has_one  :firm, as: :firmable
+  has_one  :seller, as: :sellable
+end
+
+class Listing &lt; ApplicationRecord
+  belongs_to :listable, polymorphic: true
+  has_many :favorites, dependent: :destroy
+  has_many :users, through: :favorites
+
+  #magic happens here
+  belongs_to :car, -&gt; { includes(:listings).where(listings: { listable_type: Car.to_s }) }, foreign_key: :listable_id
+  belongs_to :truck, -&gt; { includes(:listings).where(listings: { listable_type: Truck.to_s }) }, foreign_key: :listable_id
+
+end
+</code></pre>
+                    <p>これで、単純に Listing.includes(:car, :truck)
+                    を行うことができ、完全に動作します :-)</p>
+                    <p>あなたの場合:</p>
+                    <pre><code>Listing.includes(:car, :truck).where(cars: { user_id: 1 }).or(Listing.includes(:car, :truck).where(trucks: { user_id: 1 }))
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

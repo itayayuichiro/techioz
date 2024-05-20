@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エラーが ViewComponent、Ruby on Rails 内に飲み込まれている | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エラーが ViewComponent、Ruby on Rails 内に飲み込まれている",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エラーが ViewComponent、Ruby on Rails
+内に飲み込まれている</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>良い一日をお過ごしください。それで、私にはこの奇妙な虫がいて、私のお尻を蹴っているのですが、神の愛のためにそれがどこにあるのかわかりません。</p>
+                    <p>通常、ビュー内でレンダリングされる
+                    ViewComponent、つまり *.html.erb
+                    があります。例えば、</p>
+                    <pre><code> &lt;%= render Contact::Avatar.new(
+      contact:,
+      size: :xl,
+    ) %&gt;
+</code></pre>
+                    <p>すべて問題なく、コンポーネントは問題なく正常にレンダリングされます。問題は、コンポーネントにエラーがある場合に発生します。コンポーネントをレンダリング関数に渡すときにコンポーネント内で発生したエラーはすべて飲み込まれ、本来のエラーが発生する代わりに、エラーが飲み込まれて空の文字列が返されるため、問題が発生します。何が間違っているのかを知ることから。たとえば、コンポーネント
+                    ビューが contact/avatar_component.html.erb
+                    内で未定義の変数を参照している場合、テストのために
+                    ArgumentError を発生させます。</p>
+                    <pre><code>&lt;% raise ArgumentError %&gt;
+
+&lt;% if u/contact.draft? %&gt;
+  &lt;%= render AvatarComponent.new @contact, color: Color.indigo, **@options %&gt;
+&lt;% else %&gt;
+  &lt;% if @contact.name.strip.blank? || @contact.discarded? %&gt;
+    &lt;%= render AvatarComponent.new @contact, **@options %&gt;
+  &lt;% else %&gt;
+    &lt;%= render AvatarComponent.new @contact, text: @contact.abbreviated_name, **@options %&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>そして、エラーはレンダリング関数によってキャプチャされます。</p>
+                    <p>ただし、Ruby
+                    ファイルでエラーが発生した場合、つまり</p>
+                    <pre><code>class Contact::Avatar &lt; ViewComponent::Base
+  def initialize(contact:, **options)
+    @contact = contact
+    @options = options
+    raise ArgumentError
+  end
+end
+</code></pre>
+                    <p>エラーがキャプチャされて表示される</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>再現できませんでした。</p>
+                    <p>一部のライブラリは以下のものをオーバーライドする可能性があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/ViewComponent/view_component/issues/1981</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

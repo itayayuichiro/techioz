@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gem をプッシュするスクリプトをテストするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gem をプッシュするスクリプトをテストするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gem
+をプッシュするスクリプトをテストするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このスクリプトがあります:</p>
+                    <pre><code>#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+if ARGV.any?
+  puts &quot;USAGE: release&quot;
+  exit
+end
+
+def system!(command)
+  puts command
+  system(command, exception: true)
+end
+
+File.delete(*Dir[&quot;*.gem&quot;])
+system!(&quot;gem build&quot;)
+system!(&quot;gem push *.gem&quot;)
+File.delete(*Dir[&quot;*.gem&quot;])
+</code></pre>
+                    <p>私はそれを単にリリースと呼んでいます (これは
+                    dorian-release gem の一部です)。</p>
+                    <p>テストしようとしていますが、最善の方法がわかりません。chatgpt
+                    はスタブを提案しますが、実際には何もテストしません。</p>
+                    <p>Rubygems への HTTP
+                    リクエストをモックしたいのですが、サブコマンドなのでやり方がわかりません。</p>
+                    <p>何か案が？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ダメダメダメ！アプリケーションが意図したシステム変更を達成したかどうかを確認するために、ある種の統合テストを実行することは有効ですが、単体テスト、機能テスト、および統合テストは、他のライブラリの内部をテストすべきではありません。ここで目標を再考する必要があります。</p>
+                    <p>より明確な例として、インタプリタの内部に取り組んでいない限り、Kernel#puts
+                    がどのように動作するかをテストすべきではありません。ただし、それを検証するためのユースケースや、期待する場所を指していること、さらには出力がストリームには、期待した正しい補間出力が含まれています。
+                    Kernel#puts
+                    自体が機能するかどうかをテストすることは、テストの焦点であってはなりません。</p>
+                    <p>同様に、gem プッシュによって gem が RubyGems
+                    またはテスト
+                    サーバーにプッシュされるようにするためには、複雑なことは何も必要ありません。デバッグに深く関わっていない限り、本当に知る必要があるのは、Gem
+                    が公開されたかどうかだけです。 gem Push
+                    が正しい終了ステータスを返したり、例外を発生したりすることを信頼できない場合は、おそらくそうすべきです。これは
+                    Ruby
+                    エコシステムの広く使用されている部分であり、ファイアウォール
+                    ルールやファイアウォール
+                    ルールを検証するためのプロキシ
+                    テストのようなものであるためです。同様のものです。サーバーをチェックして、新しい
+                    gem
+                    バージョンが公開されているかどうかを確認する必要があります。</p>
+                    <p>実際に必要な複雑さのレベルに応じて、さまざまな方法でこれを行うことができます。できるだけシンプルにしたいと思います。そうしないと、テストの依存関係をテストするというウサギの穴に落ちてしまうことになりますが、これは自虐的で一般的には不要です。単純なものから複雑なものの順に:</p>
+                    <p>RubyGems HTTP(S)
+                    呼び出しの内部をトレースすることは、RubyGems
+                    開発者でない限り、通常は行うべきではありません。他の人にとっては、HTTP(S)
+                    呼び出しがネットワーク レベルまたはプロトコル
+                    レベルで失敗する理由を確認するために、テスト
+                    プロキシを実行するよりも深く調査している場合は、不必要なオーバーヘッドが発生していることになります。アプリケーション層でアプリケーションをテストし、共通の外部ライブラリに依存している場合は、そのテストを信頼して、それらが意図したとおりに動作するかどうかを検証してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

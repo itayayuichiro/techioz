@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ローカル変数名Rubyの補間 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ローカル変数名Rubyの補間",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ローカル変数名Rubyの補間</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私が持っている</p>
+                    <pre><code>banana_charge_1_bananas_sold = 0
+banana_charge_2_bananas_sold = 0
+banana_charge_3_bananas_sold = 0
+banana_charge_4_bananas_sold = 0
+banana_charge_5_bananas_sold = 0
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>sale_ticket.banana_charge
+</code></pre>
+                    <p>これは 1 ～ 5 の整数です。</p>
+                    <p>代わりに、sale_ticket.banana_charge
+                    をローカル変数名に挿入する方法はありますか</p>
+                    <pre><code>  if sale_ticket.banana_charge == 1
+    banana_charge_1_bananas_sold += number_of_scanned_bananas
+  elsif sale_ticket.banana_charge == 2
+    banana_charge_2_bananas_sold += number_of_scanned_bananas
+  etc.
+</code></pre>
+                    <p>のように</p>
+                    <pre><code>banana_charge_&amp;^{sale_ticket.banana_charge}_bananas_sold += number_of_scanned_bananas
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>技術的にはメタプログラミングを使用して可能です。</p>
+                    <pre><code># frozen_string_literal: true
+# pseudo-code
+
+number_of_bananas = 5
+
+number_of_bananas.times do |i|
+  define_method &quot;banana_charge_#{i + 1}_bananas_sold&quot; do
+    local_variable_get(&quot;banana_charge_#{i + 1}_bananas_sold&quot;)
+  end
+
+  define_method &quot;banana_charge_#{i + 1}_bananas_sold=&quot; do |number_sold|
+    local_variable_set(&quot;banana_charge_#{i + 1}_bananas_sold&quot;, number_sold)
+  end
+end
+
+banana_charge_1_bananas_sold = 10
+banana_charge_2_bananas_sold = 10
+banana_charge_3_bananas_sold = 10
+banana_charge_4_bananas_sold = 10
+banana_charge_5_bananas_sold = 10
+
+puts banana_charge_1_bananas_sold
+</code></pre>
+                    <p>ただし、この目的のために設計されたデータ型が存在するため、これは非常に不適切な設計です。</p>
+                    <p>配列を使用し、あなたが達成しようとしていることに基づいて、次のようにします。</p>
+                    <pre><code># frozen_string_literal: true
+# pseudo-code
+
+number_of_bananas_sold = [1, 2, 3, 4, 5]
+number_of_bananas_sold[4] #=&gt; 5
+
+number_of_bananas_sold[sale_ticket.banana_charge] += number_of_scanned_bananas
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

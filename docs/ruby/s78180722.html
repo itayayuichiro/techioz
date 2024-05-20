@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ハッシュを YAML に変換してコメントを保持するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ハッシュを YAML に変換してコメントを保持するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ハッシュを YAML
+に変換してコメントを保持するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby ハッシュを YAML
+                    に変換してコメントを保持するにはどうすればよいですか?</p>
+                    <p>次の Ruby の例の場合</p>
+                    <pre><code>require &#39;yaml&#39;
+
+h = {
+  # The garage in Miami
+  &#39;garage_A&#39; =&gt; {
+    &#39;car_x&#39; =&gt; {
+      # Bought in Gotham
+      &#39;name&#39; =&gt; &#39;Batmobile&#39;,
+      &#39;color&#39; =&gt; &#39;black&#39;
+    }
+  },
+  &#39;garage_B&#39; =&gt; {
+    # Mike&#39;s bike
+    &#39;bike_m&#39; =&gt; {
+      # Cherry red
+      &#39;color&#39; =&gt; &#39;red&#39;,
+      &#39;wheels&#39; =&gt; 2
+    }
+  }
+}
+
+puts YAML.dump(h)
+</code></pre>
+                    <p>次の結果を取得したいと考えています。</p>
+                    <pre><code>---
+# The garage in Miami
+garage_A:
+  car_x:
+    # Bought in Gotham
+    name: Batmobile
+    color: black
+garage_B:
+  # Mike&#39;s bike
+  bike_m:
+    # Cherry red
+    color: red
+    wheels: 2
+</code></pre>
+                    <p>現在私が得ているものは次のとおりです。</p>
+                    <pre><code>---                                                                                                                                                                                                                  
+garage_A:                                                                                                                                                                                                            
+  car_x:                                                                                                                                                                                                             
+    name: Batmobile                                                                                                                                                                                                  
+    color: black                                                                                                                                                                                                     
+garage_B:                                                                                                                                                                                                            
+  bike_m:                                                                                                                                                                                                            
+    color: red                                                                                                                                                                                                       
+    wheels: 2  
+</code></pre>
+                    <p>逆の操作にも興味があるかもしれません。</p>
+                    <p>使用例: ツールのデフォルト設定を含む Ruby
+                    ハッシュ。構成ファイルが存在しない場合は、ハッシュを
+                    YAML
+                    にダンプし、構成ファイルを書き込みます。ユーザーの利便性を考えると、ドキュメントを参照するよりも、設定ファイルにコメントを含めた方がよいでしょう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>YAML
+                    ファイルをヒアドキュメントとしてテンプレート化するか、erb
+                    などのテンプレート言語を使用する必要があります。可能であれば、コメントが不要になるように、ハッシュ要素にはより意図が明らかな名前を使用する必要があります。</p>
+                    <p>本当にコメントが必要な場合は、JSON オブジェクトも
+                    Ruby Hash
+                    オブジェクトも構文の一部としてコメントをネイティブにサポートしていないことに注意してください。その結果、ハッシュ
+                    オブジェクトから生成した JSON または YAML
+                    内にそれを表示するには、Ruby
+                    ハッシュ内のネストされたオブジェクトごとに「コメント」キー/値のペアを作成する必要があります。例えば：</p>
+                    <pre><code>require &quot;yaml&quot;
+
+# Assign a comment key to each nested element.
+hash_with_comments = {
+  &quot;comment&quot;  =&gt; &quot;nested hashes contain &#39;comment&#39; keys&quot;,
+  &quot;garage_a&quot; =&gt; {
+    &quot;comment&quot; =&gt; &quot;The garage in Miami&quot;,
+    &quot;car_x&quot;   =&gt; {
+      &quot;comment&quot; =&gt; &quot;Bought in Gotham&quot;,
+      &quot;name&quot;    =&gt; &quot;Batmobile&quot;,
+      &quot;color&quot;   =&gt; &quot;black&quot;,
+    }
+  }
+}
+</code></pre>
+                    <p>これで、 hash_with_comments.to_yaml は次の YAML
+                    を生成します。</p>
+                    <pre><code>---
+comment: nested hashes contain &#39;comment&#39; keys
+garage_a:
+  comment: The garage in Miami
+  car_x:
+    comment: Bought in Gotham
+    name: Batmobile
+    color: black
+</code></pre>
+                    <p>ユースケースによっては、そこで停止して、YAML
+                    を解析するコード内のコメント
+                    キーを無視することもできます。それ以外の場合は、String#gsub
+                    ブロック構文
+                    (一致しない行の汚染を避けるためにブロックを使用する必要があります)
+                    を使用して、コメント要素を実際のコメントに変換できます。たとえば、次のように呼び出します。</p>
+                    <pre><code>hash_with_comments.to_yaml.gsub(/^(\s*)comment:/) { &quot;#{$1}#&quot; }
+</code></pre>
+                    <p>コメント キーを実際のコメントに変換すると、次の
+                    YAML が生成されます。</p>
+                    <pre><code>---
+# each Hash contains a &#39;comment&#39; key
+garage_a:
+  # The garage in Miami
+  car_x:
+    # Bought in Gotham
+    name: Batmobile
+    color: black
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

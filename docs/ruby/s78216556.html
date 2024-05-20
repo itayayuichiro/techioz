@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エントリの追加とロールバック | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エントリの追加とロールバック",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エントリの追加とロールバック</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>エントリを作成した後、これがログに記録されます。</p>
+                    <pre><code>Started POST &quot;/village_condos&quot; for ::1 at 2024-03-25 08:05:22 +0800
+Processing by VillageCondosController#create as HTML
+Parameters: {&quot;utf8&quot;=\&gt;&quot;✓&quot;, &quot;authenticity_token&quot;=\&gt;&quot;062XY/UorxMa5vG7yH48OpPCwQjv8yn8sTjR/ca60/6CxYUynfaN8IqMbcoTnH/6CXZZYzFi1imMiXBgMBdjMA==&quot;, &quot;village_condo&quot;=\&gt;{&quot;name&quot;=\&gt;&quot;Village 2&quot;, &quot;village_condo_flag&quot;=\&gt;&quot;1&quot;}, &quot;commit&quot;=\&gt;&quot;Create Village condo&quot;}
+User Load (0.5ms)  SELECT  `users`.\* FROM `users` WHERE `users`.`id` = 313 ORDER BY `users`.`id` ASC LIMIT 1
+Role Load (0.6ms)  SELECT `roles`.\* FROM `roles` INNER JOIN `roles_users` ON `roles`.`id` = `roles_users`.`role_id` WHERE `roles_users`.`user_id` = 313
+(0.1ms)  BEGIN
+VillageCondo Create (0.3ms)  INSERT INTO `village_condos` (`name`, `village_condo_flag`, `created_at`, `updated_at`) VALUES (&#39;Village 2&#39;, 1, &#39;2024-03-25 00:05:22&#39;, &#39;2024-03-25 00:05:22&#39;)
+(0.3ms)  COMMIT
+(0.3ms)  BEGIN
+(0.2ms)  ROLLBACK
+Redirected to http://localhost:3002/village_condos/596
+Completed 302 Found in 38ms (ActiveRecord: 5.0ms)
+</code></pre>
+                    <p>village_condoテーブルマニフェストに作成されたエントリ(id)を他のテーブルvillage_condo_mappingsにしたいのです(そこにはvillage_condo_idという列があります)。</p>
+                    <p>village_condos
+                    テーブルにエントリを正常に追加できますが、village_condo_mappings
+                    には反映されません。</p>
+                    <p>これが私のモデルです:</p>
+                    <pre><code>class VillageCondo &lt; ApplicationRecord
+  has_many :village_condo_mappings
+
+  validates :name, presence: true, length: { maximum: 150 } # Example: Validate name length
+    validates :village_condo_flag, presence: true, inclusion: { in: [1, 2] } # Example: Validate village_condo_flag is either 1 or 2
+
+  after_create :create_village_condo_mapping
+
+  def create_village_condo_mapping
+    self.village_condo_mappings.create(village_condo_id: self.id)
+  end
+end
+</code></pre>
+                    <p>これはRuby on Rails上にあります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように試すことができます。</p>
+                    <pre><code>class VillageCondo &lt; ApplicationRecord
+  has_many :village_condo_mappings, astosave: true
+
+  validates :name, presence: true, length: { maximum: 150 } # Example: Validate name length
+  validates :village_condo_flag, presence: true, inclusion: { in: [1, 2] } # Example: Validate village_condo_flag is either 1 or 2
+
+  befor_create :add_village_condo_mapping
+
+  def add_village_condo_mapping
+    self.village_condo_mappings.build
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

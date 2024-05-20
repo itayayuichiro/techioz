@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsアプリケーションにおけるユーザー重複の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsアプリケーションにおけるユーザー重複の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsアプリケーションにおけるユーザー重複の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>使っています ‘レール’、‘~&gt; 5.2.4’、‘&gt;=
+                    5.2.4.1’ ルビー「2.7.1」 および gem ‘pg’、‘&gt;=
+                    0.18’、‘&lt; 2.0’</p>
+                    <p>Rails
+                    アプリケーションで、データベース内で一部のユーザーが重複するという問題が発生しました。この問題は断続的に発生し、ユーザー作成アクションの重複リクエストに関連しているようです。その結果、電子メールや
+                    CPF
+                    などのフィールドの一意性を確保するために検証が実装されているにもかかわらず、2
+                    つのユーザー
+                    レコードが同時に作成されてしまいます。</p>
+                    <p>Elastic Search
+                    のログを分析すると、ユーザー作成アクション ログに 2
+                    つの重複エントリがあることがわかりました。これは、重複がリクエスト
+                    レベルで発生していることを示しています。</p>
+                    <p>私の Customer モデルでは、white_label_origin
+                    フィールドのスコープを使用して、電子メールや CPF
+                    などのフィールドの一意性検証を実装し、正しいコンテキスト内でのみ一意性がチェックされるようにしました。</p>
+                    <p>CustomersController#create</p>
+                    <pre><code>def create
+  payload = {
+    created_at: DateTime.now,
+    name: &#39;Customer Controller&#39;,
+    type: &#39;log&#39;,
+    event: &#39;create - Customer&#39;,
+    session_id: session.id.to_s,
+    general_text: &#39;Create customer&#39;
+  }
+
+  log_elastic(payload)
+  @customer = Customer.new(customer_params.merge(require_full_signup: true)
+                                          .merge(white_label_data: white_label_session))
+  if @customer.save
+    payload = {
+      created_at: DateTime.now,
+      name: &#39;Customer Controller&#39;,
+      type: &#39;log&#39;,
+      event: &#39;saved - Customer&#39;,
+      customer_id: @customer.id,
+      session_id: session.id.to_s,
+      general_text: &#39;customer saved&#39;
+    }
+
+    log_elastic(payload)
+  end
+end
+</code></pre>
+                    <p>顧客モデルに実装された検証:</p>
+                    <pre><code>validates :email, uniqueness: {
+  scope: :white_label_origin,
+  message: &#39;Email already registered&#39;
+}
+validates :cpf, uniqueness: {
+  scope: :white_label_origin,
+  message: &#39;Document already registered&#39;
+}, on: :create, unless: :omniauth_customer?
+</code></pre>
+                    <p>すでにそれについて検索し、インデックスを使用する必要があることを説明するこの記事を見つけたので、移行で次のことを見つけました。</p>
+                    <pre><code>class AddIndexToCustomerEmailAndCpf &lt; ActiveRecord::Migration[5.2]
+  def change
+    add_index :customers, :email
+    add_index :customers, :cpf
+  end
+end
+</code></pre>
+                    <p>アプリケーションでこのユーザーの重複が発生する原因と、今後発生しないようにこの問題を修正する方法を理解したいと考えています。この動作の考えられる原因は何ですか?また、ユーザーを確実に一意に作成するための効果的な解決策を実装するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、ダブルクリックしてフォームを送信するときに発生する一般的な競合状態です。</p>
+                    <p>ダブルクリックすると、ブラウザは 2
+                    つのリクエストを Web
+                    サーバーに送信します。そして、両方のリクエストは 2
+                    つの異なるサーバー
+                    プロセスまたはスレッドによって同時に処理されます。両方のプロセスは同時にユーザーが既に存在するかどうかを確認しますが、両方ともそのようなユーザーはまだ存在しないという回答を受け取ります。そして、両方のプロセスがユーザーを作成します。</p>
+                    <p>つまり、モデル内の一意の検証では重複レコードからある程度しか保護できず、ほぼ同時に重複したリクエストがある場合には失敗します。</p>
+                    <p>重複レコードが常に存在しないようにするには、これらの属性に対してもデータベースに一意のインデックスを追加する必要があります。つまり、検証により一般的な使用例から保護され、ユーザーに適切なエラー
+                    メッセージを返すことができるようになります。また、アプリケーションが問題を検出できなかった場合でも、データベースの一意のインデックスによってデータが保護されます。</p>
+                    <p>データベースにインデックスを追加します。</p>
+                    <pre><code>add_index :customers, :email, unique: true
+</code></pre>
+                    <p>コントローラーで考えられるエラー
+                    (検証および一意制約違反) を処理します。</p>
+                    <pre><code>def create
+  # [...]
+  @customer = Customer.new(
+    customer_params.merge(
+      require_full_signup: true, white_label_data: white_label_session
+    )
+  )
+  
+  if @customer.save
+    # Customer was successfully created.
+  else
+    # validating the customer failed, see `@customer.errors` for details
+  end
+rescue ActiveRecord::RecordNotUnique =&gt; exception
+  # Record creation failed because of the unique index in the database.
+  # Depending on your usecase returning the existing customer with
+  #
+  #     @customer = Customer.find_by(email: @customer.email)
+  #
+  # might be an option to fix the issue.
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

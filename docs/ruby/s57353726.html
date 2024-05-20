@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>初期化されていない定数 CustomTokenResponse(NameError) と有効なトークンに対する不正アクセス | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "初期化されていない定数 CustomTokenResponse(NameError) と有効なトークンに対する不正アクセス",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>初期化されていない定数
+CustomTokenResponse(NameError) と有効なトークンに対する不正アクセス</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RailsアプリをAPIに移行しようとしていて、認証用にdoorkeeper
+                    gemをインストールしたところ、有効なユーザーのトークンが生成されます。今、私には2つの問題があります</p>
+                    <p>このガイドに従ってプロセスを進めました</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://scotch.io/<span
+                    class="citation"
+                    data-cites="jiggs/rails-api-doorkeeper-devise">@jiggs/rails-api-doorkeeper-devise</span></p>
+                    <pre><code># frozen_string_literal: true
+
+#Doorkeeper.rb
+
+Doorkeeper.configure do
+  # Change the ORM that doorkeeper will use (needs plugins)
+  orm :active_record
+
+  # This block will be called to check whether the resource owner is authenticated or not.
+  resource_owner_authenticator do
+    # raise &quot;Please configure doorkeeper resource_owner_authenticator block located in #{__FILE__}&quot;
+    # Put your resource owner authentication logic here.
+    # Example implementation:
+    current_user || warden.authenticate!(:scope =&gt; :user)
+  end
+
+   resource_owner_from_credentials do |routes|
+    user = User.find_for_database_authentication(:email =&gt; params[:email])
+    if user &amp;&amp; user.valid_for_authentication? { user.valid_password?(params[:password]) }
+      user
+    end
+  end
+
+  skip_authorization do
+    true
+  end
+
+  Doorkeeper::OAuth::TokenResponse.send :prepend, CustomTokenResponse
+  Doorkeeper::OAuth::ErrorResponse.send :prepend, CustomTokenErrorResponse
+
+  # WWW-Authenticate Realm (default &quot;Doorkeeper&quot;).
+  #
+  # realm &quot;Doorkeeper&quot;
+end
+
+
+</code></pre>
+                    <pre><code># lib/custom_token_response.rb
+
+module CustomTokenResponse
+  def body
+    user_details = User.find(@token.resource_owner_id)
+    # call original `#body` method and merge its result with the additional data hash
+       super.merge({
+           status_code: 200,
+           message: I18n.t(&#39;devise.sessions.signed_in&#39;),
+           result: user_details
+       })
+  end
+end
+</code></pre>
+                    <pre><code># lib/custom_token_error_response.rb
+
+module CustomTokenErrorResponse
+  def body
+    {
+      status_code: 401,
+      message: I18n.t(&#39;devise.failure.invalid&#39;, authentication_keys: User.authentication_keys.join(&#39;/&#39;)),
+      result: []
+    }
+    # or merge with existing values by
+    # super.merge({key: value})
+  end
+end
+</code></pre>
+                    <p>1:
+                    /home/rubyians/.rvm/gems/ruby-2.6.3/gems/bootsnap-1.4.4/lib/bootsnap/load_path_cache/core_ext/active_support.rb:8:in
+                    without_bootsnap_cache から
+                    /home/rubyians/.rvm/gems/ruby-2.6.3/gems/bootsnap-1.4.4/lib/bootsnap/load_path_cache/core_ext/active_support.rb:79:inblock
+                    inload_missing_constant’: 初期化されていない定数
+                    CustomTokenResponse (NameError)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>doorkeeper.rb の下部を to_prepare
+                    にネストされるように更新しました。</p>
+                    <pre><code>Rails.application.config.to_prepare do
+  Doorkeeper::OAuth::TokenResponse.prepend CustomTokenResponse
+end
+</code></pre>
+                    <p>Railsのアップグレードに関する問題を修正しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

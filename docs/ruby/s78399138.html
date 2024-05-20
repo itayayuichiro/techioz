@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ブラウザから事前署名された URL 経由で保護された S3 への直接アップロード時にコンテンツ タイプを制限するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ブラウザから事前署名された URL 経由で保護された S3 への直接アップロード時にコンテンツ タイプを制限するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ブラウザから事前署名された URL
+経由で保護された S3 への直接アップロード時にコンテンツ
+タイプを制限するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>フロントエンドがファイルのコンテンツタイプを送信する必要があるアップロード署名付きURLを生成しようとしています。
+                    友人がこのコンテンツタイプを送信せず、params
+                    のコンテンツタイプを削除すると、すべてが正常に動作することがわかります。
+                    しかし、バケットでは、オブジェクトのタイプは空白の空白であり、タイプは記載されていません。
+                    それで、ダウンロード中、またはpresignedURLを介してオブジェクトを取得中に、取得するとエラーが発生すると思いました
+                    しかし、それでもすべてがうまく機能します
+                    私が考えられる唯一のことは、検証のためにバックエンドでそのコンテンツタイプを使用し、アップロードを画像ビデオなどの特定のコンテンツタイプに制限できることですか？
+                    誰か実際の使用例を説明してください ありがとう。</p>
+                    <pre><code>app.post(&quot;/api/posts/pre&quot;, async (req, res) =&gt; {
+  const bucketName = &#39;usman.test.bucket&#39;;
+  const { fileName, fileType } = req.body; // Get file name and file type from form data
+// /frontend is responsible for providing the fileType information, while the backend handles the generation of the fileName and the pre-signed URL. This separation of concerns ensures that the application is more modular and maintainable.
+// /If the frontend doesn&#39;t provide the fileType, the backend can assume a default file type, such as application/octet-stream, which is a generic binary file type.
+  try {
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+      ContentType: fileType,
+    };
+
+    const command = new PutObjectCommand(params);
+    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+    res.json({ presignedUrl: signedUrl });
+  } catch (error) {
+    console.error(&#39;Error generating pre-signed URL:&#39;, error);
+    res.status(500).send(&#39;Error generating pre-signed URL&#39;);
+  }
+});
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>https://medium.com/<span class="citation"
+                    data-cites="Games24x7Tech/a-complete-guide-to-s3-file-upload-using-pre-signed-post-urls-9cb2d6cfc0ab">@Games24x7Tech/a-complete-guide-to-s3-file-upload-using-pre-signed-post-urls-9cb2d6cfc0ab</span>
+                    の記事の途中で説明されている createPresignedPost
+                    を使用する必要があります。 PutObjectCommand()
+                    の代わりに。この記事は実際には非常に不明確ですが、バックエンドで
+                    (秘密の AWS 認証情報を使用して)
+                    createPresignedPost() を呼び出し、URL
+                    をフロントエンドに渡し、フロントエンドに署名付き URL
+                    に対して通常の POST
+                    を実行させる必要があると思います。</p>
+                    <p>誤解された質問に基づく古い回答:</p>
+                    <p>S3
+                    からファイルをブラウザで直接開く場合、コンテンツ
+                    タイプとエンコーディングが正しい場合、より適切に動作します。</p>
+                    <p>出典：実体験。これらのヘッダーなしで保存された
+                    .json.gz オブジェクトがいくつかあり、URL
+                    を開こうとすると、画面に json
+                    が表示されず、代わりに「ダウンロード」または「名前を付けて保存」ダイアログが表示されます。</p>
+                    <p>おそらく、.jpg
+                    画像があり、ユーザーにファイルとしてダウンロードさせるのではなく、その画像を
+                    Web
+                    ブラウザーに表示したい場合にも、同じことが起こるでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

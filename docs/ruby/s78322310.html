@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 および authlogic 6.4.3 のテストでエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 および authlogic 6.4.3 のテストでエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 および authlogic 6.4.3
+のテストでエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>認証を必要とするいくつかのコントローラーテストを作成しようとしています。現在、authlogic
+                    6.4.3とrails 7を使用しています。</p>
+                    <p>問題は、常に次のエラーがスローされることです。</p>
+                    <pre><code>Authlogic::Session::Activation::NotActivatedError: You must activate the Authlogic::Session::Base.controller with a controller object before creating objects
+</code></pre>
+                    <p>これを setup:activate_authlogic
+                    として追加すると、次のエラーが発生しました:
+                    NoMethodError: unknown method ‘activate_authlogic’
+                    for #<VideosTest:0x00007f0fb982f0d0></p>
+                    <p>しかし、それをsetup
+                    doに変更したところ、エラーはAuthlogic::Session::Activation::NotActivatedError:になりました。</p>
+                    <p>これは私のtest_helper.rbです</p>
+                    <pre><code>ENV[&#39;RAILS_ENV&#39;] ||= &#39;test&#39;
+require File.expand_path(&#39;../../config/environment&#39;, __FILE__)
+require &#39;rails/test_help&#39;
+require &quot;authlogic/test_case&quot;
+
+
+class ActiveSupport::TestCase
+  # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
+  #
+  # Note: You&#39;ll currently still have to declare fixtures explicitly in integration tests
+  # -- they do not yet inherit this setting
+  fixtures :all
+
+  # Add more helper methods to be used by all tests here...
+end
+
+# Define active_authlogic into all setup
+class ActionController::TestCase
+
+  setup do
+    :activate_authlogic
+  end
+
+  def login(user)
+    post sesiones_url, :params =&gt; { :email =&gt; user.email, :password =&gt; &#39;password&#39; }
+  end
+end
+</code></pre>
+                    <p>これは私のテストです:</p>
+                    <pre><code>require &#39;test_helper&#39;
+
+class VideosTest &lt; ActionController::TestCase
+
+  setup do
+    @video = video(:one)
+  end
+
+  test &quot;should get new&quot; do
+    Sesion.create(usuarios(:admin))
+    get :new
+    assert_response :success
+  end
+  
+end
+</code></pre>
+                    <p>これは、認証を必要とする同様のテストでも発生します。</p>
+                    <p>ログイン用のヘルパー
+                    メソッドも追加しようとしましたが、次のエラーがスローされます。</p>
+                    <pre><code>ActionController::UrlGenerationError: No route matches {:action=&gt;&quot;http://test.host/sesiones&quot;, :controller=&gt;&quot;videos&quot;, :email=&gt;&quot;[email protected]&quot;, :password=&gt;&quot;password&quot;}
+</code></pre>
+                    <p>アイデアが尽きてきました</p>
+                    <p>authlogic
+                    を使用してテストを作成する正しい方法は何ですか?それともテストで認証をバイパスする方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストは、ActionController::TestCase
+                    ではなく、ActionDispatch::IntegrationTest
+                    から継承する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

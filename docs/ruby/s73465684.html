@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec、キーと値のペアのサブセットのみを受信するとどうやって期待できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec、キーと値のペアのサブセットのみを受信するとどうやって期待できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec、キーと値のペアのサブセットのみを受信するとどうやって期待できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クラスがいくつかの引数を持つメソッドを受け取ることを期待する仕様があります。引数
+                    hash
+                    からキーと値のペアのサブセットを確認したいだけです。</p>
+                    <pre><code>  it &#39;calls Stripe::Checkout::Session#create with the correct line items&#39; do
+      expect(Stripe::Checkout::Session).to receive(:create).with({
+          line_items: [{
+            price: &quot;bla&quot;,
+            quantity: 1
+          }],
+        }
+      )
+      subject
+    end
+</code></pre>
+                    <p>ここでは、引数ハッシュに line_items
+                    が正しい値で存在することを確認したいだけです。</p>
+                    <p>ただし、実際に受信したハッシュにはさらに多くの値が含まれており、次のエラーが発生します。</p>
+                    <pre><code>#&lt;Stripe::Checkout::Session (class)&gt; received :create with unexpected arguments
+     expected: ({:line_items=&gt;[{:price=&gt;&quot;bla&quot;, :quantity=&gt;1}]}, *(any args))
+          got: ({:allow_promotion_codes=&gt;true, :automatic_tax=&gt;{:enabled=&gt;true}, :billing_address_collection=&gt;&quot;requir...vh.me/fr/thank-you?checkout_session_id={CHECKOUT_SESSION_ID}&quot;, :tax_id_collection=&gt;{:enabled=&gt;true}}, {:stripe_account=&gt;&quot;bla&quot;})
+</code></pre>
+                    <p>キーと値のペアのサブセットの存在のみをチェックするように
+                    rspec に指示するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ハッシュのサブセットと一致する hash_include
+                    が必要です。</p>
+                    <pre><code>  ...to receive(:create).with(hash_including(
+    line_items: [{
+      price: &quot;bla&quot;,
+      quantity: 1
+    }],
+  )
+</code></pre>
+                    <p>ドキュメントを参照してください:
+                    https://relishapp.com/rspec/rspec-mocks/v/3-2/docs/setting-constraints/matching-arguments</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

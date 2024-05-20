@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 特定のエラーを削除する - delete(:email) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 特定のエラーを削除する - delete(:email)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 特定のエラーを削除する -
+delete(:email)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>user.errors.delete(: email)
+                    を使用して電子メール検証エラーを削除できることはわかっていますが、電子メールに複数のエラーがある場合、電子メールに関連するすべてのエラーが削除されると思います。</p>
+                    <p>Railsには特定のエラーメッセージを削除する方法はありますか?
+                    :already_confirmed
+                    エラーのみを削除したいと考えています。次のようなものを探しています:
+                    user.errors.delete( email: :already_confirmed)</p>
+                    <pre><code>=&gt; #&lt;ActiveModel::Errors:0x007feee7ab60ere8
+ @base=
+  #&lt;User id: 123, email: &quot;[email protected]&quot;, created_at: &quot;2020-09-26 19:00:38&quot;, updated_at: &quot;2020-09-26 19:01:27&quot;, first_name: nil, last_name: nil&gt;,
+ @details={:email=&gt;[{:error=&gt;:already_confirmed}]},
+ @messages={:email=&gt;[&quot;was already confirmed, please try signing in&quot;]}&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails には実際には user.errors.remove()
+                    メソッドが存在するはずです。ただし、これは私がやった方法ですが、もっときれいな方法を期待しています。</p>
+                    <pre><code>error_index = user.errors.details[:email].find_index{|i| i[:error] ==  :already_confirmed}
+if error_index.present?
+  user.errors.messages[:email].delete_at(error_index)
+  user.errors.details[:email].delete_at(error_index)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

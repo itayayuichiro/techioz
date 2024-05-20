@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>AWS Lambda にファイル mysql2 をロードできません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "AWS Lambda にファイル mysql2 をロードできません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>AWS Lambda にファイル mysql2
+をロードできません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Lambda を RDS
+                    データベースに接続しようとしましたが、mysql2 gem
+                    をロードできません。元の指示を試しましたが、問題は解決されませんでした。</p>
+                    <p>ビルドされた mysql2 gem がベンダー
+                    ディレクトリにあります。これは、bundle install
+                    –deployment を使用して実行しました。</p>
+                    <p>おそらくこれは、mysql2
+                    で使用されるコンパイルされた拡張機能が原因で問題になります。ただし、これを
+                    AWS Lambda
+                    でどのように並べ替えるかはわかりません。考えは？</p>
+                    <p>ログ出力は次のとおりです。</p>
+                    <pre><code>START RequestId: 62f35c49-039f-11e9-be04-1fd1111df42b Version: $LATEST
+Ignoring mysql2-0.5.2 because its extensions are not built. Try: gem pristine mysql2 --version 0.5.2
+Init error when loading handler lambda_function.lambda_handler
+{
+  &quot;errorMessage&quot;: &quot;cannot load such file -- mysql2&quot;,
+  &quot;errorType&quot;: &quot;Init&lt;LoadError&gt;&quot;,
+  &quot;stackTrace&quot;: [
+    &quot;/var/lang/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/lang/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/task/lambda_function.rb:3:in `&lt;top (required)&gt;&#39;&quot;,
+    &quot;/var/lang/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/lang/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;
+  ]
+}
+END RequestId: 62f35c49-039f-11e9-be04-1fd1111df42b
+REPORT RequestId: 62f35c49-039f-11e9-be04-1fd1111df42b  Duration: 1439.17 ms    Billed Duration: 1500 ms    Memory Size: 128 MB Max Memory Used: 17 MB  
+Unknown application error occurred
+Init&lt;LoadError&gt;
+</code></pre>
+                    <p>これが私のGemfileです:</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+gem &#39;mysql2&#39;, &#39;~&gt; 0.5.2&#39;
+gem &#39;sequel&#39;, &#39;~&gt; 5.15.0&#39;
+</code></pre>
+                    <p>Gemfile.lock</p>
+                    <pre><code>GEM
+remote: https://rubygems.org/
+specs:
+  mysql2 (0.5.2)
+  sequel (5.15.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mysql2 (~&gt; 0.5.2)
+  sequel (~&gt; 5.15.0)
+
+BUNDLED WITH
+  1.17.2
+</code></pre>
+                    <p>これが私のlambda_function.rbファイルの先頭です</p>
+                    <pre><code>require &#39;json&#39;
+require &#39;logger&#39;
+require &#39;mysql2&#39;
+require &#39;sequel&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Dhanabal
+                    の答えは機能しますが、答えは私にとって手続き的すぎるため、さらに詳しく説明します。</p>
+                    <p>基本的に、ネイティブ拡張機能を備えた gem は、AWS
+                    Lambda と同じ環境上に構築する必要があります。
+                    したがって、Lambda 環境を模倣する
+                    lambci/lambda:build-ruby2.5 docker
+                    イメージ内にネイティブ拡張機能を構築する必要があります。</p>
+                    <p>また、動的ライブラリをロード
+                    パスにコピーする必要があります。
+                    まず、ライブラリをどこに配置できるかを調べてみましょう。
+                    コンテナ内でエコーすると、
+                    /var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib。
+                    したがって、ライブラリを /usr/lib64/mysql から
+                    [function dir]/lib
+                    にコピーしてデプロイするだけです。</p>
+                    <p>それでおしまい。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

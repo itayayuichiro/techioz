@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails image_tagを使用してフォルダー内のすべての画像を一覧表示する方法? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails image_tagを使用してフォルダー内のすべての画像を一覧表示する方法?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+image_tagを使用してフォルダー内のすべての画像を一覧表示する方法?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「app/assets/images/slide」フォルダー内のすべての画像を取得し、それらをタグで（順番に）配置しようとしています。したがって、次のようになります。</p>
+                    <pre><code>&lt;img src=&quot;1.jpg&quot; &gt;
+&lt;img src=&quot;2.jpg&quot; &gt;
+&lt;img src=&quot;3.jpg&quot; &gt;
+</code></pre>
+                    <p>どうすればこれを達成できますか? (Rails
+                    3.2.9を使用しています)</p>
+                    <p>これが私が試したコードです（Khaledに感謝します）。ただし、すべての画像パスのプレーンテキストのリストが出力されます。表示する画像が必要です:</p>
+                    <pre><code>@images = Dir.glob(&quot;app/assets/images/slide/*.jpg&quot;)
+
+@images.each do |image|
+    image_tag image.gsub(&quot;app/assets/images/&quot;, &quot;&quot;)
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コントローラーのアクションで、すべての画像のパスを取得します。</p>
+                    <pre><code>@images = Dir.glob(&quot;app/assets/images/slide/*.jpg&quot;)
+</code></pre>
+                    <p>次に、あなたのビューで（hamlを想定）</p>
+                    <pre><code>- @images.each do |image|
+   = image_tag &quot;slide/#{image.split(&#39;/&#39;).last}&quot;
+</code></pre>
+                    <p>erb を仮定すると</p>
+                    <pre><code> &lt;% @images.each do |image| %&gt;
+   &lt;%= image_tag &quot;slide/#{image.split(&#39;/&#39;).last}&quot; %&gt;
+ &lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

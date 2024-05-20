@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「gets」はユーザー入力を待ちません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「gets」はユーザー入力を待ちません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「gets」はユーザー入力を待ちません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby プラットフォームを使用して repl.it
+                    でプログラムを開発しようとしています。私が持っているものは次のとおりです。</p>
+                    <pre><code>puts &quot;Copy the entire request page and paste it into this console, then 
+hit ENTER.&quot;
+request_info = gets(&quot;Edit Confirmation&quot;).chomp.gsub!(/\s+/m, &#39; 
+&#39;).strip.split(&quot; &quot;)
+
+puts &quot;What is your name?&quot;
+your_name = gets.chomp
+puts &quot;Thanks, #{your_name}!&quot;
+</code></pre>
+                    <p>私が理解した方法では、ユーザーは「編集確認」で終わる複数行のリクエストを貼り付け、その後、リクエストを単語ごとに独自の配列に分割し、私が解析して関連する配列を取得します。データ。</p>
+                    <p>しかし、最初に複数行の入力をユーザーに問い合わせた後、gets
+                    コマンドを再度使用することはできないようです。それ以降に使用しようとする他の
+                    get
+                    コマンドはスキップされ、プログラムが終了します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたのコードは非常に珍しいことをしています。gets
+                    メソッドに文字列を渡すことによって、実際には入力区切り文字を変更しています。</p>
+                    <pre><code>gets(sep, limit [, getline_args]) → string or nil
+</code></pre>
+                    <p>コードが期待どおりに動作しない理由は、末尾に「」があるためです。
+                    ” 文字が入力バッファに残っているため、2
+                    回目の呼び出しでは即座にこの文字列が返されます。</p>
+                    <p>おそらくこれを解決する最も簡単な方法は、最初の
+                    gets 呼び出しでこの文字を吸収することです。</p>
+                    <pre><code>request_info = gets(&quot;Edit Confirmation\n&quot;).chomp.gsub!(/\s+/m, &#39; &#39;).strip.split(&quot; &quot;)
+</code></pre>
+                    <p>このような「複雑な」複数行入力の場合、ファイル名パラメータを
+                    Ruby
+                    スクリプトに渡し、このファイルを端末に貼り付けるよりも読み取る方が一般的です。</p>
+                    <p>または、gets(nil) を使用して EOF
+                    文字まで読み取り、CTRL+D
+                    を押して複数行入力の終了を示すようにユーザーに要求することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

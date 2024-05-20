@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ValueError: 基数 10 の int() のリテラルが無効です: Q ラーニングの ’ [クローズ] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ValueError: 基数 10 の int() のリテラルが無効です: Q ラーニングの ’ [クローズ]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ValueError: 基数 10 の int()
+のリテラルが無効です: Q ラーニングの ’ [クローズ]</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>episodes = generate_training_episodes(num_episodes)
+for episode in episodes:
+    for state, action, reward, next_state in episode:
+        # Get the available actions for the next state
+        next_available_actions = get_available_actions(next_state)
+
+        # Calculate the maximum Q-value for the next state
+        next_q_values = [Q_table[(next_state, next_action)] for next_action in next_available_actions]
+        max_next_q_value = max(next_q_values)
+
+        # Update the Q-value for the current state-action pair
+        q_value = Q_table[(state, action)]
+        Q_table[(state, action)] = q_value + ALPHA * (reward + GAMMA * max_next_q_value - q_value)
+</code></pre>
+                    <p>上記のコードでは値エラーが発生します</p>
+                    <pre><code>---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+&lt;ipython-input-19-7df231fe06a5&gt; in &lt;cell line: 1&gt;()
+----&gt; 1 episodes = generate_training_episodes(num_episodes)
+      2 for episode in episodes:
+      3     for state, action, reward, next_state in episode:
+      4         # Get the available actions for the next state
+      5         next_available_actions = get_available_actions(next_state)
+
+1 frames
+&lt;ipython-input-15-84c03145c31c&gt; in transition_function(state, action)
+     54 
+     55     elif action.source.startswith(&quot;W&quot;):
+---&gt; 56         source_index = int(source_id) - 1
+     57         new_wholesaler_inventories[source_index] -= action.quantity
+     58         if destination_prefix == &quot;LM&quot;:
+
+ValueError: invalid literal for int() with base 10: &#39;&#39;
+</code></pre>
+                    <p>これは遷移関数の問題であり、次のように定義しました。</p>
+                    <pre><code>def transition_function(state, action):
+    new_farmer_inventories = state.farmer_inventories.copy()
+    new_local_trader_inventories = state.local_trader_inventories.copy()
+    new_ppc_inventories = state.ppc_inventories.copy()
+    new_wholesaler_inventories = state.wholesaler_inventories.copy()
+    new_ripening_storage_inventories = state.ripening_storage_inventories.copy()
+    new_local_market_demands = state.local_market_demands.copy()
+    new_farmers_market_demands = state.farmers_market_demands.copy()
+    new_retailer_demands = state.retailer_demands.copy()
+
+    source_id = action.source[1:] if action.source.startswith(&quot;F&quot;) else \
+                action.source[2:] if action.source.startswith((&quot;LT&quot;, &quot;PPC&quot;, &quot;W&quot;, &quot;RS&quot;)) else &quot;&quot;
+
+    destination_prefix = action.destination[:2] if action.destination.startswith((&quot;LM&quot;, &quot;FM&quot;)) else \
+                         action.destination[0] if action.destination.startswith((&quot;F&quot;, &quot;R&quot;)) else &quot;&quot;
+
+    destination_id = action.destination[2:] if action.destination.startswith((&quot;PPC&quot;, &quot;LT&quot;, &quot;W&quot;)) else \
+                     action.destination[1:] if action.destination.startswith((&quot;F&quot;, &quot;R&quot;)) else \
+                     action.destination[3:] if action.destination.startswith((&quot;LM&quot;, &quot;FM&quot;)) else &quot;&quot;
+
+    # Update inventory levels
+    if action.source.startswith(&quot;F&quot;):
+        source_index = int(source_id) - 1
+        new_farmer_inventories[source_index] -= action.quantity
+        if action.destination.startswith(&quot;LT&quot;):
+            destination_index = int(destination_id) - 1
+            new_local_trader_inventories[destination_index] += action.quantity
+        elif action.destination.startswith(&quot;PPC&quot;):
+            destination_index = int(destination_id) - 1
+            new_ppc_inventories[destination_index] += action.quantity
+        elif action.destination.startswith(&quot;W&quot;):
+            destination_index = int(destination_id) - 1
+            new_wholesaler_inventories[destination_index] += action.quantity
+
+    elif action.source.startswith(&quot;LT&quot;):
+        source_index = int(source_id) - 1
+        new_local_trader_inventories[source_index] -= action.quantity
+        if action.destination.startswith(&quot;PPC&quot;):
+            destination_index = int(destination_id) - 1
+            new_ppc_inventories[destination_index] += action.quantity
+        elif action.destination.startswith(&quot;W&quot;):
+            destination_index = int(destination_id) - 1
+            new_wholesaler_inventories[destination_index] += action.quantity
+
+    elif action.source.startswith(&quot;PPC&quot;):
+        source_index = int(source_id) - 1
+        new_ppc_inventories[source_index] -= action.quantity
+        if action.destination.startswith(&quot;W&quot;):
+            destination_index = int(destination_id) - 1
+            new_wholesaler_inventories[destination_index] += action.quantity
+        elif action.destination.startswith(&quot;RS&quot;):
+            destination_index = int(destination_id) - 1
+            new_ripening_storage_inventories[destination_index] += action.quantity
+
+    elif action.source.startswith(&quot;W&quot;):
+        source_index = int(source_id) - 1
+        new_wholesaler_inventories[source_index] -= action.quantity
+        if destination_prefix == &quot;LM&quot;:
+            destination_index = int(destination_id) - 1
+            new_local_market_demands[destination_index] = max(new_local_market_demands[destination_index] - action.quantity, 0)
+        elif destination_prefix == &quot;FM&quot;:
+            destination_index = int(destination_id) - 1
+            new_farmers_market_demands[destination_index] = max(new_farmers_market_demands[destination_index] - action.quantity, 0)
+        elif destination_prefix == &quot;R&quot;:
+            destination_index = int(destination_id) - 1
+            new_retailer_demands[destination_index] = max(new_retailer_demands[destination_index] - action.quantity, 0)
+
+    elif action.source.startswith(&quot;RS&quot;):
+        source_index = int(source_id) - 1
+        new_ripening_storage_inventories[source_index] -= action.quantity
+        if action.destination.startswith(&quot;W&quot;):
+            destination_index = int(destination_id) - 1
+            new_wholesaler_inventories[destination_index] += action.quantity
+
+    new_state = State(
+        new_farmer_inventories,
+        new_local_trader_inventories,
+        new_ppc_inventories,
+        new_wholesaler_inventories,
+        new_ripening_storage_inventories,
+        new_local_market_demands,
+        new_farmers_market_demands,
+        new_retailer_demands,
+        state.transportation_costs,
+        state.handling_costs,
+    )
+
+    return new_state
+</code></pre>
+                    <p>問題は、エピソードを実行できないことです。問題がどこにあるのかわかりません。</p>
+                    <p>それで私は上記を試しました、実際にはQ学習を使用してマルコフ決定プロセスを作成しようとしていますが、エピソードで訓練しようとすると立ち往生します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

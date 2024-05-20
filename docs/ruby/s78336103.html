@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Devise_invitable で招待状を送信する際のエラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Devise_invitable で招待状を送信する際のエラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Devise_invitable
+で招待状を送信する際のエラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これに関するスレッドがいくつかあることは知っていますが、私が見た限りでは、それらはかなり古く、おそらく時代遅れになっている可能性があります。</p>
+                    <p>私はdeviceとdevice_invitableを使用しています。その背後にある考え方は、管理者と教師が新しいユーザー
+                    (学生または教師)
+                    を招待できるようにすることです。ただし、招待状を送信すると、次のエラーが表示されます。</p>
+                    <pre><code>Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true
+Extracted source (around line #4):
+2
+3
+4
+5
+6
+7
+              
+            @virtual_path = &quot;devise/mailer/invitation_instructions&quot;;; @output_buffer.safe_append=&#39;&lt;p&gt;&#39;.freeze; @output_buffer.append=( t(&quot;devise.mailer.invitation_instructions.hello&quot;, email: @resource.email) ); @output_buffer.safe_append=&#39;&lt;/p&gt;
+
+&lt;p&gt;&#39;.freeze; @output_buffer.append=( t(&quot;devise.mailer.invitation_instructions.someone_invited_you&quot;, url: root_url) ); @output_buffer.safe_append=&#39;&lt;/p&gt;
+
+&lt;p&gt;&#39;.freeze; @output_buffer.append=( link_to t(&quot;devise.mailer.invitation_instructions.accept&quot;), accept_invitation_url(@resource, invitation_token: @token) ); @output_buffer.safe_append=&#39;&lt;/p&gt;
+
+</code></pre>
+                    <p>さまざまなことを試しましたが、現在のコードは次のようになります。</p>
+                    <p>招待コントローラー</p>
+                    <pre><code>class Users::InvitationsController &lt; Devise::InvitationsController
+
+  def create
+    super do |resource|
+      if resource.persisted? &amp;&amp; resource.role == &quot;aluno&quot;
+        AlunoProfile.create(
+          user: resource,
+          morada: params[:user][:morada],
+          birthdate: params[:user][:birthdate],
+          nif: params[:user][:nif],
+          numero_utente: params[:user][:numero_utente],
+          cartao_cidadao: params[:user][:cartao_cidadao],
+          validity: params[:user][:validity],
+          contacto: params[:user][:contacto],
+          encarregado_educação: params[:user][:encarregado_educação],
+          grau_parentesco: params[:user][:grau_parentesco],
+          contacto_emergencia: params[:user][:contacto_emergencia],
+          aulas: params[:user][:aulas],
+          horario_preferencial: params[:user][:horario_preferencial],
+          recolha_dados: params[:user][:recolha_dados],
+          fotografias_captadas: params[:user][:fotografias_captadas]
+        )
+      end
+    end
+  end
+
+  private
+
+  def set_params
+    params.require(:user).permit(:email, :first_name, :last_name)
+  end
+end
+</code></pre>
+                    <p>招待状_説明ビュー</p>
+                    <pre><code>&lt;p&gt;&lt;%= t(&quot;devise.mailer.invitation_instructions.hello&quot;, email: @resource.email) %&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;%= t(&quot;devise.mailer.invitation_instructions.someone_invited_you&quot;, url: root_url) %&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;%= link_to t(&quot;devise.mailer.invitation_instructions.accept&quot;), accept_invitation_url(@resource, invitation_token: @token) %&gt;&lt;/p&gt;
+
+&lt;% if @resource.invitation_due_at %&gt;
+  &lt;p&gt;&lt;%= t(&quot;devise.mailer.invitation_instructions.accept_until&quot;, due_date: l(@resource.invitation_due_at, format: :&#39;devise.mailer.invitation_instructions.accept_until_format&#39;)) %&gt;&lt;/p&gt;
+&lt;% end %&gt;
+
+&lt;p&gt;&lt;%= t(&quot;devise.mailer.invitation_instructions.ignore&quot;) %&gt;&lt;/p&gt;
+</code></pre>
+                    <p>私のルート</p>
+                    <pre><code>Rails.application.routes.draw do
+  # devise_for :users
+  devise_for :users, RegistrationsController: { registrations: &#39;registrations&#39;}
+
+  root to: &quot;pages#home&quot;
+
+  get &quot;about&quot;, to: &quot;pages#about&quot;
+  get &quot;school&quot;, to: &quot;pages#school&quot;
+  get &quot;today&quot;, to: &quot;aulas#today&quot;
+  get &quot;clientes&quot;, to: &quot;user_aulas#clientes&quot;
+
+  resources :aluno_profiles
+  resources :aulas do
+    resources :bookings, only: %i[create destroy]
+  end
+
+
+  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
+  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  get &quot;up&quot; =&gt; &quot;rails/health#show&quot;, as: :rails_health_check
+
+  # Defines the root path route (&quot;/&quot;)
+  # root &quot;posts#index&quot;
+end```
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>メーラービューで有効な URL
+                    を使用してリンクを構築できるようにするには、アプリケーションが実行されているドメインを
+                    Ruby on Rails に伝える必要があります。</p>
+                    <p>config/initializers/**.rb ファイルで
+                    config.action_mailer.default_url_options
+                    を次のように設定します。</p>
+                    <pre><code>config.action_mailer.default_url_options = { host: &quot;example.com&quot; }
+</code></pre>
+                    <p>ActionMailer::Base
+                    のドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

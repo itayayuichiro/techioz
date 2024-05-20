@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>招待_承諾されましたか? after_invitation_accepted CALLBACK で FALSE を返す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "招待_承諾されましたか? after_invitation_accepted CALLBACK で FALSE を返す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>招待_承諾されましたか?
+after_invitation_accepted CALLBACK で FALSE を返す</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はdevice_invitable（2.0.6）を使用します</p>
+                    <p>招待_承諾されましたか? after_invitation_accepted
+                    CALLBACK では FALSE
+                    が返されますが、ここで一時停止して Rails
+                    コンソールをチェックすると、invitation_accepted?
+                    に対して true が返されます。</p>
+                    <p>ユーザー.rb</p>
+                    <pre><code>after_invitation_accepted :create_something
+
+def create_something
+  create_service unless invitation_sent_at? &amp;&amp; !invitation_accepted?  
+end
+</code></pre>
+                    <p>ここで、招待は承諾されましたか?このコールバック内では
+                    false ですが、ここで一時停止して Rails
+                    コンソールをチェックインすると true が返されます</p>
+                    <p>何か見逃したでしょうか??</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Invitation_accepted?
+                    のすぐ上にコメントがあります。ソースコード内:</p>
+                    <pre><code># Verifies whether a user accepted an invitation (false when user is accepting it)
+def invitation_accepted?
+  !accepting_invitation? &amp;&amp; invitation_accepted_at.present?
+end
+</code></pre>
+                    <p>つまり、invitation_accepted?ユーザーが招待を受け入れている間は
+                    true
+                    ではなく、ユーザーが招待を受け入れた後にのみ成立します。</p>
+                    <p>accept_invitationの実装を見てみると！次に、招待が受け入れられる前にメソッド内で
+                    <span class="citation"
+                    data-cites="accepting_invitation">@accepting_invitation</span>
+                    が true
+                    に設定されていますが、データベース内のレコードが更新された後は
+                    false に設定されていないことがわかります。</p>
+                    <p>データベースからユーザーを再ロードした後でないとinvitation_acceptedとはどういう意味ですか?
+                    true を返します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

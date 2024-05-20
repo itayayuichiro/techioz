@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rbenv と Apple m1。 Ruby 3.2、2.7、2.6 のインストールに失敗しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rbenv と Apple m1。 Ruby 3.2、2.7、2.6 のインストールに失敗しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rbenv と Apple m1。 Ruby 3.2、2.7、2.6
+のインストールに失敗しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rbenv で Ruby
+                    のバージョンをインストールできません。 2.6.10 2.7.7
+                    または 3.2.0 を試しました。</p>
+                    <p>これは実行時に得られたエラーです:</p>
+                    <pre><code>❯ rbenv install 3.2.0
+To follow progress, use &#39;tail -f /var/folders/4v/kyv3nw1s7lq8s7lz7r6djvsr0000gn/T/ruby-build.20230125170342.85553.log&#39; or pass --verbose
+Downloading openssl-3.0.7.tar.gz...
+-&gt; https://dqw8nmjcqpjn7.cloudfront.net/83049d042a260e696f62406ac5c08bf706fd84383f945cf21bd61e9ed95c396e
+Installing openssl-3.0.7...
+Installed openssl-3.0.7 to /Users/idanahal/.rbenv/versions/3.2.0
+
+Downloading ruby-3.2.0.tar.gz...
+-&gt; https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.0.tar.gz
+Installing ruby-3.2.0...
+ruby-build: using readline from homebrew
+ruby-build: using gmp from homebrew
+
+BUILD FAILED (macOS 13.1 using ruby-build 20221225)
+
+Inspect or clean up the working tree at /var/folders/4v/kyv3nw1s7lq8s7lz7r6djvsr0000gn/T/ruby-build.20230125170342.85553.VSOgmw
+Results logged to /var/folders/4v/kyv3nw1s7lq8s7lz7r6djvsr0000gn/T/ruby-build.20230125170342.85553.log
+
+Last 10 log lines:
+compiling ossl_x509ext.c
+compiling ossl_x509name.c
+compiling ossl_x509req.c
+compiling ossl_x509revoked.c
+compiling ossl_x509store.c
+installing default openssl libraries
+linking shared-object date_core.bundle
+linking shared-object openssl.bundle
+linking shared-object ripper.bundle
+make: *** [build-ext] Error 2
+</code></pre>
+                    <p>Homebrewでインストールすると正常に動作します。どうすればいいのか分かりません。
+                    rbenv は m1
+                    コンピュータでも動作することを想定すべきでしょうか?</p>
+                    <p>MacOS 13.1を使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下の環境変数を設定すると、問題が解決されます。</p>
+                    <pre><code>export RUBY_CONFIGURE_OPTS=&quot;--with-zlib-dir=$(brew --prefix zlib) --with-openssl-dir=$(brew --prefix [email protected]) --with-readline-dir=$(brew --prefix readline) --with-libyaml-dir=$(brew --prefix libyaml) --with-gdbm-dir=$(brew --prefix gdbm)&quot;
+</code></pre>
+                    <p>すべてのバージョンの rbenv install
+                    を実行する前に。</p>
+                    <p>注: –with-openssl-dir= 構成は、バージョン 2.6.*
+                    および 2.7.* でのみ必要です。 Ruby 3.<em>.</em>
+                    をインストールしようとしている場合は、削除できます
+                    (削除する必要があります)。</p>
+                    <p>2.6 および 2.7
+                    では、この環境変数も必要になる場合があります。</p>
+                    <pre><code>export RUBY_CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot;
+</code></pre>
+                    <p>上記のすべてが機能しない場合は、Homebrew
+                    を使用して Ruby をインストールできます。 rbenv から
+                    Homebrew
+                    のインストールされたバージョンを管理したい場合は、この回答をお読みください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

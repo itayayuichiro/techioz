@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Device-jwt で認証を機能させることができません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Device-jwt で認証を機能させることができません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Device-jwt
+で認証を機能させることができません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>API のみの Rails
+                    アプリに認可を実装できるように、device および
+                    Device-jwt gem を機能させようとしています。</p>
+                    <p>Device と Device-jwt gem
+                    の両方をインストールしました。</p>
+                    <p>このブログ投稿の指示に従いました。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://medium.com/<span
+                    class="citation"
+                    data-cites="mazik.wyry/rails-5-api-jwt-setup-in-minutes-using-devise-71670fd4ed03">@mazik.wyry/rails-5-api-jwt-setup-in-minutes-using-devise-71670fd4ed03</span></p>
+                    <p>著者が投稿に含めたリクエストの仕様を実装しましたが、それらを通過させることができません。セッション
+                    コントローラーに byebug
+                    を挿入すると、「ユーザーは続行する前にサインインまたはサインアップする必要があります。」というメッセージが表示されます。</p>
+                    <p>私が間違っていることについて何か考えはありますか?</p>
+                    <p>関連するファイルは次のとおりです。</p>
+                    <p>ルート.rb</p>
+                    <pre><code>Rails.application.routes.draw do
+
+  namespace :api, path: &#39;&#39;, defaults: {format: :json} do
+      namespace :v1 do
+        devise_for :users,
+                   path: &#39;&#39;,
+                   path_names: {
+                     sign_in: &#39;signin&#39;,
+                     sign_out: &#39;signout&#39;,
+                     registration: &#39;signup&#39;
+                   }
+        ...
+      end
+  end
+</code></pre>
+                    <p>コントローラー/api/v1/sessions_controller.rb</p>
+                    <pre><code>  class API::V1::SessionsController &lt; Devise::SessionsController
+    respond_to :json
+
+    private
+
+    def respond_with(resource, _opts = {})
+      render json: resource
+    end
+
+    def respond_to_on_destroy
+      head :no_content
+    end
+  end
+</code></pre>
+                    <p>モデル/user.rb</p>
+                    <pre><code>class User &lt; ApplicationRecord
+      devise  :confirmable, :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :jwt_authenticatable, jwt_revocation_strategy: JwtBlacklist
+
+      ...
+  end
+</code></pre>
+                    <p>モデル/jwt_blacklist.rb</p>
+                    <pre><code>  class JwtBlacklist &lt; ApplicationRecord
+    include Devise::JWT::RevocationStrategies::Blacklist
+
+    self.table_name = &#39;jwt_blacklist&#39;
+  end
+</code></pre>
+                    <p>config/initializers/devise.rb</p>
+                    <pre><code>  Devise.setup do |config|
+
+    # Setup for devise JWT token authentication
+    config.jwt do |jwt|
+      jwt.secret = Rails.application.secret_key_base
+      jwt.dispatch_requests = [
+        [&#39;POST&#39;, %r{^*/signin$}]
+      ]
+      jwt.revocation_requests = [
+        [&#39;DELETE&#39;, %r{^*/signout$}]
+      ]
+      jwt.expiration_time = 1.day.to_i
+    end
+
+    config.navigational_formats = []
+
+    ...
+
+  end
+</code></pre>
+                    <p>spec/request/authentication_spec.rb</p>
+                    <pre><code>  require &#39;rails_helper&#39;
+
+  describe &#39;POST /v1/signin&#39;, type: :request do
+    let(:user) { create(:user) }
+    let(:url) { &#39;/v1/signin&#39; }
+    let(:params) do
+      {
+        user: {
+          email: user.email,
+          password: user.password
+        }
+      }
+    end
+
+    context &#39;when params are correct&#39; do
+      before do
+        post url, params: params
+      end
+
+      it &#39;returns 200&#39; do
+        expect(response).to have_http_status(200)
+      end
+
+      it &#39;returns JTW token in authorization header&#39; do
+        expect(response.headers[&#39;Authorization&#39;]).to be_present
+      end
+
+      it &#39;returns valid JWT token&#39; do
+        decoded_token = decoded_jwt_token_from_response(response)
+        expect(decoded_token.first[&#39;sub&#39;]).to be_present
+      end
+    end
+
+    context &#39;when login params are incorrect&#39; do
+      before { post url }
+
+      it &#39;returns unathorized status&#39; do
+        expect(response.status).to eq 401
+      end
+    end
+  end
+
+  describe &#39;DELETE /v1/signout&#39;, type: :request do
+    let(:url) { &#39;/v1/signout&#39; }
+
+    it &#39;returns 204, no content&#39; do
+      delete url
+      expect(response).to have_http_status(204)
+    end
+  end
+</code></pre>
+                    <p>テストが成功すると期待していましたが、次のエラーが発生しました。</p>
+                    <p>テストの失敗</p>
+                    <pre><code>  Failures:
+
+    1) POST /v1/signin when params are correct returns 200
+       Failure/Error: expect(response).to have_http_status(200)
+         expected the response to have status code 200 but it was 401
+       # ./spec/request/authentication_spec.rb:21:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+    2) POST /v1/signin when params are correct returns JTW token in authorization header
+       Failure/Error: expect(response.headers[&#39;Authorization&#39;]).to be_present
+         expected `nil.present?` to return true, got false
+       # ./spec/request/authentication_spec.rb:25:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+    3) POST /v1/signin when params are correct returns valid JWT token
+       Failure/Error: decoded_token = decoded_jwt_token_from_response(response)
+
+       NoMethodError:
+         undefined method `decoded_jwt_token_from_response&#39; for #&lt;RSpec::ExampleGroups::POSTV1Signin::WhenParamsAreCorrect:0x00007fec3d3ae158&gt;
+       # ./spec/request/authentication_spec.rb:29:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+  Finished in 0.76386 seconds (files took 3.31 seconds to load)
+  5 examples, 3 failures
+
+  Failed examples:
+
+  rspec ./spec/request/authentication_spec.rb:20 # POST /v1/signin when params are correct returns 200
+  rspec ./spec/request/authentication_spec.rb:24 # POST /v1/signin when params are correct returns JTW token in authorization header
+  rspec ./spec/request/authentication_spec.rb:28 # POST /v1/signin when params are correct returns valid JWT token
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>解決策が見つかったかどうかはわかりません。しかし、私は自分が行ったアプローチを残します。役立つかもしれません。</p>
+                    <p>この問題に特に注意を払い、解決策は次のように変更することでした。</p>
+                    <pre><code>decoded_token = decoded_jwt_token_from_response(response)
+</code></pre>
+                    <p>に：</p>
+                    <pre><code>decoded_token = JWT.decode(response.headers[&#39;authorization&#39;].split(&#39; &#39;).last, Rails.application.credentials.jwt_secret, true)
+</code></pre>
+                    <p>ドキュメントや他の場所で何も見つからなかったため、JWTが提供するメソッドを使用してデコードすることを選択したためです。
+                    また、ご覧のとおり、リクエストを別の方法で処理していますが、それはまったく問題ないと思います。</p>
+                    <pre><code>require &#39;rails_helper&#39;
+require &quot;json&quot;
+
+RSpec.describe &quot;POST /login&quot;, type: :request do
+  
+  let(:user) { User.create!(  username: &#39;usertest&#39;,
+                              email: &#39;[email protected]&#39;,
+                              password: &#39;passwordtest123&#39;,
+                              password_confirmation: &#39;passwordtest123&#39;) }
+
+  let(:url) { &#39;/users/login&#39; }
+  let(:params) do
+    {
+      user: {
+        login: user.email,
+        password: user.password
+      }       
+    }
+  end
+
+  context &#39;when params are correct&#39; do
+    before do
+      post url, params: params.to_json, headers: { &#39;CONTENT_TYPE&#39; =&gt; &#39;application/json&#39;, &#39;ACCEPT&#39; =&gt; &#39;application/json&#39; }
+    end
+
+    it &#39;returns 200&#39; do
+      expect(response).to have_http_status(200)
+    end
+
+    it &#39;returns JTW token in authorization header&#39; do
+      expect(response.headers[&#39;authorization&#39;]).to be_present
+    end
+
+    it &#39;returns valid JWT token&#39; do
+      token_from_request = response.headers[&#39;Authorization&#39;].split(&#39; &#39;).last
+      decoded_token = JWT.decode(token_from_request, Rails.application.credentials.jwt_secret, true)
+      expect(decoded_token.first[&#39;sub&#39;]).to be_present
+    end
+  end
+
+  context &#39;when login params are incorrect&#39; do
+    before { post url }
+    
+    it &#39;returns unathorized status&#39; do
+      expect(response.status).to eq 401
+    end
+  end
+end
+
+RSpec.describe &#39;DELETE /logout&#39;, type: :request do
+  let(:url) { &#39;/users/logout&#39; }
+
+  it &#39;returns 204, no content&#39; do
+    delete url
+    expect(response).to have_http_status(204)
+  end
+end
+
+RSpec.describe &#39;POST /signup&#39;, type: :request do
+  let(:url) { &#39;/users/signup&#39; }
+  let(:params) do
+    {
+      user: {
+        username: &#39;usertest2&#39;,
+        email: &#39;[email protected]&#39;,
+        password: &#39;passwordtest123&#39;,
+        password_confirmation: &#39;passwordtest123&#39;
+      }
+    }
+  end
+
+  context &#39;when user is unauthenticated&#39; do
+    before  {
+              post url,
+              params: params.to_json,
+              headers: { &#39;CONTENT_TYPE&#39; =&gt; &#39;application/json&#39;, &#39;ACCEPT&#39; =&gt; &#39;application/json&#39; }
+            }
+
+    it &#39;returns 201&#39; do
+      expect(response.status).to eq 201
+    end
+
+    it &#39;returns a new user&#39; do
+      expect(response).to have_http_status :created
+    end
+  end
+
+  context &#39;when user already exists&#39; do
+    before do
+      post url,
+      params: params.to_json,
+      headers: { &#39;CONTENT_TYPE&#39; =&gt; &#39;application/json&#39;, &#39;ACCEPT&#39; =&gt; &#39;application/json&#39; }
+
+      post url,
+      params: params.to_json,
+      headers: { &#39;CONTENT_TYPE&#39; =&gt; &#39;application/json&#39;, &#39;ACCEPT&#39; =&gt; &#39;application/json&#39; }
+    end
+
+    it &#39;returns bad request status&#39; do
+      expect(response.status).to eq 400
+    end
+
+    it &#39;returns validation errors&#39; do
+      expect(response_body[&#39;errors&#39;].first[&#39;title&#39;]).to eq(&#39;Bad Request&#39;)
+    end
+  end
+end
+</code></pre>
+                    <p>PD:
+                    レジスタの仕様コードはそのままにしますが、いくつかの違い
+                    (リクエスト、URL、ユーザー
+                    モデルのユーザー名パラメーター (これが、ログイン
+                    パラメーターとログイン
+                    リクエストを使用する理由です)) を除き、すべてを 1
+                    つの spec.rb ファイルに作成しました。 …)
+                    https://medium.com/<span class="citation"
+                    data-cites="mazik.wyry/rails-5-api-jwt-setup-in">@mazik.wyry/rails-5-api-jwt-setup-in</span>-
+                    minutes-using-devise-71670fd4ed03
+                    に送信します。ケップはそれを念頭に置いてください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

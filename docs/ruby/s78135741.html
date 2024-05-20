@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Prismパーサー用のRubyエンコーディング | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Prismパーサー用のRubyエンコーディング",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Prismパーサー用のRubyエンコーディング</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このプログラム (input.rb) の Ruby プリズム AST
+                    を検査しようとしています。</p>
+                    <pre><code>x = 8 + 55 * 14
+# this is a comment ...
+puts &quot;&gt;&gt; the value is #{x}&quot;
+</code></pre>
+                    <p>これを試してみると、エンコードが間違っているようです。</p>
+                    <pre><code>require &quot;prism&quot;
+puts Prism.dump_file(&#39;input.rb&#39;)
+</code></pre>
+                    <p>次のような意味不明な内容がわかります。</p>
+                    <pre><code>$ ruby main.rb
+PRISMUTF-8(D�wC�C`
+                 RR
+--�...0&gt;&gt;�@^@AB
+               (
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが望むのは、dump_fileの代わりにPrism.parse_fileを呼び出すことだと思います。</p>
+                    <p>私の知る限り、dump_file
+                    の結果は内部独自の表現であり、印刷用ではありません。
+                    parse_file
+                    は構文ツリーを提供します。これが探しているものであると思います。</p>
+                    <pre><code>&gt;&gt; Prism.parse_file(&#39;input.rb&#39;)
+
+#&lt;Prism::ParseResult:0x00007f01d00bbd18
+ @comments=
+  [#&lt;Prism::InlineComment @location=#&lt;Prism::Location @start_offset=16 @length=23 start_line=2&gt;&gt;],
+ @data_loc=nil,
+ @errors=[],
+ @magic_comments=[],
+ @source=
+  #&lt;Prism::Source:0x00007f01d014fec8
+   @offsets=[0, 16, 40, 68],
+   @source=&quot;x = 8 + 55 * 14\n# this is a comment ...\nputs \&quot;&gt;&gt; the value is \#{x}\&quot;\n&quot;,
+   @start_line=1&gt;,
+ @value=
+  @ ProgramNode (location: (1,0)-(3,27))
+  ├── locals: [:x]
+  └── statements:
+      @ StatementsNode (location: (1,0)-(3,27))
+      └── body: (length: 2)
+          ├── @ LocalVariableWriteNode (location: (1,0)-(1,15))
+          │   ├── name: :x
+          │   ├── depth: 0
+          │   ├── name_loc: (1,0)-(1,1) = &quot;x&quot;
+          │   ├── value:
+          │   │   @ CallNode (location: (1,4)-(1,15))
+          │   │   ├── flags: ∅
+          │   │   ├── receiver:
+          │   │   │   @ IntegerNode (location: (1,4)-(1,5))
+          │   │   │   └── flags: decimal
+          │   │   ├── call_operator_loc: ∅
+          │   │   ├── name: :+
+          │   │   ├── message_loc: (1,6)-(1,7) = &quot;+&quot;
+          │   │   ├── opening_loc: ∅
+          │   │   ├── arguments:
+          │   │   │   @ ArgumentsNode (location: (1,8)-(1,15))
+          │   │   │   ├── flags: ∅
+          │   │   │   └── arguments: (length: 1)
+          │   │   │       └── @ CallNode (location: (1,8)-(1,15))
+          │   │   │           ├── flags: ∅
+
+   ....
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
