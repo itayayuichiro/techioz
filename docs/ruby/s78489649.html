@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すべての兄弟キーを使用して Ruby でハッシュを埋めるか完成させる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すべての兄弟キーを使用して Ruby でハッシュを埋めるか完成させる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すべての兄弟キーを使用して Ruby
+でハッシュを埋めるか完成させる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails API
+                    を使用して車両をクエリし、さまざまな属性ごとに数を数えてグループ化することができます。
+                    group by
+                    を使用する場合、応答にゼロ値を入力したいと考えています。</p>
+                    <p>簡単な例を次に示します。</p>
+                    <pre><code>data = {
+  AUDI: {
+    Petrol: 379,
+    Diesel: 326,
+    Electric: 447
+  },
+  TESLA: {
+    Electric: 779
+  }
+}
+</code></pre>
+                    <p>テスラにはガソリン車やディーゼル車がないため、そのキーは応答に含まれていません。これは、結果にゼロカウントが含まれない
+                    postgres の group_by の結果だと思います。</p>
+                    <p>これらの欠落したゼロ値でハッシュを「埋める」ことができる関数を作成しようとしています。</p>
+                    <pre><code>fill_hash(data)
+</code></pre>
+                    <p>返すべきです</p>
+                    <pre><code>data = {
+  AUDI: {
+    Petrol: 379,
+    Diesel: 326,
+    Electric: 447
+  },
+  TESLA: {
+    Petrol: 0,
+    Diesel: 0,
+    Electric: 779
+  }
+}
+</code></pre>
+                    <p>この単純なケースでは、次の 3
+                    つの方法を使用しました。</p>
+                    <pre><code>def collect_keys(hash, keys = [])
+  hash.each do |_, value|
+    if value.is_a?(Hash)
+      keys.concat(value.keys)
+      collect_keys(value, keys)
+    end
+  end
+  keys.uniq
+end
+
+def fill_missing_keys(hash, all_keys, default_value = 0)
+  hash.each do |_, value|
+    if value.is_a?(Hash)
+      all_keys.each do |k|
+        value[k] = default_value unless value.key?(k)
+      end
+      fill_missing_keys(value, all_keys, default_value)
+    end
+  end
+  hash
+end
+
+def fill_hash(hash, default_value = 0)
+  all_keys = collect_keys(hash)
+  fill_missing_keys(hash, all_keys, default_value)
+end
+
+# Example usage:
+hash = { a: { x: 1 }, b: { y: 1 } }
+filled_hash = complete_hash(hash)
+puts filled_hash
+# Output should be: {:a=&gt;{:x=&gt;1, :y=&gt;0}, :b=&gt;{:y=&gt;1, :x=&gt;0}}
+</code></pre>
+                    <p>私の問題は、ハッシュがより複雑になる可能性があることです。単純なケースでは
+                    2 つの属性でグループ化するだけでしたが、ここでは 3
+                    つの属性でグループ化する例を示します。</p>
+                    <pre><code>{
+  AUDI: {
+    Deregistered: {
+      Diesel: 56
+    },
+    Registered: {
+      Petrol: 379,
+      Diesel: 270,
+      Electric: 447
+    }
+  },
+  TESLA: {
+    Registered: {
+      Electric: 779
+    }
+  }
+}
+</code></pre>
+                    <p>私の希望する出力は次のとおりです。</p>
+                    <pre><code>{
+  AUDI: {
+    Deregistered: {
+      Petrol: 0,
+      Diesel: 56,
+      Electric: 0
+    },
+    Registered: {
+      Petrol: 379,
+      Diesel: 270,
+      Electric: 447
+    }
+  },
+  TESLA: {
+    Deregistered: {
+      Petrol: 0,
+      Diesel: 0,
+      Electric: 0
+    },
+    Registered: {
+      Petrol: 0,
+      Diesel: 0,
+      Electric: 779
+    }
+  }
+}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code># This will build a &quot;Default&quot; Hash
+# for Example: 
+# {:AUDI=&gt;{:Petrol=&gt;0, :Diesel=&gt;0, :Electric=&gt;0},
+#  :TESLA=&gt;{:Petrol=&gt;0, :Diesel=&gt;0, :Electric=&gt;0}}
+def build_default_hash(obj, default_value: 0)
+  return obj.transform_values {default_value} unless obj.values.first.is_a?(Hash)
+  m = obj.values.reduce(&amp;:deep_merge)
+  obj.keys.product([build_default_hash(m, default_value:)]).to_h
+end 
+
+# deep_merge the default hash with the existing Hash
+def deep_normalize_hash(h, default_value:0) 
+  build_default_hash(h, default_value:).deep_merge(h)
+end
+</code></pre>
+                    <pre><code>h = {
+  AUDI: {
+    Deregistered: {
+      Diesel: 56
+    },
+    Registered: {
+      Petrol: 379,
+      Diesel: 270,
+      Electric: 447
+    }
+  },
+  TESLA: {
+    Registered: {
+      Electric: 779
+    }
+  }
+}
+deep_normalize_hash(h)
+#=&gt; {:AUDI=&gt;
+#     {:Deregistered=&gt;{:Diesel=&gt;56, :Petrol=&gt;0, :Electric=&gt;0},
+#      :Registered=&gt;{:Diesel=&gt;270, :Petrol=&gt;379, :Electric=&gt;447}},
+#    :TESLA=&gt;
+#     {:Deregistered=&gt;{:Diesel=&gt;0, :Petrol=&gt;0, :Electric=&gt;0},
+#      :Registered=&gt;{:Diesel=&gt;0, :Petrol=&gt;0, :Electric=&gt;779}}}
+</code></pre>
+                    <p>これを Hash
+                    クラスに簡単にブレンドして、使用方法を
+                    h.deep_normalize
+                    にすることもできます。一般的にはそうすることはお勧めしませんが、これが
+                    Rails コンテキスト内にあることを考えると、コア
+                    クラスの操作がもう少し多くても誰も気付かないでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

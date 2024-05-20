@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq/Redis 接続がコード WSAENOPROTOOPT で失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq/Redis 接続がコード WSAENOPROTOOPT で失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq/Redis 接続がコード WSAENOPROTOOPT
+で失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sidekiq に依存する Ruby on Rails
+                    アプリを構築しています。このアプリは Windows
+                    サーバー VM 上で実行され、Redis は Debian 11 VM
+                    上で実行されます。</p>
+                    <p>Sidekiq サーバーを起動すると、このエラー
+                    メッセージが表示されます。</p>
+                    <pre><code>2024-05-17T14:54:24.857Z pid=27468 tid=jrw INFO: Booted Rails 7.1.3.2 application in development environment
+Signal TTIN not supported
+Signal TSTP not supported
+2024-05-17T14:54:24.862Z pid=27468 tid=jrw INFO: Running in ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x64-mingw-ucrt]
+2024-05-17T14:54:24.863Z pid=27468 tid=jrw INFO: See LICENSE and the LGPL-3.0 for licensing details.
+2024-05-17T14:54:24.865Z pid=27468 tid=jrw INFO: Upgrade to Sidekiq Pro for more features and support: https://sidekiq.org
+2024-05-17T14:54:24.866Z pid=27468 tid=jrw INFO: Sidekiq 7.2.2 connecting to Redis with options {:size=&gt;10, :pool_name=&gt;&quot;internal&quot;, :url=&gt;&quot;redis://192.168.1.79:6379/0&quot;}
+Une option ou un niveau inconnu, non valide ou non pris en charge a ÚtÚ spÚcifiÚ dans un appel getsockopt ou setsockopt. - setsockopt(2) (redis://192.168.1.79:6379)
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/ruby_connection.rb:174:in `setsockopt&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/ruby_connection.rb:174:in `enable_socket_keep_alive&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/ruby_connection.rb:125:in `connect&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/ruby_connection.rb:51:in `initialize&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:746:in `new&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:746:in `block in connect&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/middlewares.rb:12:in `connect&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:745:in `connect&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:732:in `raw_connection&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:697:in `ensure_connected&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client.rb:277:in `call&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/redis-client-0.21.1/lib/redis_client/decorator.rb:26:in `call&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/lib/sidekiq/config.rb:144:in `block in redis_info&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/lib/sidekiq/config.rb:163:in `block in redis&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/connection_pool-2.4.1/lib/connection_pool.rb:110:in `block (2 levels) in with&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/connection_pool-2.4.1/lib/connection_pool.rb:109:in `handle_interrupt&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/connection_pool-2.4.1/lib/connection_pool.rb:109:in `block in with&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/connection_pool-2.4.1/lib/connection_pool.rb:106:in `handle_interrupt&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/connection_pool-2.4.1/lib/connection_pool.rb:106:in `with&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/lib/sidekiq/config.rb:160:in `redis&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/lib/sidekiq/config.rb:143:in `redis_info&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/lib/sidekiq/cli.rb:75:in `run&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/gems/sidekiq-7.2.2/bin/sidekiq:31:in `&lt;top (required)&gt;&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/bin/sidekiq:25:in `load&#39;
+D:/Projects/vendor/bundle/ruby/3.2.0/bin/sidekiq:25:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>エラー コード WSAENOPROTOOPT (10042)
+                    に関連するこのメッセージは、WinSock API の
+                    setsockopt 関数の “optname” または “level”
+                    引数のエラーを示しているようです。 ただし、Sidekiq
+                    に関して同様の問題を抱えている人は見つかっていないため、問題は私側から発生しているのではないかと考えています。しかし、私の
+                    conf ファイルはほとんど空です
+                    (問題がどこにあるのかわかりません)。</p>
+                    <pre><code>sidekiq.yaml
+
+---
+:concurrency: 10
+test:
+  :concurrency: 20
+development:
+  :concurrency: 10
+:queues:
+  -default
+  -compute
+</code></pre>
+                    <p>ドキュメントのガイドに従って、REDIS_URL
+                    の環境変数を作成しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでネットワークに問題があるようです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Google API Ruby クライアントは明らかにすべてのイベントを取得しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Google API Ruby クライアントは明らかにすべてのイベントを取得しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Google API Ruby
+クライアントは明らかにすべてのイベントを取得しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>カレンダー アプリの出発点として、Github 上の
+                    Google API Ruby クライアント サンプル
+                    リポジトリを使用しました。</p>
+                    <p>したがって、私には、キャッシュが行われているように見えます。データが十分に早く返されない場合は、空の応答が返されます。再度リクエストすると一部のデータが送信され、リクエストをすればするほどより多くのデータが返されます。</p>
+                    <p>おそらく私のセットアップに何か問題があり、完璧ではないと思います。</p>
+                    <pre><code>get &#39;/&#39; do
+  #fetch all calendars
+  result = api_client.execute(:api_method =&gt; calendar_api.calendar_list.list,
+                              :authorization =&gt; user_credentials)
+  cals = result.data.items.map do |i|
+    #skip id calendar does not belong to owner or is the &quot;private&quot; primary one
+    next if i.primary || i.accessRole != &quot;owner&quot;
+    i.summary
+  end
+  cals.compact!
+  #save all users mentioned in calendars in a set
+  events_list = result.data.items.map do |i|
+    #skip calendar if primary or not owned by user (cannot be changed anyway)
+    next if i.primary || i.accessRole != &quot;owner&quot;
+    r = api_client.execute(:api_method =&gt; calendar_api.events.list,
+                           :parameters =&gt; {&#39;calendarId&#39; =&gt; i.id},
+                           :timeMax =&gt; DateTime.now.next_month,
+                           :timeMin =&gt; DateTime.now.beginning_of_month)
+    #capture all calendars and their events and map it to an Array
+    r.data.items.delete_if { |item| item.status == &quot;cancelled&quot; }
+  end
+  #remove skipped entries (=nil)
+  events_list.compact! 
+  slim :home, :locals =&gt; { :title =&gt; Konfig::TITLE, :events_list =&gt; events_list, :cals =&gt; cals}
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この状況ではどうすればよいでしょうか。次のステップを決定する前に、次のことを実行します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

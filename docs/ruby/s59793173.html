@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「文字列からハッシュへの暗黙的な変換が行われない」を修正する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「文字列からハッシュへの暗黙的な変換が行われない」を修正する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「文字列からハッシュへの暗黙的な変換が行われない」を修正する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RSpec
+                    でテストを実行しようとしていますが、常に同じエラーが返されます。</p>
+                    <pre><code>DevicesController#update when user is a manager must update any device
+     Failure/Error: put device_path device_id, params: params, headers: { &#39;Content-Type&#39;: &#39;application/vnd.api+json&#39; }
+
+     TypeError:
+       no implicit conversion of String into Hash
+</code></pre>
+                    <p>リクエストパラメータを使用した私の関数:</p>
+                    <pre><code>def update_params(device, device_id)
+  {
+    data: {
+      id: device.id,
+      type: &#39;device&#39;,
+      attributes: {
+        device_id: device_id 
+      }
+    }
+  }.to_json
+end
+</code></pre>
+                    <p>ファクトリを使用した私のテスト:</p>
+                    <pre><code>context &#39;when user is a manager&#39; do
+  let(:user) { create(:manager).account }
+  let(:firebase_token) { Faker::Crypto.sha1 }
+  let(:device_id) { physical_device.id }
+  let(:params) { update_params(physical_device, firebase_token) }
+  it &#39;must update any device&#39; do
+    expect(Device.find(device_id).device_id).to eq(firebase_token)
+  end
+end
+</code></pre>
+                    <p>リクエストの OS アップデート デバイス:</p>
+                    <pre><code>put device_path device_id, params: params, headers: { &#39;Content-Type&#39;: &#39;application/vnd.api+json&#39; }
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActionController::TestCase は、パラメータが
+                    (ヘッダーと同様に)
+                    ハッシュであることを期待します。</p>
+                    <p>ただし、このメソッド呼び出しに渡すパラメータは</p>
+                    <pre><code>put device_path device_id, params: params, headers: { &#39;Content-Type&#39;: &#39;application/vnd.api+json&#39; }
+</code></pre>
+                    <p>これらは update_params
+                    メソッドによって生成され、そのメソッドは生成されたハッシュに対して
+                    to_json を呼び出すため、JSON 文字列を返します。</p>
+                    <p>update_params メソッドの最後の行から .to_json
+                    を削除するだけで問題ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

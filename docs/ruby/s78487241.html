@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyを使用した印刷カラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyを使用した印刷カラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyを使用した印刷カラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Replit を IDE
+                    として使用して、(コンソールまたはテキストファイルなどで)
+                    カラー
+                    パレットを出力するプログラムを作成しようとしています。特定の
+                    RGB (またはその他)
+                    値の色を示すものを出力するにはどうすればよいですか?</p>
+                    <p>Colorize と Rainbow
+                    ではテキストの色をカスタマイズできないと思います。
+                    Ruby2D や Gosu
+                    などのゲーム作成ツールをいくつか試しましたが、それらは
+                    SDL2 に依存しているため、Replit と Linux
+                    プラットフォームが原因で問題が発生しました。</p>
+                    <p>助けてください、これは学校のプロジェクトのため、ここで少し絶望的になりました。みんなありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>通常、カラー
+                    パレットは特定のファイル形式で保存されます。技術的な詳細については、https://www.selapa.net/swatches/colors/fileformats.php
+                    を参照してください。</p>
+                    <p>このようなファイルは、ファイル形式の説明に従って自分で生成することも、ライブラリなどを使用して生成することもできます。
+                    ASEパレット。</p>
+                    <p>これでは色は出力されないことに注意してください。
+                    GIMP や Photoshop などのグラフィック
+                    プログラムでカラー
+                    パレットを開く必要があります。</p>
+                    <p>それは別の仕事です。 Ruby スクリプトには GUI
+                    がないため、色を直接出力できません。テキストを出力したり、画像ファイルを生成したりできます。</p>
+                    <p>テキスト的には、ANSI エスケープ
+                    シーケンスを出力できます。これらのコードは、Replit
+                    を含む多くの端末によって解釈され、色付きのテキストが表示されます。</p>
+                    <p>(24 ビット) RGB
+                    カラーを取得するには、次の方法があります。</p>
+                    <pre><code>ESC[38;2;⟨r⟩;⟨g⟩;⟨b⟩ m Select RGB foreground color
+ESC[48;2;⟨r⟩;⟨g⟩;⟨b⟩ m Select RGB background color
+</code></pre>
+                    <p>Ruby の場合: (はエスケープ文字、[0m
+                    は色をリセットします)</p>
+                    <pre><code>puts &quot;\e[38;2;244;128;36mOrange foreground\e[0m&quot;
+puts &quot;\e[48;2;244;128;36mOrange background\e[0m&quot;
+</code></pre>
+                    <p>次のように印刷されます: (Replit の場合)</p>
+                    <p>画像に関しては、古いながらも外部依存関係のない正常に動作する
+                    PNG ライブラリである ChunkyPNG を使用できます。</p>
+                    <p>Replit で、「Ruby」プロジェクトを作成し、Gemfile
+                    に gem を追加します。</p>
+                    <pre><code>gem &quot;chunky_png&quot;
+</code></pre>
+                    <p>次に、main.rb を次のように変更します。</p>
+                    <pre><code>require &quot;chunky_png&quot;
+
+color = ChunkyPNG::Color.rgb(244, 128, 36) # Stack Overflow orange
+image = ChunkyPNG::Image.new(100, 100, color)
+image.save(&quot;color.png&quot;)
+</code></pre>
+                    <p>そしてプロジェクトを実行します。</p>
+                    <p>これにより、gem
+                    がインストールされ、プロジェクトのルートに新しいファイル
+                    color.png が生成されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

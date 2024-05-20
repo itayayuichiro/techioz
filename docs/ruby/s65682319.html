@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>TypeError シングルトンはダンプできません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "TypeError シングルトンはダンプできません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>TypeError シングルトンはダンプできません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails 4
+                    プロジェクトに取り組んでおり、キャッシュを行うために
+                    readthis_store gem
+                    を使用しています。次のコードがありますが、</p>
+                    <p>block_reason
+                    メソッドを持つユーザーモデルがあります</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+
+  def block_reason
+    Rails.cache.fetch([self.cache_key, __method__], expires_in: 1.hours) do
+      {
+          blocked: true,
+          blocked_reason: reason,
+          blocked_reason_text: reason_text,
+          application_blocks: {
+            status: self..status,
+            name_check: self.name_check,
+            id_check: self.id_check,
+          }
+       }
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class Private::V1::JobsController &lt; Private::V1::ApiController
+  def index
+    response = @current_user.block_reason.try(:to_h)
+
+    json_success(nil, response)
+  end
+end
+</code></pre>
+                    <p>しかし、API呼び出しを行うと、エラーが発生します</p>
+                    <pre><code>TypeError: singleton can&#39;t be dumped
+  from readthis/entity.rb:50:in `dump&#39;
+  from readthis/entity.rb:50:in `dump&#39;
+  from readthis/cache.rb:315:in `write_entity&#39;
+  from readthis/cache.rb:86:in `block in write&#39;
+  from connection_pool.rb:63:in `block (2 levels) in with&#39;
+  from connection_pool.rb:62:in `handle_interrupt&#39;
+  from connection_pool.rb:62:in `block in with&#39;
+  from connection_pool.rb:59:in `handle_interrupt&#39;
+  from connection_pool.rb:59:in `with&#39;
+  from readthis/cache.rb:346:in `block in invoke&#39;
+  from readthis/cache.rb:338:in `block in instrument&#39;
+  from active_support/notifications.rb:166:in `instrument&#39;
+  from readthis/cache.rb:338:in `instrument&#39;
+  from readthis/cache.rb:345:in `invoke&#39;
+  from readthis/cache.rb:85:in `write&#39;
+  from readthis/cache.rb:146:in `fetch&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

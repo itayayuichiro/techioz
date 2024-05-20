@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails でのペーパークリップ ファイルの処理 [重複] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV53GJEY2E"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-GV53GJEY2E');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails でのペーパークリップ ファイルの処理 [重複]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails でのペーパークリップ ファイルの処理
+[重複]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ペーパークリップを実行して、サーバー上の非公開ディレクトリにファイルをアップロードして保存しています。次に、ファイルを直接読み取るか、axlsx
+                    などの gem
+                    にファイルをフィードできるようにしたいと考えています。テキストファイルをループしてスローするだけでも苦労しており、（通常の場合のように）基本的なものが欠けていると思います。</p>
+                    <p>ファイルを開こうとする最初の試みは次のとおりです。</p>
+                    <p>application.rb のペーパークリップ構成:</p>
+                    <pre><code>     config.paperclip_defaults = {:storage =&gt; :fog, :fog_credentials =&gt; {:provider =&gt; &quot;Local&quot;, :local_root =&gt; &quot;#{Rails.root}/secured_storage&quot;}, :fog_directory =&gt; &quot;&quot;, :fog_host =&gt; &quot;localhost&quot;}
+</code></pre>
+                    <p>モデル：</p>
+                    <pre><code>class Census &lt; ActiveRecord::Base
+  has_attached_file :censusfile
+  validates_attachment_content_type :censusfile, 
+            :content_type =&gt; [&quot;application/octet-stream&quot;, &quot;text/plain&quot;]
+end
+</code></pre>
+                    <pre><code>def processcensus
+  @census=Census.find(params[:id])
+  @[email protected]
+end
+</code></pre>
+                    <p>ビュー内:</p>
+                    <pre><code>&lt;% File.readlines(@file).read do |line| %&gt;
+&lt;%= line %&gt;
+&lt;% end  %&gt;
+</code></pre>
+                    <p>更新: ディレクトリを追加すると
+                    (この場合はパスの「secured_storage」)、期待どおりに機能します。例:</p>
+                    <pre><code>  @file=&quot;secured_storage/&quot; + @census.censusfile.path
+</code></pre>
+                    <p>これがこの問題に対処する方法であるかどうかはわかりません。保存されている場合、Paperclip
+                    にファイルの保存場所を問い合わせる方法はありますか?</p>
+                    <p>どこで使用できるかを読みました:</p>
+                    <pre><code>Paperclip.io_adapters.for(@census.censusfile).path 
+</code></pre>
+                    <p>しかし、何かが完全に欠けている場合を除き、これはファイルを配列に読み取るようです。私の目標は、テキスト
+                    ファイルをループスローするだけでなく、Excel
+                    ファイルを axlsx
+                    にフィードして処理できるようにすることです。また、最終的にはこれらのファイルを何らかの方法でユーザーに直接提供して、安全にダウンロードできるようにしたいと考えています。</p>
+                    <p>このすべてに関するドキュメントを一生懸命探しましたが、実際に説明しているものはまだ見つかりません。私はただランダムにコードをあちこちに投げて、何かがうまくいくことを期待するところまで来ていますが、うまくいくことはほとんどありません。提供できる助け/指示をいただければ幸いです。</p>
+                    <p>マーク</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ioアダプターは読み取りをサポートできると思います</p>
+                    <pre><code>Paperclip.io_adapters.for(@census.censusfile).read
+</code></pre>
+                    <p>それで</p>
+                    <pre><code>&lt;% Paperclip.io_adapters.for(@census.censusfile).read do |line| %&gt;
+  &lt;%= line %&gt;
+&lt;% end  %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
