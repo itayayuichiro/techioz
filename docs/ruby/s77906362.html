@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq ジョブをキューの先頭に追加するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq ジョブをキューの先頭に追加するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq
+ジョブをキューの先頭に追加するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sidekiq
+                    ジョブをキューの先頭に追加するにはどうすればよいですか?</p>
+                    <p>あなたが今言いたい最も明白な事は、「別のワーカーを使用して別の高プリオキューを追加すればいいだけです！」ということだと思いますが、リソースには制約があるので、追加のワーカーは問題外です。</p>
+                    <p>さて、技術的には、Sidekiq が Redis
+                    のキューの先頭にジョブを追加し、リストの末尾からジョブをポップして、処理する次のジョブを取得することがわかりました
+                    (これは多少直感に反しますが、問題ありません)。場合によっては、終了時に未完了のジョブを保持するために、実際に必要なことを実行します。つまり、ジョブをリストの最後に再度キューに入れます
+                    (==
+                    次にプルされます)。結局のところ、次のフェッチで実行されるようにジョブをキューの先頭に追加する
+                    (厳密には「追加」する)
+                    方法を知っている人はいますか?もちろん、Sidekiq
+                    ソースに過度のモンキーパッチを適用する必要はありません。それとも、すでにそれを行う宝石を誰かが知っているのでしょうか?…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>追加のワーカーは必要なく、2
+                    番目のキューを設定するだけで済みます。単一スレッドを持つ単一の
+                    Sidekiq
+                    プロセスでも、複数のキューを処理できます。</p>
+                    <p>Sidekiq キューは、指定された順序
+                    (または重みに従って、詳細オプション - キューを参照)
+                    で処理されます。</p>
+                    <p>この単純な構成を考えると、次のようになります。</p>
+                    <pre><code>:queues:
+  - critical
+  - default
+</code></pre>
+                    <p>利用可能な Sidekiq ワーカーは、最初にクリティカル
+                    キューからジョブをフェッチしようとし、空の場合は次にデフォルト
+                    キューからジョブをフェッチしようとします。</p>
+                    <p>デフォルト キューに 3
+                    つのジョブがあり、クリティカル
+                    キューにはジョブがないとします。</p>
+                    <pre><code>critical: []
+ default: [job_1, job_2, job_3]
+</code></pre>
+                    <p>…次に使用可能なワーカーは、最初に job_1
+                    を処理し、次に job_2 を処理し、最後に job_3
+                    を処理します。</p>
+                    <p>別のジョブをクリティカルにプッシュすると、次のようになります。</p>
+                    <pre><code>critical: [job_4]
+ default: [job_1, job_2, job_3]
+</code></pre>
+                    <p>… 次に利用可能なワーカーは、最初に job_4
+                    を処理し、次に job_1、job_2、および job_3
+                    を処理します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

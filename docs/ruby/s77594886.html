@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sprocket Rails V4 の外部 gem のマニフェスト ファイルへのリンク | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sprocket Rails V4 の外部 gem のマニフェスト ファイルへのリンク",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sprocket Rails V4 の外部 gem のマニフェスト
+ファイルへのリンク</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 3、Rails 7+、および Sprockets V4
+                    を使用していると、gem から CSS
+                    アセットをコンパイルするのに問題が発生します。</p>
+                    <p>gem を (Rails エンジンとして)
+                    作成しました。それには app/assets/stylesheets/my_gem
+                    にいくつかの .css アセットが含まれています
+                    (このディレクトリはメインの Rails
+                    アプリケーションではなく my_gem
+                    プロジェクト内にあることに注意してください)。
+                    app/assets/config/my_gem_manifest.js
+                    ファイルには、必要な実際の .css
+                    ファイルが含まれています。</p>
+                    <p>my_gem アセットをメインの Rails
+                    アプリケーションで使用できる唯一の方法は、Gem
+                    のパスを明示的に設定し、次のようにメインの Rail
+                    アプリケーションのロード パスに css
+                    ファイルを手動で追加することです。</p>
+                    <p>(メインアプリ application.rb 上)</p>
+                    <pre><code>config.assets.paths &lt;&lt; &#39;/usr/local/bundle/gems/my_gem-0.1.7/app/assets/stylesheets/my_gem&#39;
+</code></pre>
+                    <p>これを行うことで、実際にエラーなしで CSS
+                    を要求できますが、私の目標は、「my_gem」のマニフェスト
+                    ファイルのみを追加し、Sprockets で実際に gem の CSS
+                    アセットをコンパイルし、それをメインの Rails
+                    アプリケーションで利用できるようにすることです。</p>
+                    <p>また、Gem のマニフェスト
+                    ファイルが存在するディレクトリを手動で追加しようとしたり、マニフェスト
+                    ファイルをメイン アプリのプリコンパイル
+                    リストに追加しようとしたりしましたが、次のように成功しませんでした。</p>
+                    <pre><code>config.assets.paths &lt;&lt; &#39;/usr/local/bundle/gems/my_gem-0.1.7/app/assets/config&#39;
+config.assets.precompile &lt;&lt; &quot;my_gem_manifest.js&quot;
+</code></pre>
+                    <p>何日もこれと格闘中！助けていただければ幸いです。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>設定：</p>
+                    <pre><code>bin/rails plugin new my_gem
+</code></pre>
+                    <pre><code># my_gem/lib/my_gem/railtie.rb
+
+module MyGem
+  class Railtie &lt; ::Rails::Railtie
+    def root
+      @root ||= Pathname.new(__dir__).parent.parent
+    end
+
+    initializer :my_gem_assets do |app|
+      # This is to be able to require your styles from main app application.css
+      # like this:
+      #
+      #   /* =require my_gem/application.css */
+      #
+      app.config.assets.paths &lt;&lt; root.join(&quot;app/assets/stylesheets&quot;)
+
+      # This is to be able to directly link your styles from your templates:
+      #
+      #   &lt;%= stylesheet_link_tag &quot;my_gem/application.css&quot; %&gt;
+      #
+      # this path is relative to any `app.config.assets.paths`
+      app.config.assets.precompile &lt;&lt; &quot;my_gem/application.css&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>マニフェストを使用する場合:</p>
+                    <pre><code># my_gem/lib/my_gem/railtie.rb
+
+module MyGem
+  class Railtie &lt; ::Rails::Railtie
+    def root
+      @root ||= Pathname.new(__dir__).parent.parent
+    end
+
+    initializer :my_gem_assets do |app|
+      app.config.assets.paths &lt;&lt; root.join(&quot;app/assets/stylesheets&quot;)
+      app.config.assets.paths &lt;&lt; root.join(&quot;app/assets/config&quot;) # &lt;-----------------------.
+      app.config.assets.precompile &lt;&lt; &quot;my_gem_manifest.js&quot;      # relative to asset path -&#39;
+    end
+  end
+end
+</code></pre>
+                    <pre><code>// my_gem/app/assets/config/my_gem_manifest.js
+
+//= link my_gem/application.css
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/sprockets#directives</p>
+                    <p>設定：</p>
+                    <pre><code>bin/rails plugin new my_engine --mountable
+</code></pre>
+                    <p>Railtie とは異なり、Engine
+                    は多くのことを処理します。</p>
+                    <pre><code># my_engine/lib/my_engine/engine.rb
+
+module MyEngine
+  class Engine &lt; ::Rails::Engine
+    isolate_namespace MyEngine
+
+    initializer :my_engine_assets do |app|
+      # This is automatically done by Rails::Engine
+      # app.config.assets.paths &lt;&lt; root.join(&quot;app/assets/stylesheets&quot;)
+      # so you can just require files without extra config
+      #
+      #   /* =require my_engine/application.css */
+
+      # If you want to link directly:
+      #
+      #   &lt;%= stylesheet_link_tag &quot;my_engine/application.css&quot; %&gt;
+      #
+      # add that file to be precompiled
+      # app.config.assets.precompile &lt;&lt; &quot;my_engine/application.css&quot;
+      #
+      # or use manifest
+      # (&#39;app/assets/config&#39; is automatically added to assets paths)
+      app.config.assets.precompile &lt;&lt; &quot;my_engine_manifest.js&quot;
+    end
+  end
+end
+</code></pre>
+                    <pre><code>// my_engine/app/assets/config/my_engine_manifest.js
+
+//= link_directory ../stylesheets/my_engine .css
+</code></pre>
+                    <p>これで、メイン アプリから gem/engine
+                    アセットを使用できるようになりました。</p>
+                    <pre><code># app/views/layouts/application.html.erb
+
+# we can do this because these files are in
+# Rails.application.config.assets.paths and
+# Rails.application.config.assets.precompile
+&lt;%= stylesheet_link_tag &quot;my_gem/application.css&quot; %&gt;
+&lt;%= stylesheet_link_tag &quot;my_engine/application.css&quot; %&gt;
+</code></pre>
+                    <p>または、メインアプリの application.css
+                    からファイルを要求することもできます。</p>
+                    <pre><code>/* app/assets/stylesheets/application.css */
+
+/* in this case you don&#39;t have to precompile them
+ * =require my_gem/application.css
+ * =require my_engine/application.css
+ */
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

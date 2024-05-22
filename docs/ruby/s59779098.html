@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でネストされたクラスをコンパクトなスタイルに自動的に変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でネストされたクラスをコンパクトなスタイルに自動的に変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+でネストされたクラスをコンパクトなスタイルに自動的に変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クラス定義にネストされたスタイルとコンパクトなスタイルを組み合わせて使用する非常に大規模なコードベースがあります。</p>
+                    <p>RuboCop: クラスとモジュールの子</p>
+                    <pre><code># Nested
+class Foo
+  class Bar
+  end
+end
+
+# Compact
+class Foo::Bar
+end
+</code></pre>
+                    <p>正規表現を使用して多数のクラスの名前空間を再編成する自動ツールを構築しています。これは、クラス定義がコンパクト形式の場合は簡単に実行できますが、ネストされた形式の場合はさらに困難になります。</p>
+                    <p>したがって、ネストされたスタイルのすべてのインスタンスをコンパクト
+                    スタイルに変換する方法が必要です。</p>
+                    <p>RuboCop
+                    がこれを実行できることを期待していましたが、ドキュメントではオートコレクトをサポートしているようですが、機能させることができません。
+                    RuboCop
+                    は違反行為を報告しますが、修正はしません。</p>
+                    <pre><code>bundle exec rubocop --auto-correct app/controllers/announcements_controller.rb
+Inspecting 1 file
+C
+
+Offenses:
+
+app/controllers/announcements_controller.rb:1:8: C: Style/ClassAndModuleChildren: Use compact module/class definition instead of nested style.
+module Vapid
+       ^^^^^
+app/controllers/announcements_controller.rb:2:10: C: Style/ClassAndModuleChildren: Use compact module/class definition instead of nested style.
+  module V2
+         ^^
+
+1 file inspected, 2 offenses detected
+</code></pre>
+                    <p>誰かがこれを機能させることができるか、コンパクトなスタイルを自動的に採用するより良い方法を知っていれば幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>簡単な答えは、「やらない」です。あなた
+                    (そしてそのコップを書いた人) は、2
+                    つの「スタイル」が実際には同じことを行うという間違った仮定を立てています。そうではありません。後者は本当に悪い習慣とみなされます。</p>
+                    <p>したがって、次のものがあるとします。</p>
+                    <pre><code>module Foo
+  TEST = &quot;I&#39;m nested in Foo&quot;
+end
+
+module Foo
+  class Bar
+    puts TEST
+  end
+end
+</code></pre>
+                    <p>これにより、TEST は Foo::TEST に解決されるため、I
+                    は Foo
+                    にネストされます。スコープ解決演算子を使用するようにクラス定義を変更しましょう。</p>
+                    <pre><code>TEST = &quot;I&#39;m in the global scope&quot;
+
+module Foo
+  TEST = &quot;I&#39;m nested in Foo&quot;
+end
+
+class Foo::Bar
+  puts TEST
+end
+</code></pre>
+                    <p>これにより、I’m がグローバル
+                    スコープに入ります。モジュールのネストは依然としてグローバル
+                    スコープであり、TEST は ::TEST
+                    に解決されるためです。あなたの小さな「改善」は、実際には適切なモジュールのネストに依存するコードを破壊します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

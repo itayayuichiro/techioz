@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アセット中のセグメンテーション フォールト: Docker の Ruby 3.3.0 を使用した Apple Silicon (M3) でのプリコンパイル (Kamal を使用) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アセット中のセグメンテーション フォールト: Docker の Ruby 3.3.0 を使用した Apple Silicon (M3) でのプリコンパイル (Kamal を使用)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アセット中のセグメンテーション
+フォールト: Docker の Ruby 3.3.0 を使用した Apple Silicon (M3)
+でのプリコンパイル (Kamal を使用)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Apple Silicon (M3) を搭載した MacBook Pro
+                    で新しい Rails アプリケーションの Docker
+                    イメージを構築しようとすると、セグメンテーション違反の問題が発生します。この障害は、特に
+                    Docker ビルド中の RUN SECRET_KEY_BASE_DUMMY=1
+                    ./bin/railsassets:precompile
+                    ステップで発生します。</p>
+                    <p>いくつかの重要なポイント:</p>
+                    <p>この問題は、Apple Silicon (M3) を搭載した MacBook
+                    で発生します。 Intel Apple
+                    マシンにはもうアクセスできません。</p>
+                    <p>amd64
+                    専用のイメージのビルドは正常に機能するため、問題が
+                    ARM
+                    アーキテクチャに関連している可能性があることが示唆されます。</p>
+                    <p>Gemfile およびコードベースから bootsnap
+                    を削除しても、問題は解決されませんでした。</p>
+                    <p>Docker の古いバージョン (4.18)
+                    で問題が解決されることを示唆するセグメンテーション違反の問題をいくつか確認しましたが、解決されませんでした。</p>
+                    <p>同様に、Virtualization Framework をオフにして
+                    gRPC FUSE
+                    に切り替えても問題は解決されませんでした。</p>
+                    <p>ただし、Ruby 3.2.2
+                    に切り替えることで問題は解決されました。</p>
+                    <p>Rails アプリは非常にシンプルで、rails new ohanami
+                    -a propshaft -c tailwind
+                    で作成されています。失敗したアプリはここで確認できます:
+                    https://github.com/miharekar/ohanami/tree/d2170a657a8e6e3d591436b9371e7b1f444220d5</p>
+                    <p>問題は Ruby 3.3.0、concurrent-ruby、または
+                    propshaft
+                    のいずれかにあると思います。さらに調査する方法や、どこに報告すればよいかわかりません。</p>
+                    <p>私に何をしたらいいと思いますか？</p>
+                    <p>バックトレースは次のとおりです。</p>
+                    <pre><code>#16 [build 5/5] RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:14: [BUG] Segmentation fault at 0x0024ffff93e406c0
+#16 0.342 ruby 3.3.0 (2023-12-25 revision 5124f9ac75) [aarch64-linux]
+#16 0.342
+#16 0.342 -- Control frame information -----------------------------------------------
+#16 0.342 c:0079 p:---- s:0371 e:000370 CFUNC  :resume
+#16 0.342 c:0078 p:0007 s:0367 E:0003c0 BLOCK  /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:14 [FINISH]
+#16 0.342 c:0077 p:---- s:0364 e:000363 CFUNC  :synchronize
+#16 0.342 c:0076 p:0026 s:0360 E:000ee8 METHOD /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:12
+#16 0.342 c:0075 p:0007 s:0355 e:000354 CLASS  /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:18
+#16 0.342 c:0074 p:0025 s:0352 e:000351 TOP    /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:5 [FINISH]
+#16 0.342 c:0073 p:---- s:0349 e:000348 CFUNC  :require
+#16 0.342 c:0072 p:0030 s:0344 e:000343 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0071 p:0041 s:0338 e:000337 TOP    /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/reentrant_read_write_lock.rb:7 [FINISH]
+#16 0.342 c:0070 p:---- s:0335 e:000334 CFUNC  :require
+#16 0.342 c:0069 p:0030 s:0330 e:000329 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0068 p:0047 s:0324 e:000323 TOP    /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomics.rb:8 [FINISH]
+#16 0.342 c:0067 p:---- s:0321 e:000320 CFUNC  :require
+#16 0.342 c:0066 p:0030 s:0316 e:000315 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0065 p:0029 s:0310 e:000309 TOP    /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent.rb:6 [FINISH]
+#16 0.342 c:0064 p:---- s:0307 e:000306 CFUNC  :require
+#16 0.342 c:0063 p:0030 s:0302 e:000301 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0062 p:0005 s:0296 e:000295 TOP    /usr/local/bundle/ruby/3.3.0/gems/tzinfo-2.0.6/lib/tzinfo/string_deduper.rb:4 [FINISH]
+#16 0.342 c:0061 p:---- s:0293 e:000292 CFUNC  :require_relative
+#16 0.342 c:0060 p:0025 s:0288 e:000287 TOP    /usr/local/bundle/ruby/3.3.0/gems/tzinfo-2.0.6/lib/tzinfo.rb:25 [FINISH]
+#16 0.342 c:0059 p:---- s:0285 e:000284 CFUNC  :require
+#16 0.342 c:0058 p:0030 s:0280 e:000279 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0057 p:0005 s:0274 e:000273 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/values/time_zone.rb:3 [FINISH]
+#16 0.342 c:0056 p:---- s:0271 e:000270 CFUNC  :require
+#16 0.342 c:0055 p:0030 s:0266 e:000265 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0054 p:0017 s:0260 e:000259 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/core_ext/time/conversions.rb:5 [FINISH]
+#16 0.342 c:0053 p:---- s:0257 e:000256 CFUNC  :require
+#16 0.342 c:0052 p:0030 s:0252 e:000251 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0051 p:0065 s:0246 e:000245 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/core_ext/object/json.rb:14 [FINISH]
+#16 0.342 c:0050 p:---- s:0243 e:000242 CFUNC  :require
+#16 0.342 c:0049 p:0030 s:0238 e:000237 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0048 p:0005 s:0232 e:000231 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/json/encoding.rb:3 [FINISH]
+#16 0.342 c:0047 p:---- s:0229 e:000228 CFUNC  :require
+#16 0.342 c:0046 p:0030 s:0224 e:000223 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0045 p:0011 s:0218 e:000217 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/json.rb:4 [FINISH]
+#16 0.342 c:0044 p:---- s:0215 e:000214 CFUNC  :require
+#16 0.342 c:0043 p:0030 s:0210 e:000209 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0042 p:0011 s:0204 e:000203 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/messages/metadata.rb:4 [FINISH]
+#16 0.342 c:0041 p:---- s:0201 e:000200 CFUNC  :require_relative
+#16 0.342 c:0040 p:0011 s:0196 e:000195 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/messages/codec.rb:4 [FINISH]
+#16 0.342 c:0039 p:---- s:0193 e:000192 CFUNC  :require
+#16 0.342 c:0038 p:0030 s:0188 e:000187 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0037 p:0023 s:0182 e:000181 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/message_encryptor.rb:6 [FINISH]
+#16 0.342 c:0036 p:---- s:0179 e:000178 CFUNC  :require
+#16 0.342 c:0035 p:0030 s:0174 e:000173 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0034 p:0017 s:0168 e:000167 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/encrypted_file.rb:5 [FINISH]
+#16 0.342 c:0033 p:---- s:0165 e:000164 CFUNC  :require
+#16 0.342 c:0032 p:0030 s:0160 e:000159 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0031 p:0011 s:0154 e:000153 TOP    /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/encrypted_configuration.rb:4 [FINISH]
+#16 0.342 c:0030 p:---- s:0151 e:000150 CFUNC  :require
+#16 0.342 c:0029 p:0030 s:0146 e:000145 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0028 p:0041 s:0140 e:000139 TOP    /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/application.rb:9 [FINISH]
+#16 0.342 c:0027 p:---- s:0137 e:000136 CFUNC  :require
+#16 0.342 c:0026 p:0030 s:0132 e:000131 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0025 p:0059 s:0126 e:000125 TOP    /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails.rb:15 [FINISH]
+#16 0.342 c:0024 p:---- s:0123 e:000122 CFUNC  :require
+#16 0.342 c:0023 p:0030 s:0118 e:000117 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0022 p:0011 s:0112 e:000111 TOP    /rails/config/application.rb:5 [FINISH]
+#16 0.342 c:0021 p:---- s:0109 e:000108 CFUNC  :require_relative
+#16 0.342 c:0020 p:0005 s:0104 e:000103 TOP    /rails/Rakefile:6 [FINISH]
+#16 0.342 c:0019 p:---- s:0101 e:000100 CFUNC  :load
+#16 0.342 c:0018 p:0005 s:0096 e:000095 METHOD /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/rake_module.rb:29
+#16 0.342 c:0017 p:0143 s:0091 e:000090 METHOD /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:734
+#16 0.342 c:0016 p:0003 s:0085 e:000084 BLOCK  /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:126
+#16 0.342 c:0015 p:0002 s:0082 e:000081 METHOD /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:208
+#16 0.342 c:0014 p:0004 s:0077 e:000076 METHOD /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:125
+#16 0.342 c:0013 p:0021 s:0073 e:000072 BLOCK  /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:43
+#16 0.342 c:0012 p:0023 s:0069 e:000068 METHOD /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/rake_module.rb:59
+#16 0.342 c:0011 p:0021 s:0063 e:000062 METHOD /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:41
+#16 0.342 c:0010 p:0010 s:0056 e:000055 METHOD /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:20
+#16 0.342 c:0009 p:0032 s:0049 e:000048 METHOD /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:156
+#16 0.342 c:0008 p:0035 s:0042 e:000041 BLOCK  /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:73
+#16 0.342 c:0007 p:0015 s:0039 e:000038 METHOD /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:149
+#16 0.342 c:0006 p:0048 s:0033 e:000032 METHOD /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:69
+#16 0.342 c:0005 p:0038 s:0022 e:000021 TOP    /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands.rb:18 [FINISH]
+#16 0.342 c:0004 p:---- s:0017 e:000016 CFUNC  :require
+#16 0.342 c:0003 p:0030 s:0012 e:000011 BLOCK  /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74
+#16 0.342 c:0002 p:0024 s:0006 e:000005 EVAL   ./bin/rails:4 [FINISH]
+#16 0.342 c:0001 p:0000 s:0003 E:000cf0 DUMMY  [FINISH]
+#16 0.342
+#16 0.342 -- Ruby level backtrace information ----------------------------------------
+#16 0.342 ./bin/rails:4:in `&lt;main&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands.rb:18:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:69:in `invoke&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:149:in `with_argv&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:73:in `block in invoke&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/command.rb:156:in `invoke_rake&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:20:in `perform&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:41:in `with_rake&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/rake_module.rb:59:in `with_application&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/commands/rake/rake_command.rb:43:in `block in with_rake&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:125:in `load_rakefile&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:208:in `standard_exception_handling&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:126:in `block in load_rakefile&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/application.rb:734:in `raw_load_rakefile&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/rake_module.rb:29:in `load_rakefile&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/rake-13.1.0/lib/rake/rake_module.rb:29:in `load&#39;
+#16 0.342 /rails/Rakefile:6:in `&lt;top (required)&gt;&#39;
+#16 0.342 /rails/Rakefile:6:in `require_relative&#39;
+#16 0.342 /rails/config/application.rb:5:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails.rb:15:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/railties-7.1.2/lib/rails/application.rb:9:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/encrypted_configuration.rb:4:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/encrypted_file.rb:5:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/message_encryptor.rb:6:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/messages/codec.rb:4:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/messages/codec.rb:4:in `require_relative&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/messages/metadata.rb:4:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/json.rb:4:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/json/encoding.rb:3:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/core_ext/object/json.rb:14:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/core_ext/time/conversions.rb:5:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/activesupport-7.1.2/lib/active_support/values/time_zone.rb:3:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/tzinfo-2.0.6/lib/tzinfo.rb:25:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/tzinfo-2.0.6/lib/tzinfo.rb:25:in `require_relative&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/tzinfo-2.0.6/lib/tzinfo/string_deduper.rb:4:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent.rb:6:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomics.rb:8:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/reentrant_read_write_lock.rb:7:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `block (2 levels) in replace_require&#39;
+#16 0.342 /usr/local/lib/ruby/3.3.0/bundled_gems.rb:74:in `require&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:5:in `&lt;top (required)&gt;&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:18:in `&lt;module:Concurrent&gt;&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:12:in `mutex_owned_per_thread?&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:12:in `synchronize&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:14:in `block in mutex_owned_per_thread?&#39;
+#16 0.342 /usr/local/bundle/ruby/3.3.0/gems/concurrent-ruby-1.2.2/lib/concurrent-ruby/concurrent/atomic/lock_local_var.rb:14:in `resume&#39;
+#16 0.342
+#16 0.342 -- Threading information ---------------------------------------------------
+#16 0.342 Total ractor count: 1
+#16 0.342 Ruby thread count for this ractor: 1
+#16 0.342
+#16 0.342 -- Machine register context ------------------------------------------------
+#16 0.342   x0: 0x0000aaab05e23b50  x1: 0x0000aaab06c75e80  x2: 0x0000ffffd6038650
+#16 0.342   x3: 0x0000ffff79b3ff60  x4: 0x0000ffff79b40018  x5: 0x0000ffff79b60000
+#16 0.342   x6: 0x0000ffff9438db88  x7: 0x0000000000000000 x18: 0x000000000000018f
+#16 0.342  x19: 0x0000000000000000 x20: 0x0000000000000000 x21: 0x0000000000000000
+#16 0.342  x22: 0x0000000000000000 x23: 0x0000000000000000 x24: 0x0000000000000000
+#16 0.342  x25: 0x0000000000000000 x26: 0x0000000000000000 x27: 0x0000000000000000
+#16 0.342  x28: 0x0000000000000000 x29: 0x0000000000000000  sp: 0x0000ffff79b40000
+#16 0.342  fau: 0x0024ffff93e406c0
+#16 0.342
+#16 0.342 -- C level backtrace information -------------------------------------------
+#16 0.344 Segmentation fault
+#16 ERROR: process &quot;/bin/sh -c SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile&quot; did not complete successfully: exit code: 139
+------
+ &gt; [build 5/5] RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile:
+0.342   x3: 0x0000ffff79b3ff60  x4: 0x0000ffff79b40018  x5: 0x0000ffff79b60000
+0.342   x6: 0x0000ffff9438db88  x7: 0x0000000000000000 x18: 0x000000000000018f
+0.342  x19: 0x0000000000000000 x20: 0x0000000000000000 x21: 0x0000000000000000
+0.342  x22: 0x0000000000000000 x23: 0x0000000000000000 x24: 0x0000000000000000
+0.342  x25: 0x0000000000000000 x26: 0x0000000000000000 x27: 0x0000000000000000
+0.342  x28: 0x0000000000000000 x29: 0x0000000000000000  sp: 0x0000ffff79b40000
+0.342  fau: 0x0024ffff93e406c0
+0.342
+0.342 -- C level backtrace information -------------------------------------------
+0.344 Segmentation fault
+------
+Dockerfile:39
+--------------------
+  37 |
+  38 |     # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+  39 | &gt;&gt;&gt; RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+  40 |
+  41 |     # Final stage for app image
+--------------------
+ERROR: failed to solve: process &quot;/bin/sh -c SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile&quot; did not complete successfully: exit code: 139
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="smathy">@smathy</span>
+                    が指摘したように、このバグはすでに捕捉され修正されています:
+                    https://github.com/ruby/ruby/pull/9371</p>
+                    <p>3.3.1
+                    の一部としてリリースされるまで、パッチが必要な場合は自分で
+                    Ruby
+                    をビルドする必要があります。その方法は次のとおりです:
+                    https://github.com/miharekar/ohanami/commit/14e75194e4cada3432fc7f734894f0dce8304096</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

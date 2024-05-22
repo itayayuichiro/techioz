@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カスタムパラメータを含むhttpリクエストパス | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カスタムパラメータを含むhttpリクエストパス",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カスタムパラメータを含むhttpリクエストパス</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で Net::HTTP::Get を使用して URL
+                    に値を渡そうとしていますが、次のようにする必要があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://cdpj.partners.bancointer.com.br/pix/v2/webhook/{18497418000111}</p>
+                    <p>しかし、私はそれを行う方法がわかりません、これは私のコードです:</p>
+                    <pre><code>require &#39;net/http&#39;
+require &#39;net/https&#39;
+require &#39;json&#39;  
+
+uri = URI.parse(&quot;https://cdpj.partners.bancointer.com.br/pix/v2/webhook/{18497418000111}&quot;)
+http = Net::HTTP.new(uri.host, uri.port)
+http.use_ssl = true
+request = Net::HTTP::Get.new(uri.request_uri)
+request[&quot;Authorization&quot;] = &quot;Bearer #{&#39;1fd64146-xxxx-xxxx-xxxx-xxxx997c170&#39;}&quot;
+request[&quot;Accept&quot;] = &quot;application/vnd.bluebadge-api.v1+json&quot;
+response = http.request(request)
+</code></pre>
+                    <p>do do
+                    itしようとすると、次のメッセージが表示されます。
+                    不正な URI (URI ではありませんか?):
+                    “https://cdpj.partners.bancointer.com.br/pix/v2/webhook/{18497418000111}”</p>
+                    <p>しかし、URL
+                    内にパラメータを挿入しようとすると、すべてが期待どおりに機能します。</p>
+                    <p>基本的に私の問題は、URL のこの部分を URI
+                    に追加する方法です: {18497418000111} **json
+                    ではキー/値を追加する必要がありますが、私の例では値のみを渡す必要があります。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>{ および } 文字を 16
+                    進コードでエンコードすると、機能します。以下の irb
+                    からの出力を参照してください。</p>
+                    <p>エンコード前</p>
+                    <pre><code>3.1.2 :013 &gt; uri = URI.parse(&#39;https://cdpj.partners.bancointer.com.br/pix/v2/webhook/{18497418000111}&#39;)
+.../.rvm/rubies/ruby-3.1.2/lib/ruby/3.1.0/uri/rfc3986_parser.rb:67:in `split&#39;: bad URI(is not URI?): &quot;https://cdpj.partners.bancointer.com.br/pix/v2/webhook/{18497418000111}&quot; (URI::InvalidURIError)
+</code></pre>
+                    <p>エンコード後</p>
+                    <pre><code>3.1.2 :015 &gt; uri = URI.parse(&quot;https://cdpj.partners.bancointer.com.br/pix/v2/webhook/%7B18497418000111%7D&quot;)
+ =&gt; #&lt;URI::HTTPS https://cdpj.partners.bancointer.com.br/pix/v2/webhook/%7B18497418000111%7D&gt; 
+3.1.2 :016 &gt; http = Net::HTTP.new(uri.host, uri.port)
+3.1.2 :017 &gt; http.use_ssl = true
+ =&gt; true 
+3.1.2 :018 &gt; request = Net::HTTP::Get.new(uri.request_uri)
+ =&gt; #&lt;Net::HTTP::Get GET&gt; 
+3.1.2 :019 &gt; request[&quot;Authorization&quot;] = &quot;Bearer #{&#39;1fd64146-xxxx-xxxx-xxxx-xxxx997c170&#39;}&quot;
+3.1.2 :020 &gt; request[&quot;Accept&quot;] = &quot;application/vnd.bluebadge-api.v1+json&quot;
+ =&gt; &quot;application/vnd.bluebadge-api.v1+json&quot; 
+3.1.2 :021 &gt; response = http.request(request)
+ =&gt; #&lt;Net::HTTPBadRequest 400 Bad Request readbody=true&gt; 
+3.1.2 :022 &gt; 
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

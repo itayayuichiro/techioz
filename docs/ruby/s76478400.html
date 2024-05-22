@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku スタックが更新され、will_paginate エラーが発生するようになりました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku スタックが更新され、will_paginate エラーが発生するようになりました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku スタックが更新され、will_paginate
+エラーが発生するようになりました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、Web アプリの Heroku
+                    スタックを更新し、ruby 3.2.2 と will_paginate 4.0
+                    を使用していますが、ページネーション ページの 1
+                    つでエラーが発生しています。私が得ている具体的なエラーは</p>
+                    <pre><code>2023-06-15T00:33:11.759517+00:00 app[web.1]: Rendered users/index.html.erb within layouts/application (Duration: 2.6ms | Allocations: 1025)
+2023-06-15T00:33:11.759543+00:00 app[web.1]: Rendered layout layouts/application.html.erb (Duration: 2.7ms | Allocations: 1069)
+2023-06-15T00:33:11.759701+00:00 app[web.1]: Completed 500 Internal Server Error in 7ms (ActiveRecord: 2.5ms | Allocations: 2352)
+2023-06-15T00:33:11.760282+00:00 app[web.1]: 
+2023-06-15T00:33:11.760282+00:00 app[web.1]: ActionView::Template::Error (wrong number of arguments (given 4, expected 3)):
+2023-06-15T00:33:11.760282+00:00 app[web.1]: 13:   &lt;h3&gt;&lt;%= link_to &quot;Create New Dude&quot;, new_user_path %&gt;&lt;/h3&gt;
+2023-06-15T00:33:11.760283+00:00 app[web.1]: 14: &lt;% end %&gt;
+2023-06-15T00:33:11.760283+00:00 app[web.1]: 15:
+2023-06-15T00:33:11.760284+00:00 app[web.1]: 16: &lt;%= will_paginate %&gt;
+2023-06-15T00:33:11.760284+00:00 app[web.1]: 17:
+2023-06-15T00:33:11.760284+00:00 app[web.1]: 18: &lt;table&gt;
+2023-06-15T00:33:11.760284+00:00 app[web.1]: 19:   &lt;thead&gt;
+2023-06-15T00:33:11.760284+00:00 app[web.1]: 
+2023-06-15T00:33:11.760285+00:00 app[web.1]: app/views/users/index.html.erb:16
+</code></pre>
+                    <p>実際のコードでは、</p>
+                    <pre><code>&lt;%= will_paginate %&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;th&gt;&lt;/th&gt; &lt;!-- Icon --&gt;
+    ... a bunch of stuff you don&#39;t need to see ...
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;%= render @users %&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;%= will_paginate %&gt;
+</code></pre>
+                    <p>will_paginate 4.0 で、引数の数が間違っている
+                    (指定された数が 4、予想されるのは 3)
+                    という特定のエラーがスローされる理由について、明確なドキュメントが見つかりません。私が見つけることができる唯一のことは、ここ
+                    https://github.com/mislav/will_paginate
+                    で使用される新しい基本的な will_paginate
+                    です。ページネーションに使用していたテーブルを何らかの方法で新しい構造にバンドルする必要がありますか?</p>
+                    <p>ご協力をいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>will_paginate の新しいバージョンは、オプション
+                    ハッシュを 3
+                    番目の引数として受け取らなくなりました。代わりに、すべてのオプションをキーワード引数として渡す必要があります。したがって、コードを次のように変更する必要があります。</p>
+                    <pre><code>&lt;%= will_paginate @users, per_page: 10 %&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;th&gt;&lt;/th&gt; &lt;!-- Icon --&gt;
+    ... a bunch of stuff you don&#39;t need to see ...
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;%= render @users %&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;%= will_paginate @users, per_page: 10 %&gt;
+</code></pre>
+                    <p>per_page
+                    オプションは、ページごとに表示するレコードの数を指定するために使用されます。この場合は
+                    10 に設定しています。</p>
+                    <p>他のオプションをキーワード引数として
+                    will_paginate
+                    に渡すこともできます。たとえば、レンダラー
+                    オプションを渡してカスタム ページネーション
+                    レンダラーを指定できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

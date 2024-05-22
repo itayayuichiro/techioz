@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>空白の params[] を nil にする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "空白の params[] を nil にする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>空白の params[] を nil にする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーがフォームを送信し、特定のフィールドを空白のままにすると、DB
+                    に空白として保存されます。 (たとえば) params[:user]
+                    コレクションを反復処理し、フィールドが空白の場合は、属性を更新する前にそれを
+                    nil
+                    に設定したいと考えています。ただし、私が知っている唯一の反復方法は新しいオブジェクトを作成するため、これを行う方法がわかりません。</p>
+                    <pre><code>coll = params[:user].each do |c|
+    if c == &quot;&quot;
+       c = nil
+    end
+end
+</code></pre>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コントローラーのフィルターを使用して、保存または更新時のモデルの動作に影響を与えることで、ここで何をしているのかを考えてみましょう。もっときれいな方法は、モデルまたはオブザーバーでの
+                    before_save
+                    コールバックだと思います。こうすることで、コントローラー経由、コンソール経由、またはバッチ
+                    プロセスの実行時など、変更の発生元に関係なく、同じ動作が得られます。</p>
+                    <p>例：</p>
+                    <pre><code>class Customer &lt; ActiveRecord::Base
+  NULL_ATTRS = %w( middle_name )
+  before_save :nil_if_blank
+
+  protected
+
+  def nil_if_blank
+    NULL_ATTRS.each { |attr| self[attr] = nil if self[attr].blank? }
+  end
+end
+</code></pre>
+                    <p>これにより、期待どおりの動作が得られます。</p>
+                    <pre><code>&gt;&gt; c = Customer.new
+=&gt; #&lt;Customer id: nil, first_name: nil, middle_name: nil, last_name: nil&gt;
+&gt;&gt; c.first_name = &quot;Matt&quot;
+=&gt; &quot;Matt&quot;
+&gt;&gt; c.middle_name = &quot;&quot; # blank string here
+=&gt; &quot;&quot;
+&gt;&gt; c.last_name = &quot;Haley&quot;
+=&gt; &quot;Haley&quot;
+&gt;&gt; c.save
+=&gt; true
+&gt;&gt; c.middle_name.nil?
+=&gt; true
+&gt;&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

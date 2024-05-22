@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列内の最も一般的な単語 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列内の最も一般的な単語",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列内の最も一般的な単語</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby
+                    を初めて使用するので、文字列内の最も一般的な単語の配列を返すメソッドを作成しようとしています。カウントの高い単語が
+                    1
+                    つある場合は、その単語を返す必要があります。上位カウントに
+                    2
+                    つのワードが並んでいる場合は、両方を配列で返す必要があります。</p>
+                    <pre><code>def most_common(string)
+  counts = {}
+  words = string.downcase.tr(&quot;,.?!&quot;,&#39;&#39;).split(&#39; &#39;)
+
+  words.uniq.each do |word|
+    counts[word] = 0
+  end
+
+  words.each do |word|
+    counts[word] = string.scan(word).count
+  end
+
+  max_quantity = counts.values.max
+  max_words = counts.select { |k, v| v == max_quantity }.keys
+  puts max_words
+end
+
+most_common(&#39;a short list of words with some words&#39;) #[&#39;words&#39;]
+most_common(&#39;Words in a short, short words, lists of words!&#39;) #[&#39;words&#39;]
+most_common(&#39;a short list of words with some short words in it&#39;) #[&#39;words&#39;, &#39;short&#39;]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>単語の出現数を数える方法が問題です。 with
+                    に入っているので二重にカウントされます。</p>
+                    <pre><code>[1] pry(main)&gt; &#39;with some words in it&#39;.scan(&#39;it&#39;)
+=&gt; [&quot;it&quot;, &quot;it&quot;]
+</code></pre>
+                    <p>ただし、より簡単に実行できます。次のように、
+                    each_with_object
+                    呼び出しを使用して、値のインスタンスの数によって配列の内容をグループ化できます。</p>
+                    <pre><code>counts = words.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
+</code></pre>
+                    <p>これは、配列内の各エントリを調べて、ハッシュ内の各単語のエントリの値に
+                    1 を加えます。</p>
+                    <p>したがって、次のことがうまくいくはずです。</p>
+                    <pre><code>def most_common(string)
+  words = string.downcase.tr(&quot;,.?!&quot;,&#39;&#39;).split(&#39; &#39;)
+  counts = words.each_with_object(Hash.new(0)) { |e, h| h[e] += 1 }
+  max_quantity = counts.values.max
+  counts.select { |k, v| v == max_quantity }.keys
+end
+
+p most_common(&#39;a short list of words with some words&#39;) #[&#39;words&#39;]
+p most_common(&#39;Words in a short, short words, lists of words!&#39;) #[&#39;words&#39;]
+p most_common(&#39;a short list of words with some short words in it&#39;) #[&#39;words&#39;, &#39;short&#39;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

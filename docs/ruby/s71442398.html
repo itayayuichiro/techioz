@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec の contains_exactly に相当するハッシュは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec の contains_exactly に相当するハッシュは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec の contains_exactly
+に相当するハッシュは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュの内容を検証する必要があるのですが、RSpec
+                    の contains_exactly
+                    が配列に対してのみ機能することに驚きました。理想的な期待値は次のとおりです。</p>
+                    <pre><code>expect(type.values.values).to contain_exactly(
+  ONE: an_object_having_attributes(value: &#39;uno&#39;),
+  TWO: an_object_having_attributes(value: &#39;dos&#39;)
+)
+</code></pre>
+                    <p>基本的な要件は、contain_exactly
+                    では配列にそれらの要素のみが含まれることを要求し、同等のハッシュには指定された正確なキーと値のペアのみが含まれている必要があるということです。</p>
+                    <p>問題ない回避策はたくさんあります。</p>
+                    <p>などですが、私が最も興味があるのは、これを行うための組み込みの
+                    RSpec 方法があるかどうかです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このようにマッチマッチャーを使用できます</p>
+                    <pre><code>require &quot;ostruct&quot;
+
+describe do
+  let(:hash) do
+    {
+      one: OpenStruct.new(x: 1),
+      two: OpenStruct.new(y: 2)
+    }
+  end
+
+  it &quot;matches hashes&quot; do
+    expect(hash).to match(
+      two: an_object_having_attributes(y: 2),
+      one: an_object_having_attributes(x: 1)
+    )
+  end
+
+  it &quot;requires the actual to have all elements of the expected&quot; do
+    expect(a: 1, b: 2).not_to match(b: 2)
+  end
+
+  it &quot;requires the expected to have all elements of the actual&quot; do
+    expect(a: 1).not_to match(a: 1, b: 2)
+  end
+end
+</code></pre>
+                    <p>このハッシュのいずれかに余分なキーがある場合、テストは失敗します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

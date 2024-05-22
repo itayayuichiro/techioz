@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>GitHub Actions がrubocop および httpparty gem を見つけられないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "GitHub Actions がrubocop および httpparty gem を見つけられないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>GitHub Actions がrubocop および httpparty gem
+を見つけられないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような別のディレクトリにある別の rb
+                    ファイルで httparty gem
+                    を使用するいくつかのクラスを使用して、いくつかの API
+                    呼び出しを実行する Ruby
+                    スクリプトを開発しようとしています。</p>
+                    <pre><code>./script.rb
+./lib
+./lib/calls.rb
+</code></pre>
+                    <p>実際のコードはさらに広範ですが、簡単にするためにここでは最小限の説明に留めます。</p>
+                    <p>スクリプト.rb</p>
+                    <pre><code>#!/usr/bin/env ruby
+require_relative &#39;lib/calls&#39;
+
+service = Service.new
+response = service.get
+puts response
+</code></pre>
+                    <p>lib/calls.rb</p>
+                    <pre><code>require &#39;httparty&#39;
+
+class Service
+  include HTTParty
+  base_uri &#39;https://api.service.com/v1/endpoint&#39;
+
+  def get
+    self.class.get(&#39;/&#39;)
+  end
+end
+</code></pre>
+                    <p>それは素晴らしいですね！ GitHub Actions
+                    を使用して実行しようとすると、次のエラーが発生します。</p>
+                    <pre><code>&lt;internal:/opt/hostedtoolcache/Ruby/3.2.2/x64/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:85:in `require&#39;: cannot load such file -- httparty (LoadError)
+    from &lt;internal:/opt/hostedtoolcache/Ruby/3.2.2/x64/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:85:in `require&#39;
+    from /home/runner/work/test/test/lib/calls.rb:1:in `&lt;top (required)&gt;&#39;
+    from ./script.rb:2:in `require_relative&#39;
+    from ./script.rb:2:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>require ’HTTParty
+                    を大文字で使用するとこの問題が発生するという話をどこかで読みましたが、私はすべて小文字で使用しているので、そうではありません。</p>
+                    <p>関連すると思われるもう 1 つの興味深い点は、GitHub
+                    Actions のコマンド ラインで直接rubocop
+                    を実行しようとすると、次の結果が得られることです。</p>
+                    <pre><code>Run rubocop --parallel
+/home/runner/work/_temp/b235a1be-84fe-430b-91fb-4118542d46a3.sh: line 1: rubocop: command not found
+Error: Process completed with exit code 127.
+</code></pre>
+                    <p>もちろんrubocopとhttppartyは両方ともインストールされており、bundle
+                    execrubocopを使用するとrubocopが実行されますが、ローカルではrubocopだけを使用して実行できます。</p>
+                    <p>編集: GitHub Actions からの yaml ファイルと gem
+                    がインストールされたことの確認:</p>
+                    <pre><code>jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Ruby and gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+          bundler-cache: true
+      - name: Script
+        run: ./script.rb
+</code></pre>
+                    <pre><code>Run bundler install
+...
+Using httparty 0.21.0
+...
+Using rubocop 1.50.2
+...</code></pre>
+                    <pre><code>## 解決策
+GitHub Actions でコマンドを実行する前に、bundle exec を使用することで問題を修正しました。
+</code></pre>
+                    <ul>
+                    <li>name: Script run: bundle exec script.rb</li>
+                    </ul>
+                    <p>```</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

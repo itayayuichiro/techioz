@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docusign クイックスタート - 初回起動時の NoMethodError | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docusign クイックスタート - 初回起動時の NoMethodError",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docusign クイックスタート - 初回起動時の
+NoMethodError</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>DocuSign ドキュメントから Ruby クイックスタート
+                    プロジェクトをセットアップして起動しようとしています:
+                    https://developers.docusign.com/docs/esign-rest-api/how-to/code-launchers/</p>
+                    <p>フォームに記入し、コードを含む zip
+                    をダウンロードして、セットアップ全体を問題なく実行しました。</p>
+                    <p>しかし、サーバーを起動して http://localhost:3000/
+                    にアクセスしようとすると、エラーが表示されます。</p>
+                    <pre><code>NoMethodError in DsCommonController#index
+undefined method `sub&#39; for nil:NilClass
+
+Extracted source (around line #40):              
+  def worker
+39    configuration = DocuSign_eSign::Configuration.new
+40    configuration.host = args[:base_path] &lt;&lt;&lt;&lt; error on this line
+41
+42  @api_client = DocuSign_eSign::ApiClient.new(configuration)
+43  @api_client.set_base_path(args[:base_path])
+
+Rails.root: /Users/*******/Quickstart App-1-ruby
+</code></pre>
+                    <p>そしてターミナルで:</p>
+                    <pre><code>NoMethodError (undefined method `sub&#39; for nil:NilClass
+
+      @host = host.sub(/https?:\/\//, &#39;&#39;).split(&#39;/&#39;).first
+                  ^^^^):
+  
+app/services/e_sign/get_data_service.rb:40:in `worker&#39;
+app/services/e_sign/get_data_service.rb:30:in `cfr?&#39;
+app/controllers/ds_common_controller.rb:21:in `handle_redirects&#39;
+app/controllers/ds_common_controller.rb:9:in `index&#39;
+</code></pre>
+                    <p>すべての手順を実行しましたが、何が間違っているのかわかりません。誰かがヒントを持っていますか？</p>
+                    <p>前もって感謝します</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>前もって感謝します</p>
+                    <pre><code># File lib/docusign_esign/configuration.rb, line 159
+def host=(host)
+  # remove http(s):// and anything after a slash
+  @host = host.sub(/https?:\/\//, &#39;&#39;).split(&#39;/&#39;).first
+end
+</code></pre>
+                    <p>詳細については、SDK ライブラリで確認できます。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://docusign.github.io/docusign-esign-ruby-client/DocuSign_eSign/Configuration.html#method-i-host-3D</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

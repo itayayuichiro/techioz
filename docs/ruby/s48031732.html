@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>各 http RSpec テスト ヘッダーに認証トークンを追加する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "各 http RSpec テスト ヘッダーに認証トークンを追加する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>各 http RSpec テスト
+ヘッダーに認証トークンを追加する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>リクエスト仕様を認証しようとして問題が発生しました。各
+                    http
+                    リクエストのヘッダーに有効な認証トークンを渡すにはどうすればよいですか?以下の私のアプローチは正しいでしょうか?</p>
+                    <p>ツイート_リクエスト_仕様.rb</p>
+                    <pre><code>require &#39;rails_helper&#39;
+
+RSpec.describe &#39;Tweets API&#39;, type: :request do
+  before do
+    @tweets = create_list(:tweet, 10)
+    @tweet = @tweets.first
+  end
+
+  describe &#39;GET /tweets&#39; do
+    before { get &#39;/tweets&#39;, { &quot;Authorization&quot;: *some sort of token*} }
+
+    it &quot;returns tweets&quot; do
+      expect(json).to_not be_empty
+      expect(json).to eq(10)
+    end
+
+    it &quot;is a successful http request&quot; do
+      expect(response).to have_http_response(200)
+    end
+  end
+end
+</code></pre>
+                    <p>これは、認証コントローラーのコードと、http
+                    ヘッダーで渡される認証トークンの生成とデコードに役立つモジュールです。</p>
+                    <p>認証コントローラー.rb</p>
+                    <pre><code>class AuthenticationController &lt; ApplicationController
+  skip_before_action :authenticate_request
+
+  def authenticate
+    command = AuthenticateUser.call(params[:email], params[:password])
+
+    if command.success?
+      render json: { auth_token: command.result }
+    else
+      render json: { error: command.errors }, status: :authorized
+    end
+  end
+end
+</code></pre>
+                    <p>authorize_api_request.rb</p>
+                    <pre><code>class AuthorizeApiRequest
+  prepend SimpleCommand
+
+  def initialize(headers = {})
+    @headers = headers
+  end
+
+  def call
+    user
+  end
+
+  private
+
+  attr_reader :headers
+
+  def user
+    @user ||= User.find(decoded_auth_token[:user_id]) if decoded_auth_token
+    @user ||= errors.add(:token, &#39;Invalid token&#39;) &amp;&amp; nil
+  end
+
+  #decode the auth token and retrieve the user id
+  def decoded_auth_token
+    @decoded_auth_token ||= JSONWebToken.decode(http_auth_header)
+  end
+
+  #retrieve auth token from header
+  def http_auth_header
+    if headers[&#39;Authorization&#39;].present? 
+      return headers[&#39;Authorization&#39;].split(&#39; &#39;).last
+    else
+      errors.add(:token, &#39;Missing token&#39;)
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>公式pluralsightページからコピーした一部のコード抜粋</p>
+                    <p>認証するエンドポイントは config/routes.rb
+                    にあります</p>
+                    <pre><code>post &#39;authenticate&#39;, to: &#39;authentication#authenticate&#39;
+</code></pre>
+                    <p>このアクションを実行します。正しく認証された場合、アクションはトークンを返します。</p>
+                    <pre><code>def authenticate 
+   command = AuthenticateUser.call(params[:email], params[:password]) 
+   if command.success? 
+      render json: { auth_token: command.result } 
+   else 
+      render json: { error: command.errors }, status: :unauthorized 
+   end 
+end
+</code></pre>
+                    <p>rspec
+                    には、このメソッドをモックするか、ファクトリを作成するかの
+                    2 つのオプションがあります。</p>
+                    <p>トークンベースの認証の概念は、一度認証されるとユーザーはトークンを持ち、このトークンを提供することでユーザーのみに予約されている機能にアクセスできるようになるというものです。</p>
+                    <p>リクエスト</p>
+                    <pre><code>$ curl -H &quot;Content-Type: application/json&quot; -X POST -d &#39;{&quot;email&quot;:&quot;[email protected]&quot;,&quot;password&quot;:&quot;123123123&quot;}&#39; http://localhost:3000/authenticate
+</code></pre>
+                    <p>応答としてトークンを返します</p>
+                    <pre><code>{&quot;auth_token&quot;:&quot;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE0NjA2NTgxODZ9.xsSwcPC22IR71OBv6bU_OGCSyfE89DvEzWfDU0iybMA&quot;}
+</code></pre>
+                    <p>ヘッダーにトークンを含めると、リクエストによって認証エラーが発生することはありません。</p>
+                    <pre><code>$ curl -H &quot;Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE0NjA2NTgxODZ9.xsSwcPC22IR71OBv6bU_OGCSyfE89DvEzWfDU0iybMA&quot; http://localhost:3000/items []
+</code></pre>
+                    <p>したがって、getリクエストを実行する前に、リクエストヘッダーにトークンを含めます。</p>
+                    <pre><code>request.headers[&#39;Authorization&#39;] = auth_token
+get :your_action
+</code></pre>
+                    <p>auth_token
+                    の正しい値を指定するにはどうすればよいですか?</p>
+                    <p>ApplicationControllerのauthenticate_requestメソッドをモックする必要があります。このメソッドはアクションの前に呼び出されます。</p>
+                    <pre><code>#app/controllers/application_controller.rb
+class ApplicationController &lt; ActionController::API
+ before_action :authenticate_request
+  attr_reader :current_user
+
+  private
+
+  def authenticate_request
+    @current_user = AuthorizeApiRequest.call(request.headers).result
+    render json: { error: &#39;Not Authorized&#39; }, status: 401 unless @current_user
+  end
+end
+</code></pre>
+                    <p>認証エラーが発生しないようにするには、このコード行をモックする必要があると思います。</p>
+                    <pre><code>@current_user = AuthorizeApiRequest.call(request.headers).result
+</code></pre>
+                    <p>だから私はこのようにスペックを書きます</p>
+                    <pre><code>user = FactoryBot.create(:user)
+allow(AuthorizeApiRequest).to receive(:call).and_return(user)
+# request.headers[&#39;Authorization&#39;] = auth_token # this is not required anymore the authentication is skipped
+get :your_action
+</code></pre>
+                    <p>多視点を引用します</p>
+                    <p>モックについて詳しくは、こちらをご覧ください。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rspec/rspec-mocks</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

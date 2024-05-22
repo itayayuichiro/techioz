@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord 結合に追加条件を適用する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord 結合に追加条件を適用する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord 結合に追加条件を適用する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>一定期間における部門ごとの事故数を計算してみようとします。したがって、テーブルが2つあります。
+                    ActiveRecordを使用して答えを取得しようとしていますが、次のようになります</p>
+                    <pre><code>class Division &lt; ApplicationRecord
+  has_many :accidents
+
+end
+
+class Accident &lt; ApplicationRecord
+  belongs_to :division
+
+end
+
+
+Division.left_joins(:accidents).where(&#39;accidents.occurred_at &gt; ?&#39;, Time.now - 1.year).group(:name).count
+</code></pre>
+                    <p>この場合、ActiveRecord はこの SQL
+                    を生成します</p>
+                    <pre><code>SELECT COUNT(accidents.id) AS &quot;count_all&quot;, &quot;divisions&quot;.&quot;name&quot; AS &quot;divisions_name&quot;
+FROM &quot;divisions&quot;
+LEFT OUTER JOIN &quot;accidents&quot; ON &quot;accidents&quot;.&quot;division_id&quot; = &quot;divisions&quot;.&quot;id&quot;
+WHERE (accidents.occurred_at &gt; &#39;2022-07-30 20:56:10.178153&#39;)
+GROUP BY &quot;divisions&quot;.&quot;name&quot;
+</code></pre>
+                    <p>ここでの問題は、一部の部門の事故数が 0
+                    の場合、クエリ結果に表示されないため、SQL
+                    を次のようにする必要があることです。</p>
+                    <pre><code>SELECT COUNT(accidents.id) AS &quot;count_all&quot;, &quot;divisions&quot;.&quot;name&quot; AS &quot;divisions_name&quot;
+FROM &quot;divisions&quot;
+LEFT OUTER JOIN &quot;accidents&quot; ON &quot;accidents&quot;.&quot;division_id&quot; = &quot;divisions&quot;.&quot;id&quot; and accidents.occurred_at &gt; &#39;2022-07-30 20:56:10.178153&#39;
+GROUP BY &quot;divisions&quot;.&quot;name&quot;
+</code></pre>
+                    <p>追加の結合条件を指定することはできますか?
+                    has_many
+                    関係に追加の条件を指定できることはわかっていますが、それは静的な条件になります。ユーザーのリクエストパラメータに応じて動的にしたい</p>
+                    <p>結合条件 e.q に生の SQL
+                    を使用することを避けようとしています。</p>
+                    <pre><code>Division.joins(&quot;LEFT OUTER JOIN accidents ON accidents.division_id = divisions.id
+and (accidents.occurred_at &gt; &#39;2022-07-30 20:56:10.178153&#39;&quot;).group(:name).count(&#39;accidents.id&#39;)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最終的なクエリを簡素化するために JOIN
+                    でスコープを使用するとどうなるでしょうか?</p>
+                    <pre><code>class Division &lt; ApplicationRecord
+  scope :with_accidents_from, -&gt;(occurred_at) do
+    joins_query =
+      sanitize_sql([
+        &#39;LEFT OUTER JOIN accidents ON accidents.division_id = divisions.id AND accidents.occurred_at &gt; ?&#39;,
+        occurred_at
+      ])
+
+    joins(joins_query)
+  end
+end
+</code></pre>
+                    <p>その後</p>
+                    <pre><code>Division.with_accidents_from(1.year.ago).group(:name).count(&#39;accidents.id&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

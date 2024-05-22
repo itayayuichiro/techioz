@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 2.6.5 および PostgreSQL の pg-gem セグメンテーション フォールト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 2.6.5 および PostgreSQL の pg-gem セグメンテーション フォールト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 2.6.5 および PostgreSQL の pg-gem
+セグメンテーション フォールト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コンソールからはデータベースに触れる操作を行うことができません。セグメンテーション違反が発生します。</p>
+                    <p>.rbenv/versions/2.6.5/lib/ruby/gems/2.6.0/gems/pg-1.1.4/lib/pg.rb:56:
+                    [BUG] 0x0000000000000110 でのセグメンテーション違反
+                    Ruby 2.6.5p114 (2019-10-01 リビジョン 67812)
+                    [x86_64-darwin18]</p>
+                    <p>これは文字通り、MyModel.new
+                    を含む、データベースを必要とする可能性のあるあらゆる操作です。</p>
+                    <p>– コントロールフレーム情報 ————————————– – c:0071
+                    p:—- s:0406 e:000405 CFUNC :初期化 c:0070 p:—-
+                    s:0403 e:000402 CFUNC :新規 c:0069 p:0016 s:0398
+                    e:000397 メソッド
+                    /Users/xxx/.rbenv/versions/2.6.5/lib/ruby/gems/2.6.0/gems/pg-1.1.4/lib/pg.rb
+                    :56 c:0068 p:0107 s:0393 e:000392 メソッド
+                    /Users/xxx/.rbenv/versions/2.6.5/lib/ruby/gems/2.6.0/gems/activerecord-6.0.1/lib/active_record/connection_adapters
+                    /postgres</p>
+                    <p>pg
+                    gemをアンインストールして再インストールしました。そしてデータベースを再構築しました。そしてPostgreSQLを再起動しました。</p>
+                    <p>Puma
+                    で実行しているときに他の人が問題を報告しているのを見たことがありますが、私の構成は
+                    Puma
+                    では機能しますが、コンソールでは失敗します。</p>
+                    <p>わかりやすくするために編集します:</p>
+                    <p>はい、バンドラーを使用します。</p>
+                    <p>Rails c または Bundle exec Rails c を使用して
+                    Rails コンソールを起動すると、同じスタック
+                    トレースで同じ効果 (セグメンテーション違反)
+                    が発生します。</p>
+                    <p>Gemfile.lock には pg (1.1.4) があります</p>
+                    <p>バンドルパスを指定して再バンドルしました。スタック
+                    トレースにはそのバンドル
+                    パスが含まれるようになったので、デフォルトでバンドラーは
+                    rbenv パスを使用していたと思います。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>質問のコメントセクションにリンクされているhttps://github.com/ged/ruby-pg/issues/291に従って、gssencmode:
+                    disableをdatabase.ymlに追加すると、セグメンテーションフォールトが停止します。他の環境では
+                    OS X
+                    を使用しないため、開発およびテスト環境のオプションのみに追加しました。</p>
+                    <pre><code>default: &amp;default
+  adapter: postgresql
+
+development:
+  &lt;&lt;: *default
+  gssencmode: disable
+test:
+  &lt;&lt;: *default
+  gssencmode: disable
+
+</code></pre>
+                    <p>gssencmode は Postgresql 12
+                    で追加されました。</p>
+                    <p>根本的なバグはここで追跡されています
+                    https://www.postgresql.org/message-id/93f7379b-2e2f-db0c-980e-07ebd5de92ff%40crunchydata.com</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

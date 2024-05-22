@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq with Rails - コンソールと rake タスクの異なる Sidekiq インスタンス | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq with Rails - コンソールと rake タスクの異なる Sidekiq インスタンス",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq with Rails - コンソールと rake
+タスクの異なる Sidekiq インスタンス</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails
+                    で非同期ジョブを扱うのが初めてで、sidekiq
+                    に慣れてきたところです。</p>
+                    <p>たとえば、sidekiq に接続してキューをクリアする
+                    rake
+                    タスクを作成すると、しばらく前に自分のマシン上で別のアプリケーションの一部として作成したいくつかのカスタム名前付きキューを含む
+                    1
+                    セットのキューが表示されます。これらのキューには、アプリケーションによって開始されたジョブは含まれていません
+                    (メーラーでこれをテストしています)</p>
+                    <p>Rails コンソールから Sidekiq
+                    に接続すると、ジョブをスケジュールするときにアプリケーションによって使用されていると思われる
+                    Sidekiq
+                    インスタンスが取得され、スケジュールしたメーラー
+                    ジョブが表示されます。</p>
+                    <p>両方のシナリオから Sidekiq.redis_info
+                    を検査すると、ほぼ同じ情報が得られ、使用されている
+                    Redis サーバーも同じです。 Redis
+                    サーバーをシャットダウンすると、タスクからもコンソールからも
+                    Sidekiq に接続できなくなります。</p>
+                    <p>なぜこれが起こっているのか、またどのようにすれば
+                    rake タスクから正しい Sidekiq
+                    インスタンスに接続できるのか何か考えはありますか?</p>
+                    <p>Ruby 2.7.8、rails
+                    5.2.6を使用しており、これはrailsのsidekiqの初期化子です。</p>
+                    <pre><code>rails_root = Rails.root || File.dirname(__FILE__) + &#39;/../..&#39;
+rails_env = Rails.env || &#39;development&#39;
+redis_config = YAML.load_file(rails_root.to_s + &#39;/config/redis.yml&#39;)
+redis_config.merge! redis_config.fetch(Rails.env, {})
+redis_config.symbolize_keys!
+Sidekiq.configure_server do |config|
+  config.redis = { url: &quot;redis://#{redis_config[:host]}:#{redis_config[:port]}/12&quot;, namespace: &quot;one-api&quot; }
+
+  config.super_fetch!
+end
+
+Sidekiq.configure_client do |config|
+  config.redis = { url: &quot;redis://#{redis_config[:host]}:redis_config[:port]}/12&quot;, namespace: &quot;one-api&quot; 
+}
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Redis
+                    はジョブが保存される場所であるため、両方のアプリが同じ
+                    Redis
+                    の場所にジョブを保存するように構成されている場合は、実行している
+                    Sidekiq
+                    のバージョンに関係なく、当然ながら古いジョブがそこに残ります。</p>
+                    <p>理想的には、新しいアプリには新しい/別の Redis DB
+                    を使用する必要があります。 Sidekiq 用に Redis
+                    を構成するにはさまざまな方法がありますが、関心があるのはその数です。そのため、使用している
+                    DB (12 個?) の代わりに、デフォルトの Redis
+                    インストールで利用可能な他の 15 個の DB の 1
+                    つを使用したいとします。 。</p>
+                    <p>古いアプリをもう使用していない場合は、設定をそのままにして、適切な
+                    DB (12 DB のシェル コマンド ラインから)
+                    からすべてのキーを削除することもできます。</p>
+                    <pre><code>&gt; redis-cli -n 12 FLUSHDB
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

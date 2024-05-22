@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列から絵文字を削除するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列から絵文字を削除するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列から絵文字を削除するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の問題は、正規表現を使用して文字列から絵文字を削除するが、文字列から
+                    CJK (中国語、日本語、韓国語)
+                    文字を削除することはできません。この正規表現を使用してみました。</p>
+                    <pre><code>REGEX = /[^\u1F600-\u1F6FF\s]/i
+</code></pre>
+                    <p>この正規表現は、中国語、日本語、韓国語の文字が必要な場合にそれらの文字も検出することを除いて、正常に機能します。この問題を解決する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Karol S
+                    はすでに解決策を提供していますが、その理由は明らかではないかもしれません。</p>
+                    <p>「F600」は実際には「F60」の後に「0」が続くものです。</p>
+                    <pre><code>&quot;\u1F60&quot;    # =&gt; &quot;ὠ&quot;
+&quot;\u1F600&quot;   # =&gt; &quot;ὠ0&quot;
+</code></pre>
+                    <p>FFFF より上のコード
+                    ポイントには中括弧を使用する必要があります。</p>
+                    <pre><code>&quot;\u{1F600}&quot; #=&gt; &quot;😀&quot;
+</code></pre>
+                    <p>したがって、文字クラス [F600-F6FF] は [F60 0-F6F
+                    F] として解釈されます。
+                    「F60」、範囲「0」..「F6F」および「F」に一致します。</p>
+                    <p>中括弧を使用すると問題が解決されます。</p>
+                    <pre><code>/[\u{1F600}-\u{1F6FF}]/
+</code></pre>
+                    <p>これは、次の Unicode ブロックの (絵文字)
+                    文字と一致します。</p>
+                    <p>unpack、pack、 between?
+                    も使用できます。同様の結果が得られます。これは、正規表現で
+                    Unicode をサポートしていない Ruby 1.8.7
+                    でも機能します。</p>
+                    <pre><code>s = &#39;Hi!😀&#39;
+#=&gt; &quot;Hi!\360\237\230\200&quot;
+
+s.unpack(&#39;U*&#39;).reject{ |e| e.between?(0x1F600, 0x1F6FF) }.pack(&#39;U*&#39;)
+#=&gt; &quot;Hi!&quot; 
+</code></pre>
+                    <p>Rubular の例について –
+                    絵文字は単一の文字です。</p>
+                    <pre><code>&quot;😀&quot;.length  #=&gt; 1
+&quot;😀&quot;.chars   #=&gt; [&quot;😀&quot;]
+</code></pre>
+                    <p>一方、顔文字は複数の文字の組み合わせです。</p>
+                    <pre><code>&quot;^_^&quot;.length #=&gt; 3
+&quot;^_^&quot;.chars  #=&gt; [&quot;^&quot;, &quot;_&quot;, &quot;^&quot;]
+</code></pre>
+                    <p>これらを一致させることは、まったく異なるタスクです
+                    (別の質問で尋ねる必要があります)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで新しい空のバインディングを作成する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで新しい空のバインディングを作成する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで新しい空のバインディングを作成する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>eval で使用する完全に空の Binding
+                    オブジェクトを作成する方法はありますか?</p>
+                    <p>ドキュメントによると、新しいバインディングを作成できるのは
+                    Kernel#binding
+                    メソッドのみです。私は次のようなことを試しました:</p>
+                    <pre><code>empty = binding
+</code></pre>
+                    <p>しかし、その後、そのバインディングは、コードの後半で割り当てられる同じスコープ内の他のローカル変数とともに、そのローカル変数内でそれ自体を空にします。</p>
+                    <p>定数 TOPLEVEL_BINDING
+                    は空のバインディングであり、当面の目的には十分であることがわかりました。ただし、常にそうとは限りません。</p>
+                    <p>新しい、完全に空のバインディングを作成する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>簡単な方法は、バインディングのみを呼び出すメソッドを作成することです。</p>
+                    <pre><code>def empty_binding
+  binding
+end
+</code></pre>
+                    <p>それから：</p>
+                    <pre><code>b = empty_binding
+b.local_variables
+# [ ]
+</code></pre>
+                    <p>そのバインディングには引き続き self があり、その
+                    self
+                    が利用できるインスタンス変数にアクセスできます。いくつかの策略を使ってそれを制限することもできます。</p>
+                    <pre><code>module Empty
+  def self.binding
+    super
+  end
+end
+
+b = Empty.binding
+b.eval(&#39;puts local_variables.inspect&#39;)
+# [ ]
+b.eval(&#39;puts instance_variables.inspect&#39;)
+# [ ]
+b.eval(&#39;puts self.inspect&#39;)
+# Empty
+</code></pre>
+                    <p>何が機能するかは、目標が何であるかによって異なります。ローカル変数を持たないバインディングは非常に簡単ですが、何も持たないバインディングはおそらく
+                    Ruby 自体をハックしない限り不可能です
+                    (ただし、BasicObject
+                    はモジュールよりも空に少し近づけるのに役立つかもしれません)。</p>
+                    <p>それを望んでいるのであれば、これらのどれも、安全に中に入ることができる刑務所を提供しません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

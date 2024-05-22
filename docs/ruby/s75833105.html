@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsコンソールを実行するとDockerでgemが見つかりませんでした | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsコンソールを実行するとDockerでgemが見つかりませんでした",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsコンソールを実行するとDockerでgemが見つかりませんでした</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Docker コンテナで Rails
+                    コンソールを実行し始めると、ローカルにインストールされた
+                    gem ですべての gem
+                    のリストが見つかりませんというエラーが発生しました。</p>
+                    <p>Rails または Rails
+                    ルートは正常に動作し、ビルド時にエラーは発生しません</p>
+                    <p>バンドルインストールしても何も変わらない</p>
+                    <p>それを修正するために私が見つけた1つの方法は、docker-compose
+                    run webbundle install
+                    –binstubsを使用することです。</p>
+                    <p>ここではすべての gem
+                    バンドルのインストールに関する問題と同じ問題が見つかりません。Docker
+                    ファイルの何が問題なのか知りたいです</p>
+                    <p>Dockerfile:</p>
+                    <pre><code># Use the official Ruby 2.5.0 image as the parent image
+FROM ruby:2.5.0-slim
+
+# Install dependencies
+RUN apt-get update -qq \
+    &amp;&amp; apt-get install -y \
+    # Needed for certain gems
+    build-essential \
+    shared-mime-info \
+    # Needed for postgres gem
+    libpq-dev \
+    # Needed for mysql
+    default-libmysqlclient-dev \
+    # Needed for redis
+    libssl-dev \
+    # Needed for elastic search
+    libcurl4-openssl-dev \
+    # Needed for foreman
+    procps
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the Gemfile and Gemfile.lock into the image and install gems
+ENV BUNDLER_VERSION=2.3.26
+COPY Gemfile Gemfile.lock ./
+RUN gem install bundler -v $BUNDLER_VERSION &amp;&amp; bundle install --jobs 20 --retry 5
+
+# Copy the rest of the application code into the image
+COPY . .
+
+# Expose port 3000 for the Rails app to listen on
+EXPOSE 3000
+
+# Start the Rails app with Puma
+CMD [&quot;bundle&quot;, &quot;exec&quot;, &quot;puma&quot;, &quot;-C&quot;, &quot;config/puma.rb&quot;]
+</code></pre>
+                    <p>Docker 構成:</p>
+                    <pre><code>version: &#39;3.3&#39;
+
+services:
+  db:
+    image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: app_api_dev
+      MYSQL_USER: app_api
+      MYSQL_PASSWORD: app_api
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+    ports:
+      - &quot;3306:3306&quot;
+  redis:
+    image: redis
+  web:
+    build: .
+    command: bundle exec rails s -p 3000 -b &#39;0.0.0.0&#39;
+    volumes:
+      - .:/app
+    ports:
+      - &quot;3000:3000&quot;
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USERNAME: app_api
+      DATABASE_PASSWORD: app_api
+      DATABASE_NAME: app_api_dev
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>他の答えはあまり意味がありません:</p>
+                    <p>実際の問題がいくつかあると思います。まず、あなたは次のような人です。</p>
+                    <p>結果として、ステップ 2
+                    はまったく起こらない可能性があります。 /app
+                    にコピーしたファイルは無視され、Docker Compose
+                    は代わりにローカル コンピューターのファイル
+                    システムから直接読み取ります。アプリを含む Docker
+                    イメージを構築することを想定している場合、これはおそらく意図された動作ではありません。</p>
+                    <p>これは、.dockerignore
+                    ファイルを使用していて、特定のファイルやフォルダーがイメージにコピーされないと予想される場合に特に問題となる可能性があります。ボリュームは
+                    .dockerignore を無視し、ディレクトリ全体が /app
+                    で利用可能になります。</p>
+                    <p>また、アプリにロードされることを想定していない
+                    BUNDLE_PATH や BUNDLE_CACHE_PATH
+                    などのバンドル構成オプションを使用している場合にも、これは問題となる可能性があります。
+                    gem が Docker イメージのシステム
+                    パス内の場所にインストールされ、そこから読み取られることを期待しているかもしれませんが、適切な場所にあることを期待していないバンドル設定オプションが、vendor/bundle
+                    や Vendor/cache などのローカル
+                    パスを指している場合は、ローカル
+                    パスへのボリュームの追加では、イメージ内のパスではなく、ローカル
+                    システム上のこれらの既存のパスが使用されます。</p>
+                    <p>2 番目の問題は、bundle exec
+                    でコマンドを実行していないことです。 Rails
+                    Console、Rails Server、または Rails Routes
+                    をどのように実行しようとしているのかは明確ではありませんが、これらのコマンドには、bundle
+                    exec というプレフィックスを付ける必要があります
+                    (たとえば、bundle exec Rails
+                    console)。たとえば、すでに docker compose up
+                    を実行していて、サーバーが実行されている場合は、次のようになります。</p>
+                    <pre><code>docker exec -it web bash
+</code></pre>
+                    <p>そして、コンテナ内にいるときは次のようになります。</p>
+                    <pre><code>cd /app
+bundle exec rails console
+</code></pre>
+                    <p>代わりに binstubs を使用したい場合は、Docker
+                    イメージを作成する前に、ローカル コンピューターで
+                    Bundle binstubs –all を実行して bin/
+                    にスタブを作成し、binstub
+                    を使用してこれらのコマンドを呼び出すには、そのコマンドを実行する必要があります。相対パスが含まれます。例:</p>
+                    <pre><code>bin/rails console
+bin/rails server
+bin/rails routes
+</code></pre>
+                    <p>これは、bundle exec Rails
+                    を実行する場所であればどこでも実行する必要があります。</p>
+                    <p>最後に、Rails Console または Rails Server
+                    だけでこれらを実行しようとしても、うまくいかない可能性があります。これは、Docker
+                    イメージ自体にこれらの gem
+                    がグローバルにインストールされている必要があり、それらのグローバル
+                    バージョンがバンドルされたバージョンと一致しない可能性があるためです。
+                    Rails <何か> を実行するだけの場合、システムは
+                    /Users/itayayuuicularu/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/bin:/Users/itayayuuicularu/.rbenv
+                    を検索します。
+                    /versions/3.3.1/bin:/usr/local/Cellar/rbenv/1.2.0/libexec:/Users/itayayuuicularu/Library/Caches/fnm_multishells/33854_1716205101510/bin:/Users/itayayuuicularu/Library/Application
+                    Support/fnm
+                    :/opt/homebrew/opt/openssl@3/bin:/Users/itayayuuicularu/Library/Caches/fnm_multishells/33805_1716205101477/bin:/Users/itayayuuicularu/.rbenv/shims:/Users/itayayuuicularu/.nodebrew/current/bin
+                    :/usr/local/opt/php@7.4/sbin:/usr/local/opt/php@7.4/bin:/usr/local/opt/libxml2/bin:/Users/itayayuuichirou/.phpenv/shims:/opt
+                    /homebrew/opt/tidy-html5/lib:/opt/homebrew/opt/icu4c/bin:/opt/homebrew/opt/openssl@1.1/bin:/opt/homebrew/opt/krb5/bin:/opt/homebrew
+                    /opt/libiconv/bin:/opt/homebrew/opt/curl/bin:/opt/homebrew/opt/bzip2/bin:/opt/homebrew/opt/libxml2/bin:/opt/homebrew/opt/bison/bin
+                    :/Users/itayayuuicularu/.phpenv/bin:/Users/itayayuuicularu/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/
+                    sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:
+                    /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/itayayuuichirou/.fzf/bin:/Users/itayayuuofficial/Documents
+                    /SDKs/flutter/bin を使用して、rails
+                    という名前のバイナリを検索します。Gemfile.lock
+                    で定義した Rails
+                    のバージョンは自動的に検索されません。また、バンドル
+                    インストールによってインストールされたバイナリも自動的に検索されません。バンドルされたアプリケーションとその依存関係を認識しているかどうかは不明ですが、最初の応答性の高いバイナリが検索されるだけです。コマンドは必ず、bundle
+                    exec Rails … または bin/rails …
+                    のいずれかを指定してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

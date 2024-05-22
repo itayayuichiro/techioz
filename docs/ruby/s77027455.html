@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでパスワード保護された（オプションとして）zipファイルを生成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでパスワード保護された（オプションとして）zipファイルを生成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでパスワード保護された（オプションとして）zipファイルを生成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>基本的なアーカイブの作成は次のように行われます
+                    (rubyzip を使用)</p>
+                    <pre><code>Zip::File.open(zipfile_name, create: true) do |zipfile|
+  input_filenames.each do |filename|
+    zipfile.add(filename, File.join(folder, filename))
+  end
+end
+</code></pre>
+                    <p>さて、しばらく前にうまくいくようになりました…しかし、今度はパスワードで保護された
+                    zip
+                    を作成する必要があります。このために、ドキュメントには次のものが含まれています。</p>
+                    <pre><code>enc = Zip::TraditionalEncrypter.new(&#39;password&#39;)
+buffer = Zip::OutputStream.write_buffer(encrypter: enc) do |output|
+  output.put_next_entry(&quot;my_file.txt&quot;)
+  output.write my_data
+end
+</code></pre>
+                    <p>最初のアプローチ（ファイルのリストを反復処理する）と組み合わせる方法がよくわかりません。</p>
+                    <p>また、私の場合、パスワードはオプションです。アーカイブをパスワードで保護するかどうかはユーザーの選択です。それぞれの場合にまったく異なるコードを使用する必要があるのは避けたいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ご覧のとおり、デフォルトでは暗号化機能は nil
+                    です</p>
+                    <p>ただし、必要に応じて動的に渡すことができます</p>
+                    <p>私はそのような方法を提案します:</p>
+                    <pre><code>require &quot;zip&quot;
+
+def zipfile(filenames:, zip_filename:, password: nil)
+  # If password was passed, intitialize encrypter
+  encrypter = Zip::TraditionalEncrypter.new(password) if password
+
+  # Create buffer, it is the object like StringIO
+  # Pass encrypter there, it will be nil if no password
+  buffer = Zip::OutputStream.write_buffer(encrypter: encrypter) do |out|
+    Array(filenames).each do |filename|
+      # Create file inside zip archive
+      out.put_next_entry(File.basename(filename))
+      # And fill with file content
+      out.write File.read(filename)
+    end
+  end
+
+  # Write result to the zip file
+  File.open(zip_filename, &quot;w&quot;) { |zipfile| zipfile.write(buffer.string) }
+end
+</code></pre>
+                    <p>もちろん、必要に応じて変更したり、別のエンティティを作成したりできます</p>
+                    <p>これで、パスワードを渡す/渡さないで、文字列またはファイル名の配列を渡してこのメソッドを呼び出すことができます。</p>
+                    <pre><code>zipfile(filenames: [&quot;1.txt&quot;, &quot;2.txt&quot;], zip_filename: &quot;new.zip&quot;, password: &quot;123456&quot;)
+zipfile(filenames: &quot;/Users/abc/111.txt&quot;, zip_filename: &quot;/Users/abc/111.zip&quot;)
+</code></pre>
+                    <p>ご覧のとおり、これはrubyzip
+                    3.0のかなり新しい機能であり、このバージョンを(たとえばGemfileで)指定する必要があります。</p>
+                    <pre><code># Gemfile
+source &quot;https://rubygems.org&quot;
+
+gem &quot;rubyzip&quot;, &quot;3.0.0.alpha&quot;
+</code></pre>
+                    <p>そして、そのバージョンのコンテキストでスクリプトを実行するとします。</p>
+                    <pre><code>bundle exec ruby zipper.rb
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>足場ジェネレーターの作成に関する問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "足場ジェネレーターの作成に関する問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>足場ジェネレーターの作成に関する問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Devise のスキャフォールディング
+                    ジェネレーターを構築しようとしていますが、source_root=File.expand_path(“../../templates/controllers”,
+                    <strong>FILE</strong>)
+                    行のコメントを解除するとテストに合格するのに問題があります。
+                    コントローラーのアクションで、次のエラーが発生します。</p>
+                    <pre><code>Could not find &quot;confirmations_controller.rb&quot; in any of your source paths. Your current source paths are:
+/home/jackparsons210/devise/lib/generators/active_record/templates
+.system temporary path is world-writable: /tmp
+/tmp is world-writable: /tmp
+[repeated thrice]
+</code></pre>
+                    <p>ただし、source_root を 2
+                    回設定することはできません。これを克服する方法はありますか、それとも
+                    File
+                    コマンドを使用して独自のテンプレートをハッキングする必要がありますか?</p>
+                    <pre><code># frozen_string_literal: true
+
+require &#39;rails/generators/active_record&#39;
+require &#39;generators/devise/orm_helpers&#39;
+require &quot;generators/devise/controllers_generator.rb&quot;
+module ActiveRecord
+  module Generators
+    class ScaffoldGenerator &lt; ActiveRecord::Generators::Base
+      argument :attributes, type: :array, default: [], banner: &quot;field:type field:type&quot;
+
+      class_option :primary_key_type, type: :string, desc: &quot;The type for primary key&quot;
+
+      include Devise::Generators::OrmHelpers
+      source_root File.expand_path(&quot;../templates&quot;, __FILE__)
+    
+    
+      def copy_devise_migration
+        if (behavior == :invoke &amp;&amp; model_exists?) || (behavior == :revoke &amp;&amp; migration_exists?(table_name))
+          migration_template &quot;migration_existing.rb&quot;, &quot;#{migration_path}/add_devise_to_#{table_name}.rb&quot;, migration_version: migration_version
+        else
+          migration_template &quot;migration.rb&quot;, &quot;#{migration_path}/devise_create_#{table_name}.rb&quot;, migration_version: migration_version
+        end
+      end
+
+      def generate_model
+        invoke &quot;active_record:model&quot;, [name], migration: false unless model_exists? &amp;&amp; behavior == :invoke
+      end
+
+      def inject_devise_content
+        content = model_contents
+
+        class_path = if namespaced?
+          class_name.to_s.split(&quot;::&quot;)
+        else
+          [class_name]
+        end
+
+        indent_depth = class_path.size - 1
+        content = content.split(&quot;\n&quot;).map { |line| &quot;  &quot; * indent_depth + line } .join(&quot;\n&quot;) &lt;&lt; &quot;\n&quot;
+
+        inject_into_class(model_path, class_path.last, content) if model_exists?
+      end
+
+      def migration_data
+&lt;&lt;RUBY
+      ## Database authenticatable
+      t.string :email,              null: false, default: &quot;&quot;
+      t.string :encrypted_password, null: false, default: &quot;&quot;
+
+      ## Recoverable
+      t.string   :reset_password_token
+      t.datetime :reset_password_sent_at
+
+      ## Rememberable
+      t.datetime :remember_created_at
+
+      ## Trackable
+      # t.integer  :sign_in_count, default: 0, null: false
+      # t.datetime :current_sign_in_at
+      # t.datetime :last_sign_in_at
+      # t.#{ip_column} :current_sign_in_ip
+      # t.#{ip_column} :last_sign_in_ip
+
+      ## Confirmable
+      # t.string   :confirmation_token
+      # t.datetime :confirmed_at
+      # t.datetime :confirmation_sent_at
+      # t.string   :unconfirmed_email # Only if using reconfirmable
+
+      ## Lockable
+      # t.integer  :failed_attempts, default: 0, null: false # Only if lock strategy is :failed_attempts
+      # t.string   :unlock_token # Only if unlock strategy is :email or :both
+      # t.datetime :locked_at
+RUBY
+      end
+
+      def ip_column
+        # Padded with spaces so it aligns nicely with the rest of the columns.
+        &quot;%-8s&quot; % (inet? ? &quot;inet&quot; : &quot;string&quot;)
+      end
+
+      def inet?
+        postgresql?
+      end
+
+      def rails5_and_up?
+        Rails::VERSION::MAJOR &gt;= 5
+      end
+
+      def rails61_and_up?
+        Rails::VERSION::MAJOR &gt; 6 || (Rails::VERSION::MAJOR == 6 &amp;&amp; Rails::VERSION::MINOR &gt;= 1)
+      end
+
+      def postgresql?
+        ar_config &amp;&amp; ar_config[&#39;adapter&#39;] == &#39;postgresql&#39;
+      end
+
+      def ar_config
+        if ActiveRecord::Base.configurations.respond_to?(:configs_for)
+          if rails61_and_up?
+            ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: &quot;primary&quot;).configuration_hash
+          else
+            ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: &quot;primary&quot;).config
+          end
+        else
+          ActiveRecord::Base.configurations[Rails.env]
+        end
+      end
+
+     def migration_version
+       if rails5_and_up?
+         &quot;[#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}]&quot;
+       end
+     end
+
+     def primary_key_type
+       primary_key_string if rails5_and_up?
+     end
+
+     def primary_key_string
+       key_string = options[:primary_key_type]
+       &quot;, id: :#{key_string}&quot; if key_string
+     end
+    
+    
+        
+            CONTROLLERS = %w(confirmations passwords registrations sessions unlocks omniauth_callbacks).freeze
+            puts File.expand_path(&quot;../../templates/controllers&quot;, __FILE__)
+            def create_controllers
+                #@_source_root=File.expand_path(&quot;../../templates/controllers&quot;, __FILE__)
+                
+                @scope_prefix = table_name.blank? ? &#39;&#39; : ( table_name.camelize + &#39;::&#39;)
+                controllers = CONTROLLERS
+                controllers.each do |name|
+                template &quot;#{name}_controller.rb&quot;,
+                        &quot;app/controllers/#{table_name}/#{name}_controller.rb&quot;
+                end
+                
+            end
+            
+    end
+    
+
+  end
+end
+
+
+
+</code></pre>
+                    <p>source_root が thor
+                    の初期化子に設定されているようです</p>
+                    <pre><code>  def initialize(args = [], options = {}, config = {})
+      self.behavior = case config[:behavior].to_s
+      when &quot;force&quot;, &quot;skip&quot;
+        _cleanup_options_and_set(options, config[:behavior])
+        :invoke
+      when &quot;revoke&quot;
+        :revoke
+      else
+        :invoke
+      end
+
+      super
+      self.destination_root = config[:destination_root]
+    end
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>すべてを 1
+                    つのファイルにコピーする必要はありません。それは非常に逆効果です。</p>
+                    <pre><code>bin/rails g generator auth
+</code></pre>
+                    <pre><code># lib/generators/auth/auth_generator.rb
+
+class AuthGenerator &lt; Rails::Generators::NamedBase
+  # To override templates use:
+  #
+  #   lib/templates/devise
+  #   lib/templates/devise/controllers
+  #
+  # For example, to override one of the controller templates, create:
+  #
+  #   lib/templates/devise/controllers/confirmations_controller.rb
+  #
+  def setup_devise
+    # Whatever you pass as arguments will be shared with invoked generators
+    invoke &quot;devise&quot;
+    
+    # Because command arguments are shared, you have to make sure that
+    # each generator receives correct input. Here, the name has to
+    # be plural: User -&gt; users
+    invoke &quot;devise:controllers&quot;, [plural_name]
+  end
+end
+</code></pre>
+                    <pre><code># lib/templates/devise/controllers/confirmations_controller.rb
+
+# TODO: make &lt;%= scope %&gt; controller
+</code></pre>
+                    <p>追加のモデル属性をデバイス
+                    ジェネレーターに渡すことができます。</p>
+                    <pre><code>$ bin/rails g auth User bio:text -c confirmations 
+...
+
+$ cat app/controllers/users/confirmations_controller.rb
+# TODO: make users controller
+</code></pre>
+                    <p>Device:controllers は NamedBase ではなく Base
+                    ジェネレーターから継承しているため、ヘルパーは取得できません。これを回避する方法はわかりませんが、テンプレートを数回呼び出すだけです。</p>
+                    <pre><code>class AuthGenerator &lt; Rails::Generators::NamedBase
+  def setup_devise
+    invoke &quot;devise&quot;
+  end
+
+  include Rails::Generators::ResourceHelpers
+  source_root File.expand_path(&quot;templates&quot;, __dir__)
+
+  CONTROLLERS = %w[confirmations passwords registrations sessions unlocks omniauth_callbacks].freeze
+  class_option :controllers, aliases: &quot;-c&quot;, type: :array, desc: &quot;Select specific controllers to generate (#{CONTROLLERS.join(&quot;, &quot;)})&quot;
+
+  def create_controllers
+    @scope_prefix = &quot;#{controller_class_name}::&quot;
+    controllers = options[:controllers] || CONTROLLERS
+    controllers.each do |c|
+      template &quot;#{c}_controller.rb&quot;, &quot;app/controllers/#{plural_name}/#{c}_controller.rb&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>ここで、lib/generators/auth/templates
+                    にあるテンプレートを指す source_root
+                    が必要になります。</p>
+                    <pre><code># lib/generators/auth/templates/confirmations_controller.rb
+
+class &lt;%= @scope_prefix %&gt;ConfirmationsController &lt; Devise::ConfirmationsController
+end
+</code></pre>
+                    <p>ジェネレーターを作成したので、他の場所でも使用できます。</p>
+                    <pre><code>$ bin/rails g generator lazy
+</code></pre>
+                    <pre><code># lib/generators/lazy/lazy_generator.rb
+
+class LazyGenerator &lt; Rails::Generators::Base
+  def just_set_it_up
+    invoke &quot;auth&quot;, [&quot;User&quot;, &quot;bio:text&quot;], {controllers: [&quot;confirmations&quot;]}
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

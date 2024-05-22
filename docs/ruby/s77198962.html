@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Gem OAuth 1.0 が Ruby スクリプトでの認証に失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Gem OAuth 1.0 が Ruby スクリプトでの認証に失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Gem OAuth 1.0 が Ruby
+スクリプトでの認証に失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>認可が必要な Flickr サードパーティ API
+                    を呼び出すスクリプト (非レール) で Ruby Oauth 1.0
+                    ライブラリを使用しています。リクエスト
+                    トークンの承認を取得できませんでした。 401
+                    Unauthorized が繰り返し返されます。私の混乱は、Ruby
+                    スクリプトで使用されているコールバック、セッション、リダイレクトの使用に起因しています。これは、それ自体が
+                    Web サーバー/Rails アプリではない通常の Ruby
+                    スクリプトではどのように機能するのでしょうか?
+                    Postman
+                    で手動で認証を機能させることができましたが、認証ベリファイアを取得するには、ブラウザを開いてコールバックを
+                    URL として貼り付け、URL
+                    に表示されるベリファイアをコピーする必要があります。</p>
+                    <p>Web
+                    サイトで認証を行っていないため、コールバック、redirect_to、セッションは必要ないと思われます。</p>
+                    <p>コールバックやリダイレクトを使用せずにスクリプトでこれを機能させる方法はありますか?</p>
+                    <p>結果を含めて次のことを試しました。</p>
+                    <p>私がやろうとしていることの抜粋を以下に示します。</p>
+                    <pre><code>require &#39;oauth&#39;
+require &#39;byebug&#39;
+
+callback_url = &quot;localhost URL&quot;
+
+# Create a new OAuth::Consumer instance by passing it a configuration hash:
+consumer_key = &quot;a2e299ac1d635a7c9f2d7c7b70588679&quot;
+consumer_secret = &quot;235de478b9a078ae&quot;
+
+@oauth_consumer = OAuth::Consumer.new(consumer_key, consumer_secret, 
+    {   :site =&gt; &quot;https://flickr.com&quot;,
+        # {   :site =&gt; &quot;https://flickr.com/services&quot;,
+        :scheme             =&gt; :header,
+        :http_method        =&gt; :get,
+        :request_token_path =&gt; &quot;request_token URL&quot;,
+        :access_token_path  =&gt; &quot;access_token URL&quot;,
+        :authorize_path     =&gt; &quot;authorize URL&quot;,
+        :body_hash_enabled  =&gt; false,
+        :debug_output       =&gt; true
+             })
+@request_token = @oauth_consumer.get_request_token(oauth_callback: callback_url)
+session = {}
+session[:token] = @request_token
+session[:token_secret] = @request_token
+# redirect_to @request_token.authorize_url(oauth_callback: callback_url) # redirect_to not available in ruby script
+
+puts &quot;request token: #{session[:token]}&quot;
+puts &quot;request token secret: #{session[:token_secret]}&quot;
+auth_str = @request_token.authorize_url(oauth_callback: callback_url)
+
+# When user returns create an access_token
+hash = { oauth_token: session[:token], oauth_token_secret: session[:token_secret] }
+@request_token = OAuth::RequestToken.from_hash(@oauth_consumer, hash)
+
+@access_token = @request_token.get_access_token
+@recognitions = @access_token.get(&quot;login URL&quot;)
+type here
+</code></pre>
+                    <p>次の結果が表示されます。</p>
+                    <pre><code>reading 28 bytes...
+-&gt; &quot;oauth_problem=token_rejected&quot;
+read 28 bytes
+Conn close
+Traceback (most recent call last):
+        2: from flickr_client.rb:38:in `&lt;main&gt;&#39;
+        1: from /Users/bhunsake/.rbenv/versions/2.7.7/lib/ruby/gems/2.7.0/gems/oauth-1.1.0/lib/oauth/tokens/request_token.rb:28:in `get_access_token&#39;
+/Users/bhunsake/.rbenv/versions/2.7.7/lib/ruby/gems/2.7.0/gems/oauth-1.1.0/lib/oauth/consumer.rb:268:in `token_request&#39;: 401 Unauthorized (OAuth::Unauthorized)
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私自身の質問に対する簡単な答えを見つけました。どうやら、ログイン検証が必要ない場合、Ruby
+                    Auth Consumer
+                    オブジェクトがあらゆる承認/認証を処理します。この
+                    Flickr の場合、以下に示すように Consumer (API) Key
+                    を追加するだけで済みました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

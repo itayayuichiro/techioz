@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7.1.2 および Ruby 3.2.1 の Enum の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7.1.2 および Ruby 3.2.1 の Enum の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7.1.2 および Ruby 3.2.1 の Enum
+の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>enum :status_ids, {
+ pending: 0,
+ verified: 1,
+ work_in_progress: 2,
+ complete: 3
+}
+
+enum :type_ids, {
+ price_variance: 0,
+ oos_in_store: 1,
+ not_in_store_file: 2,
+ not_in_master_db: 3,
+ data_not_correct: 4
+ }
+</code></pre>
+                    <p>これらは私の列挙型ですが、次のエラーに直面しています。</p>
+                    <p>列挙型「status_ids」の宣言された属性タイプ。列挙型はデータベース列でサポートされるか、
+                    を介して明示的な型で宣言される必要があります。
+                    （ランタイムエラー）</p>
+                    <p>属性を使用して status_ids と type_ids
+                    を明示的に呼び出した attr_accessor を試しました</p>
+                    <p>データベース列も使用したくない</p>
+                    <p>Rails 7.1.2 の enum の永続的なソリューション</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>データベース列がない場合は、属性メソッドを使用して同じ名前の属性を定義する必要があります。
+                    7.1.2 変更ログの例によれば、属性は :string
+                    型である必要があります。</p>
+                    <p>コードに適用されます:</p>
+                    <pre><code>attribute :status_ids, :string
+attribute :type_ids, :string
+
+enum status_ids: { ... }
+enum type_ids: { ... }
+</code></pre>
+                    <p>データベースに対応する列がないと、これらの属性は保持されず、同様にデータベース
+                    クエリに使用できないことに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

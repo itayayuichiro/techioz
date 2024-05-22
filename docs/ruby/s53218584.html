@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の 2 つのネットワーク マスクの合計 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の 2 つのネットワーク マスクの合計",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の 2 つのネットワーク マスクの合計</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Amazon は現在 3.0.0.0/8 を所有しています どうやら
+                    3.0.0.0/9 と 3.128.0.0/9 の 2
+                    つのチャンクに分けて購入されたようです。</p>
+                    <p>Ruby で 3.0.0.0/9 と 3.128.0.0/9 を追加し、結果
+                    3.0.0.0/8
+                    を得るプログラムを作成するにはどうすればよいですか?</p>
+                    <p>この方法でマスクをcidrに変換できます。</p>
+                    <pre><code>&quot;255.255.255.0&quot;  \
+    .split(&quot;.&quot;) \
+    .map { |e| e.to_i.to_s(2).rjust(8, &quot;0&quot;) } \
+    .join \
+    .count(&quot;1&quot;) # =&gt; 24
+</code></pre>
+                    <p>しかし、あるマスクを別のマスクに追加するにはどうすればよいでしょうか?</p>
+                    <p>これが私が今持っているものです:</p>
+                    <pre><code>[1] pry(main)&gt; &quot;3.128.0.0&quot;.split(&#39;.&#39;).map { |e| e.to_i.to_s(2).rjust(8, &quot;0&quot;) }
+=&gt; [&quot;00000011&quot;, &quot;10000000&quot;, &quot;00000000&quot;, &quot;00000000&quot;]
+[2] pry(main)&gt; &quot;3.0.0.0&quot;.split(&#39;.&#39;).map { |e| e.to_i.to_s(2).rjust(8, &quot;0&quot;) }
+=&gt; [&quot;00000011&quot;, &quot;00000000&quot;, &quot;00000000&quot;, &quot;00000000&quot;]
+</code></pre>
+                    <p>上記の両方のアドレスに /9
+                    を適用するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>要点を正しく理解できているかわかりませんが、これが役立つかもしれません。</p>
+                    <p>計算を行うためのいくつかのメソッドを定義します。</p>
+                    <pre><code>def ip_to_bin(ip)
+  ip.split(&#39;.&#39;).map { |e| e.to_i.to_s(2).rjust(8, &quot;0&quot;).split(&#39;&#39;).map(&amp;:to_i) }
+end
+
+def network(ip, mask)
+  # convert string to array of bin
+  ip = ip_to_bin(ip)
+  mask = ip_to_bin(mask)
+  # then bitwise sums
+  ip.zip(mask).map { |e| e.first.zip(e.last).map { |s, a| s &amp; a } }.map { |e| e.reverse.map.with_index { |d,i| d.to_i * 2**i }.sum }.join(&#39;.&#39;)
+end
+
+def cidr_to_mask(cidr)
+  (cidr.times.map{ 1 } + (32 - cidr).times.map{ 0 }).each_slice(8).map { |e| e.reverse.map.with_index { |d,i| d.to_i * 2**i }.sum }.join(&#39;.&#39;)
+end
+</code></pre>
+                    <p>次に、次の方法を使用してネットワークを計算します。</p>
+                    <pre><code>cidr = 8
+ip = &quot;3.0.0.0&quot;
+mask = cidr_to_mask(cidr) #=&gt; &quot;255.0.0.0&quot;
+network(ip, mask) #=&gt; &quot;3.0.0.0&quot;
+</code></pre>
+                    <p>もう一つの例：</p>
+                    <pre><code>network(&quot;176.232.53.237&quot;, cidr_to_mask(26)) #=&gt; &quot;176.232.53.192&quot;
+</code></pre>
+                    <p>CIDR からホストの数を計算するには:</p>
+                    <pre><code>def nr_hosts_from(cidr)
+  ((32-cidr).times.map{ 1 }).reverse.map.with_index { |d,i| d.to_i * 2**i }.sum - 1
+end
+
+nr_hosts_from(8) #=&gt; 16777214
+nr_hosts_from(9) #=&gt;  8388606
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

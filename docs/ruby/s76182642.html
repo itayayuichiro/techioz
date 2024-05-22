@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 記事のコメントを編集 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 記事のコメントを編集",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 記事のコメントを編集</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>目的は記事のコメントを編集することです。</p>
+                    <p>ただし、 &lt;%= render ‘form’, comment: <span
+                    class="citation"
+                    data-cites="comment">@comment</span> %&gt;
+                    を使用して新しいコメントフィールドを表示する方法、または
+                    &lt;%= render ‘comment’, comment: <span
+                    class="citation"
+                    data-cites="comment">@comment</span> %
+                    を使用してすでに存在するコメントテキストを表示する方法しかわかりません。
+                    &gt; edit.html.erb 内</p>
+                    <p>&lt;%= form_with モデルも変更してみました: <span
+                    class="citation" data-cites="article">[@article,
+                    @article.comments.build]</span> do |form| %&gt; から
+                    &lt;%= form_with モデル: <span class="citation"
+                    data-cites="article.comment">@article.comment</span>
+                    do |form| %&gt; ただし、Comments#edit で
+                    NoMethodError が発生します</p>
+                    <p>ビュー/コメント/edit.html.erb</p>
+                    <pre><code>&lt;h1&gt;Edit comment&lt;/h1&gt;
+&lt;%= render &#39;comment&#39;, comment: @comment %&gt;
+</code></pre>
+                    <p>コメント/_form.html.erb</p>
+                    <pre><code>&lt;%= form_with model: [@article, @article.comments.build] do |form| %&gt;
+  &lt;p&gt;
+    &lt;%= form.label :commenter %&gt;&lt;br&gt;
+    &lt;%= form.text_area :commenter %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.label :body %&gt;
+    &lt;%= form.text_area :body %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.label :status %&gt;
+    &lt;%= form.select :status, [&#39;public&#39;, &#39;private&#39;, &#39;archived&#39;], selected: &#39;public&#39; %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>コメント/_comment.html.erb</p>
+                    <pre><code>&lt;p&gt;
+    &lt;strong&gt;Commenter:&lt;/strong&gt;
+    &lt;%= comment.commenter %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;strong&gt;Comment:&lt;/strong&gt;
+    &lt;%= comment.body %&gt;
+  &lt;/p&gt;
+&lt;%= link_to &quot;Edit comment&quot;, edit_article_comment_path(comment.article, comment) %&gt;
+&lt;p&gt;
+  &lt;%= link_to &quot;Destroy comment&quot;, [comment.article, comment], data: {
+    turbo_method: :delete,
+    turbo_confirm: &quot;Are you sure?&quot;
+  } %&gt;
+&lt;/p&gt;
+</code></pre>
+                    <p>コメントコントローラー.rb</p>
+                    <pre><code>class CommentsController &lt; ApplicationController
+
+  http_basic_authenticate_with name: &quot;dhh&quot;, password: &quot;secret&quot;, except: [:index, :show]
+
+  def create
+    @article = Article.find(params[:article_id])
+    @comments = @article.comments.create(comment_params)
+    redirect_to article_path(@article)
+  end
+
+  def destroy
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.find(params[:id])
+    @comment.destroy
+    redirect_to article_path(@article), status: :see_other
+  end
+
+  def edit
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.find(params[:id])
+    # redirect_to article_path(@comment)
+
+    if @comment.update(comment_params)
+      redirect_to @comment
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  private
+  def comment_params
+    params.require(:comment).permit(:commenter, :body)
+  end
+end
+</code></pre>
+                    <p>記事_コントローラー.rb</p>
+                    <pre><code>class ArticlesController &lt; ApplicationController
+
+  http_basic_authenticate_with name: &quot;dhh&quot;, password: &quot;secret&quot;, except: [:index, :show]
+
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+
+    if @article.update(article_params)
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @article = Article.find(params[:id])
+    @article.destroy
+
+    redirect_to root_path, status: :see_other
+  end
+
+  private
+  def article_params
+    params.require(:article).permit(:title, :body, :status)
+  end
+
+end
+</code></pre>
+                    <p>ビュー/記事/show.html.erb</p>
+                    <pre><code>&lt;h1&gt;&lt;%= @article.title %&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;%= @article.body %&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt; &lt;%= link_to &quot;Edit&quot;, edit_article_path(@article) %&gt;&lt;/li&gt;
+  &lt;li&gt;
+    &lt;%= link_to &quot;Destroy&quot;, article_path(@article),
+                data: { turbo_method: :delete, turbo_confirm: &quot;Are you sure?&quot; } %&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Comments&lt;/h2&gt;
+&lt;%= render @article.comments %&gt;
+
+&lt;h2&gt;Add a comment&lt;/h2&gt;
+&lt;%= render &#39;comments/form&#39; %&gt;
+</code></pre>
+                    <p>新しいコメント/_form.html.erb</p>
+                    <pre><code>&lt;%= form_with model: @comment do |form| %&gt;
+  &lt;p&gt;
+    &lt;%= form.label :commenter %&gt;&lt;br&gt;
+    &lt;%= form.text_area :commenter %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.label :body %&gt;
+    &lt;%= form.text_area :body %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.label :status %&gt;
+    &lt;%= form.select :status, [&#39;public&#39;, &#39;private&#39;, &#39;archived&#39;], selected: &#39;public&#39; %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>新しい記事_コントローラー.rb</p>
+                    <pre><code>class ArticlesController &lt; ApplicationController
+
+  http_basic_authenticate_with name: &quot;dhh&quot;, password: &quot;secret&quot;, except: [:index, :show]
+
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+    @comment = @article.comments.new
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+
+    if @article.update(article_params)
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @article = Article.find(params[:id])
+    @article.destroy
+
+    redirect_to root_path, status: :see_other
+  end
+
+  private
+  def article_params
+    params.require(:article).permit(:title, :body, :status)
+  end
+
+end
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="comment">@comment</span> = <span
+                    class="citation"
+                    data-cites="article.comments.new">@article.comments.new</span>
+                    を含めると、Articles#show で
+                    ActionController::UrlGenerationError が発生します。
+                    {:action=&gt;“edit”, :article_id=&gt;“11”,
+                    :controller=&gt;“comments”
+                    に一致するルートがありません、:id=&gt;nil}、記事の「show.html.erb」に必要なキー
+                    [:id] がありません。それがないと、form_with
+                    を変更すると、コメントを作成できなくなります。エラーは表示されません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ほぼすべてのコンピューターと同様に、フォームは実際に指示どおりに動作します。</p>
+                    <p>&lt;%= form_with モデル: <span class="citation"
+                    data-cites="article">[@article,
+                    @article.comments.build]</span> |form|
+                    を実行します。 %&gt;</p>
+                    <p>おそらく既存のコードは、新しいコメントを作成するのにすでにうまく機能しているでしょう。</p>
+                    <p>既存のコメントを編集しようとしている場合、これはフォームに間違った動作を要求していることを確認するのに役立つと思います。</p>
+                    <p>いくつかのメモ:</p>
+                    <p>(したがって、Rails は NoMethodError
+                    と表示します。Article のインスタンスに comment
+                    と呼ばれるメソッドがないことがわかります。)</p>
+                    <p>たとえ 1
+                    つしかない場合でも、まったくない場合でも、常にコレクション
+                    (配列)
+                    になります。最初のコメントの本文が必要な場合は、
+                    <span class="citation"
+                    data-cites="articles.comments.first.body">@articles.comments.first.body</span>
+                    と言う必要があります。 <span class="citation"
+                    data-cites="articles.comments.body">@articles.comments.body</span>
+                    を呼び出そうとすると、別の NoMethodError
+                    が返されます。</p>
+                    <p>新しいコメントをインスタンス化する他の方法は次のとおりです。</p>
+                    <p>コントローラーに <span class="citation"
+                    data-cites="comment">@comment</span>
+                    を設定しているので (<span class="citation"
+                    data-cites="comment">@comment</span> = <span
+                    class="citation"
+                    data-cites="article.comments.find">@article.comments.find</span>(params[:id]))、それを使用するだけです。</p>
+                    <pre><code>&lt;%= form_with model: @comment do |form| %&gt;
+  &lt;!--- all the same code you already have --&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ただし、ちょっと待ってください。
+                    comments/_form.html.erb の form_with
+                    コードを変更しただけでは、フォームは編集には機能しますが、作成には機能しなくなります。</p>
+                    <p>CommentsController
+                    に新しいアクションが含まれていませんでした。これは、ArticlesController
+                    アクションの 1 つ (おそらく #show)
+                    を介して「新しいコメント」フォームが表示されているためだと思います。これは非常に一般的です。</p>
+                    <p>部分コードを使用しているため、_form.html.erb
+                    コードを複数の目的で再利用しようとしています。これは賢明であり、必要に応じて
+                    <span class="citation"
+                    data-cites="comment">@comment</span>
+                    変数を変更できる場合に機能します。</p>
+                    <p>既存のコメントを編集する場合は、<span
+                    class="citation"
+                    data-cites="comment">@comment</span>
+                    を実際に編集したい既存のコメントに設定する必要があります。あなたは幸運です、すでにそうなっています。</p>
+                    <p>新しいコメントを作成する場合、<span
+                    class="citation"
+                    data-cites="comment">@comment</span> は、正しい
+                    <span class="citation"
+                    data-cites="article">@article</span>
+                    にすでに関連付けられている新しいコメントである必要があります。これは次のように行うことができます:
+                    <span class="citation"
+                    data-cites="comment">@comment</span> = <span
+                    class="citation"
+                    data-cites="article.comments.new">@article.comments.new</span>
+                    (または、その方が良い場合は .build)</p>
+                    <p>この新しい変数をどこに追加しますか?
+                    「新しいコメント」フォームを表示するために使用している
+                    ArticlesController アクション内
+                    (たとえば、comments/new.html.erb
+                    ファイルを参照している場所):</p>
+                    <pre><code>class ArticlesController &lt; ApplicationController
+  def show
+    @article = Article.find(params[:id])
+    @comment = @article.comments.new
+  end
+end
+</code></pre>
+                    <p>comments/_form.html.erb
+                    がレンダリングされると、次のようになります。</p>
+                    <p>このとりとめのない答えがお役に立てば幸いです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Railsは特定の列名の後に列を追加します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Railsは特定の列名の後に列を追加します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on
+Railsは特定の列名の後に列を追加します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テーブル内の特定の列の後に列を追加しようとしました。
+                    私がやったことは次のとおりです。</p>
+                    <pre><code>rails generate migration add_reaction_id_to_patient_allergies reaction_id: integer :after =&gt; &#39;patient_id&#39;
+</code></pre>
+                    <p>私の移行ファイルは次のようになります。</p>
+                    <pre><code>class AddReactionIdToPatientAllergies &lt; ActiveRecord::Migration
+  def change
+    add_column :patient_allergies, :reaction_id, :string
+    add_column :patient_allergies, :integer, :string
+    add_column :patient_allergies, :, :after
+    add_column :patient_allergies, :=, :string
+  end
+end
+</code></pre>
+                    <p>何か見逃した場合は誰かが教えてくれますか?コマンドがうまくいったとは思えません。上記のファイルに「=」が表示されています。そこにあるべきではないと思います。</p>
+                    <p>もしそうなら、どうすれば上記を元に戻せますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際にこの移行を Rails db:Migrate
+                    できるとは思えないので、ロールバックする必要はありません。下の
+                    3 つの add_columns を削除し、上の 1
+                    つを次のように置き換えるだけです。</p>
+                    <pre><code>add_column :patient_allergies, :reaction_id, :integer, after: :patient_id
+</code></pre>
+                    <p>移行しても問題ないはずです。将来の参考のために、入力したコマンドは次のようになります。</p>
+                    <pre><code>rails generate migration add_reaction_id_to_patient_allergies reaction_id:integer
+</code></pre>
+                    <p>整数の前にスペースがあると、ジェネレーターはそれが新しい列であると認識しました。残念ながら、コマンドラインでも
+                    Ruby 構文 (a =&gt; b)
+                    を使用することはできません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

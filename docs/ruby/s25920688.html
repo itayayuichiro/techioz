@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec がフリーズしています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec がフリーズしています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec がフリーズしています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリに rspec
+                    を設定してインストールしました。正常に動作していました
+                    (rspec を試しているだけなので、テストは 2
+                    つだけです)。</p>
+                    <p>彼らは順調に働いていました。現在、データベースを使用してテストを実行しようとすると、rspec
+                    がフリーズします。</p>
+                    <p>ただ凍ってしまいます。出力にエラーがないため、探し始めるべきかどうかさえわかりません。</p>
+                    <p>rspec の冗長モードまたはデバッグ
+                    モードはありますか、あるいは誰かがこれに直面したことがありますか?</p>
+                    <p>-b
+                    を試してみましたが、エラーが発生する前にフリーズします。</p>
+                    <p>出力: (Rspec は –format
+                    ドキュメントで構成されています)</p>
+                    <pre><code>[leandro@machine:~] rspec
+User
+</code></pre>
+                    <p>というより、それだけです。それはハングします。コンピューターを手動で
+                    2 回リセットする必要があります。</p>
+                    <p>これは user_spec.rb です</p>
+                    <pre><code>require &#39;spec_helper&#39;
+
+describe User do
+
+  let(:user) { User.create({
+    username: &quot;teste&quot;,
+    email: &quot;[email protected]&quot;,
+    name: &quot;Teste&quot;,
+    phone: &quot;123456789&quot;,
+    password: &quot;123456&quot;,
+    notes: &quot;Teste&quot;
+    }) }
+  subject { user }
+
+  it &quot;is invalid without a username&quot; do
+    user.username = nil
+    is_expected.not_to be_valid
+  end
+end
+</code></pre>
+                    <p>そして私のspec_helper.rb</p>
+                    <pre><code># This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;
+ENV[&quot;RAILS_ENV&quot;] ||= &#39;test&#39;
+require File.expand_path(&quot;../../config/environment&quot;, __FILE__)
+require &#39;rspec/rails&#39;
+
+Dir[Rails.root.join(&quot;spec/support/**/*.rb&quot;)].each { |f| require f }
+
+# Checks for pending migrations before tests are run.
+ActiveRecord::Migration.maintain_test_schema!
+
+RSpec.configure do |config|
+  config.infer_base_class_for_anonymous_controllers = false
+  config.order = &quot;random&quot;
+  config.color = true
+  config.tty = true
+  config.formatter = :documentation #:progress, :html, :textmate
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end
+</code></pre>
+                    <p>解決</p>
+                    <p>遅延_job_active_record
+                    gemがハングの原因となっていることが判明しました。</p>
+                    <p>理由はわかりませんが、<span class="citation"
+                    data-cites="Greg">@Greg</span> Malcolm として
+                    log/teste.log を調べたところ、遅延ジョブ
+                    データベースを作成して新しいユーザーを設定した直後に
+                    rspec が異常終了していました。</p>
+                    <p>gem
+                    を開発環境と本番環境のみに制限しましたが、うまくいきました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rspec の rake
+                    のような冗長機能については聞いたことがありません。ただし、log/test.log
+                    を調べて、そこに何が表示されているかを確認する方がおそらく便利です。これは、フリーズ効果の一部であるデータベース
+                    アクティビティを示します。</p>
+                    <p>Rails
+                    コンソールをテストして、データベース接続が正しく機能していることを確認することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

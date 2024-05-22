@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: Net::HTTP この POST リクエストで 400 を受け取るのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: Net::HTTP この POST リクエストで 400 を受け取るのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: Net::HTTP この POST リクエストで 400
+を受け取るのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>GPTZeroのAPIを試しています。ドキュメント。</p>
+                    <p>ドキュメントには、ヘッダーに API
+                    キーを設定する必要があると記載されています。 Web
+                    サイトには「限られた回数の使用であれば、API
+                    キーなしで API
+                    をここのドキュメントで試すことができます」と記載されているため、空白文字列のままにしました。</p>
+                    <p>ドキュメントとバージョンのパラメータが正しく設定されていると思います。</p>
+                    <p>これが私のRubyです:</p>
+                    <pre><code>base = &quot;https://api.gptzero.me&quot;
+uri = URI(&quot;#{base}/v2/predict/text&quot;)
+
+api_key = &quot;&quot;
+headers = {
+  &quot;x-api-key&quot; =&gt; api_key
+}
+params = {
+  &quot;document&quot; =&gt; &quot;How now, brown cow.&quot;,
+  &quot;version&quot; =&gt; &quot;&quot;
+}
+
+
+res = Net::HTTP.post(uri, params.to_json, headers)
+</code></pre>
+                    <p>ただし、応答は 400 Bad Request
+                    で、「テキストは文字列である必要があります」というエラー
+                    メッセージが表示されます。</p>
+                    <p>私のリクエストの何が間違っているのでしょうか?正しく送信できましたか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Content-Type
+                    ヘッダーが欠落しているようです。この例は私にとってはうまくいきます:</p>
+                    <pre><code>require &quot;net/http&quot;
+require &quot;json&quot;
+base = &quot;https://api.gptzero.me&quot;
+uri = URI(&quot;#{base}/v2/predict/text&quot;)
+
+api_key = &quot;&quot;
+headers = {
+  &quot;x-api-key&quot; =&gt; api_key,
+  &quot;Content-Type&quot; =&gt;  &quot;application/json&quot;
+}
+params = {
+  &quot;document&quot; =&gt; &quot;How now, brown cow.&quot;,
+  &quot;version&quot; =&gt; &quot;2023-06-30&quot;
+}
+
+res = Net::HTTP.post(uri, params.to_json, headers)
+puts res.body
+</code></pre>
+                    <p>印刷します</p>
+                    <pre><code>{&quot;version&quot;:&quot;2023-06-30&quot;,&quot;documents&quot;:[{&quot;average_generated_prob&quot;:0.0475141815841198,&quot;completely_generated_prob&quot;:0.0475141815841198,&quot;overall_burstiness&quot;:0,&quot;paragraphs&quot;:[{&quot;completely_generated_prob&quot;:0.11111110864197533,&quot;num_sentences&quot;:1,&quot;start_sentence_index&quot;:0}],&quot;sentences&quot;:[{&quot;generated_prob&quot;:0.0475141815841198,&quot;perplexity&quot;:947,&quot;sentence&quot;:&quot;How now, brown cow.&quot;,&quot;highlight_sentence_for_ai&quot;:false}],&quot;writing_stats&quot;:{},&quot;result_message&quot;:&quot;Your text is likely to be written entirely by a human&quot;,&quot;document_classification&quot;:&quot;HUMAN_ONLY&quot;,&quot;version&quot;:&quot;2023-06-30&quot;,&quot;document_id&quot;:&quot;174f6d03-1cdf-4ed7-a1e3-99f23d76d0b2&quot;}]}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Windowsのコマンドプロンプトでテキストの色を変更するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Windowsのコマンドプロンプトでテキストの色を変更するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Windowsのコマンドプロンプトでテキストの色を変更するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ログを画面に出力するコマンドラインプログラムがあります。</p>
+                    <p>エラー行を赤色で表示したい。テキストの色を赤に切り替えてから白に戻すために出力できる特殊な文字コードはありますか?</p>
+                    <p>私は Ruby
+                    を使用していますが、これは他の言語でも同じだと思います。</p>
+                    <p>何かのようなもの：</p>
+                    <pre><code>red = &quot;\0123&quot; # character code
+white = &quot;\0223&quot;
+
+print &quot;#{red} ERROR: IT BROKE #{white}&quot;
+print &quot;other stuff&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Windows では、次の 3
+                    つの方法で簡単に実行できます。</p>
+                    <pre><code>require &#39;win32console&#39;
+puts &quot;\e[31mHello, World!\e[0m&quot;
+</code></pre>
+                    <p>red と呼ばれる小さなメソッドを使用して String
+                    を拡張できるようになりました。</p>
+                    <pre><code> require &#39;win32console&#39;
+ class String
+   def red
+     &quot;\e[31m#{self}\e[0m&quot;
+   end
+ end
+
+ puts &quot;Hello, World!&quot;.red
+</code></pre>
+                    <p>また、次のように String
+                    を拡張して、より多くの色を取得することもできます。</p>
+                    <pre><code>require &#39;win32console&#39;
+
+class String
+  { :reset          =&gt;  0,
+    :bold           =&gt;  1,
+    :dark           =&gt;  2,
+    :underline      =&gt;  4,
+    :blink          =&gt;  5,
+    :negative       =&gt;  7,
+    :black          =&gt; 30,
+    :red            =&gt; 31,
+    :green          =&gt; 32,
+    :yellow         =&gt; 33,
+    :blue           =&gt; 34,
+    :magenta        =&gt; 35,
+    :cyan           =&gt; 36,
+    :white          =&gt; 37,
+  }.each do |key, value|
+    define_method key do
+      &quot;\e[#{value}m&quot; + self + &quot;\e[0m&quot;
+    end
+  end
+end
+
+puts &quot;Hello, World!&quot;.red
+</code></pre>
+                    <p>または、gem をインストールできる場合:</p>
+                    <pre><code>gem install term-ansicolor
+</code></pre>
+                    <p>そしてあなたのプログラムでは:</p>
+                    <pre><code>require &#39;win32console&#39;
+require &#39;term/ansicolor&#39;
+
+class String
+  include Term::ANSIColor
+end
+
+puts &quot;Hello, World!&quot;.red
+puts &quot;Hello, World!&quot;.blue
+puts &quot;Annoy me!&quot;.blink.yellow.bold
+</code></pre>
+                    <p>詳細と可能な使用法については、term/ansicolor
+                    のドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

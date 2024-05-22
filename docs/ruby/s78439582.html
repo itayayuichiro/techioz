@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Go と Ruby 間の相互運用性: RSA 署名を検証する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Go と Ruby 間の相互運用性: RSA 署名を検証する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Go と Ruby 間の相互運用性: RSA
+署名を検証する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>良い一日！</p>
+                    <p>Ruby の Sinatra
+                    アプリケーションがあります。このアプリケーションは、base64
+                    でエンコードされたメッセージとメッセージの署名を期待し、公開キーを使用してそれを検証します。
+                    Ruby 3.2 を実行し、openssl
+                    を使用しています。このアプリケーションは正常に動作しており、多くのユーザーが長年にわたって使用しています。現在、Go
+                    で新しいクライアントを作成しているので、メッセージの構造体を定義し、JSON
+                    にマーシャリングし、base64
+                    でエンコードし、秘密キーを使用してハッシュし、署名しました。何も派手なことはありません。ただし、Ruby
+                    アプリケーションでの検証は常に失敗します。</p>
+                    <p>誰かがヒントを共有してくれることを願っています。助けていただければ幸いです。</p>
+                    <p>問題を再現するサンプル
+                    コードを次に示します。私はこれを M1 チップを搭載した
+                    Mac で実行しています
+                    (これは関係ないと思いますが、これが Apple
+                    マジックだとわかっても驚かないでしょう)。 Go
+                    バージョン 1.22.2 および Ruby 3.2.3。</p>
+                    <p>ルビ部分：</p>
+                    <pre><code>def validate(public_key, message, signature)
+  p_key = OpenSSL::PKey::RSA.new(public_key)
+  return p_key.verify(&#39;sha256&#39;, Base64.strict_decode64(signature), message)
+end
+</code></pre>
+                    <p>ここで、public_key は pem
+                    エンコードされた公開キーを含む文字列、message は
+                    Base64 エンコードされたペイロード、signature
+                    は署名です。</p>
+                    <p>ゴーパート:</p>
+                    <pre><code>func Test_RequestSignature(t *testing.T) {
+  const pemKey = `-----BEGIN RSA PRIVATE KEY-----
+...
+-----END RSA PRIVATE KEY-----
+`
+
+  data := []byte(pemKey)
+  block, _ := pem.Decode(data)
+  key, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+
+  rq := request{
+    CreatedAt: time.Now().Unix(),
+    AppId:     1,
+    Message:   &quot;something we&#39;d like to sign of course&quot;,
+    Uuid:      &quot;030D842B-700D-41F6-BFB6-5CB10ADCA4EF&quot;,
+  }
+
+  encoded := rq.ToBase64()
+  signature := rq.Signature(key)
+
+  // Print stuff so I can copy and paste in my ruby snippet
+  fmt.Println(&quot;message: &quot;, encoded)
+  fmt.Println(&quot;signature: &quot;, signature)
+
+  // Validate here, as sanity check
+  publicKey := key.PublicKey
+
+  decoded, _ := base64.StdEncoding.Strict().DecodeString(encoded)
+  hashed := sha256.Sum256(decoded)
+
+  sig, _ := base64.StdEncoding.Strict().DecodeString(signature)
+  err := rsa.VerifyPKCS1v15(&amp;publicKey, crypto.SHA256, hashed[:], sig)
+  assert.Nil(t, err)
+}
+
+type request struct {
+  CreatedAt int64  `json:&quot;created_at&quot;`
+  AppId     int    `json:&quot;app_id&quot;`
+  Message   string `json:&quot;message&quot;`
+  Uuid      string `json:&quot;uuid&quot;`
+}
+
+func (r request) ToBase64() string {
+  data, err := json.Marshal(&amp;r)
+  if err != nil {
+    panic(err)
+  }
+
+  return base64.StdEncoding.Strict().EncodeToString(data)
+}
+
+func (r request) Signature(key *rsa.PrivateKey) string {
+  data, err := json.Marshal(&amp;r)
+  if err != nil {
+    panic(err)
+  }
+
+  hashed := sha256.Sum256(data)
+
+  signature, err := rsa.SignPKCS1v15(nil, key, crypto.SHA256, hashed[:])
+  if err != nil {
+    panic(err)
+  }
+
+  return base64.StdEncoding.Strict().EncodeToString(signature)
+}
+</code></pre>
+                    <p>Go
+                    でのテストはエラーなしで合格しますが、同じキー、メッセージ、署名を使用した
+                    Ruby スニペットでの検証では常に false
+                    が返されます。両方のアプリケーションで公開キーが一致することを確認し、base64
+                    エンコードの strict、raw、url
+                    オプションを使用してみました。また、Ruby
+                    でリクエストに署名し、Go
+                    で検証しようとしましたが、同じ結果でした。そしてアイデアも尽きました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Go コードでは、Base 64 でエンコードする前に JSON
+                    ペイロードに署名していますが、Ruby 側で Base 64
+                    でエンコードされたペイロードの署名を検証しようとしているようです。</p>
+                    <p>Ruby コードを保持したいと仮定すると、生の JSON
+                    ではなく、Base 64
+                    でエンコードされたペイロードに署名していることを確認する必要があります。</p>
+                    <p>コードでは json
+                    マーシャリングも複製されるため、最も簡単な解決策は、Signature
+                    と ToBase64
+                    を次のようなものとマージすることかもしれません。</p>
+                    <pre><code>func (r request) EncodeAndSign(key *rsa.PrivateKey) (string, string) {
+
+    data, err := json.Marshal(&amp;r)
+    if err != nil {
+        panic(err)
+    }
+
+    // Base 64 encode the data before signing.
+    data_b64 := base64.StdEncoding.Strict().EncodeToString(data)
+
+    hashed := sha256.Sum256([]byte(data_b64))
+
+    signature, err := rsa.SignPKCS1v15(nil, key, crypto.SHA256, hashed[:])
+
+    if err != nil {
+        panic(err)
+    }
+
+    signature_b64 := base64.StdEncoding.Strict().EncodeToString(signature)
+
+    // Return both the base 64 encoded json data and the base 64 encoded
+    // signature.
+    return data_b64, signature_b64
+}
+</code></pre>
+                    <p>それから変更してください</p>
+                    <pre><code>encoded := rq.ToBase64()
+signature := rq.Signature(key)
+</code></pre>
+                    <p>に</p>
+                    <pre><code>encoded, signature := rq.EncodeAndSign(key)
+</code></pre>
+                    <p>これにより、Ruby
+                    側で検証される値が得られるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 7 を使用して二酸化炭素排出量計算ツールを作成しようとしましたが、ユーザーのオブジェクトを保存できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 7 を使用して二酸化炭素排出量計算ツールを作成しようとしましたが、ユーザーのオブジェクトを保存できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 7
+を使用して二酸化炭素排出量計算ツールを作成しようとしましたが、ユーザーのオブジェクトを保存できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>値を計算するには、各人がフォームから 4
+                    つのオプションを選択する必要があります。形式は次のとおりです。</p>
+                    <pre><code>&lt;%= form_with(model: @carbon_footprint, local: true) do |form| %&gt;
+  &lt;% CarbonFootprint::CATEGORIES.each do |category| %&gt;
+    &lt;div class=&quot;field&quot;&gt;
+      &lt;%= form.label category %&gt;
+      &lt;%= form.select category, CarbonFootprint.emission_values[category].keys %&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;div class=&quot;actions&quot;&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>私の二酸化炭素排出量モデル:</p>
+                    <pre><code>class CarbonFootprintsController &lt; ApplicationController
+
+  def new
+    @carbon_footprint = CarbonFootprint.new
+  end
+  
+  def create
+    @carbon_footprint = CarbonFootprint.new(carbon_footprint_params)
+    @carbon_footprint.user = current_user
+    if @carbon_footprint.save
+      redirect_to @carbon_footprint, notice: &#39;Carbon footprint was successfully created.&#39;
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+    private
+  
+    def carbon_footprint_params
+      params.require(:carbon_footprint).permit(:plug_in, :get_around, :consume, :stay_warm_or_cool)
+    end
+
+end
+  
+</code></pre>
+                    <p>私の二酸化炭素排出量モデル</p>
+                    <pre><code>class CarbonFootprint &lt; ApplicationRecord
+    belongs_to :user 
+    validates :user_id, uniqueness: true
+
+    CATEGORIES = [:plug_in, :get_around, :consume, :stay_warm_or_cool]
+
+    def self.emission_values
+        {
+            plug_in: { fossil_fuel: 2.5, renewable: 0.5 },
+            get_around: { fossil_fuel: 2.5, renewable: 0.5 },
+            consume: { a_lot: 2.5, a_little: 0.5 },
+            stay_warm_or_cool: { fossil_fuel: 2.5, renewable: 0.5 }
+        }
+    end
+
+
+    def total
+        total = 0.0
+        self.class.emission_values.each do |category, options|
+          total += options[self[category]]
+        end
+        total
+      end
+end
+</code></pre>
+                    <p>そして私のテーブル</p>
+                    <pre><code>  create_table &quot;carbon_footprints&quot;, force: :cascade do |t|
+    t.float &quot;plug_in&quot;
+    t.float &quot;get_around&quot;
+    t.float &quot;consume&quot;
+    t.float &quot;stay_warm_or_cool&quot;
+    t.bigint &quot;user_id&quot;, null: false
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.index [&quot;user_id&quot;], name: &quot;index_carbon_footprints_on_user_id&quot;
+  end
+</code></pre>
+                    <p>結果を表示しようとすると、次のエラーが発生します:
+                    nil を Float に強制することはできません</p>
+                    <p>そして、オブジェクトがデータベースにどのように保存されるかを確認すると、すべてのオプションで
+                    nil が表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ビューの選択呼び出しでは、オプションを
+                    CarbonFootprint.emission_values[category].keys
+                    に設定しています。これは、各オプションの名前と値がキーそのものになることを意味します。
+                    plug_in
+                    のフォームに送信される値は、実際の数値ではなく、「fossil_fuel」または「renewable」のいずれかになります。
+                    .keys を削除し、{ fossil_fuel: 2.5, renewable: 0.5 }
+                    などのハッシュ全体を送信する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

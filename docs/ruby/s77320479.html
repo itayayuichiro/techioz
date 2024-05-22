@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>(*) シグネチャを持つ Ruby メソッド | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "(*) シグネチャを持つ Ruby メソッド",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>(*) シグネチャを持つ Ruby メソッド</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>パターン
+                    マッチングに関するこの興味深いブログ投稿には、(*)
+                    のメソッド
+                    シグネチャを持つコードがいくつかあります。</p>
+                    <pre><code>class Request &lt; Data.define(:path, :scheme, :format)
+  def deconstruct_keys(*)
+    { path: @path, scheme: @scheme, format: @format }
+  end
+
+  def deconstruct(*)
+    path.split(&quot;/&quot;).compact
+  end
+end
+</code></pre>
+                    <p>これは違う</p>
+                    <pre><code>def a_method(*args)
+</code></pre>
+                    <p>Ruby
+                    のドキュメントには情報が見つかりませんでした。</p>
+                    <p>def deconstruct_keys(*)
+                    とはどういう意味ですか?</p>
+                    <p>注: この質問は Ruby Weekly で言及されました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>def a_method(*args)
+  ...
+end
+</code></pre>
+                    <p>通常、これを記述すると、args
+                    変数に格納されているメソッドのすべての引数のリストが取得されます。</p>
+                    <pre><code>def a_method(*)
+  ...
+end
+</code></pre>
+                    <p>これは同じ匿名形式です。任意の数の引数を受け入れますが、そのリスト変数に名前を付けたくありません。ここでは引数のリストに名前を付けていませんが、それを別の引数リストに分割することはできます。したがって、これは合法ではありませんが、</p>
+                    <pre><code>def a_method(*)
+  # Should&#39;ve just named it in the first place :(
+  args = *
+  ...
+end
+</code></pre>
+                    <p>一方、これは</p>
+                    <pre><code>def a_method(*)
+  another_method(*)
+end
+</code></pre>
+                    <p>そして引数をanother_methodに渡します。それは以下と同等です</p>
+                    <pre><code>def a_method(*args)
+  another_method(*args)
+end
+</code></pre>
+                    <p>Ruby 3 のキーワード引数でも同じことができます</p>
+                    <pre><code>def a_method(**)
+  another_method(**)
+end
+</code></pre>
+                    <p>すべての引数を転送することが目的の場合は、省略記号構文を使用する必要があることに注意してください。</p>
+                    <pre><code>def a_method(...)
+  another_method(...)
+end
+</code></pre>
+                    <p>単独の *
+                    は、キーワード引数を委任するときにおかしな動作をします。例えば、</p>
+                    <pre><code>def foo(*args, **kwargs)
+  p args
+  p kwargs
+end
+
+def bar(*)
+  foo(*)
+end
+
+foo(1, a: 1) # Prints [1] then {:a=&gt;1}
+bar(1, a: 1) # Prints [1, {:a=&gt;1}], then {}
+</code></pre>
+                    <p>foo を直接呼び出す場合、名前付き引数の構文は
+                    **kwargs に渡されますが、bar
+                    を介して委任する場合は、ハッシュに変換されてから
+                    <em>args に渡されます。その上、 </em>
+                    はブロック引数も転送しませんが、 …
+                    は「位置引数、名前付き引数、およびブロック引数をすべて転送する」という汎用のキャッチオールです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

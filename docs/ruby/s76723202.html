@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>puma と vscode を使用して Docker 内で Rails アプリをデバッグします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "puma と vscode を使用して Docker 内で Rails アプリをデバッグします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>puma と vscode を使用して Docker 内で Rails
+アプリをデバッグします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリで vscode
+                    デバッガーを実行しようとしています。 Rails アプリは
+                    Docker コンテナ内で実行され、puma config
+                    で実行されます。</p>
+                    <p>docker-compose コマンド: バンドル実行 puma -C
+                    config/puma.rb -b ‘tcp://0.0.0.0:3000’</p>
+                    <p>puma.rb 設定</p>
+                    <pre><code>workers Integer(ENV[&#39;WEB_CONCURRENCY&#39;] || 2)
+threads_count = Integer(ENV[&#39;MAX_THREADS&#39;] || 5)
+threads threads_count, threads_count
+
+preload_app!
+
+rackup DefaultRackup
+port ENV[&#39;PORT&#39;] || 3000
+environment ENV[&#39;RACK_ENV&#39;] || &#39;development&#39;
+if ENV[&#39;RACK_ENV&#39;] == &#39;development&#39;
+  worker_timeout 3600 # 1 hour to prevent debugger timeouts
+end
+
+before_fork do
+  Barnes.start # Initializes runtime metrics
+end
+</code></pre>
+                    <p>vscode 構成</p>
+                    <pre><code>{
+      &quot;type&quot;: &quot;rdbg&quot;,
+      &quot;name&quot;: &quot;Attach with rdbg&quot;,
+      &quot;request&quot;: &quot;attach&quot;,
+      &quot;debugPort&quot;: &quot;localhost:12345&quot;,
+    }
+</code></pre>
+                    <p>rdbg、debugなど、さまざまなバリエーションを試しました。</p>
+                    <p>しかし、まだ機能させることができません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のことを確認する必要があります。</p>
+                    <pre><code>#! /bin/bash
+rdebug-ide --host 0.0.0.0 \
+           --port 1234 \
+           --skip_wait_for_start  -- \
+           bundle exec puma -C config/puma.rb -b &#39;tcp://0.0.0.0:3000&#39;
+</code></pre>
+                    <p>私。バンドルが機能しない場合は、バイナリのフルパス
+                    (例: /usr/local/bundle/bin/bundle)
+                    を使用してください。 rdebug-ide
+                    で利用可能なすべてのオプションについては、ここをお読みください:rdebug-ide
+                    github</p>
+                    <ol start="2" type="i">
+                    <li>Ruby-debug-ide と debase gem
+                    がコンテナ内とマシンにインストールされていることを確認してください。</li>
+                    </ol>
+                    <pre><code>services:
+  app:
+    image: demo:latest
+    working_dir: &quot;/opt/app/demo&quot;
+    command: [&quot;scripts/entrypoint.sh&quot;]
+    depends_on:     
+      - redis
+    ports: 
+      - &quot;3000:3000&quot;
+      - &quot;1234:1234&quot; # &lt;-------- This is important, make sure to expose the debugger port
+</code></pre>
+                    <pre><code>{
+    &quot;version&quot;: &quot;0.2.0&quot;,
+    &quot;configurations&quot;: [
+        {
+            &quot;type&quot;: &quot;Ruby&quot;,
+            &quot;request&quot;: &quot;attach&quot;,
+            &quot;name&quot;: &quot;Attach to container&quot;,
+            &quot;remoteWorkspaceRoot&quot;: &quot;/opt/app/demo&quot;, // &lt;------ path inside container
+            &quot;showDebuggerOutput&quot;: true,
+            &quot;remotePort&quot;: &quot;1234&quot;,  // &lt;---------- port exposed in compose.yaml file
+            &quot;cwd&quot;: &quot;${workspaceRoot}&quot;
+        }
+    ]
+}
+</code></pre>
+                    <p>私。 Intellij
+                    を使用している場合は、dispatcherPort
+                    パラメータにランダムな整数値を入力します。</p>
+                    <ol start="2" type="i">
+                    <li><p>Ruby および VS Code の Ruby
+                    デバッガー拡張機能が VScode
+                    にインストールされていることを確認します。</p></li>
+                    <li><p>rbenv
+                    を使用する場合は、上記の拡張オプションを適宜変更してください。
+                    (Ctrl+Shift+P &gt; ユーザー設定 JSON
+                    を開く)</p></li>
+                    </ol>
+                    <pre><code>    &quot;rdbg.rubyVersionManager&quot;: &quot;rbenv&quot;,
+    &quot;ruby.interpreter.commandPath&quot;: &quot;/usr/local/home/atulvaibhav/.rbenv/shims/ruby&quot;,
+</code></pre>
+                    <p>これで十分です。 puma をクラスター
+                    モードで使用するときにいくつかの問題に直面したため、ファイル内のワーカー関連の設定をコメント
+                    アウトすることにより、puma.rb をシングル
+                    モードでのみ実行するように修正しました。</p>
+                    <p>これで準備は完了です。コンテナーを起動します:
+                    compose up -d &gt; 次に、VS-code に移動し、Attach to
+                    Container という名前のデバッガーを起動します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

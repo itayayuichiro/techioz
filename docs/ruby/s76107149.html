@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すでにフェッチされたモデルにリレーションをプリロードします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すでにフェッチされたモデルにリレーションをプリロードします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すでにフェッチされたモデルにリレーションをプリロードします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私には、organization、base_url、ldap_group_permission
+                    という 3 つのモデルがあります。 Organization
+                    は、base_url と 1
+                    対多の関係を持ち、ldap_group_permission
+                    とも同じ関係を持ちます。 current_organization
+                    という名前の組織モデルのフェッチされたレコードを保持する変数がすでに存在します。</p>
+                    <p>もちろん、 current_organization.base_urls
+                    を実行して、組織のbase_urlsを取得できます。しかし、問題は、base_url
+                    ごとに ldap_group_permission
+                    も必要な点にあります。各base_urlを介してループを実行することもできますが、N+1クエリの問題が発生し、各base_urlがデータベース内で個別のクエリを実行することになり、パフォーマンスが低下します。</p>
+                    <p>1 つのクエリで ldap_group_permissions
+                    も取得しながら、current_organization のbase_urls
+                    を取得するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このように関連付けられたレコードを積極的にロードして
+                    current_organization を定義できます</p>
+                    <pre><code>current_organization = Organization.includes(base_urls: :ldap_group_permissions).find(id)
+</code></pre>
+                    <p>そして列挙してみると</p>
+                    <pre><code>current_organization.base_urls.each do |base_url|
+  base_url.ldap_group_permissions.each do |ldap_group_permission|
+    # Access every ldap_group_permission
+  end
+end
+</code></pre>
+                    <p>こうすればN+1を回避できます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

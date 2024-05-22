@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PostgreSQL のすべてのシーケンスの最大 ID を取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PostgreSQL のすべてのシーケンスの最大 ID を取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PostgreSQL のすべてのシーケンスの最大 ID
+を取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>データベースには、max-int または max-bigint
+                    に近づいている ID
+                    をチェックするモニターがあります。私たちは MySQL
+                    から移行したばかりですが、PostgreSQL
+                    で同様のチェックを機能させるのに苦労しています。誰かが助けてくれることを願っています。</p>
+                    <p>MySQL のクエリは次のとおりです。</p>
+                    <p>SELECT table_name, auto_increment FROM
+                    information_schema.tables WHERE table_schema =
+                    DATABASE();</p>
+                    <p>PostgreSQLから同じ結果を得ようとしています。私たちは、データベースを何度も呼び出し、各テーブルを個別にチェックすることでこれを行う方法を見つけました。</p>
+                    <p>データベースに対して 1
+                    回だけ呼び出しを行いたいと考えています。これまでに私が持っているものは次のとおりです。</p>
+                    <pre><code>CREATE OR REPLACE FUNCTION getAllSeqId() RETURNS SETOF record AS
+$body$
+DECLARE
+  sequence_name varchar(255);
+BEGIN
+  FOR sequence_name in SELECT relname FROM pg_class WHERE (relkind = &#39;S&#39;)
+  LOOP
+      RETURN QUERY EXECUTE &#39;SELECT last_value FROM &#39; || sequence_name;
+  END LOOP;
+  RETURN;
+END
+$body$
+LANGUAGE &#39;plpgsql&#39;;
+SELECT last_value from getAllSeqId() as(last_value bigint);
+</code></pre>
+                    <p>ただし、[table_name, last_value] または
+                    [sequence_name, last_value]
+                    のレコードに出力を取得するには、何らかの方法で
+                    sequence_name
+                    を各レコードに追加する必要があります。</p>
+                    <p>したがって、関数を次のように呼び出したいと思います。</p>
+                    <pre><code> SELECT sequence_name, last_value from getAllSeqId() as(sequence_name varchar(255), last_value bigint);
+</code></pre>
+                    <p>これどうやってするの？</p>
+                    <p>編集: Ruby
+                    では、これにより、探している出力が作成されます。ご覧のとおり、すべてのインデックスを取得するために
+                    1
+                    回の呼び出しを実行し、次に最後の値を取得するためにインデックスごとに
+                    1
+                    回の呼び出しを実行しています。もっと良い方法が必要です。</p>
+                    <pre><code>def perform
+  find_auto_inc_tables.each do |auto_inc_table|
+    check_limit(auto_inc_table, find_curr_auto_inc_id(auto_inc_table))
+  end 
+end 
+
+def find_curr_auto_inc_id(table_name)
+  ActiveRecord::Base.connection.execute(&quot;SELECT last_value FROM #{table_name}&quot;).first[&quot;last_value&quot;].to_i
+end 
+
+def find_auto_inc_tables
+  ActiveRecord::Base.connection.execute(
+    &quot;SELECT c.relname &quot; +
+    &quot;FROM pg_class c &quot; +                                                       
+    &quot;WHERE c.relkind = &#39;S&#39;&quot;).map { |i| i[&quot;relname&quot;] }
+end 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの関数はすでにかなり近づいているようです。これを次のように少し変更するとよいでしょう。</p>
+                    <p>改訂版は次のとおりです。</p>
+                    <pre><code>CREATE OR REPLACE FUNCTION getAllSeqId() RETURNS TABLE(seqname text,val bigint) AS
+$body$
+DECLARE
+  sequence_name varchar(255);
+BEGIN
+  FOR sequence_name in SELECT relname FROM pg_class WHERE (relkind = &#39;S&#39;)
+  LOOP
+      RETURN QUERY EXECUTE  &#39;SELECT &#39; || quote_literal(sequence_name) || &#39;::text,last_value FROM &#39; || quote_ident(sequence_name);
+  END LOOP;
+  RETURN;
+END
+$body$
+LANGUAGE &#39;plpgsql&#39;;
+</code></pre>
+                    <p>currval()
+                    はオプションではないことに注意してください。同じセッション内でシーケンスが設定されていない場合
+                    (nextval()
+                    を呼び出すことにより、他の方法があるかどうかはわかりませんが)
+                    エラーが発生するためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

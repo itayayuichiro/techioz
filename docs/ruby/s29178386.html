@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby、モジュール、クラス、またはオブジェクトにメソッドを追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby、モジュール、クラス、またはオブジェクトにメソッドを追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby、モジュール、クラス、またはオブジェクトにメソッドを追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>グローバルに利用できるようにするためにカーネルにメソッドを追加しているときに、奇妙なことに気づきました。興味深いので、ドキュメントやわかりやすい説明を探しています。</p>
+                    <p>コードを見てみましょう:</p>
+                    <p>ファイル: ./demo.rb</p>
+                    <pre><code># example 1
+
+module Kernel
+  def foo
+    puts &quot;I&#39;m defined inside the module!&quot;
+  end
+end
+
+
+# example 2
+
+module Bar
+  def bar
+    puts &quot;I&#39;m included! (bar)&quot;
+  end
+end
+
+Kernel.send :include, Bar
+
+
+# example 3
+
+module Baz
+  def baz
+    puts &quot;I&#39;m included! (baz)&quot;
+  end
+end
+
+module Kernel
+  include Baz
+end
+</code></pre>
+                    <p>次に、bash と IRB で</p>
+                    <pre><code>$ irb -r ./demo.rb
+&gt; foo
+# I&#39;m defined inside the module!
+&gt; bar
+# NameError: undefined local variable or method `bar&#39; for main:Object
+&gt; baz
+# NameError: undefined local variable or method `baz&#39; for main:Object
+&gt;
+&gt; self.class.ancestors
+# =&gt; [Object, Kernel, BasicObject] 
+&gt;
+&gt; include Kernel
+&gt;
+&gt; self.class.ancestors
+# =&gt; [Object, Kernel, Baz, Bar, BasicObject]
+&gt;
+&gt; foo
+# I&#39;m defined inside the module!
+&gt; bar
+# I&#39;m included! (bar)
+&gt; baz
+# I&#39;m included! (baz)
+</code></pre>
+                    <p>foo
+                    は期待どおりに機能し、カーネルを含むすべてのオブジェクトで使用できます。一方、bar
+                    と baz はすぐには利用できません。 これは、IRB
+                    (オブジェクト)
+                    の評価コンテキストにすでにカーネルが含まれており、モジュール
+                    A をモジュール B 内に含めても、B
+                    の以前のすべての組み込みが「再ロード」されないためだと思います。
+                    これは完全に理にかなっています。実際、カーネルを再インクルードすると、他の
+                    2 つのメソッドが追加されます。</p>
+                    <p>次に、私の質問は次のとおりです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby で foo.bar
+                    を呼び出すとどうなりますか?このようなもの：</p>
+                    <pre><code>foo.class.ancestors.each do |klass|
+  if klass.public_instance_methods.include? :bar
+    return klass.instance_method(:bar).bind(foo).call
+  end
+end
+raise NameError
+</code></pre>
+                    <p>つまり、Ruby
+                    は祖先を検索して、一致するインスタンス
+                    メソッドを見つけます。</p>
+                    <p>Ruby で A.include B
+                    を呼び出すとどうなるでしょうか?このようなもの：</p>
+                    <pre><code>B.ancestors.each do |mod|
+  A.ancestors &lt;&lt; mod unless A.ancestors.include? mod
+end
+</code></pre>
+                    <p>B とそのすべての祖先は A の祖先になります。これら
+                    2 つの動作ですべてが説明されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定のキーの場合、すべての値をハッシュディープ変換します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定のキーの場合、すべての値をハッシュディープ変換します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定のキーの場合、すべての値をハッシュディープ変換します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コミュニティに敬意を表します!
+                    深くネストされたハッシュがあり、指定された特定のキーのすべての値を変換したいと考えています。
+                    key == :something の場合の深い変換値のようなもの
+                    ハッシュの例:</p>
+                    <pre><code>{:id=&gt;&quot;11ed35b8e53c442ea210c39d6f24bddf&quot;,
+ :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :status=&gt;&quot;ACTIVE&quot;,
+ :description=&gt;&quot;test&quot;,
+ :goals=&gt;
+  [{:Definitions=&gt;[],
+    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+    :status=&gt;&quot;ACTIVE&quot;,
+    :Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;INACTIVE&quot;, :id=&gt;&quot;11ec1fc4bd36f876963867013cee2799&quot;}],
+    :id=&gt;&quot;11e818be2f0157329c76634ee23c1d8f&quot;}],
+ :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <p>すべてのキーのすべての値を変換したい:status
+                    結果は次のようになります。</p>
+                    <pre><code>{:id=&gt;&quot;11ed35b8e53c442ea210c39d6f24bddf&quot;,
+ :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :status=&gt;&quot;TRANSFORMED&quot;,
+ :description=&gt;&quot;test&quot;,
+ :goals=&gt;
+  [{:Definitions=&gt;[],
+    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+    :status=&gt;&quot;TRANSFORMED&quot;,
+    :Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;TRANSFORMED&quot;, :id=&gt;&quot;11ec1fc4bd36f876963867013cee2799&quot;}],
+    :id=&gt;&quot;11e818be2f0157329c76634ee23c1d8f&quot;}],
+ :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <p>いくつかの解決策があります 最初の1つ：</p>
+                    <pre><code>hash_to_json = hash.to_json.gsub(/&quot;ACTIVE&quot;|&quot;INACTIVE&quot;/, &#39;&quot;TRANSFORMED&quot;&#39;)
+JSON.parse(hash_to_json)
+</code></pre>
+                    <p>二つ目：</p>
+                    <pre><code>hash.deep_transform_values { |v| (v == &#39;ACTIVE&#39; || v == &#39;INACTIVE&#39;) ? &#39;TRANSFORMED&#39; : v }
+</code></pre>
+                    <p>どちらのソリューションも機能していますが、値を一致させるのは好きではありません。特定のキーのみを一致させ、ハッシュ全体を変更して、次のようにしたいと考えています。</p>
+                    <pre><code>hash.deep_transform_keys { |k, v| v = &#39;TRANSFORMED&#39; if k == :status }
+</code></pre>
+                    <p>どうもありがとう！！！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>残念ながら、Hash#deep_transform_values
+                    はキーではなくブロックの値のみを受け取ります。そして残念なことに、Hash#deep_merge
+                    と Hash#deep_merge!それほど強力ではありません</p>
+                    <p>独自のメソッドを作成できます。それは単なるアイデアです、あなたはそれを改善することができます</p>
+                    <pre><code>class Hash
+  def deep_replace(hash)
+    deep_dup.deep_replace!(hash)
+  end
+
+  def deep_replace!(hash)
+    each_key do |key|
+      hash.each do |k, v|
+        self[key] = v if key == k
+      end
+
+      _replace_object!(self[key], hash)
+    end
+  end
+
+  private
+
+  def _replace_object!(object, hash)
+    case object
+    when Hash
+      object.deep_replace!(hash)
+    when Array
+      object.map! { |v| _replace_object!(v, hash) }
+    else
+      object
+    end
+  end
+end
+</code></pre>
+                    <pre><code>hash = {:id=&gt;&quot;11ed35b8e53c442ea210c39d6f24bddf&quot;,
+ :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+ :status=&gt;&quot;ACTIVE&quot;,
+ :description=&gt;&quot;test&quot;,
+ :goals=&gt;
+  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;INACTIVE&quot;, :id=&gt;&quot;11ec1fc4bd36f876963867013cee2799&quot;}],
+    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+    :status=&gt;&quot;ACTIVE&quot;,
+    :id=&gt;&quot;11e818be2f0157329c76634ee23c1d8f&quot;}],
+  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <p>その後、それを適用できます</p>
+                    <pre><code># Replace one key
+hash.deep_replace(status: &quot;TRANSFORMED&quot;)
+
+# =&gt; {:id=&gt;&quot;11ed35b8e53c442ea210c39d6f24bddf&quot;,
+# :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :status=&gt;&quot;TRANSFORMED&quot;,
+# :description=&gt;&quot;test&quot;,
+# :goals=&gt;
+#  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;TRANSFORMED&quot;, :id=&gt;&quot;11ec1fc4bd36f876963867013cee2799&quot;}],
+#    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+#    :status=&gt;&quot;TRANSFORMED&quot;,
+#    :id=&gt;&quot;11e818be2f0157329c76634ee23c1d8f&quot;}],
+#  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <pre><code># Replace few keys
+hash.deep_replace(status: &quot;TRANSFORMED&quot;, txid: &quot;555&quot;, id: &quot;99999999999999999999999999999999&quot;)
+
+# =&gt; {:id=&gt;&quot;99999999999999999999999999999999&quot;,
+# :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :status=&gt;&quot;TRANSFORMED&quot;,
+# :description=&gt;&quot;test&quot;,
+# :goals=&gt;
+#  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;TRANSFORMED&quot;, :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+#    :status=&gt;&quot;TRANSFORMED&quot;,
+#    :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <pre><code># Check original (it wasn&#39;t changed)
+hash
+
+# =&gt; {:id=&gt;&quot;11ed35b8e53c442ea210c39d6f24bddf&quot;,
+# :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :status=&gt;&quot;ACTIVE&quot;,
+# :description=&gt;&quot;test&quot;,
+# :goals=&gt;
+#  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;INACTIVE&quot;, :id=&gt;&quot;11ec1fc4bd36f876963867013cee2799&quot;}],
+#    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+#    :status=&gt;&quot;ACTIVE&quot;,
+#    :id=&gt;&quot;11e818be2f0157329c76634ee23c1d8f&quot;}],
+#  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <pre><code># Destructive method
+hash.deep_replace!(status: &quot;TRANSFORMED&quot;, id: &quot;99999999999999999999999999999999&quot;)
+
+# =&gt; {:id=&gt;&quot;99999999999999999999999999999999&quot;,
+# :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :status=&gt;&quot;TRANSFORMED&quot;,
+# :description=&gt;&quot;test&quot;,
+# :goals=&gt;
+#  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;TRANSFORMED&quot;, :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+#    :status=&gt;&quot;TRANSFORMED&quot;,
+#    :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+                    <pre><code># Check original (it was changed)
+hash
+
+# =&gt; {:id=&gt;&quot;99999999999999999999999999999999&quot;,
+# :createdAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :updatedAt=&gt;&quot;2022-09-16T12:12:55.454Z&quot;,
+# :status=&gt;&quot;TRANSFORMED&quot;,
+# :description=&gt;&quot;test&quot;,
+# :goals=&gt;
+#  [{:Definitions=&gt;[{:text=&gt;&quot;Search for relics&quot;, :status=&gt;&quot;TRANSFORMED&quot;, :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#    :text=&gt;&quot;Follows Action Plan Appropriately, Worse or Warning Symptoms&quot;,
+#    :status=&gt;&quot;TRANSFORMED&quot;,
+#    :id=&gt;&quot;99999999999999999999999999999999&quot;}],
+#  :healthConcernDefinitions=&gt;[]}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

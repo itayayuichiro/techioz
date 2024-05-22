@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>パイプを使用した場合と使用しない場合の Ruby CLI オプションの動作の不一致 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "パイプを使用した場合と使用しない場合の Ruby CLI オプションの動作の不一致",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>パイプを使用した場合と使用しない場合の Ruby
+CLI オプションの動作の不一致</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby のコマンドライン オプション -p
+                    がパイプの有無に応じて異なる動作を観察しています。以下に
+                    2 つのシナリオがあります。</p>
+                    <p>パイプなし:</p>
+                    <p>パイプあり:</p>
+                    <p>これら 2
+                    つのシナリオで動作に違いがある理由を誰かが説明できますか?
+                    -p
+                    オプションは、それぞれのケースで入力と異なる方法で対話しますか?</p>
+                    <p>ご参考までに。結果は以下の通りです。</p>
+                    <pre><code>$ echo &quot;hello world&quot; | ruby -pe &#39;$_.upcase!&#39;
+HELLO WORLD
+</code></pre>
+                    <pre><code>$ ruby -pe &#39;puts &quot;You said #{$_}&quot;&#39;
+1
+You said 1
+1
+...
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby(1) のマニュアルページによると、-p
+                    フラグは「ループの両端で変数 sh
+                    の値を出力する」とのことです。パイプを使用した例では、大文字を使用して期待どおりに機能しています。は
+                    sh の値を置き換え、Ruby は後でそれを出力します。</p>
+                    <p>ただし、パイプのない例では、 -p の動作に加えて、
+                    put
+                    を使用して文字列を明示的に出力しています。最初の例をパイプを使用しても使用しなくても、同じように動作します。</p>
+                    <pre><code>$ ruby -pe &#39;$_.upcase!&#39;
+aa
+AA
+$ echo &quot;aa&quot; | ruby -pe &#39;$_.upcase!&#39;
+AA
+</code></pre>
+                    <p>-n フラグを使用することもできます。これは -p
+                    と同じことを行いますが、自動的には何も出力しません。例えば：</p>
+                    <pre><code>$ ruby -ne &#39;puts &quot;You said #{$_}&quot;&#39;
+aa
+You said aa
+bb
+You said bb
+cc
+You said cc
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

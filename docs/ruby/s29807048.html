@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby または Rails で東部時間を UTC に変換する最良の方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby または Rails で東部時間を UTC に変換する最良の方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby または Rails で東部時間を UTC
+に変換する最良の方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>言及しているわけではありません</p>
+                    <pre><code>myDateTime = DateTime.now
+myDateTime.new_offset(Rational(0, 24))
+</code></pre>
+                    <p>または</p>
+                    <pre><code>Time.now.utc
+</code></pre>
+                    <p>私が持っているのは、テキストの日付が東部時間で表示されているということです。</p>
+                    <p>そのテキスト日付を DateTime
+                    に変換できます。それを east_date_time
+                    と呼びましょう。</p>
+                    <p>さて、DateTime
+                    を含む変数がありますが、それが東部であることは私たち以外に誰も知りません。自分で変換するのはかなり面倒です。日付が夏時間
+                    (DST) の場合 (今年は 3 月 8 日から 11 月 1
+                    日まで)、UTC を取得するには Eastern_date_time 変数に
+                    4 時間を追加する必要があります。日付が標準時 (ST)
+                    の場合は、次のようにします。 east_date_time 変数に 5
+                    時間を追加する必要があります。</p>
+                    <p>取得したものが東部 DateTime
+                    であることを指定し、それを UTC
+                    に変換するにはどうすればよいでしょうか…日付が DST/ST
+                    であるかどうかを判断し、4 時間または 5
+                    時間を適切に適用するにはどうすればよいでしょうか?</p>
+                    <p>取得したあらゆる種類の日付を UTC
+                    に変換して、データベースに保存したいと考えています。</p>
+                    <p>編集：</p>
+                    <p>編集：</p>
+                    <pre><code>text_time = &quot;Nov 27, 2015 4:30 PM&quot; #given as Eastern
+myEasternDateTime = DateTime.parse text_time # =&gt; Fri, 27 Nov 2015 16:30:00 +0000 
+#now we need to specify that this myEasternDateTime is in fact eastern. However, it&#39;s our default UTC. If we use in_time_zone, it just converts the date at UTC to Eastern
+myEasternDateTime.in_time_zone(&#39;Eastern Time (US &amp; Canada)&#39;) # =&gt; Fri, 27 Nov 2015 11:30:00 EST -05:00 
+myEasternDateTime.utc # =&gt; Fri, 27 Nov 2015 16:30:00 +0000 
+</code></pre>
+                    <p>それは私たちが望んでいることではありません。
+                    myEasterDateTime
+                    が実際には東部であることを指定する必要があります。そのため、16:30:00
+                    に myEasterDateTime.utc を実行すると、最終的には
+                    20:30:00 になります。</p>
+                    <p>どうすればこれを達成できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DateTime クラスには time_in_zone
+                    メソッドがありました。</p>
+                    <pre><code>now.time_in_zone(&#39;UTC&#39;)
+</code></pre>
+                    <p>その後、名前が in_time_zone
+                    に変更されました。</p>
+                    <pre><code>DateTime.now.in_time_zone(&#39;US/Pacific&#39;)
+ =&gt; Wed, 22 Apr 2015 12:36:33 PDT -07:00 
+</code></pre>
+                    <p>現在 (2023 / Rails 7)
+                    では、次の方法で米国のすべてのゾーンのリストを取得できます。</p>
+                    <pre><code>ActiveSupport::TimeZone.us_zones.collect(&amp;:name)
+</code></pre>
+                    <p>または別の国については:</p>
+                    <pre><code>ActiveSupport::TimeZone.country_zones(&#39;ES&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

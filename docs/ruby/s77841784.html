@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コレクションの form_for 作成時の Rails エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コレクションの form_for 作成時の Rails エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コレクションの form_for 作成時の Rails
+エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のシステムには製品があります。また、商品には各店舗の最小/最大在庫があります。
+                    app/views/product/edit
+                    で、それを更新する方法を作成しようとしています。
+                    だから私はそのようなことを試しています:</p>
+                    <pre><code>&lt;%= form_for @product.product_stores, :url =&gt; {:action =&gt; &quot;update_stocks&quot;} do |form| %&gt;
+  &lt;% @product.product_stores.each do |e| %&gt;
+    &lt;strong&gt;&lt;%= e.store.name %&gt;&lt;/strong&gt; &lt;br/&gt;
+    &lt;%= e.id %&gt; &lt;br/&gt;
+        
+    &lt;div class=&quot;row g-3 align-items-center&quot;&gt;
+      &lt;div class=&quot;col-auto&quot;&gt;
+        &lt;%= form.label :min_stock_days, class: &quot;col-form-label&quot; %&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;col&quot;&gt;
+        &lt;%= form.text_field :min_stock_days, class: &quot;form-control&quot; %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>そして、画面にエラーが表示されます。</p>
+                    <pre><code>undefined method `to_key&#39; for #&lt;ActiveRecord::Associations::CollectionProxy 
+[#&lt;ProductStore id: 913, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 24, created_at: &quot;2024-01-17 16:14:53.475034000 -0300&quot;, updated_at: &quot;2024-01-17 16:14:53.475034000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11617, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 1, created_at: &quot;2024-01-17 16:58:08.503417000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.503417000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11618, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 2, created_at: &quot;2024-01-17 16:58:08.506141000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.506141000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11619, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 3, created_at: &quot;2024-01-17 16:58:08.508833000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.508833000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11620, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 4, created_at: &quot;2024-01-17 16:58:08.511535000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.511535000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11621, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 5, created_at: &quot;2024-01-17 16:58:08.514277000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.514277000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11622, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 6, created_at: &quot;2024-01-17 16:58:08.516974000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.516974000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11623, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 7, created_at: &quot;2024-01-17 16:58:08.519660000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.519660000 -0300&quot;&gt;, 
+#&lt;ProductStore id: 11624, min_stock_days: nil, max_stock_days: nil, product_id: 975, store_id: 23, created_at: &quot;2024-01-17 16:58:08.522390000 -0300&quot;, updated_at: &quot;2024-01-17 16:58:08.522390000 -0300&quot;&gt;]&gt;
+Did you mean?  to_set
+               to_ary
+</code></pre>
+                    <p>どうすれば修正できますか?
+                    それを実装する正しい方法は何ですか?</p>
+                    <p><span class="citation"
+                    data-cites="Arup">@Arup</span> Rakshit
+                    に感謝します。部分的に解決しました。</p>
+                    <p>私の解決策は次のとおりです。 models/product.rb
+                    に追加します</p>
+                    <pre><code>accepts_nested_attributes_for :product_stores, update_only: true
+</code></pre>
+                    <p>products_controller.rb に product_params
+                    を追加します</p>
+                    <pre><code>product_stores: [:min_stock_days, :max_stock_days]
+</code></pre>
+                    <p>そしてビュー内で次のように変更されます。</p>
+                    <pre><code>&lt;%= form_for @product, as: :post, method: :post, :url =&gt; {:action =&gt; &quot;update_stocks&quot;} do |form| %&gt;
+  &lt;%= form.fields_for :product_stores, @product.product_stores.each do |ps|%&gt;
+    &lt;strong&gt; &lt;%= ps %&gt; &lt;/strong&gt;
+      &lt;div class=&quot;row g-3 align-items-center&quot;&gt;
+        &lt;div class=&quot;col-auto&quot;&gt;
+          &lt;%= ps.label :min_stock_days, class: &quot;col-form-label&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;col&quot;&gt;
+          &lt;%= ps.text_field :min_stock_days, class: &quot;form-control&quot; %&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;row g-3 align-items-center&quot;&gt;
+        &lt;div class=&quot;col-auto&quot;&gt;
+        &lt;%= ps.label :max_stock_days, class: &quot;col-form-label&quot; %&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;col&quot;&gt;
+        &lt;%= ps.text_field :max_stock_days, class: &quot;form-control&quot; %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;div&gt;
+    &lt;%= form.submit &quot;Salvar&quot;, class: &quot;btn btn-primary&quot; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>さて、私はまだ問題を抱えています…
+                    各最小/最大フィールドがどのストアのものなのかわかりません。
+                    なぜなら、私が座っている店の名前がわからないからです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>form_for ヘルパー
+                    メソッドは、コレクション用ではなく、単一のモデル
+                    インスタンス用のフォームを構築するように設計されています。</p>
+                    <p>指定された実装では、ActiveRecord
+                    オブジェクトのコレクション (<span class="citation"
+                    data-cites="product.product_stores">@product.product_stores</span>)
+                    で form_for を使用しようとしますが、form_for
+                    は単一の ActiveRecord
+                    オブジェクトを想定しています。</p>
+                    <p>これを修正するには、<span class="citation"
+                    data-cites="product.product_stores">@product.product_stores</span>
+                    コレクション内のアイテムごとに個別のフォームを作成する必要があります。</p>
+                    <p>たとえば、各 ProductStore
+                    をループし、それぞれに個別のフォームを作成します。</p>
+                    <pre><code>&lt;% @product.product_stores.each do |product_store| %&gt;
+  &lt;%= form_for product_store, url: {action: &quot;update_stocks&quot;} do |form| %&gt;
+    &lt;strong&gt;&lt;%= product_store.store.name %&gt;&lt;/strong&gt; &lt;br/&gt;
+    &lt;%= product_store.id %&gt; &lt;br/&gt;
+        
+    &lt;div class=&quot;row g-3 align-items-center&quot;&gt;
+      &lt;div class=&quot;col-auto&quot;&gt;
+        &lt;%= form.label :min_stock_days, class: &quot;col-form-label&quot; %&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;col&quot;&gt;
+        &lt;%= form.text_field :min_stock_days, class: &quot;form-control&quot; %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

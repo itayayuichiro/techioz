@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マップに続く異なる型を格納する Ruby 配列 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マップに続く異なる型を格納する Ruby 配列",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マップに続く異なる型を格納する Ruby 配列</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>方程式を文字列の配列として受け取り、既知の変数をその値に置き換える関数があります（putsステートメントはデバッグ用にのみ含まれています）。</p>
+                    <pre><code>  def replace_known_variables
+    @equation_array.map! do |x|
+      for known_var in @known_variables
+        puts &quot;@equation_array is initially #@equation_array&quot;
+        if known_var.full_name == x
+          x = known_var.value.to_f
+          puts &quot;x is now #{x}&quot;
+        else
+          x = x
+          puts &quot;x is still #{x}&quot;
+        end
+      end
+    end
+    puts &quot;@equation_array is now #@equation_array&quot;
+  end
+</code></pre>
+                    <p>これはおそらくこの状況に対処するための「Ruby
+                    の方法」ではないので、どんなアドバイスでも歓迎しますが、私の質問は、これを実際に実行すると、x
+                    が適切に設定されているように見えますが、結局のところ、私の
+                    @ はquation_array
+                    は、私が期待する文字列ではなく、known_var
+                    (私が作成した Variable クラス)
+                    によって使用されるクラスのインスタンスを保持することになります。
+                    x
+                    は実際にはインスタンスとして保存されているように見えます。例えば：</p>
+                    <pre><code>@equation_array is initially [&quot;amperage&quot;, &quot;*&quot;, &quot;resistance&quot;]
+x is now 12.0
+@equation_array is initially [&quot;amperage&quot;, &quot;*&quot;, &quot;resistance&quot;]
+x is still 12.0
+@equation_array is initially [[#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], &quot;*&quot;, &quot;resistance&quot;]
+x is still *
+@equation_array is initially [[#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], &quot;*&quot;, &quot;resistance&quot;]
+x is still *
+@equation_array is initially [[#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], [#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], &quot;resistance&quot;]
+x is still resistance
+@equation_array is initially [[#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], [#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], &quot;resistance&quot;]
+x is now 2200.0
+@equation_array is now [[#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], [#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;], [#&lt;Variable:0x000001c28755c490 @abbrev=&quot;i&quot;, @full_name=&quot;amperage&quot;, @unit=&quot;A&quot;, @value=&quot;12&quot;&gt;, #&lt;Variable:0x000001c28745a060 @abbrev=&quot;r&quot;, @full_name=&quot;resistance&quot;, @unit=&quot;Ohms&quot;, @value=&quot;2200&quot;&gt;]]
+</code></pre>
+                    <p>いくつかのこと（すべての代入で to_
+                    タイプを明示的に指定する、値保存で to_f
+                    を削除する）を試しましたが、だめで、基本的に何が間違っているのかわかりません（おそらく複雑な方法論は別として）全体）。一時的なハッシュなどを作成することでこれを回避することもできますが、意図したフローの何が問題なのかを理解したいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく、変数名をそれぞれの (浮動小数点)
+                    値にマップするルックアップ
+                    ハッシュを構築するでしょう。</p>
+                    <pre><code>@values = @known_variables.to_h { |v| [v.full_name, v.value.to_f] }
+#=&gt; {&quot;amperage&quot;=&gt;12.0, &quot;resistance&quot;=&gt;2200.0}
+</code></pre>
+                    <p>このハッシュを使用すると、置換はほとんど簡単になります。</p>
+                    <pre><code>@equation_array = [&#39;amperage&#39;, &#39;*&#39;, &#39;resistance&#39;]
+
+@equation_array.map { |x| @values.fetch(x, x) }
+#=&gt; [12.0, &quot;*&quot;, 2200.0]
+</code></pre>
+                    <p>Hash#fetch
+                    は、最初の引数として指定されたキーの値を返します。キーが見つからない場合
+                    (例: ‘<em>’)、単にキーそのものである 2
+                    番目の引数を返すため、’</em>’ は ’*’
+                    のままになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

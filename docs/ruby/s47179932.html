@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アセット パイプライン レール Heroku | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アセット パイプライン レール Heroku",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アセット パイプライン レール Heroku</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、プロジェクトを Rails 5
+                    にアップグレードしたのですが、すべてを Heroku
+                    にアップロードしようとすると、アセット
+                    パイプラインがおかしくなってしまいます。</p>
+                    <p>問題は次のとおりです。私は Ejercicios
+                    のコレクションを持っており、そのうちの 1
+                    つをクリックすると、アプリには画像を含むその情報が表示されるはずです。画像へのルートは、img1:
+                    “ejercicios/abdominales/1_4_I1.bmp”
+                    のように私のデータベースに保存されています。たとえば、そのファイルは
+                    app/assets/images/ejercicios/abdominales/1_4_I1.bmp
+                    にあります。</p>
+                    <p>関連ビュー show.html.haml
+                    は、次のように画像を出力します: = image_tag(<span
+                    class="citation"
+                    data-cites="ejercicio.img1">@ejercicio.img1</span>)
+                    if <span class="citation"
+                    data-cites="ejercicio.img1">@ejercicio.img1</span>?。</p>
+                    <p>ローカルでは完璧に機能しましたが、Heraku
+                    の実稼働環境では機能しませんでした。そのため、機能させるにはアセット
+                    パイプラインについて読んでください。そこで、show.html.hamml
+                    を次のように変更しました。 =
+                    image_tagasset_path(<span class="citation"
+                    data-cites="ejercicio.img1">@ejercicio.img1</span>)
+                    if <span class="citation"
+                    data-cites="ejercicio.img1?そして">@ejercicio.img1?そして</span>、チュートリアルで言及されている行を
+                    Gemfile と application.rb
+                    に追加しました。実行されたバンドルのインストールとバンドルの実行
+                    rake Assets:precompile
+                    RAILS_ENV=production、新しい「public」フォルダーを
+                    Git に追加し、Git
+                    をコミットしてプッシュし、最後にすべてを Heroku
+                    にプッシュしました。</p>
+                    <p>しかし、それは機能せず、画像の「alt」が表示されます。インスペクタを使用すると、HTML
+                    内の画像がフィンガープリント付きの URL
+                    ではなく、画像への通常の URL
+                    に従っていることがわかります。そのため、ヘルパーのasset_path
+                    が正しく機能していないようです。</p>
+                    <p>これがconfig/environmentsのproduction.rbです。</p>
+                    <pre><code>KeepMeFit::Application.configure do
+
+  config.eager_load = true
+  config.cache_classes = true
+
+  config.consider_all_requests_local       = false
+  config.action_controller.perform_caching = true
+
+  config.serve_static_assets = true
+
+  config.assets.compress = true
+
+  config.assets.compile = true
+
+  config.assets.digest = falsenginx
+
+  config.force_ssl = true
+
+  config.i18n.fallbacks = true
+
+  config.active_support.deprecation = :notify
+
+
+  config.action_mailer.default_url_options = { :host =&gt; &quot;http://keepmefit.herokuapp.com/&quot;}
+end
+</code></pre>
+                    <p>「config」の「application.rb」:</p>
+                    <pre><code>require File.expand_path(&#39;../boot&#39;, __FILE__)
+
+require &#39;rails/all&#39;
+
+require &#39;will_paginate/array&#39;
+
+if defined?(Bundler)
+  Bundler.require(*Rails.groups(:assets =&gt; %w(development test)))
+end
+
+module KeepMeFit
+  class Application &lt; Rails::Application
+    config.i18n.load_path += Dir[Rails.root.join(&#39;my&#39;, &#39;locales&#39;, &#39;*.{rb,yml}&#39;).to_s]
+    config.i18n.default_locale = :es
+
+    config.encoding = &quot;utf-8&quot;
+
+    config.filter_parameters += [:password, :password_confirmation]
+
+    config.active_support.escape_html_entities_in_json = true
+
+    config.assets.enabled = true
+    config.serve_static_assets = true
+
+    config.assets.initialize_on_precompile = false
+
+    config.assets.version = &#39;1.0&#39;
+
+  end
+end
+</code></pre>
+                    <p>そして私の Gemfile:</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+ruby &#39;2.3.3&#39;
+
+gem &#39;rails&#39;, &#39;5.1.4&#39;
+
+group :development, :test do
+    gem &#39;sqlite3&#39;
+  gem &#39;activemodel&#39;
+  gem &#39;json&#39;
+
+    gem &#39;rspec-rails&#39;
+    gem &#39;guard-rspec&#39;
+    gem &#39;rb-notifu&#39;
+    # gem &#39;railroady&#39;
+end
+
+gem &#39;rails_12factor&#39;, group: :production
+group :production do
+    gem &#39;pg&#39;
+end
+
+group :test do
+    gem &#39;capybara&#39;
+    gem &#39;factory_girl_rails&#39;, &#39;4.1.0&#39;
+    gem &#39;launchy&#39;
+end
+
+group :development do
+    gem &#39;annotate&#39;
+    gem &#39;better_errors&#39;
+    gem &#39;binding_of_caller&#39;
+    gem &#39;meta_request&#39;
+end
+
+
+group :assets do
+  gem &#39;sass-rails&#39;
+  gem &#39;coffee-rails&#39;
+    gem &#39;coffee-script-source&#39;, &#39;1.8.0&#39;
+
+  gem &#39;uglifier&#39;, &#39;&gt;= 1.0.3&#39;
+end
+
+gem &#39;jquery-rails&#39;
+gem &#39;bcrypt&#39;, &#39;~&gt; 3.1.11&#39;, platforms: [:ruby, :x64_mingw, :mingw]
+
+gem &#39;haml&#39;
+gem &#39;haml-rails&#39;
+
+gem &#39;bootstrap-sass&#39;
+
+require &#39;rbconfig&#39;
+gem &#39;wdm&#39;, &#39;&gt;= 0.1.0&#39; if RbConfig::CONFIG[&#39;target_os&#39;] =~ /mswin|mingw/i
+
+gem &#39;modernizr-rails&#39;
+
+#gem &quot;font-awesome-rails&quot;
+
+gem &#39;bootstrap-datepicker-rails&#39;
+gem &#39;tzinfo-data&#39;
+
+gem &#39;faker&#39;, &#39;1.1.2&#39;
+
+gem &#39;will_paginate&#39;, &#39;~&gt; 3.1.0&#39;
+gem &#39;bootstrap-will_paginate&#39;
+
+gem &#39;turbolinks&#39;
+gem &#39;jquery-turbolinks&#39;
+
+gem &#39;friendly_id&#39;
+
+gem &#39;gon&#39;
+
+gem &#39;cloudinary&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アセット パイプラインには基本的に 2
+                    つのユースケースがあります。</p>
+                    <p>まず、さまざまなスタイルシートまたは JavaScript
+                    ファイルをプリコンパイルして単一のバンドルに結合します。たとえば、SCSS
+                    を CSS
+                    にプリコンパイルできるため、開発が簡素化されます。また、結合された
+                    1
+                    つの大きなファイルは、多数の小さなファイルよりも速くダウンロードできます。</p>
+                    <p>次に、ファイル名にハッシュを追加します。これにより、これらのファイルを長期間キャッシュできるようになり、パフォーマンスも向上します。ファイルの
+                    1
+                    つに小さな変更しかない場合でも、ハッシュが変更され、したがってファイル名も変更されます。変更されたファイル名はキャッシュにないため、ブラウザはファイルをすぐに再読み込みします。</p>
+                    <p>しかし、あなたの場合、画像はとにかく静的です。イメージをプリコンパイルしたり、変更が想定されていないファイルにハッシュを追加したりしても意味がありません。</p>
+                    <p>したがって、私はその画像をパブリック
+                    フォルダーに直接配置し、この種の静的画像のアセット
+                    パイプラインをバイパスします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

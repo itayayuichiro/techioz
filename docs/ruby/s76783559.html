@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsで文字列の途中から部分文字列を抽出する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsで文字列の途中から部分文字列を抽出する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsで文字列の途中から部分文字列を抽出する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>文字列として返されたクラス型から部分文字列を抽出しようとしています。</p>
+                    <pre><code>&#39;::Pos::EmailNotice&#39;
+&#39;Pos::EmailNotice&#39;
+&#39;::Pos::CallNotice&#39;
+&#39;Pos::CallNotice&#39;
+</code></pre>
+                    <p>したがって、文字列「Pos::{type}
+                    Notice」を取得した場合は、最後に {type}
+                    を使用する必要があります。</p>
+                    <p>#slice と #delete_prefix および #delete_suffix
+                    を使用しようとしましたが、名前空間が変更された場合や将来的に通知の種類を追加した場合に備えて、それよりも動的であることを望みます。</p>
+                    <p>ここで検索してみましたが、このような場合にテキストを抽出する方法を説明する回答が見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails はモジュールから名前空間を取り除くための
+                    String#demodulize を提供します。</p>
+                    <pre><code>&#39;::Pos::EmailNotice&#39;.demodulize #=&gt; &quot;EmailNotice&quot;
+&#39;Pos::EmailNotice&#39;.demodulize   #=&gt; &quot;EmailNotice&quot;
+&#39;::Pos::CallNotice&#39;.demodulize  #=&gt; &quot;CallNotice&quot;
+&#39;Pos::CallNotice&#39;.demodulize    #=&gt; &quot;CallNotice&quot;
+</code></pre>
+                    <p>これを delete_suffix! と一緒に使用できます。</p>
+                    <pre><code>string = &#39;::Pos::EmailNotice&#39;
+
+string.demodulize.delete_suffix!(&#39;Notice&#39;)
+#=&gt; &quot;Email&quot;
+</code></pre>
+                    <p>別のアプローチは、文字列を実際のクラスに変換し、呼び出し可能な型メソッドを実装させることです。例:</p>
+                    <pre><code>module Pos
+  class EmailNotice
+    def self.type
+      :email
+    end
+  end
+end
+</code></pre>
+                    <p>次に、Rails の String#constantize
+                    を使用できます。</p>
+                    <pre><code>&#39;::Pos::EmailNotice&#39;.contantize.type #=&gt; :email
+&#39;Pos::EmailNotice&#39;.contantize.type   #=&gt; :email
+</code></pre>
+                    <p>または、Module#const_get を介して純粋な Ruby
+                    を使用します。</p>
+                    <pre><code>Object.const_get(&#39;::Pos::EmailNotice&#39;).type #=&gt; :email
+Object.const_get(&#39;Pos::EmailNotice&#39;).type   #=&gt; :email
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

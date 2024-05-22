@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: 継承不可能なクラスメソッドを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: 継承不可能なクラスメソッドを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+継承不可能なクラスメソッドを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クラスがあるとしましょう:</p>
+                    <pre><code>class Person
+  def self.say
+    puts &quot;hello&quot;
+  end
+end
+</code></pre>
+                    <p>そしてサブクラス:</p>
+                    <pre><code>  class Woman &lt; Person
+  end
+</code></pre>
+                    <p>「say」メソッドをパブリック
+                    メソッドにしたいのですが、「Woman」または他のサブクラスに継承されたくありません。それを達成するための正しい方法は何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その静的メソッドを別の場所、たとえばモジュール内に定義します。</p>
+                    <pre><code>module Person
+
+  class Base
+  end
+
+  class Woman &lt; Base
+  end
+
+  def self.create(name)
+    case name
+    when :woman
+      Woman.new
+    end
+  end
+
+end
+
+Person.create(:woman)          # =&gt; #&lt;Person::Woman:0x007fe5040619e0&gt;
+Person::Woman.create(:woman)   # =&gt; undefined method `create&#39; for Person::Woman:Class
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

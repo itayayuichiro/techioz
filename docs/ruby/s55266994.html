@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>openssl pkcs12 -export は証明書をロードできないというエラーを返します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "openssl pkcs12 -export は証明書をロードできないというエラーを返します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>openssl pkcs12 -export
+は証明書をロードできないというエラーを返します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>今日まで、私は以下の手順に従ってプッシュ用の p12
+                    ファイルを作成していました。</p>
+                    <pre><code>openssl x509 -in aps_development.cer -inform DER -out aps_development_identity.pem -outform PEM}
+openssl pkcs12 -nocerts -out private_development_key.pem -in Certificates.p12
+openssl rsa -out private_key_noenc.pem -in private_development_key.pem
+openssl pkcs12 -export -in aps_development_identity.pem -inkey private_key_noenc.pem -certfile CertificateSigningRequest.certSigningRequest -name &quot;aps_development_identity&quot; -out aps_development_identity.p12
+</code></pre>
+                    <p>注 :
+                    私のフォルダーには、aps_development.cer、Certificates.p12、CertificateSigningRequest.certSigningRequest
+                    がすでにあります。</p>
+                    <p>しかし、今日、ターミナルで最後のステートメントを実行するとエラーが発生しました。</p>
+                    <p>最後の文を実行すると、以下のようなエラーが発生します。</p>
+                    <pre><code>openssl pkcs12 -export -in aps_development_identity.pem -inkey private_key_noenc.pem -certfile CertificateSigningRequest.certSigningRequest -name &quot;aps_development_identity&quot; -out aps_development_identity.p12
+
+unable to load certificates --&gt; this is what I get in response
+</code></pre>
+                    <p>今までこのようなエラーは発生しませんでした。</p>
+                    <p>私に何が欠けているのか何か考えがあります。</p>
+                    <p>ポッドの Ruby
+                    を更新したためにこれが起こっているのだと思いました。</p>
+                    <p>このエクスポートに関して Ruby
+                    で何か更新されたものはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最後に解決策を見つけました。</p>
+                    <pre><code>openssl pkcs12 -export -in aps_development_identity.pem -inkey private_key_noenc.pem -name &quot;aps_development_identity&quot; -out aps_development_identity.p12
+</code></pre>
+                    <p>最後のステートメントから -certfile
+                    CertificateSigningRequest.certSigningRequest
+                    を削除するだけで完了です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

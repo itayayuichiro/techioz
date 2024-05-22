@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Railsでランサック結果に基づいて再度クエリを実行する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Railsでランサック結果に基づいて再度クエリを実行する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on
+Railsでランサック結果に基づいて再度クエリを実行する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コントローラーで次のようなランサック結果を取得した後:</p>
+                    <pre><code>@q = SomeModel.ransack(q)
+</code></pre>
+                    <p>ransack の結果 (<span class="citation"
+                    data-cites="q">@q</span>)
+                    に基づいてもう一度クエリを実行したいと思います。</p>
+                    <pre><code>SELECT * FROM ransack_result WHERE some_field IN (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)
+</code></pre>
+                    <p>追加のクエリを適用する方法はありますか?</p>
+                    <p>背景情報の詳細については、次を参照してください。</p>
+                    <p>Rails7 では some_field が
+                    ActiverRecord::Encryption で暗号化されています。
+                    q[:some_field_in] = [‘a’, ‘b’, ‘c’] を使用して WHERE
+                    some_field IN (‘a’, ‘b’, ‘c’)
+                    を含めようとすると、それぞれの ‘a’、
+                    「b」、「c」は暗号化されます。</p>
+                    <p>some_field
+                    に暗号化された値と暗号化されていない値の両方が含まれる移行期間中であるため、他の条件を維持しながら暗号化されたデータと暗号化されていないデータの両方をクエリしたいと考えています。
+                    ransack
+                    は現在、暗号化された属性をサポートしていないため、ransack
+                    で提供されている *_in matcher を使用できません。
+                    :’(</p>
+                    <p>または…Rails コントローラーで ransack
+                    によって生成された SQL
+                    クエリを取得できればいいのですが、そうすれば上記のクエリを追加できるようになります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ransack
+                    から取得した結果に基づいて追加のクエリを実行するには、Ransack
+                    によって生成された SQL を抽出し、カスタム
+                    クエリ条件を「手動で」追加します。</p>
+                    <pre><code>@q = SomeModel.ransack(q)
+
+# obtain generated SQL by Ransack
+original_query = @q.result.arel.to_sql
+
+# your manual modifications
+custom_condition = &quot;some_field IN (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)&quot;
+custom_query = &quot;#{original_query} AND #{custom_condition}&quot;
+
+# perform the SQL query
+SomeModel.find_by_sql(custom_query)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

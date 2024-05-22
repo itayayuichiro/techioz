@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Travis CI 上の Ruby 3.2.2 YJIT | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Travis CI 上の Ruby 3.2.2 YJIT",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Travis CI 上の Ruby 3.2.2 YJIT</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Travis CI で YJIT サポートを備えた Ruby 3.2.2
+                    をビルドしようとしていますが、Travis
+                    はこれを許可していないようです。</p>
+                    <p>.travis.yml 内で次のものを使用しています。</p>
+                    <pre><code>language: ruby
+dist: focal
+rvm:
+ - 3.2.2
+env:
+  - RUBY_CONFIGURE_OPTS=&quot;--enable-yjit&quot;
+  - RUBY_YJIT_ENABLE=1
+  - RUBYOPT=&quot;--enable-yjit&quot;
+cache:
+  npm: true
+  bundler: true
+sudo: false
+services:
+  - mysql
+  - redis-server
+before_script:
+  - sudo apt install -y curl build-essential gcc make
+  - curl --proto &#39;=https&#39; --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  - source &quot;$HOME/.cargo/env&quot;
+  - rustc --version
+stages:
+  - ruby
+jobs:
+  include:
+    - stage: ruby
+      name: &quot;Ruby Version Info&quot;
+      script:
+      - ruby --yjit -v
+</code></pre>
+                    <p>(before_install
+                    を使用してみましたが、それも機能しませんでした。)</p>
+                    <p>この段階の出力は次のとおりです。</p>
+                    <pre><code>0.32s$ sudo apt install -y curl build-essential gcc make
+before_script.5
+14.65s$ curl --proto &#39;=https&#39; --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+before_script.6
+0.00s$ source &quot;$HOME/.cargo/env&quot;
+before_script.7
+0.05s$ rustc --version
+rustc 1.73.0 (cc66ad468 2023-10-03)
+0.02s$ ruby --yjit -v
+ruby: warning: Ruby was built without YJIT support. You may need to install rustc to build Ruby with YJIT.
+ruby 3.2.2 (2023-03-30 revision e51014f9c0) [x86_64-linux]
+The command &quot;ruby --yjit -v&quot; exited with 0.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Travis サポートが解決策を見つけてくれました。</p>
+                    <pre><code>before_install:
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+  - source &quot;$HOME/.cargo/env&quot;
+  - rustc --version
+  - RUBYCONFIGUREOPTS=--enable-yjit rvm reinstall --disable-binary 3.2.2
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

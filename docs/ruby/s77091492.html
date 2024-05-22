@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Slim-Bullseye および libvips-dev に基づく Ror による巨大な Docker イメージ サイズ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Slim-Bullseye および libvips-dev に基づく Ror による巨大な Docker イメージ サイズ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Slim-Bullseye および libvips-dev に基づく
+Ror による巨大な Docker イメージ サイズ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はruby:3.1.3-slim-bulseyeを使用してRails
+                    7アプリケーションをDocker化しています。</p>
+                    <p>明確な理由はありませんが、イメージのサイズは約
+                    2GB です。</p>
+                    <p>私はvipsを使用するアクティブストレージを使用しています（そのためlibvips-devを使用します）。</p>
+                    <p>Docker履歴を使用してイメージレイヤーを検査しようとしましたが、
+                    出力には、これらの docker コマンドに関連する 2
+                    つの巨大なレイヤーが示されています。</p>
+                    <pre><code>RUN bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y --no-install-recommends build-essential curl git libpq-dev  &quot;
+
+RUN bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y libvips-dev&quot;
+</code></pre>
+                    <p>docker 履歴の出力 my_image –no-trunc,</p>
+                    <pre><code>..... other entries 
+
+
+sha256:bf2ec68f81ba5fea38089b6a09d60786f296776b76f8083c9e3c94eae64533f5   24 minutes ago   |3 GID=1000 NODE_ENV=production UID=1000 /bin/sh -c bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y libvips-dev&quot;       667MB
+
+sha256:1f778f131d692203d3918ea0fbc8e91c2466fadc7bd42ac8d333b8cf34cdae2b   25 minutes ago   |3 GID=1000 NODE_ENV=production UID=1000 /bin/sh -c bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y --no-install-recommends build-essential curl git libpq-dev  &quot;           258MB
+
+
+...... other entries 
+</code></pre>
+                    <p>私のDockerfile</p>
+                    <pre><code>FROM ruby:3.1.3-slim-bullseye
+WORKDIR /app
+
+.... Other docker entries
+
+#
+RUN bash -c &quot;set -o pipefail  &amp;&amp; apt-get update &quot;
+
+RUN bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y --no-install-recommends build-essential curl git libpq-dev  &quot;
+
+RUN bash -c &quot;set -o pipefail &amp;&amp; apt-get install -y libvips-dev&quot;
+
+RUN bash -c &quot;set -o pipefail &amp;&amp;  groupadd -g \&quot;${GID}\&quot; ruby &amp;&amp; useradd --create-home --no-log-init -u \&quot;${UID}\&quot; -g \&quot;${GID}\&quot; ruby&quot;
+
+RUN bash -c &quot;set -o pipefail  \
+  &amp;&amp; chown ruby:ruby -R /node_modules /app \
+  &amp;&amp; apt-get clean \
+  &amp;&amp; rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man &quot;
+
+.... Other docker entries
+
+
+</code></pre>
+                    <p>apt-get install の何が問題で、libvips-dev が
+                    667MB を消費し、build-essentialcurl git libpq-dev が
+                    258MB を消費するようになります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby-vips でイシューをオープンしました
+                    (https://github.com/libvips/ruby-vips/issues/370#issuecomment-1716933820)。</p>
+                    <p>推奨事項は次のとおりです。</p>
+                    <p>1 - libvips-dev
+                    をインストールする代わりに、プレーンな libvips
+                    を使用できます。 (最初に libvips-dev
+                    を使用した正確な理由はわかりません)</p>
+                    <p>2 - –no-install-recommends
+                    をコマンドに追加します</p>
+                    <p>したがって、コマンドは apt-get install -y
+                    –no-install-recommends libvips です。</p>
+                    <p>現在のイメージ レイヤーのサイズは 130MG
+                    ですが、667MB と比較すると問題ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

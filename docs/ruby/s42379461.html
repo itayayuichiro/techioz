@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レール。関連するテーブルの値の合計を含む「count」列を追加します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レール。関連するテーブルの値の合計を含む「count」列を追加します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レール。関連するテーブルの値の合計を含む「count」列を追加します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>カテゴリテーブルと問題テーブルがあります。</p>
+                    <p>カテゴリモデル:</p>
+                    <pre><code>has_many :issues
+</code></pre>
+                    <p>問題モデル:</p>
+                    <pre><code>belongs_to :category
+</code></pre>
+                    <p>issue_count
+                    をコレクションの仮想属性として返すクエリを作成できます。</p>
+                    <pre><code>Category.left_outer_joins(:issues).select(&#39;categories.*, COUNT(issues.*) AS issues_count&#39;).group(&#39;categories.id&#39;)
+</code></pre>
+                    <p>ただし、次のように、カテゴリ テーブルの値として
+                    issues_count
+                    を格納する実際の列がテーブルに必要です。</p>
+                    <pre><code>id | name | created_at | updated_at | description | tags | issues_count
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>:counter_cache オプションを使用できます。</p>
+                    <pre><code>class Issue &lt; ApplicationRecord
+  # NOTE: you can also override the default column name
+  #       by specifying a custom column name in the counter_cache declaration instead of true
+  belongs_to :category, counter_cache: true
+end
+</code></pre>
+                    <p>:counter_cache オプションは、belongs_to
+                    宣言を含むモデルで指定されていますが、実際の列は、関連付けられた
+                    (has_many)
+                    モデルに追加する必要があります。これにより、category.issues_count
+                    フィールドが ActiveRecord
+                    によって自動的に更新されます。</p>
+                    <p>このフィールドを追加し、既存のレコードを更新するには、移行を作成する必要もあります。</p>
+                    <pre><code>class AddIssuesCountToCategory &lt; ActiveRecord::Migration[7.1]
+  def up
+    add_column :categories, :issues_count, :integer, default: 0
+    Category.reset_column_information
+    Category.all.each do |c|
+      Category.update_counters c.id, issues_count: c.issues.length
+    end
+  end
+
+  def down
+    remove_column :categories, :issues_count
+  end
+end
+</code></pre>
+                    <p>また、Ryan Bates は、このトピックに関する
+                    RailsCasts の優れたエピソードを紹介しています。 #23
+                    カウンターキャッシュ列</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

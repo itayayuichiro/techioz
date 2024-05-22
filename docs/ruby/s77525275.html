@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>本を注文するための Ruby モデル スコープを作成する方法はありますか? (数字もアルファベットもなし) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "本を注文するための Ruby モデル スコープを作成する方法はありますか? (数字もアルファベットもなし)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>本を注文するための Ruby モデル
+スコープを作成する方法はありますか? (数字もアルファベットもなし)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、本からの引用と、その引用についてのメモや感想を掲載するアプリを持っています。本の順序、章の順序、ページの順序の順に引用をリストしたいと思います。</p>
+                    <p>ActiveRelation
+                    を維持するために、これをモデル内のスコープに移動する方法はありますか?</p>
+                    <p>のように</p>
+                    <pre><code>class Quote
+  scope :sorted, -&gt;(order_of_books|book|) { where(&quot;reference_book = ?&quot;, book) }
+end
+</code></pre>
+                    <p>私のコントローラーには、書籍の注文ごとに引用を並べ替える次のようなコードがあります。</p>
+                    <pre><code># /app/controllers/quotes_controller.rb
+
+def quotes
+    @quotes = Quotes.all
+    @sorted_quotes = []
+        
+    order_of_books.each do |book|
+        @temp_array = []
+        if @quotes.any? { |quote| quote[:reference_book] == book}
+            @temp_array &lt;&lt; @quotes.detect { |quote| quote[:reference_book] == book}
+            # @temp_array.sort_by! { |quote| quote.reference_paragraph, quote.reference_sentence }
+            @sorted_quotes &lt;&lt; @temp_array
+        end
+    end
+end
+
+# /app/models/concerns/book_concern.rb
+
+def order_of_books
+   [ 
+    &quot;Book A&quot;,
+    &quot;Book B&quot;,
+    &quot;Book C&quot;,
+   ]
+end
+</code></pre>
+                    <p>参考用のデータベーステーブルです。</p>
+                    <pre><code># db/schema.rb
+create_table &quot;quotes&quot;, force: :cascade do |t|
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;text&quot;, null: false
+    t.string &quot;reference_book&quot;, null: false
+    t.integer &quot;reference_chapter&quot;, null: false
+    t.integer &quot;reference_paragraph&quot;, null: false
+    t.integer &quot;reference_sentence&quot;, null: false
+    t.string &quot;image&quot;
+    t.text &quot;notes&quot;
+end
+</code></pre>
+                    <p>エラー</p>
+                    <p>問題は、引用符を並べ替えようとしていることであり、ビュー内で
+                    quote.image
+                    のようなものを呼び出そうとすると、他のすべてのコードが壊れて、次のエラーが発生します。</p>
+                    <p>問題は、引用符を並べ替えようとしていることであり、ビュー内で
+                    quote.image
+                    のようなものを呼び出そうとすると、他のすべてのコードが壊れて、次のエラーが発生します。</p>
+                    <p>サイドノート</p>
+                    <p>コントローラー内のsort_by!を実行しようとしている行です。段落と文が機能しないので、コメントアウトしました。今のところ、それは私にとってそれほど重要ではありません。</p>
+                    <p>コントローラー内のsort_by!を実行しようとしている行です。段落と文が機能しないので、コメントアウトしました。今のところ、それは私にとってそれほど重要ではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>書籍ごとに複数の引用があると仮定すると
+                    (コードに新しい行を追加せずに、時間の経過とともにさらに書籍を追加することになります)、書籍テーブルを用意し、書籍の並べ替えフィールドを保存することで、データをもう少し適切に正規化することができます。本の好ましい並べ替え順序を取得するため
+                    (コードに直接組み込まれるのではなく)。</p>
+                    <pre><code># models/book.rb
+class Book &lt; ApplicationRecord
+  validates :sort, presence: true
+end
+
+# models/quote.rb
+class Quote &lt; ApplicationRecord
+  belongs_to :book
+end
+
+# db/schema.rb
+create_table &quot;books&quot;, force: :cascade do |t|
+    t.string &quot;title&quot;, null: false
+    t.string &quot;author&quot;
+    t.integer &quot;sort&quot;, null: false
+end
+create_table &quot;quotes&quot;, force: :cascade do |t|
+    t.string &quot;text&quot;, null: false
+    t.bigint &quot;book_id&quot;, null: false # &lt; new column
+    t.integer &quot;reference_chapter&quot;, null: false
+    t.integer &quot;reference_paragraph&quot;, null: false
+    t.integer &quot;reference_sentence&quot;, null: false
+    t.string &quot;image&quot;
+    t.text &quot;notes&quot;
+    # TODO: you will also want a foreign key constraint here for quote.book_id
+end
+</code></pre>
+                    <p>次に、このリレーションシップを使用して引用を並べ替え、複数の列を
+                    order メソッドに渡します。つまり、最初に book.sort
+                    で並べ替え、次に、reference_chapter
+                    (同じ書籍内のすべての引用について)、次に、reference_paragraph
+                    (同じ章内のすべての引用について)
+                    で並べ替えることができます。ベストプラクティスとして、同じ本+章+段落+文から複数の引用があった場合に備えて、最終的な曖昧さ回避として
+                    quotes.id を使用することをお勧めします。</p>
+                    <pre><code># models/quote.rb
+class Quote &lt; ApplicationRecord
+  scope :sorted, -&gt; { joins(:book).order(&#39;books.sort ASC, reference_chapter ASC, reference_paragraph ASC, reference_sentence ASC, id ASC&#39;) }
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

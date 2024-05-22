@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 2.7 では URI.escape が廃止になったとされていますが、これに代わるものは何でしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 2.7 では URI.escape が廃止になったとされていますが、これに代わるものは何でしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 2.7 では URI.escape
+が廃止になったとされていますが、これに代わるものは何でしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>URI.encode を使用して HTML データ URL
+                    を生成しています。</p>
+                    <pre><code>visit &quot;data:text/html,#{URI::encode(html)}&quot;
+</code></pre>
+                    <p>Ruby 2.7.1
+                    にアップグレードした後、インタープリターは次の警告を出し始めました。</p>
+                    <pre><code>warning: URI.escape is obsolete
+</code></pre>
+                    <p>これに代わるものとして推奨されるのは、CGI.escape
+                    と URI.encode_www_form_component
+                    です。ただし、彼らは同じことをしているわけではありません。</p>
+                    <pre><code>2.7.1 :007 &gt; URI.escape &#39;&lt;html&gt;this and that&lt;/html&gt;&#39;
+(irb):7: warning: URI.escape is obsolete
+ =&gt; &quot;%3Chtml%3Ethis%20and%20that%3C/html%3E&quot;
+2.7.1 :008 &gt; CGI.escape &#39;&lt;html&gt;this and that&lt;/html&gt;&#39;
+ =&gt; &quot;%3Chtml%3Ethis+and+that%3C%2Fhtml%3E&quot;
+2.7.1 :009 &gt; URI.encode_www_form_component &#39;&lt;html&gt;this and that&lt;/html&gt;&#39;
+ =&gt; &quot;%3Chtml%3Ethis+and+that%3C%2Fhtml%3E&quot;
+</code></pre>
+                    <p>これらのわずかなエンコーディングの違いの結果、HTML
+                    ページではスペースが +
+                    に置き換えられます。私の質問は、この使用例で
+                    URI.encode の代わりになるものは何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際に代替品の減少が発生しています。</p>
+                    <pre><code>s = &#39;&lt;html&gt;this and that&lt;/html&gt;&#39;    
+p = URI::Parser.new
+p.escape(s)
+=&gt; &quot;%3Chtml%3Ethis%20and%20that%3C/html%3E&quot;
+</code></pre>
+                    <p>ドキュメント:
+                    https://docs.w3cub.com/ruby~3/uri/rfc2396_parser</p>
+                    <p>この記事の下のコメントを通じてこれを見つけました
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://docs.knapsackpro.com/2020/uri-escape-is-obsolete-percent-encoding-your-query-string</p>
+                    <p>また、これをセットアップ内の他の文字列に対してテストしました。これも、ERB::Util.url_encode
+                    とは対照的に、URI.escape
+                    と同じ方法でカンマを保持しているようです。</p>
+                    <p>注記：
+                    この回答は現在非常に人気があるため、プロジェクトに標準準拠のエンコーダーが必要ないことが確実でない限り、URI::Parser
+                    を使用するようにコードを盲目的に変更すべきではないことはおそらく言及する価値があります。
+                    URI.escape
+                    は実際には理由があって非推奨になっているためです。したがって、単純に
+                    URI::Parser
+                    に切り替える前に、https://stackoverflow.com/a/13059657/6376353
+                    を読んで理解していることを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

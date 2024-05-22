@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アクティブ レコード オブジェクトが理由もなく作成される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アクティブ レコード オブジェクトが理由もなく作成される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アクティブ レコード
+オブジェクトが理由もなく作成される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 を使用しています。Post、Venue、VenuePost
+                    モデルがあります。それらは次のようになります。</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+  has_many :venue_posts, dependent: :destroy
+  accepts_nested_attributes_for :venue_posts
+end
+
+class Venue &lt; ApplicationRecord
+  has_many :venue_posts, dependent: :destroy
+end
+
+class VenuePost &lt; ApplicationRecord
+  belongs_to :post
+  belongs_to :venue
+end
+</code></pre>
+                    <p>これで、Posts#new
+                    アクションは次のようになります。</p>
+                    <pre><code>def new
+  @post = Post.new
+  Venue.all.each do |v|
+    vp = @post.venue_posts.build(venue: v)
+    v.venue_posts &lt;&lt; vp
+  end
+end
+</code></pre>
+                    <p>問題は、作成アクションを呼び出さなくても、投稿がデータベースに保存され続け、インデックス
+                    ページに表示されることです。それはなぜでしょうか。また、新しい投稿を作成するときに会場ごとに
+                    1 つの VenuePost
+                    をインスタンス化し、それをフォームで編集して保存できるという、現在と同じ動作を維持しながらそれを防ぐにはどうすればよいでしょうか。</p>
+                    <p>読んでくれてありがとう</p>
+                    <p>参考のために編集します:</p>
+                    <p>強力なパラメータ:</p>
+                    <pre><code>def post_params
+  params.require(:post).permit(:title, :content, venue_posts_attributes: [:id, :title, :content])
+end
+</code></pre>
+                    <p>ネストされたフォーム:</p>
+                    <pre><code>&lt;%= form.fields_for :venue_posts do |vpf| %&gt;
+  &lt;div&gt;
+      &lt;strong&gt;Venue:&lt;/strong&gt;
+      &lt;%# vpf.object.venue.name %&gt;
+      &lt;%= vpf.label :title, style: &quot;display: block&quot; %&gt;
+      &lt;%= vpf.text_field :title %&gt;
+      &lt;%= vpf.label :content, style: &quot;display: block&quot; %&gt;
+      &lt;%= vpf.text_area :content %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>Post のメソッドを作成します。</p>
+                    <pre><code>def create
+  @post = Post.new(post_params)
+
+  respond_to do |format|
+    if @post.save
+      format.html { redirect_to post_url(@post), notice: &quot;Post was successfully created.&quot; }
+      format.json { render :show, status: :created, location: @post }
+    else
+      format.html { render :new, status: :unprocessable_entity }
+      format.json { render json: @post.errors, status: :unprocessable_entity }
+    end
+  end
+end
+</code></pre>
+                    <p>現在の新しい投稿方法:</p>
+                    <pre><code>def new
+  @post = Post.new
+  Venue.all.each do |v|
+    @post.venue_posts.new(venue: v)
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>&lt;&lt;
+                    によりレコードが保存されると思います。これは少なくともドキュメントで暗示されています。</p>
+                    <p>会場ごとに投稿をインスタンス化する代わりに、次の調整を行うことができるはずです。</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+  has_many :venue_posts, dependent: :destroy
+  has_many :venues, through: :venue_posts
+end
+
+class Venue &lt; ApplicationRecord
+  has_many :venue_posts, dependent: :destroy
+  has_many :posts, through: :venue_posts
+end
+</code></pre>
+                    <p>そしてコントローラーアクションでは</p>
+                    <pre><code>def new
+  Venue.all.each {|v| v.posts.build}
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

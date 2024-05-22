@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>リダイレクトする前に自分のルートを検証するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "リダイレクトする前に自分のルートを検証するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>リダイレクトする前に自分のルートを検証するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>やあ！私が取り組んでいるシステムには次の機能があります。切断後、次回ログインすると、最後にアクセスしていたページにリダイレクトされます。</p>
+                    <p>その情報は first_place_after_login
+                    という文字列として DB に保存され、Rails
+                    がユーザーをそこに連れて行きます。</p>
+                    <p>問題は、そのルートが存在しないことがあるということです。</p>
+                    <p>最後のページが「activity/1」で、そのアクティビティが削除されたと想像してください。ログインすると、エラー画面が表示されます。これに関する主な問題は、一部のユーザーが、「通常の」ルートに入ったばかりなのに（無効なルートにリダイレクトされた）、なぜすぐにエラーに陥るのか混乱していることです。</p>
+                    <p>したがって、ユーザーをリダイレクトする前に、そのルートがまだ存在することを確認する必要があります。そのための特定の
+                    DB チェックを作成するのは非常に悪いことです
+                    (存在しない可能性のあるルートが数十あるため)。そこで、独自のルートにリクエストを送信し、返されるステータスを確認する方法が必要でした。</p>
+                    <p>私はこれを試しました：
+                    URLがRubyに存在するかどうかを確認しますが、システムはログインで保護されているため、リクエストは許可なしとして返されます。</p>
+                    <p>自分のルートを検証する実用的な方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    がルートからコントローラーとその他のパラメーターを決定するために使用するのと同じ方法を使用できます。</p>
+                    <p>/activities/1 が存在すると想像してください。</p>
+                    <pre><code>Rails.application.routes.recognize_path(&#39;/activities/1&#39;, method: :get)
+#=&gt; {:controller=&gt;&quot;activites&quot;, :action=&gt;&quot;show&quot;, :id=&gt;&quot;1&quot;}
+</code></pre>
+                    <p>そして、そのルートがもう存在しない場合は、次のようになります。</p>
+                    <pre><code>Rails.application.routes.recognize_path(&#39;/activities/1&#39;, method: :get)
+#=&gt; raises ActionController::RoutingError (No route matches &quot;/activities/12&quot;)
+</code></pre>
+                    <p>これにより、次のようなヘルパー
+                    メソッドを構築できます。</p>
+                    <pre><code>def redirect_to_last_page(url_from_session)
+  Rails.application.routes.recognize_path(url_from_session, method: :get)
+  redirect_to(url_from_session)
+rescue ActionController::RoutingError
+  redirect_to root_path
+end
+</code></pre>
+                    <p>/activities/1 のように URL 自体は有効であるが、ID
+                    1
+                    のアクティビティがデータベースから削除された場合などはカバーされないことに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

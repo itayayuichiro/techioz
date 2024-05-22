@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby にはプライベート メソッドとプロテクト メソッドの両方があるのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby にはプライベート メソッドとプロテクト メソッドの両方があるのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby にはプライベート メソッドとプロテクト
+メソッドの両方があるのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この記事を読む前は、Ruby
+                    のアクセス制御は次のように機能すると思っていました。</p>
+                    <p>ただし、明示的なレシーバーを使用してプライベート
+                    メソッドを呼び出すことができないという事実を除いて、protected
+                    と private は同じように動作するようです
+                    (つまり、self.protected_method
+                    は機能しますが、self.private_method
+                    は機能しません)。</p>
+                    <p>これにはどういう意味があるのでしょうか？明示的なレシーバーを使用してメソッドを呼び出したくないシナリオはどのような場合ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>保護されたメソッドは、定義クラスまたはそのサブクラスの任意のインスタンスから呼び出すことができます。</p>
+                    <p>プライベート
+                    メソッドは、呼び出し側オブジェクト内からのみ呼び出すことができます。別のインスタンスのプライベート
+                    メソッドに直接アクセスすることはできません。</p>
+                    <p>以下に簡単な実践例を示します。</p>
+                    <pre><code>def compare_to(x)
+ self.some_method &lt;=&gt; x.some_method
+end
+</code></pre>
+                    <p>ここでは some_method
+                    をプライベートにすることはできません。明示的な受信者をサポートするために必要なため、保護する必要があります。典型的な内部ヘルパー
+                    メソッドは、このように呼び出す必要がないため、通常はプライベートにすることができます。</p>
+                    <p>これは Java や C++
+                    の動作方法とは異なることに注意することが重要です。
+                    Ruby の private
+                    は、サブクラスがメソッドにアクセスできるという点で
+                    Java/C++ の protected に似ています。 Ruby では、Java
+                    の private
+                    のように、サブクラスからメソッドへのアクセスを制限する方法はありません。</p>
+                    <p>Ruby での可視性は、とにかく send
+                    を使用すればいつでもメソッドにアクセスできるため、主に「推奨」です。</p>
+                    <pre><code>irb(main):001:0&gt; class A
+irb(main):002:1&gt;   private
+irb(main):003:1&gt;   def not_so_private_method
+irb(main):004:2&gt;     puts &quot;Hello World&quot;
+irb(main):005:2&gt;   end
+irb(main):006:1&gt; end
+=&gt; nil
+
+irb(main):007:0&gt; foo = A.new
+=&gt; #&lt;A:0x31688f&gt;
+
+irb(main):009:0&gt; foo.send :not_so_private_method
+Hello World
+=&gt; nil
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

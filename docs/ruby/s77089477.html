@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 7 - 更新アクションの実行後の Rails ビュー エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 7 - 更新アクションの実行後の Rails ビュー エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 7 - 更新アクションの実行後の
+Rails ビュー エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails 7 - 更新アクションの実行後の Rails
+                    ビュー エラー</p>
+                    <p>ツール モデルがあります。以下はその属性です。</p>
+                    <pre><code>class CreateTools &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :tools do |t|
+      t.string :product_name
+      t.string :graph_name
+      t.string :process_capability_graph
+      t.string :process_performance_graph
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>以下はビューコードです:</p>
+                    <p>ご覧のとおり、ツール
+                    モデルで使用可能な値を出力しようとしています。</p>
+                    <pre><code>&lt;table class=&quot;table&quot;&gt;
+        &lt;tbody&gt;
+        &lt;tr&gt;
+        &lt;th scope=&quot;row&quot;&gt;Current Name&lt;/th&gt;
+        &lt;% if @software_settings.product_name.nil? %&gt;
+        &lt;td&gt;No data&lt;/td&gt;
+        &lt;% else %&gt;
+        &lt;td&gt; &lt;%= @software_settings.product_name %&gt;&lt;/td&gt;
+        &lt;% end %&gt;
+        &lt;/tr&gt;
+
+        &lt;tr&gt;
+        &lt;th scope=&quot;row&quot;&gt;Graph Heading &lt;/th&gt;
+        &lt;% if @software_settings.graph_name.nil? %&gt;
+        &lt;td&gt;No data&lt;/td&gt;
+        &lt;% else %&gt;
+        &lt;td&gt; &lt;%= @software_settings.graph_name %&gt;&lt;/td&gt;
+        &lt;% end %&gt; 
+        &lt;/tr&gt;
+
+        &lt;tr&gt;
+        &lt;th scope=&quot;row&quot;&gt;Process Capability Graph &lt;/th&gt;
+        &lt;% if @software_settings.process_capability_graph.nil? %&gt;
+        &lt;td&gt;No data&lt;/td&gt;
+        &lt;% else %&gt;
+        &lt;td&gt; &lt;%= @software_settings.process_capability_graph.capitalize %&gt;&lt;/td&gt;
+        &lt;% end %&gt; 
+        &lt;/tr&gt;
+
+        &lt;tr&gt;
+        &lt;th scope=&quot;row&quot;&gt;Process Performance Graph &lt;/th&gt;
+        &lt;% if @software_settings.process_performance_graph.nil? %&gt;
+        &lt;td&gt;No data&lt;/td&gt;
+        &lt;% else %&gt;
+        &lt;td&gt; &lt;%= @software_settings.process_performance_graph.capitalize  %&gt;&lt;/td&gt;
+        &lt;% end %&gt; 
+        &lt;/tr&gt;
+        &lt;/li&gt;
+        &lt;/tbody&gt;
+        &lt;/table&gt;
+
+</code></pre>
+                    <p>以下はコントローラーのコードです。</p>
+                    <pre><code>#Method defined to display current Tool data. 
+  def tools
+    @software_settings = Tool.first
+  end #End of tools method. 
+
+
+  #Method defined to create a new Tool. 
+  def update_tool_record
+
+    update_attributes = {}
+    # Check if new values are present for each attribute and add them to the update_attributes hash if they are
+    update_attributes[:product_name] = params[:product_name] if params[:product_name].present?
+    update_attributes[:graph_name] = params[:graph_name] if params[:graph_name].present?
+    update_attributes[:process_capability_graph] = params[:process_capability_graph] if params[:process_capability_graph].present?
+    update_attributes[:process_performance_graph] = params[:process_performance_graph] if params[:process_performance_graph].present?
+    # Update the record with the provided attributes
+    Tool.first.update!(update_attributes)
+    render &#39;tools&#39;
+  end #End of new_tool_record method. 
+
+</code></pre>
+                    <p>値を更新すると、このエラーが表示されます。</p>
+                    <pre><code>undefined method `product_name&#39; for nil:NilClass
+
+</code></pre>
+                    <p>ただし、ブラウザを更新すると、このエラーは表示されません。アップデート後、一度だけ表示されます。</p>
+                    <p>理解できません。 Rails コンソールで <span
+                    class="citation"
+                    data-cites="software_settings">@software_settings</span>
+                    インスタンス変数の値を確認したところ、次の値が含まれています。</p>
+                    <pre><code>irb(main):001:0&gt; Tool.first
+  Tool Load (1.2ms)  SELECT &quot;tools&quot;.* FROM &quot;tools&quot; ORDER BY &quot;tools&quot;.&quot;id&quot; ASC LIMIT $1  [[&quot;LIMIT&quot;, 1]]
+=&gt;
+#&lt;Tool:0x00000217ee9ba278
+ id: 1,
+ product_name: &quot;tejinder kalsi&quot;,
+ graph_name: &quot;new test&quot;,
+ process_capability_graph: &quot;line&quot;,
+ process_performance_graph: &quot;bar&quot;,
+ created_at: Wed, 23 Aug 2023 12:05:56.039374000 UTC +00:00,
+ updated_at: Tue, 12 Sep 2023 12:19:24.383130000 UTC +00:00&gt;
+irb(main):002:0&gt; exit
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>更新フローで <span class="citation"
+                    data-cites="software_settings">@software_settings</span>
+                    を設定していないため、ビューでは nil
+                    になります。おそらく、Tool.first.update!(update_attributes)
+                    の代わりに tools.update!(update_attributes)
+                    を実行するつもりでした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

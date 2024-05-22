@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: enumよりもソート/比較可能なリストを取得する慣用的な方法? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: enumよりもソート/比較可能なリストを取得する慣用的な方法?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:
+enumよりもソート/比較可能なリストを取得する慣用的な方法?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は初心者っぽい Rails
+                    開発者で、いくつかの列挙型を使用して本質的に順序付けされた属性のリストを作成するプロジェクトがあります。たとえば、次のようになります。</p>
+                    <p>enum :priority, { 低: 10、中: 20、高:
+                    30、非常に高: 40、}</p>
+                    <p>ここで、MyClass.priorities.sort
+                    を呼び出すと、ラベルが関連付けられた整数に基づいてではなく、アルファベット順に並べ替えられます。宣言内で順序を作成するだけでよく、ドロップダウンの選択などでも順序が保持されるため、これは大したことではありません。しかし、ビジネス
+                    ロジックで大なり小なりの比較 (および &gt;= と &lt;=)
+                    を行うために定期的に列挙型を整数に変換しているため、コードが冗長になり、読みにくくなっていることがわかりました。例えば</p>
+                    <pre><code>priority_int = MyClass.priorities[priority]
+results = MyClass.where(&#39;priority &gt;= ?&#39;, priority_int)
+</code></pre>
+                    <p>私が欠落している本質的に順序付けられた固定属性のリストを取得する、より慣用的な方法はありますか?理想的には、比較/並べ替えが組み込まれているものです。これは一般的なことのように思えますが、私はここ数日間WebとSOを調べてきましたが、明確なオプションが見つかりませんでした。簡潔でドライで読みやすいコードでこのニーズに対処する最善の方法は何でしょうか?</p>
+                    <p>どうもありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらくスコープがあなたが探しているものです。好きなものを選んでください:</p>
+                    <pre><code>class Model &lt; ApplicationRecord
+  enum :priority, {low: 10, moderate: 20, high: 30, very_high: 40}
+
+  ##
+  # Add scopes, aka class methods. Append `.order(:priority)` if you like
+  #
+  #   Model.min_priority(:high).pluck(:priority)
+  #   #=&gt; [&quot;high&quot;, &quot;high&quot;, &quot;very_high&quot;]
+  #
+  scope :min_priority, -&gt;(name) { where(&quot;priority &gt;= ?&quot;, priorities[name]) }
+  scope :max_priority, -&gt;(name) { where(&quot;priority &lt;= ?&quot;, priorities[name]) }
+
+
+  ##
+  # Add a shortcut method
+  #
+  #   Model.first.rank &gt; Model.last.rank
+  #   #=&gt; false
+  #
+  def rank
+    priority_before_type_cast
+  end
+
+
+  ##
+  # Define the methods you need
+  #
+  #   Model.first.gt(Model.last)
+  #   #=&gt; false
+  #
+  def rank = priority_before_type_cast
+  def gt(other)   = (rank &gt;  other.rank)
+  def gteq(other) = (rank &gt;= other.rank)
+  def lt(other)   = (rank &lt;  other.rank)
+  def lteq(other) = (rank &lt;= other.rank)
+
+
+  ##
+  # You could include Comparable into the model, which will give you:
+  # &lt;, &lt;=, &gt;, &gt;=, ==, between?, clamp
+  # However, `==` method will cause different models with the same priority
+  # to be equal each other. Other than that, you can compare your models:
+  #
+  #   Model.first &lt;= Model.last
+  #   #=&gt; true
+  #
+  alias_method :eq_copy, :==   # copy the == method
+  include Comparable
+  alias_method :==, :eq_copy   # put it back
+  remove_method :eq_copy       # get rid of the witness
+  # this defines how your models compare to each other, aka spaceship operator
+  def &lt;=&gt; other
+    priority_before_type_cast &lt;=&gt; other.priority_before_type_cast
+  end
+end
+</code></pre>
+                    <p>Comparable
+                    をモデルに含めたくない場合もありますが、並べ替えるときに以下を比較するため、&lt;=&gt;
+                    を定義するだけでも役立ちます。</p>
+                    <pre><code>&gt;&gt; Model.all.pluck(:priority)
+=&gt; [&quot;low&quot;, &quot;moderate&quot;, &quot;high&quot;, &quot;very_high&quot;, &quot;low&quot;, &quot;low&quot;]
+
+&gt;&gt; Model.all.sort.pluck(:priority)
+=&gt; [&quot;low&quot;, &quot;low&quot;, &quot;low&quot;, &quot;moderate&quot;, &quot;high&quot;, &quot;very_high&quot;]
+</code></pre>
+                    <p>しかし、sort_by
+                    では、余分なものを追加することなく、より速くその問題を解決できます。
+                    (該当する場合は代わりに order(:priority)
+                    を使用してください):</p>
+                    <pre><code>&gt;&gt; Model.all.sort_by(&amp;:priority_before_type_cast) # or sort_by(&amp;:rank)
+=&gt;
+[#&lt;Model:0x00007f99f1380b98 id: 1, priority: &quot;low&quot;&gt;,
+ #&lt;Model:0x00007f99f06ad178 id: 5, priority: &quot;low&quot;&gt;,
+ #&lt;Model:0x00007f99f06ad0d8 id: 6, priority: &quot;low&quot;&gt;,
+ #&lt;Model:0x00007f99f06ad358 id: 2, priority: &quot;moderate&quot;&gt;,
+ #&lt;Model:0x00007f99f06ad2b8 id: 3, priority: &quot;high&quot;&gt;,
+ #&lt;Model:0x00007f99f06ad218 id: 4, priority: &quot;very_high&quot;&gt;]
+</code></pre>
+                    <p>また、任意の順序を取得するためにできること:</p>
+                    <pre><code>Model.in_order_of(:priority, [:low, :moderate, :high, :very_high])
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

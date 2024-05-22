@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec でネストされたハッシュをテストする場合のランダムな順序の配列のマッチング | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec でネストされたハッシュをテストする場合のランダムな順序の配列のマッチング",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec
+でネストされたハッシュをテストする場合のランダムな順序の配列のマッチング</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RSpec
+                    テストでは、次のような深くネストされたハッシュを比較するという課題がよくあります。</p>
+                    <pre><code>{ foo: [&quot;test&quot;, { bar: [1,2,3] }] }
+</code></pre>
+                    <p>値 [1,2,3] は、順序が保証されていない DB
+                    から読み取られます。また、順序も気にしません。したがって、テストで
+                    2
+                    つのハッシュを比較するときは、必ず両側で順序が適用されていることを確認する必要があります。</p>
+                    <pre><code># my_class.rb
+class MyClass
+  def self.data
+    read_db.sort
+  end
+end
+
+expected_data = { foo: [&quot;test&quot;, { bar: [1,2,3].sort }] }
+expect(MyClass.data).to eq(expected_data)
+</code></pre>
+                    <p>私は、テスト環境のためだけに本番コードを変更しなければならないという事実が本当に嫌いです。</p>
+                    <p>もちろん、ハッシュ全体の比較をやめて単一のキーに焦点を当てることもできるため、運用コード内のカスタム並べ替えを削除することもできます。</p>
+                    <pre><code>actual_data = MyClass.data
+expect(actual_data.fetch(:foo)[0]).to eq(&quot;test&quot;)
+expect(actual_data.fetch(:foo)[1].fetch(:bar)).to match_array([1,2,3])
+</code></pre>
+                    <p>しかし、これにより仕様全体がかなり複雑になり、読みにくくなります。</p>
+                    <p>そこで、比較時に順序を無視するカスタムの「順序なし配列」クラス
+                    Bag を作成することを考えました。</p>
+                    <pre><code>class Bag &lt; Array
+  def eql?(other)
+    sort_by(&amp;:hash) == other.sort_by(&amp;:hash)
+  end
+  alias == eql?
+end
+</code></pre>
+                    <p>ただし、これは Bag
+                    クラスが比較の左側にある場合にのみ機能します。</p>
+                    <pre><code>expect(Bag.new([1, &quot;2&quot;])).to eq([&quot;2&quot;, 1])
+
+ 1 example, 0 failures
+</code></pre>
+                    <p>ただし、テストの期待値は DB からの値を表す
+                    Expect(…)
+                    内にある必要があるため、通常はそうではありません。</p>
+                    <pre><code>expect([&quot;2&quot;, 1]).to eq(Bag.new([1, &quot;2&quot;]))
+
+ Failure/Error: expect([&quot;2&quot;, 1]).to eq(Bag.new([1, &quot;2&quot;]))
+   expected: [1, &quot;2&quot;]
+        got: [&quot;2&quot;, 1]
+   (compared using ==)
+
+ 1 example, 1 failure
+</code></pre>
+                    <p>この背後にある理由は、カスタム Bag#==
+                    メソッドではなく、Array#==
+                    が呼び出されるからです。</p>
+                    <p>ドキュメント（https://devdocs.io/ruby~3.2/array#method-i-3D-3D）を調べました。</p>
+                    <p>しかし、ここで、特定のインデックスの値のフェッチを実装する方法がわからず、行き止まりになってしまいました。
+                    Bar#[] と Bar#fetch
+                    を実装しようとしましたが、オブジェクトを比較するときにこれらは呼び出されません。</p>
+                    <p>おそらく、配列がオーバーライドできない低レベルの
+                    C
+                    関数を呼び出すため、まったく不可能である可能性があります。しかし、もしかしたら誰かが解決策を知っているかもしれません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、ネストされた match_array で match
+                    を使用します。</p>
+                    <pre><code>it &#39;matches when nested arrays having different sorting&#39; do
+  data = { foo: [&#39;test&#39;, { bar: [3, 2, 1] }] }
+
+  expect(data).to match(
+    { foo: [&#39;test&#39;, bar: match_array([1, 2, 3])] }
+  )
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

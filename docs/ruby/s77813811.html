@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - 小さな浮動小数点数を文字列に変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - 小さな浮動小数点数を文字列に変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby -
+小さな浮動小数点数を文字列に変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>0.00000000345
+                    のような小さな浮動小数点数は科学表記法、つまり
+                    3.45e-9
+                    に変換されてしまうことに気付きました。これは理にかなっていますが、float
+                    を文字列に変換すると (float の内容に従って float
+                    の特定の要素を操作したいため)、文字列自体がこの表記法を採用するように見えます。</p>
+                    <p>これは文字列になっているので、内容を適切な 10
+                    進数に「変換」して操作するのは簡単ですが、実際の 10
+                    進数を自動的に保存できる組み込みの方法があるかどうか疑問に思っていました。科学的表記法ではなく、文字列です。そうではないかも知れませんし、ドキュメントには何も記載されていませんが、質問してみても損はありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>BigDecimal
+                    へのラウンドトリップでは、出力形式を明示的に指定できる
+                    to_s メソッドを使用できます。</p>
+                    <pre><code>require &#39;bigdecimal&#39;
+require &#39;bigdecimal/util&#39;
+
+float = 0.00000000345
+#=&gt; 3.45e-09
+
+float.to_d.to_s(&#39;F&#39;)
+#=&gt; &quot;0.00000000345&quot;
+</code></pre>
+                    <p>Float#to_d
+                    は精度を自動的に決定しようとしますが、特定の数値では失敗する可能性があることに注意してください。</p>
+                    <pre><code>float = 1.0.next_float
+#=&gt; 1.0000000000000002
+
+float.to_d.to_s(&#39;F&#39;)
+#=&gt; &quot;1.0&quot;
+</code></pre>
+                    <p>ここで、事前に浮動小数点を文字列に変換すると役立つ場合があります:
+                    (このバリアントを使用すると、bigdecmal/util
+                    を要求する必要もありません)</p>
+                    <pre><code>BigDecimal(float.to_s).to_s(&#39;F&#39;)
+#=&gt; &quot;1.0000000000000002&quot;
+</code></pre>
+                    <p>これらの出力には float
+                    の実際の値が表示されないことに注意してください。倍精度浮動小数点数としての
+                    0.00000000345 の正確な 10
+                    進数値は次のとおりです。</p>
+                    <pre><code>0.000000003449999999999999873659487851216588760738801511251949705183506011962890625
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

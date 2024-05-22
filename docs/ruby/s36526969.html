@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>計算機インタープリターに演算子の優先順位を実装する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "計算機インタープリターに演算子の優先順位を実装する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>計算機インタープリターに演算子の優先順位を実装する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    の学習の一環として、入力を読み取り、基本的な算術計算を行う基本的なインタープリターを実装しようとしています。これまでのところ、基本的な算術演算は機能していますが、演算子の優先順位に問題があります。まだ扱っていないもの。これがコードです。初心者レベルです。このコードの間違いは私の知識不足によるものです。演算子の優先順位を処理するためにこのコードを変更する方法。
+                    サンプル出力</p>
+                    <pre><code>2+2+2 = 6 #correct
+10+10/2 = 10 # incorrect as in irb answer must be 15
+</code></pre>
+                    <p>このインタプリタの Github リポジトリ</p>
+                    <pre><code>=begin
+Basic calculator Interpreter
+can add, substract, multiply , divide with any number of operands at a time
+Drawback : Lacks operator precedence
+=end
+class Interpreter   
+    attr_accessor :input
+    def initialize
+        @input = gets.chomp             
+    end 
+    def intepret        
+        first_operand  = []     
+        f              = []     
+        operator       = &#39;+&#39;        
+        array          = Array.new      
+        lc             = 0
+
+        @input.split.join.split(&quot;&quot;).each_with_index.map do |i, index|
+
+            if i.is_number?
+                first_operand.push(i)   
+                if index == @input.length-1                     
+                    array.push(first_operand.join(&quot;&quot;).to_i)                 
+                end
+            elsif i.is_plus?                
+                f = first_operand
+                first_operand = nil
+                first_operand = []              
+                array.push(f.join(&quot;&quot;).to_i)
+                array.push(&quot;+&quot;)
+            elsif i.is_minus?           
+                f = first_operand
+                first_operand = nil
+                first_operand = []              
+                operator = &#39;-&#39;              
+                array.push(f.join(&quot;&quot;).to_i)
+                array.push(&quot;-&quot;)
+            elsif i.is_multi?               
+                f = first_operand
+                first_operand = nil
+                first_operand = []              
+                operator = &#39;*&#39;              
+                array.push(f.join(&quot;&quot;).to_i)
+                array.push(&quot;*&quot;)
+            elsif i.is_divide?              
+                f = first_operand
+                first_operand = nil
+                first_operand = []              
+                operator = &#39;/&#39;              
+                array.push(f.join(&quot;&quot;).to_i)
+                array.push(&quot;/&quot;)
+            else
+                puts &quot;Illegal input exiting..&quot;
+                exit            
+            end             
+
+            lc = lc+1
+
+        end     
+        #apply the appropriate operation on the inputs based on the operand         
+        #puts &quot;=======TOKENS======&quot;     
+        #puts array.inspect 
+        result = 0
+        array.each_with_index.map do |x, key|
+            result = x if key == 0          
+            if x == &#39;+&#39;
+                if key == 0 
+                    result = add(result, array[key+1])
+                else
+                    result = add(result, array [key+1])
+                end
+            elsif x == &#39;-&#39;
+                if key == 0 
+                    result = minus(result, array[key+1])
+                else
+                    result = minus(result, array [key+1])
+                end
+            elsif x == &#39;*&#39;
+                if key == 0 
+                    result = multi(result, array[key+1])
+                else
+                    result = multi(result, array [key+1])
+                end 
+            elsif x == &#39;/&#39;
+                begin
+                    if key == 0 
+                        result = divide(result, array[key+1])
+                    else
+                        result = divide(result, array [key+1])
+                    end 
+                rescue
+                    puts &quot;Zero Divsion error&quot;
+                    exit
+                end  
+            end 
+        end
+        puts &quot;Result is: &quot;+result.to_s
+    end 
+    def print_token(type, value)
+        puts type + &#39; &#39;+ value
+    end
+    def add(f,s)
+        return f.to_i + s.to_i
+    end
+    def minus(f,s)
+        return f.to_i - s.to_i
+    end
+    def multi(f,s)
+        return f.to_i * s.to_i
+    end
+    def divide(f,s)
+        return f.to_i / s.to_i
+    end
+end
+# Override the string class, to directly use methods like obj.is_number? rather than is_number?(obj)
+class String
+  def is_number?
+    true if Float(self) rescue false
+  end
+  def is_plus?
+    true if self == &#39;+&#39; rescue false
+  end
+  def is_minus?
+    true if self == &#39;-&#39; rescue false
+  end
+  def is_multi?
+    true if self == &#39;*&#39; rescue false
+  end
+  def is_divide?
+    true if self == &#39;/&#39; rescue false
+  end
+end
+#continue accepting inputs until exit CTRL + D
+while true
+    print &#39;pck&gt;:&#39;
+    i_obj = Interpreter.new
+    i_obj.intepret
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、操車場アルゴリズムを使用して入力を処理します。これにより、逆ポーランド記法
+                    (RPN) でトークンのリストが得られます。その後、RPN
+                    式を評価できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

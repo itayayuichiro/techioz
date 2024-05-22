@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の Redis gem はエラー メッセージで整数を返すようです? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の Redis gem はエラー メッセージで整数を返すようです?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の Redis gem はエラー
+メッセージで整数を返すようです?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の Redis gem の周りにライブラリ
+                    ラッパーを実装しました。</p>
+                    <p>CacheManager.get(“key”)
+                    を呼び出すと、何らかの理由でレスキューに引っかかるエラーが発生することがあります。エラーは次のようになります。未定義のメソッド
+                    ‘join’ for 20325:Integer
+                    (NoMethodError)。明らかな修正は、error.message で
+                    .to_s
+                    を呼び出すだけですが、何が起こっているのか、そしてなぜ
+                    Redis がエラー
+                    メッセージとして整数を返すのかを理解したいと思っています。</p>
+                    <pre><code>class CacheManager
+  def self.get(k, default_value = nil)
+    begin
+      $redis_pool.with { |conn| conn.get(k) } || default_value
+    rescue =&gt; error
+      Rails.logger.error([error.message] + error.backtrace).join($/)
+      default_value
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この行でエラーが発生すると思います。</p>
+                    <pre><code>Rails.logger.error([error.message] + error.backtrace).join($/)
+</code></pre>
+                    <p>これは、Redis ではなく、この行を先頭に
+                    20325:Integer (NoMethodError) の未定義メソッド
+                    ‘join’ を発生させる整数を返す Redis gem
+                    による例外発生でもありません。</p>
+                    <p>Rails.logger.error は整数を返し、その整数に対して
+                    join
+                    を呼び出します。このメソッドの戻り値は、ロガーの構成とバージョンによって異なります。</p>
+                    <p>その行を再フォーマットすると、その行の問題がより明確になります。</p>
+                    <pre><code>lines = [error.message] + error.backtrace
+Rails.logger.error(lines).join($/)
+</code></pre>
+                    <p>この問題を解決するには、次のように括弧を修正して、ロガー呼び出しではなく、結合したい配列に対して
+                    join を呼び出すようにする必要があります。</p>
+                    <pre><code>lines = [error.message] + error.backtrace
+Rails.logger.error(lines.join($/))
+</code></pre>
+                    <p>または</p>
+                    <pre><code>Rails.logger.error([error.message].concat(error.backtrace).join($/))
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

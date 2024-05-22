@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby を使用して Selenium-webdriver 4 を使用してブラウザ ログにアクセスする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby を使用して Selenium-webdriver 4 を使用してブラウザ ログにアクセスする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby を使用して Selenium-webdriver 4
+を使用してブラウザ ログにアクセスする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>gem selenium-webdriver をバージョン 3 から 4
+                    に更新しています。</p>
+                    <p>以下は、JavaScript テストを実行するための Chrome
+                    ドライバーのセットアップです。</p>
+                    <pre><code>Capybara.register_driver :chrome do |app|
+  options = Selenium::WebDriver::Chrome::Options.new(
+    args: [
+      &#39;headless&#39;,
+      &#39;disable-gpu&#39;,
+      &#39;no-sandbox&#39;,
+      &#39;--window-size=2560,1440&#39;,
+      &#39;--disable-web-security&#39;,
+      &#39;--allow-running-insecure-content&#39;,
+      &quot;--enable-logging&quot;, # Enables logging
+      &quot;--log-level=0&quot;, # Enables all logging
+      &quot;--v=1&quot; # Sets the verbosity level of logging
+    ]
+  )
+
+  # browser_logging_path = &quot;/tmp/chromedriver.log&quot;
+  # options.add_argument(&quot;--log-path=#{browser_logging_path}&quot;)
+
+
+  # In Selenium 4, `add_option` is replaced by `add_preference` for setting browser-specific preferences.
+  # However, for capabilities like loggingPrefs, you should use `add_option` with correct nesting under &#39;goog:loggingPrefs&#39;.
+  options.add_option(&#39;goog:loggingPrefs&#39;, { browser: &#39;ALL&#39; })
+
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+end
+</code></pre>
+                    <p>私が抱えている問題は、テストが失敗した場合にブラウザーのログにアクセスすることです。</p>
+                    <pre><code>  config.after do |example|
+    if example.exception &amp;&amp; example.metadata[:js]
+       browser_logs = page.driver.browser.logs.get(:browser)
+       puts browser_logs
+    end
+  end
+</code></pre>
+                    <p>次の 2
+                    つの方法のいずれかを使用してログにアクセスしようとしていますが、どれも機能しません。</p>
+                    <pre><code>page.driver.browser.logs.get(:browser)
+</code></pre>
+                    <p>または</p>
+                    <pre><code>page.driver.browser.manage.logs.get(:browser)
+</code></pre>
+                    <p>これらの呼び出しでは両方とも、「NoMethodError
+                    Exception: unknown method ‘logs’ for
+                    #&lt;Selenium::WebDriver::Manager」というエラーが発生します。</p>
+                    <p>テストが失敗した場合にブラウザのログにアクセスするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>解決策は、新しいヘッドレス
+                    オプションを使用することです。</p>
+                    <pre><code>  options = Selenium::WebDriver::Chrome::Options.new(
+    args: [
+      &#39;headless=new&#39;,
+      &#39;disable-gpu&#39;,
+      &#39;no-sandbox&#39;,
+      &#39;--window-size=2560,1440&#39;,
+      &#39;--disable-web-security&#39;,
+      &#39;--allow-running-insecure-content&#39;,
+      &quot;--enable-logging&quot;, # Enables logging
+      &quot;--log-level=0&quot;, # Enables all logging
+      &quot;--v=1&quot; # Sets the verbosity level of logging
+    ]
+  )
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

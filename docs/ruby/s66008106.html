@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docker イメージの構築エラー「実行プログラムの実行に失敗しました [/bin/sh -c apt-get -y update]」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docker イメージの構築エラー「実行プログラムの実行に失敗しました [/bin/sh -c apt-get -y update]」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docker
+イメージの構築エラー「実行プログラムの実行に失敗しました [/bin/sh -c
+apt-get -y update]」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Docker
+                    イメージを構築しようとしていますが、エラーがスローされ、その理由がわかりません。</p>
+                    <p>RUN apt-get -y update で停止し、次のエラー
+                    メッセージが表示されます。</p>
+                    <pre><code>4.436 E: Release file for http://security.debian.org/debian-security/dists/buster/updates/InRelease is not valid yet (invalid for another 2d 16h 26min 22s). Updates for this repository will not be applied.
+
+4.436 E: Release file for http://deb.debian.org/debian/dists/buster-updates/InRelease is not valid yet (invalid for another 3d 10h 28min 24s). Updates for this repository will not be applied.
+
+executor failed running [/bin/sh -c apt-get -y update]: exit code: 100
+</code></pre>
+                    <p>私のdockerファイルは次のとおりです。</p>
+                    <pre><code>FROM python:3.7
+
+# Adding trusting keys to apt for repositories
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+# Adding Google Chrome to the repositories
+RUN sh -c &#39;echo &quot;deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main&quot; &gt;&gt; /etc/apt/sources.list.d/google-chrome.list&#39;
+# Updating apt to see and install Google Chrome
+RUN apt-get -y update
+# Magic happens
+RUN apt-get install -y google-chrome-stable
+
+# Installing Unzip
+RUN apt-get install -yqq unzip
+# Download the Chrome Driver
+RUN CHROMEDRIVER_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE) &amp;&amp; \
+    echo &quot;Chromedriver latest version: $CHROMEDRIVER_RELEASE&quot; &amp;&amp; \
+    wget --quiet &quot;http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_RELEASE/chromedriver_linux64.zip&quot; &amp;&amp; \
+    unzip chromedriver_linux64.zip &amp;&amp; \
+    rm -rf chromedriver_linux64.zip &amp;&amp; \
+    mv chromedriver /usr/local/bin/chromedriver &amp;&amp; \
+    chmod +x /usr/local/bin/chromedriver &amp;&amp; \
+    chromedriver --version
+# Set display port as an environment variable
+ENV DISPLAY=:99
+
+WORKDIR /
+
+COPY requirements.txt ./
+
+RUN pip install --upgrade pip &amp;&amp; pip install -r requirements.txt
+
+COPY . .
+
+RUN pip install -e .
+</code></pre>
+                    <p>ここで何が起きてるの？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の場合、docker はキャッシュされた RUN apt
+                    update &amp;&amp; apt upgrade
+                    コマンドを引き続き使用していたため、パッケージ
+                    ソースは更新されませんでした。</p>
+                    <p>解決策は、 –no-cache フラグを使用して Docker
+                    イメージを一度ビルドすることでした。</p>
+                    <pre><code>docker build --no-cache .
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

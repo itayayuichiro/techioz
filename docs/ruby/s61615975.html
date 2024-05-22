@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>現在の学年を調べる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "現在の学年を調べる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>現在の学年を調べる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>日付が現在の学年度内であるかどうかを確認したいです。そのために、現在の学年を決定する関数を作成しました。これを行うより良い方法はありますか?</p>
+                    <pre><code># returns start and end date of current academic year
+    def academic_year
+         # assumption: an academic year is from sept 1st untill sept 1st
+        start_date = Date.parse &quot;#{Time.current.year}-09-01&quot;
+        end_date   = Date.parse &quot;#{Time.current.year+1}-09-01&quot;
+
+        if Date.today &lt; start_date
+            start_date = Date.parse &quot;#{Time.current.year-1}-09-01&quot;
+            end_date   = Date.parse &quot;#{Time.current.year}-09-01&quot;
+        end
+
+        {start: start_date, end: end_date}
+    end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby では Range#cover を使用しますか?</p>
+                    <pre><code># see https://api.rubyonrails.org/classes/Date.html
+start = Date.current.change(month: 9, day: 1)
+academic_year = start..start.advance(years: 1)
+
+academic_year.cover?(Date.current.change(month: 6, day: 15)) # false
+academic_year.cover?(Date.current.change(month: 10, day: 2).advance(years: 2)) # false
+academic_year.cover?(Date.current.change(month: 10, day: 2)) # true
+</code></pre>
+                    <p>ただし、通常はデータベース内の日付でクエリを実行する必要があり、その場合は範囲を
+                    .where に渡して BETWEEN クエリを作成します。</p>
+                    <pre><code>Order.where(placed: 2.years.ago..Time.current)
+# SELECT &quot;orders&quot;.* FROM &quot;orders&quot; WHERE &quot;orders&quot;.&quot;placed&quot; BETWEEN $1 AND $2 LIMIT $3
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

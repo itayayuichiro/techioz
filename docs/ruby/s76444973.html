@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>クリックハウスのアクティブレコードの日時精度の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "クリックハウスのアクティブレコードの日時精度の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>クリックハウスのアクティブレコードの日時精度の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は gems clickhouse
+                    0.1.10、clickhouse-activerecord 0.5.14、pg
+                    1.4.6、rails 7.0.4.3 を持っています。 ClickHouse
+                    サーバー バージョン 23.4.2.11、postgresql サーバー
+                    15.3。 私のクリックハウステーブルDDL：</p>
+                    <pre><code>create table default.tests
+(
+    id         UUID default generateUUIDv4(),
+    created_at DateTime64(6)
+)
+engine = MergeTree PARTITION BY toMonth(created_at) ORDER BY (id, created_at);
+</code></pre>
+                    <p>私のモデルはテストです。次のようなレコードを作成すると、</p>
+                    <pre><code>Test.create
+</code></pre>
+                    <p>これにより SQL クエリが生成されます。</p>
+                    <pre><code>INSERT INTO tests (created_at) VALUES (&#39;2023-06-10 08:41:57&#39;)
+</code></pre>
+                    <p>ご覧のとおり、精度 (マイクロ秒) はありません。
+                    次のように Rails time db 形式を定義できます。</p>
+                    <pre><code>Time::DATE_FORMATS[:db] = &#39;%Y-%m-%d %H:%M:%S.%6N&#39;
+</code></pre>
+                    <p>次に、レコードを作成すると、正しい結果が生成されます。</p>
+                    <pre><code>INSERT INTO tests (created_at) VALUES (&#39;2023-06-10 08:41:57.123123&#39;)
+</code></pre>
+                    <p>しかし、これにより PostgreSQL モデルの SQL
+                    クエリが壊れてしまいました。たとえば、モデル PgTest
+                    があり、次のようなレコードを作成するとします。</p>
+                    <pre><code>PgTest.create
+</code></pre>
+                    <p>これにより、postgresql データベースに不正な精度の
+                    SQL クエリが生成されます (精度が重複します)。</p>
+                    <pre><code>INSERT INTO pg_tests (created_at) VALUES (&#39;2023-06-10 08:41:57.123123.123123&#39;)
+</code></pre>
+                    <p>コールバック around_create で Time db
+                    形式を設定する -
+                    私にとってはオプションではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはバージョン 0.5.15、最後の 0.6.0
+                    で修正されました。 Rails 7.1 以降の場合は、ブランチ
+                    Rails_7 を使用する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

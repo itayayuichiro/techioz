@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Logstash コロンを矢印に置き換えます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Logstash コロンを矢印に置き換えます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Logstash コロンを矢印に置き換えます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の目標は、kinesis からデータを読み取り、CSV
+                    ファイルを s3 にアップロードすることですが、CSV
+                    ファイルでは、コロン (:) の代わりに矢印 (=&gt;) が
+                    JSON データに入ってきます。</p>
+                    <p>Logstash 構成ファイル</p>
+                    <pre><code>input {
+  kinesis {
+    application_name =&gt; &quot;logstash&quot;
+    kinesis_stream_name =&gt; &quot;events&quot;
+    type =&gt; &quot;kinesis&quot;
+    region =&gt; &quot;us-east-1&quot;
+    profile =&gt; &quot;default&quot;
+    metrics =&gt; &quot;cloudwatch&quot;
+    codec =&gt; &quot;json&quot;
+  }
+}
+
+filter {
+    grok {
+      match =&gt; { &quot;[data][ti]&quot; =&gt; &quot;%{YEAR:event_year}-%{MONTHNUM2:event_month}-%{MONTHDAY:event_day}&quot; }
+   }
+}
+
+output {
+  s3 {
+    bucket =&gt; &quot;test-logstash&quot;
+    region =&gt; &quot;us-east-1&quot;
+    prefix =&gt; &quot;%{event_year}/%{event_month}/%{event_day}/%{[data][brandid]}/%{[data][event_name]}&quot;
+    encoding =&gt; &quot;none&quot;
+    codec =&gt; csv {
+        separator =&gt; &quot;␁&quot;
+    }
+    size_file =&gt; 200000000
+    time_file =&gt; 60
+  }
+}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Logstash の mutate フィルターを使用して、「矢印
+                    (=&gt;)」を「コロン
+                    (:)」に置き換えることができます。</p>
+                    <pre><code>input {
+  kinesis {
+    application_name =&gt; &quot;logstash&quot;
+    kinesis_stream_name =&gt; &quot;events&quot;
+    type =&gt; &quot;kinesis&quot;
+    region =&gt; &quot;us-east-1&quot;
+    profile =&gt; &quot;default&quot;
+    metrics =&gt; &quot;cloudwatch&quot;
+    codec =&gt; &quot;json&quot;
+  }
+}
+
+filter {
+  # Use the mutate filter to replace &quot;arrow (=&gt;)&quot; with &quot;colon (:)&quot;
+  mutate {
+    gsub =&gt; [
+      &quot;message&quot;, &quot;=&gt;&quot;, &quot;:&quot;
+    ]
+  }
+
+  grok {
+    match =&gt; { &quot;[data][ti]&quot; =&gt; &quot;%{YEAR:event_year}-%{MONTHNUM2:event_month}-%{MONTHDAY:event_day}&quot; }
+  }
+}
+
+output {
+  s3 {
+    bucket =&gt; &quot;test-logstash&quot;
+    region =&gt; &quot;us-east-1&quot;
+    prefix =&gt; &quot;%{event_year}/%{event_month}/%{event_day}/%{[data][brandid]}/%{[data][event_name]}&quot;
+    encoding =&gt; &quot;none&quot;
+    codec =&gt; csv {
+      separator =&gt; &quot;␁&quot;
+    }
+    size_file =&gt; 200000000
+    time_file =&gt; 60
+  }
+}
+</code></pre>
+                    <p>フィルター セクションでは、mutate
+                    フィルターを使用してグローバル置換 (gsub)
+                    を実行し、「矢印 (=&gt;)」を「コロン
+                    (:)」に置き換えます。これにより、JSON
+                    データが期待どおりに正しく処理されるようになります。</p>
+                    <p>JSON
+                    データが別のフィールドにある場合は、変更フィルターのフィールド名
+                    (メッセージ) を必ず調整してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby のバージョンが間違っているため、heroku にプッシュ/デプロイできないのですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby のバージョンが間違っているため、heroku にプッシュ/デプロイできないのですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby のバージョンが間違っているため、heroku
+にプッシュ/デプロイできないのですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Heroku
+                    にプッシュしようとしていますが、次のエラーが発生し続けます。</p>
+                    <pre><code> The Ruby version you are trying to install does not exist on this stack.
+remote:  !     
+remote:  !     You are trying to install ruby-2.3.1 on heroku-18.
+remote:  !     
+remote:  !     Ruby ruby-2.3.1 is present on the following stacks:
+remote:  !     
+remote:  !     - cedar-14
+remote:  !     - heroku-16
+remote:  !     
+remote:  !     Heroku recommends you use the latest supported Ruby version listed here:
+remote:  !     https://devcenter.heroku.com/articles/ruby-support#supported-runtimes
+remote:  !     
+remote:  !     For more information on syntax for declaring a Ruby version see:
+remote:  !     https://devcenter.heroku.com/articles/ruby-versions
+</code></pre>
+                    <p>Ruby -v
+                    を実行すると、インストールしたバージョンは Ruby
+                    2.6.3
+                    であり、エラーで示されたバージョンよりも高いです。何か案は？</p>
+                    <p>アップデートなどを試してみましたが、解決できないようです。</p>
+                    <p>Gemfile は以下にリストされています</p>
+                    <p>Ruby gem は最新ですが、bundle install を実行して
+                    Heroku
+                    にプッシュすると、まだどこかで間違ったバージョンが選択されているようです。
+                    ソース「https://rubygems.org」</p>
+                    <pre><code>git_source(:github) do |repo_name|
+  repo_name = &quot;#{repo_name}/#{repo_name}&quot; unless repo_name.include?(&quot;/&quot;)
+  &quot;https://github.com/#{repo_name}.git&quot;
+end
+
+ruby &#39;2.6.3&#39;
+
+gem &#39;sidekiq&#39;
+#for sidekiq ui
+gem &#39;sinatra&#39;, github: &#39;sinatra/sinatra&#39; #some dependency issue with rails5
+
+# Bundle edge Rails instead: gem &#39;rails&#39;, github: &#39;rails/rails&#39;
+gem &#39;rails&#39;, &#39;~&gt; 5.1.5&#39;
+
+group :production do
+  gem &#39;pg&#39;, &#39;1.2.3&#39;
+end
+# Use sqlite3 as the database for Active Record
+group :development do
+  gem &#39;sqlite3&#39;, &#39;1.4.2&#39;
+end
+
+# Use Puma as the app server
+gem &#39;puma&#39;, &#39;~&gt; 3.7&#39;
+# Use SCSS for stylesheets
+gem &#39;sass-rails&#39;, &#39;~&gt; 5.0&#39;
+# Use Uglifier as compressor for JavaScript assets
+gem &#39;uglifier&#39;, &#39;&gt;= 1.3.0&#39;
+# See https://github.com/rails/execjs#readme for more supported runtimes
+# gem &#39;therubyracer&#39;, platforms: :ruby
+
+# Use CoffeeScript for .coffee assets and views
+gem &#39;coffee-rails&#39;, &#39;~&gt; 4.2&#39;
+# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
+gem &#39;turbolinks&#39;, &#39;~&gt; 5&#39;
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem &#39;jbuilder&#39;, &#39;~&gt; 2.5&#39;
+# Use Redis adapter to run Action Cable in production
+# gem &#39;redis&#39;, &#39;~&gt; 4.0&#39;
+# Use ActiveModel has_secure_password
+# gem &#39;bcrypt&#39;, &#39;~&gt; 3.1.7&#39;
+
+# Use Capistrano for deployment
+# gem &#39;capistrano-rails&#39;, group: :development
+
+group :development, :test do
+  # Call &#39;byebug&#39; anywhere in the code to stop execution and get a debugger console
+  gem &#39;byebug&#39;, platforms: [:mri, :mingw, :x64_mingw]
+  gem &#39;pry&#39;
+  # Adds support for Capybara system testing and selenium driver
+  gem &#39;capybara&#39;, &#39;~&gt; 2.13&#39;
+  gem &#39;selenium-webdriver&#39;
+end
+
+    group :development do
+      # Access an IRB console on exception pages or by using &lt;%=               console %&gt; anywhere in the code.
+  gem &#39;web-console&#39;, &#39;&gt;= 3.3.0&#39;
+  gem &#39;listen&#39;, &#39;&gt;= 3.0.5&#39;, &#39;&lt; 3.2&#39;
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem &#39;spring&#39;
+  gem &#39;spring-watcher-listen&#39;, &#39;~&gt; 2.0.0&#39;
+end
+
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem &#39;tzinfo-data&#39;, platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それで私はまさに問題に遭遇しました。 Heroku
+                    はスタックをアップグレードしていましたが、私もあなたと同じエラーが発生していました。
+                    解決：</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

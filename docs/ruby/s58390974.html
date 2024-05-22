@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>間違った I18n ロケールがランダムにロードされる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "間違った I18n ロケールがランダムにロードされる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>間違った I18n
+ロケールがランダムにロードされる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>場合によっては、予期される日本語の設定の代わりに英語の設定がロードされることがありますが、これは実際には存在せず、default_locale
+                    としてもフォールバックとしてもどこにも設定されていません。</p>
+                    <p>問題は、それが時折/ランダムに発生し、以前は再現できなかったのですが、今日では非常に頻繁に発生するようになったということです。つまり、同じページに留まって
+                    F5 キーを押すだけで、平均して約 50/50% の EN/JAP
+                    ロケールが発生します
+                    (パターンはなく、ランダムです)。 問題は、サイトには
+                    ENG ロケールがまったく実装されていないため、ENG
+                    ロケールをロードしようとすると、理解できるエラーが発生して失敗します。</p>
+                    <pre><code>ERROR -- : .... translation missing: en.some_translation...
+</code></pre>
+                    <p>そして、これが発生する唯一のエラーです。</p>
+                    <p>ただし、ENG
+                    ロケールをロードしようとしてもすべきではありません。
+                    ロケールは application.rb
+                    にしっかりと設定されています。</p>
+                    <pre><code>config.i18n.default_locale = :ja
+config.i18n.locale = :ja
+</code></pre>
+                    <p>Production.rb
+                    には次のものしか含まれていないため、この設定を上書きしないでください。</p>
+                    <pre><code>config.i18n.fallbacks = false
+</code></pre>
+                    <p>それは本番環境でのみ発生します。 「god restart
+                    app_name」でしばらくは直りますが、時間が経つとさらに発生するようですが、はっきりとは言えません。
+                    ENG ロケールで発生するエラーは、default_locale
+                    を次のように設定した場合と同じであるようです。</p>
+                    <pre><code>config.i18n.default_locale = :en
+</code></pre>
+                    <p>しかし、「default_locale」のアプリケーション
+                    コードを grep
+                    しましたが、それを変更するコードが見つかりませんでした。何かの宝石が原因なのでしょうか？</p>
+                    <p>Rails バージョン: 4.2.7.1 I18n バージョン:
+                    0.7.0</p>
+                    <p>現時点で何かヒントがあれば幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>:en
+                    ロケールが読み込まれていた理由がわかりました。</p>
+                    <p>config.i18n.fallbacks は実際にはコードの後半で
+                    true に設定されています。
+                    そして、config.i18n.available_locales が
+                    application.rb
+                    で明示的に設定されていなかったため、I18n gem には
+                    :en locale が含まれており、config.i18n.locale と
+                    config.i18n.default_locale で設定された :ja locale
+                    が失敗したときに、ロード時に (理由はまだ不明ですが)
+                    :en
+                    ロケールにフォールバックしようとしたため、問題が発生しました。</p>
+                    <p>残念ながら、:js
+                    ロケールの読み込みに失敗する理由はまだわかりませんが、それはまったく別の問題だと思います。</p>
+                    <p>ヒントをありがとう！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

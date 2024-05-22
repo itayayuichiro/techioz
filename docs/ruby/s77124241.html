@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsで静的マスターデータをモデルとして扱う方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsで静的マスターデータをモデルとして扱う方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsで静的マスターデータをモデルとして扱う方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>config/master_data/something.yml
+                    にあるようなデータベース以外のマスター データを
+                    Rails モデル (Active Record など)
+                    として扱うことは可能ですか? 指定された ID
+                    に一致する項目をレコードであるかのように取得したり、すべてのレコードの名前のリストを取得したりするなどの機能が欲しいと考えています。コントローラーやビューなど、さまざまな場所からこのデータにアクセスすると予想されます。
+                    yml データのサンプルは次のとおりです。</p>
+                    <pre><code>items:
+  - id: 1
+    name: &quot;Item1&quot;
+    description: &quot;Description for Item1&quot;
+  - id: 2
+    name: &quot;Item2&quot;
+    description: &quot;Description for Item2&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails では、ActiveModel は ActiveRecord
+                    から分離されているため、これをミックスインとして使用して、任意のデータ
+                    ソース (またはデータ ソースがまったくない)
+                    でモデルを作成するのは簡単です。</p>
+                    <pre><code>class Item
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+  attribute :id,          :integer
+  attribute :name,        :string
+  attribute :description, :string
+end
+</code></pre>
+                    <p>これにより、フレームワークの残りの部分と対話するときに、ActiveRecord
+                    モデルと非常によく似た動作をするモデルが得られます。</p>
+                    <p>次に、YAML データをロードし、リポジトリ
+                    パターンに保存するモデル
+                    インスタンスを作成できます。</p>
+                    <pre><code>class ItemRepository
+  def initialize(file:)
+    raw = YAML.load_file(file)
+    @data = raw[&quot;items&quot;].map do |hash|
+      Item.new(hash)
+    end
+  end
+
+  def find(id)
+    @data.detect { |model| model.id == id }
+  end
+end
+</code></pre>
+                    <p>データがデータベースに存在しないことには大きな欠点があります。</p>
+                    <p>ファイルをデータ
+                    ストレージとして使用することで得られる利点がどのようなものであると考えても、私の個人的な意見では、その価値はまったくありません。
+                    YAML
+                    データを使用してデータベースをシードすることをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

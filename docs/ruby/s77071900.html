@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>T::Enum は、型に使用された無効な列挙型のエラーを発生させる代わりに、無効な列挙型が使用された場合に初期化されていない定数を発生させます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "T::Enum は、型に使用された無効な列挙型のエラーを発生させる代わりに、無効な列挙型が使用された場合に初期化されていない定数を発生させます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>T::Enum
+は、型に使用された無効な列挙型のエラーを発生させる代わりに、無効な列挙型が使用された場合に初期化されていない定数を発生させます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私たちのアプリでは、ボタン
+                    コンポーネントのバリアントに Enum を使用します。</p>
+                    <pre><code>class ButtonComponent
+  sig do
+    params(
+      button_variant: ButtonVariant
+    ).void
+  end
+  def initialize(button_variant: ButtonVariant::Primary)
+end
+</code></pre>
+                    <p>列挙型は次のとおりです。</p>
+                    <pre><code>class ButtonComponent
+  class ButtonVariant &lt; T::Enum
+    extend T::Sig
+
+    enums do
+      Primary = new
+      Secondary = new
+      Tertiary = new
+    end
+
+    sig { returns(String) }
+    def css_class
+      case self
+      when Primary
+        &#39;btn--primary&#39;
+      when Secondary
+        &#39;btn--secondary&#39;
+      when Tertiary
+        &#39;btn--tertiary&#39;
+      else
+        T.absurd self
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>ここで、無効なオブジェクトを渡すと次のようになります。</p>
+                    <pre><code>render ButtonComponent.new(button_variant: ButtonComponent::UNKNOWN)
+</code></pre>
+                    <p>Sorbet
+                    からは、間違った型が渡されたという素晴らしいエラーが返されます。</p>
+                    <pre><code>Parameter &#39;button_variant&#39;: Expected type ButtonComponent::ButtonVariant
+</code></pre>
+                    <p>ただし、正しい型を渡しても無効な列挙型を渡した場合は、次のようになります。</p>
+                    <pre><code>render ButtonComponent.new(button_variant: ButtonComponent::ButtonVariant::UNKNOWN)
+</code></pre>
+                    <p>定数が不明であるというエラーのみが表示されます。</p>
+                    <pre><code>uninitialized constant ButtonComponent::ButtonVariant::UNKNOWN
+</code></pre>
+                    <p>Sorbet
+                    は、初期化されていない定数に関するより一般的なエラーをスローするのではなく、列挙型が無効であるというエラーを生成するべきではないでしょうか?</p>
+                    <p>私たちは、開発者にとって何が問題なのかが明らかになるように、エラーがより明確になることを期待していました。
+                    ButtonComponent::ButtonVariant 型に無効な ‘enum’
+                    が使用されました。列挙型を間違って使用したのでしょうか、それともこれは
+                    Sorbet で予期された動作なのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この小さな例は次のとおりです (sorbet.run
+                    を参照)。</p>
+                    <pre><code># typed: true
+class Foo &lt; T::Enum
+  enums do
+    BAR = new(&#39;bar&#39;)
+  end
+end
+
+Foo::BAR
+Foo::Zoo
+#    ^ Unable to resolve constant Zoo https://srb.help/5002
+</code></pre>
+                    <p>2023 年 9 月 11 日の時点では、Sorbet
+                    はこれを未解決の定数と見なしているため、これは予想される動作です。</p>
+                    <p>sorbet の GitHub
+                    で問題を報告すると、修正が検討されるか、修正できない理由についてのより詳細な説明が得られます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

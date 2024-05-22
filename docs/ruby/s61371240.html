@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのシングルトンクラスとは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのシングルトンクラスとは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのシングルトンクラスとは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyのeigenclassまたはsingletonクラスの概念を理解するのに苦労しています。
+                    eigenclass
+                    はクラスのクラスであるとよく読みました。すべてのクラスが実際にはクラス
+                    Class
+                    のインスタンスであるため、私にとってクラスのクラスは実際には
+                    Class であるため、それは私には意味がありません。</p>
+                    <p>私がよく理解できないもう 1
+                    つの点は、次の文です。クラス
+                    メソッドは実際にはクラス eigenclass のインスタンス
+                    メソッドです。 eigenclass
+                    には次の方法でアクセスできます。</p>
+                    <pre><code>YourClass = Class.new
+class &lt;&lt; YourClass
+  def class_method
+  end
+end
+</code></pre>
+                    <p>しかし、eigenclass が実際に YourClass クラス
+                    (つまり Class) である場合、前のコード部分でクラス
+                    Class を開き、それにインスタンス メソッド
+                    class_method を追加して、将来のすべてのインスタンス
+                    (通常のクラス)
+                    にアクセスできるようにすべきではないでしょうか。将来定義される）？</p>
+                    <p>実際のところ、シングルトン
+                    クラスはクラスと同じではないような気がします。実行するとき:</p>
+                    <pre><code>class MyClass
+end
+
+MyClass.singleton_class
+</code></pre>
+                    <p>#<Class:MyClass> が得られますが、これは
+                    MyClass.class =&gt; Class の出力とは異なります。</p>
+                    <p>#<Class:MyClass>
+                    の出力は何ですか?これは名前空間とは関係ありません。そうでない場合は、Class::MyClass…
+                    の 2 つが存在することになります。</p>
+                    <p>私の考えを明確にするために、eigenclass
+                    の概念についてのシンプルで明確な説明を探しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>シングルトン
+                    クラスは、単一のオブジェクトに固有のメソッドを保持します。</p>
+                    <p>一般的なオブジェクトにとって、これはあると便利な機能です。しかし、授業にとって、それは非常に重要です。オブジェクトから始めましょう:</p>
+                    <p>インスタンス
+                    メソッドは通常、クラス内で定義されます。同じクラスのすべてのインスタンスは、同じインスタンス
+                    メソッドを共有します。シングルトン
+                    クラスは、オブジェクトとそのクラスの間に位置します。これにより、各インスタンスが他のインスタンスから独立した独自のメソッドのセットを持つことができます。</p>
+                    <p>2 つのクラス Foo と Bar があり、それぞれ 2
+                    つのインスタンス a、b、c、d があるとします。</p>
+                    <pre><code>class Foo ; end
+class Bar ; end
+
+a = Foo.new #=&gt; #&lt;Foo:0x00007fc280963008&gt;
+b = Foo.new #=&gt; #&lt;Foo:0x00007f8319016b18&gt;
+c = Bar.new #=&gt; #&lt;Bar:0x00007fa66c8d7290&gt;
+d = Bar.new #=&gt; #&lt;Bar:0x00007f94d5106ac8&gt;
+</code></pre>
+                    <p>次のクラス構造になります:
+                    (モジュールを除いて簡略化)</p>
+                    <pre><code>object          singleton class              class    superclass   ...
+
+  a ── #&lt;Class:#&lt;Foo:0x00007fc280963008&gt;&gt; ─┐
+                                           ├─ Foo ─┐
+  b ── #&lt;Class:#&lt;Foo:0x00007f8319016b18&gt;&gt; ─┘       │
+                                                   ├─ Object ── BasicObject
+  c ── #&lt;Class:#&lt;Bar:0x00007fa66c8d7290&gt;&gt; ─┐       │
+                                           ├─ Bar ─┘
+  d ── #&lt;Class:#&lt;Bar:0x00007f94d5106ac8&gt;&gt; ─┘
+</code></pre>
+                    <p>Ruby は、たとえば、singleton_class
+                    を呼び出すときに、これらのシングルトン
+                    クラスを遅延して作成します。</p>
+                    <p>したがって、メソッド a.hello
+                    を定義すると、そのメソッドは a のクラス Foo
+                    ではなく、 a のシングルトン
+                    クラスに格納されます。</p>
+                    <pre><code>def a.hello
+  &#39;hello from a&#39;
+end
+
+a.method(:hello).owner
+#=&gt; #&lt;Class:#&lt;Foo:0x00007fc280963008&gt;&gt;  &lt;-- a&#39;s singleton class
+</code></pre>
+                    <p>そのため、両方とも Foo
+                    インスタンスであるにもかかわらず、 b
+                    にはそのメソッドが表示されません。</p>
+                    <pre><code>b.hello #=&gt; NoMethodError: undefined method `hello&#39;
+</code></pre>
+                    <p>また、a に干渉することなく、b
+                    に同じ名前のメソッドを定義することもできます。</p>
+                    <pre><code>def b.hello
+  &#39;hello from b&#39;
+end
+
+b.method(:hello).owner
+#=&gt; #&lt;Class:#&lt;Foo:0x00007f8319016b18&gt;&gt;  &lt;-- b&#39;s singleton class
+
+a.hello #=&gt; &quot;hello from a&quot;
+b.hello #=&gt; &quot;hello from b&quot;
+</code></pre>
+                    <p>また、Foo で汎用 hello
+                    を定義し、それをインスタンス
+                    レベルでオーバーライドすることもできます
+                    (通常はこれを行いませんが、可能です)。</p>
+                    <pre><code>class Foo
+  def hello
+    &#39;hello&#39;
+  end
+end
+
+def a.hello
+  &quot;#{super} from a&quot;
+end
+
+def b.hello
+  &quot;b says #{super.upcase}!&quot;
+end
+
+a.hello #=&gt; &quot;hello from a&quot;
+b.hello #=&gt; &quot;b says HELLO!&quot;
+
+c = Foo.new
+c.hello #=&gt; &quot;hello&quot;
+</code></pre>
+                    <p>上記はクラスにとって特に重要です。各クラスは
+                    Class のインスタンスです。</p>
+                    <pre><code>Foo.class #=&gt; Class
+</code></pre>
+                    <p>Foo.hello
+                    メソッドが必要だとします。それをどこで定義すればよいでしょうか?</p>
+                    <p>インスタンス
+                    メソッドは通常、インスタンスのクラスで定義されるため、Foo
+                    のクラスで定義できます。</p>
+                    <pre><code>class Class
+  def hello
+    &#39;Hello from Foo&#39;
+  end
+end
+
+Foo.hello
+#=&gt; &quot;Hello from Foo&quot;
+</code></pre>
+                    <p>ただし、これにより、クラスのすべてのインスタンスでメソッドが使用できるようになります。</p>
+                    <pre><code>Bar.hello
+#=&gt; &quot;Hello from Foo&quot;
+
+String.hello
+#=&gt; &quot;Hello from Foo&quot;
+</code></pre>
+                    <p>Foo
+                    インスタンス専用の場所があったほうがよいでしょう。そして、その場所は
+                    Foo のシングルトン クラスです。</p>
+                    <pre><code>def Foo.hello
+  &#39;Hello from Foo&#39;
+end
+</code></pre>
+                    <p>または</p>
+                    <pre><code>class Foo
+  def self.hello       # &lt;-- self is Foo, so this is just &quot;def Foo.hello&quot;
+    &#39;hello from Foo&#39;
+  end
+end
+</code></pre>
+                    <p>上記の a.hello と同様に、このメソッドは Foo
+                    のみが使用できます。</p>
+                    <pre><code>Foo.hello #=&gt; &quot;hello from Foo&quot;
+Bar.hello #=&gt; NoMethodError
+</code></pre>
+                    <p>これらのメソッドをクラス
+                    メソッドと呼びますが、実際にはシングルトン
+                    クラスの単なるインスタンス メソッドです。</p>
+                    <pre><code>Foo.method(:hello).owner
+#=&gt; #&lt;Class:Foo&gt;   &lt;-- Foo&#39;s singleton class
+
+Foo.method(:hello).unbind == Foo.singleton_class.instance_method(:hello)
+#=&gt; true
+</code></pre>
+                    <p>クラスのシングルトン
+                    メソッドとオブジェクトのシングルトン
+                    メソッドを比較すると、それらが同一であることがわかります。これは、Ruby
+                    ではクラスもオブジェクトであり、すべてのオブジェクトが同様に機能するためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

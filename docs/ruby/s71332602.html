@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 3.1 にアップグレードすると、YAML.load_file の使用時に Psych::DisallowedClass 例外が発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 3.1 にアップグレードすると、YAML.load_file の使用時に Psych::DisallowedClass 例外が発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 3.1
+にアップグレードすると、YAML.load_file の使用時に Psych::DisallowedClass
+例外が発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 3.1
+                    にアップグレードするときに、YAML.load_file
+                    some_file_name を使用すると次の並べ替えエラー
+                    メッセージが表示されます。</p>
+                    <pre><code> Psych::DisallowedClass:
+   Tried to load unspecified class: Matrix
+</code></pre>
+                    <p>他のロードステートメントでも同様のエラーが発生しますが、異なる未指定のクラスが引用されています。オープンストラクト。最新バージョンの
+                    YAML は、許可されたホワイト
+                    リストからクラスのみをロードするようです。そのため、他のクラスを許可するには、
+                    allowed_class
+                    キーワードを使用する必要があります。私が試してみました</p>
+                    <pre><code>hsh = YAML.load_file some_file_name, permitted_classes: [Matrix, OpenStruct]
+</code></pre>
+                    <p>しかし、これはエラーになります</p>
+                    <pre><code> Psych::DisallowedClass:
+   Tried to load unspecified class: Symbol
+</code></pre>
+                    <p>これを修正するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby で YAML
+                    をロードする場合、デフォルトではシンボルも許可されません。したがって、YAML
+                    ファイルを読み取るときに、あなたのケースでも Symbol
+                    を allowed_classes に追加する必要があります。</p>
+                    <pre><code>hash = YAML.load_file(
+  some_file_name, 
+  permitted_classes: [Matrix, OpenStruct, Symbol]
+)
+</code></pre>
+                    <p>Psych (Ruby で使用される YAML パーサー)
+                    のデフォルトの allowed_classes
+                    のリストを参照してください。</p>
+                    <p>または、Ruby on Rails で使用する場合は、YAML
+                    ファイルを読み取るときに Ruby on Rails
+                    アプリケーションが許可クラスとして許可するクラスを
+                    config/application.rb
+                    でグローバルに構成できます。</p>
+                    <pre><code>config.active_record.yaml_column_permitted_classes += [Matrix, OpenStruct, Symbol]
+</code></pre>
+                    <p>Ruby on Rails の内部 YAML
+                    解析では、シンボルがすでに
+                    active_record.yaml_column_permitted_classes
+                    のデフォルトになっていることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

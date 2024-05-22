@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでCSVファイルの列区切り文字を検出するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでCSVファイルの列区切り文字を検出するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでCSVファイルの列区切り文字を検出するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>取締役会のメンバーがアップロードした CSV
+                    ファイルが、カンマ区切り、セミコロン区切り、タブ区切りなどの一貫性のない形式のために正しく解析されないという問題がいくつかありました。通常、どの区切り文字が使用されているかさえわかりませんでした。
+                    Excel / LibreOffice Calc では CSV
+                    にエクスポートするときに指定しないため使用されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この関数は、CSV に少なくとも 4
+                    つの列があることを前提としています。ファイルの最初の行
+                    (=
+                    通常はヘッダーであり、余分なカンマや奇妙な文字が含まれる可能性は低い)
+                    で区切り文字と非区切り文字の交互を検索し、最も一般的な区切り文字を返します。</p>
+                    <pre><code>  def self.detect_separator(file)
+    firstline = File.open(file, &amp;:readline)
+    if firstline
+      separators = &quot;,;\t|#&quot;
+      non_sep = &quot;[^&quot; + separators + &quot;]+&quot;
+      sep = &quot;([&quot; + separators + &quot;])&quot;
+      reg = Regexp.new(non_sep + sep + non_sep + sep + non_sep + sep + non_sep + sep)
+      m = firstline.match(reg)
+      if m 
+        four_separators = m[1..-1].join(&#39;&#39;) # this line should have four separators but may have less if the data is less conclusive
+        detected_separator = separators.split(&#39;&#39;).map {|x| [four_separators.count(x),x]}.max
+        return detected_separator[1] if detected_separator
+      end
+    end
+    nil
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

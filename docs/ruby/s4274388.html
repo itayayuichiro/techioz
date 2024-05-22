@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列内のすべてのパターンのインデックスを取得する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列内のすべてのパターンのインデックスを取得する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列内のすべてのパターンのインデックスを取得する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>string = &quot;Jack and Jill went up the hill to fetch a pail of water. Jack fell down and broke his crown. And Jill came tumbling after. &quot;
+d = string.match(/(jack|jill)/i) # -&gt; MatchData &quot;Jill&quot; 1:&quot;Jill&quot;
+d.size # -&gt; 1
+</code></pre>
+                    <p>これは、最初に出現したものとのみ一致します。
+                    string.scan
+                    は部分的には機能しますが、一致したパターンのインデックスについては何も伝えません。</p>
+                    <p>パターンの一致したすべてのインスタンスとそのインデックス
+                    (位置)
+                    のリストを取得するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パターンの一致したすべてのインスタンスとそのインデックス
+                    (位置)
+                    のリストを取得するにはどうすればよいですか?</p>
+                    <pre><code>string = &quot;Jack and Jill went up the hill to fetch a pail of water. Jack fell down and broke his crown. And Jill came tumbling after. &quot;  
+string.to_enum(:scan, /(jack|jill)/i).map do |m,|
+  p [$`.size, m]
+end
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>[0, &quot;Jack&quot;]
+[9, &quot;Jill&quot;]
+[57, &quot;Jack&quot;]
+[97, &quot;Jill&quot;]
+</code></pre>
+                    <p>更新:</p>
+                    <p>後読みの動作に注意してください。見た目の部分ではなく、実際に一致した部分のインデックスを取得します。</p>
+                    <pre><code>irb&gt; &quot;ab&quot;.to_enum(:scan, /ab/     ).map{ |m,| [$`.size, $~.begin(0), m] }
+=&gt; [[0, 0, &quot;ab&quot;]]
+irb&gt; &quot;ab&quot;.to_enum(:scan, /(?&lt;=a)b/).map{ |m,| [$`.size, $~.begin(0), m] }
+=&gt; [[1, 1, &quot;b&quot;]]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

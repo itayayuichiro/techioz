@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails + ActionCable +旅客 + AWS Elasticache (Redis) : 「接続が確立される前に WebSocket が閉じられる」を修正する方法。生産上？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails + ActionCable +旅客 + AWS Elasticache (Redis) : 「接続が確立される前に WebSocket が閉じられる」を修正する方法。生産上？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails + ActionCable +旅客 + AWS Elasticache
+(Redis) : 「接続が確立される前に WebSocket
+が閉じられる」を修正する方法。生産上？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>実稼働環境でアクション
+                    ケーブルを動作させるのにいくつか問題があります。開発環境は正常に動作しています。</p>
+                    <p>解決すべきエラー: 「wss://myapp.com/cable」への
+                    WebSocket 接続が失敗しました: 接続が確立される前に
+                    WebSocket が閉じられました。</p>
+                    <p>Chrome
+                    のコンソールでこのエラーが複数回発生します。</p>
+                    <p>スタック</p>
+                    <p>nginx.conf</p>
+                    <pre><code>server {
+  listen 443 ssl;
+  server_name myapp.com *myapp.com;
+  root /home/ubuntu/myapp/current/public;
+  ssl_certificate ...;
+  ssl_certificate_key ...;
+  passenger_enabled on;
+  passenger_min_instances 1;
+  ...
+
+  location /cable {
+    passenger_app_group_name my_app_action_cable;
+    passenger_force_max_concurrent_requests_per_process 0;
+  }
+}
+</code></pre>
+                    <p>ケーブル.yml</p>
+                    <pre><code>production:
+  adapter: redis
+  url: redis://myapp.grzdsm.0001.euw1.cache.amazonaws.com:6379
+</code></pre>
+                    <p>プロダクション.rb</p>
+                    <pre><code>config.action_cable.url = &quot;wss://myapp.com/cable&quot;
+config.action_cable.allowed_request_origins = [&quot;https://myapp.com&quot;, &quot;myapp.com&quot;]
+</code></pre>
+                    <p>ルート.rb</p>
+                    <pre><code>mount ActionCable.server =&gt; &#39;/cable&#39;
+</code></pre>
+                    <p>通知チャンネル.rb</p>
+                    <pre><code>class NotificationChannel &lt; ApplicationCable::Channel
+
+  def subscribed
+    stream_from &quot;notification&quot;
+  end
+
+  def unsubscribed
+  end
+
+end
+</code></pre>
+                    <p>接続.rb</p>
+                    <pre><code>module ApplicationCable
+  class Connection &lt; ActionCable::Connection::Base
+  end
+end
+</code></pre>
+                    <p>チャンネル.rb</p>
+                    <pre><code>module ApplicationCable
+  class Channel &lt; ActionCable::Channel::Base
+  end
+end
+</code></pre>
+                    <p>ケーブル.js</p>
+                    <pre><code>//= require action_cable
+//= require_self
+//= require_tree ./channels
+
+(function() {
+  this.App || (this.App = {});
+
+  App.cable = ActionCable.createConsumer();
+
+}).call(this);
+</code></pre>
+                    <p>通知.コーヒー</p>
+                    <pre><code>App.notification = App.cable.subscriptions.create &quot;NotificationChannel&quot;,
+  connected: -&gt;
+    console.log(&quot;connected&quot;);
+
+  disconnected: -&gt;
+    console.log(&quot;disconnected&quot;);
+
+  received: (data) -&gt;
+    console.log(&quot;received&quot;);
+</code></pre>
+                    <p>ログには WebSocket
+                    接続が成功したことが示されています</p>
+                    <pre><code>I, [2019-05-06T11:00:57.688540 #4986]  INFO -- : Finished &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:00:57 +0200
+I, [2019-05-06T11:01:09.799045 #4986]  INFO -- : Started GET &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:01:09 +0200
+I, [2019-05-06T11:01:09.799154 #4986]  INFO -- : Successfully upgraded to WebSocket (REQUEST_METHOD: GET, HTTP_CONNECTION: upgrade, HTTP_UPGRADE: websocket)
+I, [2019-05-06T11:01:09.803010 #4986]  INFO -- : Registered connection (Z2lkOi8veXBqL1VzZXIvMjkx)
+I, [2019-05-06T11:01:20.541988 #4986]  INFO -- : Finished &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:01:20 +0200
+I, [2019-05-06T11:01:21.784567 #4986]  INFO -- : Started GET &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:01:21 +0200
+I, [2019-05-06T11:01:21.784672 #4986]  INFO -- : Successfully upgraded to WebSocket (REQUEST_METHOD: GET, HTTP_CONNECTION: upgrade, HTTP_UPGRADE: websocket)
+I, [2019-05-06T11:01:21.788734 #4986]  INFO -- : Registered connection (Z2lkOi8veXBqL1VzZXIvMjkx)
+I, [2019-05-06T11:01:43.768741 #4986]  INFO -- : Finished &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:01:43 +0200
+I, [2019-05-06T11:01:44.784226 #4986]  INFO -- : Started GET &quot;/cable/&quot; [WebSocket] for 144.85.191.180 at 2019-05-06 11:01:44 +0200
+I, [2019-05-06T11:01:44.784333 #4986]  INFO -- : Successfully upgraded to WebSocket (REQUEST_METHOD: GET, HTTP_CONNECTION: upgrade, HTTP_UPGRADE: websocket)
+I, [2019-05-06T11:01:44.788154 #4986]  INFO -- : Registered connection (Z2lkOi8veXBqL1VzZXIvMjkx)
+</code></pre>
+                    <p>Redis
+                    モニターにサブスクライブとサブスクライブ解除が表示される</p>
+                    <pre><code>1557133304.788584 [0 172.30.1.177:59731] &quot;subscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133326.654308 [0 172.30.1.177:59731] &quot;unsubscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133327.910010 [0 172.30.1.177:59731] &quot;subscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133349.255254 [0 172.30.1.177:59731] &quot;unsubscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133351.183697 [0 172.30.1.177:59731] &quot;subscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133356.974099 [0 172.30.1.177:59731] &quot;unsubscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133357.707420 [0 172.30.1.177:59731] &quot;subscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+1557133371.886670 [0 172.30.1.177:59731] &quot;unsubscribe&quot; &quot;action_cable/Z2lkOi8veXBqL1VzZXIvMjkx&quot;
+</code></pre>
+                    <p>しかし、まだ次のエラーが発生します:
+                    ‘wss://myapp.com/cable’ への WebSocket
+                    接続が失敗しました: 接続が確立される前に WebSocket
+                    が閉じられました。</p>
+                    <p>何か手がかりがあれば本当に感謝します、ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>config/environments/production.rb
+                    ファイル内の「wss://…」を「ws://…」に変更する必要がある場合があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

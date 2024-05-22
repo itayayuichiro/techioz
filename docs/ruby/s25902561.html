@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列検査で一重引用符を使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列検査で一重引用符を使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列検査で一重引用符を使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のプログラムがあります。</p>
+                    <pre><code>args = [&quot;a&quot;, &quot;b&quot;]
+cmd_args = args.map{|x| x.inspect}
+str =  cmd_args.join(&#39; &#39;)
+puts str
+</code></pre>
+                    <p>出力は次のとおりです。</p>
+                    <pre><code>&quot;a&quot; &quot;b&quot;
+</code></pre>
+                    <p>出力は次のようになると予想します (部分文字列は ”
+                    の代わりに ’ で引用されています)。</p>
+                    <pre><code>&#39;a&#39; &#39;b&#39;
+</code></pre>
+                    <p>実際のシステムでは部分文字列に ”
+                    が含まれる可能性があるため、文字列検査の後に gsub
+                    を実行したくありません。次に例を示します。</p>
+                    <pre><code>args = [&#39;a&quot;c&#39;, &quot;b&quot;]
+cmd_args = args.map{|x| x.inspect.gsub(&#39;&quot;&#39;, &#39;\&#39;&#39;)}
+str =  cmd_args.join(&#39; &#39;)
+puts str
+</code></pre>
+                    <p>出力されます:</p>
+                    <pre><code>&#39;a\&#39;c&#39; &#39;b&#39;
+</code></pre>
+                    <p>a と c
+                    の間の「」が誤って置き換えられています。期待される出力は次のとおりです。</p>
+                    <pre><code>&#39;a&quot;c&#39; &#39;b&#39;
+</code></pre>
+                    <p>文字列を ” の代わりに ’
+                    で引用するように文字列検査を行うにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>s = &#39;a&quot;c&#39;.inspect
+s[0] = s[-1] = &quot;&#39;&quot;
+puts s.gsub(&quot;\\\&quot;&quot;, &quot;\&quot;&quot;) #=&gt; &#39;a&quot;c&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

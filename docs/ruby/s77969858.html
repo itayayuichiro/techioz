@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>イニシャライザ内の値オブジェクトに対する「初期化により定数が自動ロードされる」ことを防止します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "イニシャライザ内の値オブジェクトに対する「初期化により定数が自動ロードされる」ことを防止します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>イニシャライザ内の値オブジェクトに対する「初期化により定数が自動ロードされる」ことを防止します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    イニシャライザでは、次のように追加のアプリケーション構成を割り当てます。</p>
+                    <pre><code>module MyApp
+  class Application
+
+    config.x.email = {
+      default: &#39;[email protected]&#39;,
+      invoice: &#39;[email protected]&#39;
+    }
+
+  end
+end
+</code></pre>
+                    <p>しかし最近、これらの電子メール
+                    アドレスに値オブジェクト
+                    クラスを導入して、SPF/DKIM/DMARC
+                    と適切に調整するために必要なロジックをカプセル化する必要がありました。</p>
+                    <pre><code>module MyApp
+  class Application
+
+    config.x.email = {
+      default: EmailAddress.new(&#39;[email protected]&#39;),
+      invoice: EmailAddress.new(&#39;[email protected]&#39;)
+    }
+
+  end
+end
+</code></pre>
+                    <p>Rails 6.1
+                    では、これにより警告がトリガーされます。</p>
+                    <pre><code>DEPRECATION WARNING: Initialization autoloaded the constant EmailAddress.
+
+Being able to do this is deprecated. Autoloading during initialization is going
+to be an error condition in future versions of Rails.
+
+Reloading does not reboot the application, and therefore code executed during
+initialization does not run again. So, if you reload EmailAddress, for example,
+the expected changes won’t be reflected in that stale Class object.
+
+This autoloaded constant has been unloaded.
+
+In order to autoload safely at boot time, please wrap your code in a reloader
+callback this way:
+
+    Rails.application.reloader.to_prepare do
+      # Autoload classes and modules needed at boot time here.
+    end
+
+That block runs when the application boots, and every time there is a reload.
+For historical reasons, it may run twice, so it has to be idempotent.
+
+Check the &quot;Autoloading and Reloading Constants&quot; guide to learn more about how
+Rails autoloads and reloads.
+</code></pre>
+                    <p>この特定の場所でこのアドバイスにどのように従うべきかわかりません。</p>
+                    <p>回避策として、require “email_address”
+                    をイニシャライザの先頭に追加すると警告が表示されなくなりますが、問題の根本的な解決にはなりません。</p>
+                    <p>これに対処する方法はありますか?</p>
+                    <p>ご協力いただきありがとうございます！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>設定部分全体を to_prepare
+                    ブロックでラップする必要があります。</p>
+                    <pre><code># config/initializers/email_config.rb
+
+Rails.application.reloader.to_prepare do
+  Rails.application.config.x.email = {
+    default: EmailAddress.new(&quot;[email protected]&quot;),
+    invoice: EmailAddress.new(&quot;[email protected]&quot;)
+  }
+end
+</code></pre>
+                    <p>email_address.rb を lib
+                    ディレクトリに置いて、それを要求することもできます。EmailAddress
+                    の動作をすべて理解したら、再ロード可能にする必要はまったくありません。この場合、EmailAddress
+                    に変更を加えた場合は再起動が必要になります。</p>
+                    <pre><code># config/initializers/email_config.rb
+
+require &quot;email_address&quot; # =&gt; loads lib/email_address.rb
+
+Rails.application.config.x.email = {
+  default: EmailAddress.new(&quot;[email protected]&quot;),
+  invoice: EmailAddress.new(&quot;[email protected]&quot;)
+}
+</code></pre>
+                    <p>もう 1 つのオプションは、autoload_once_paths に
+                    email_address.rb
+                    を含めることです。これは、これを要求することと同じですが、require
+                    を省略します。</p>
+                    <pre><code># config/application.rb
+
+config.autoload_once_paths &lt;&lt; Rails.root.join(&quot;app/value_objects&quot;)
+</code></pre>
+                    <pre><code># config/initializers/email_config.rb
+
+# EmailAddress will be loaded from app/value_objects/email_address.rb only once
+
+Rails.application.config.x.email = {
+  default: EmailAddress.new(&quot;[email protected]&quot;),
+  invoice: EmailAddress.new(&quot;[email protected]&quot;)
+}
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://guides.rubyonrails.org/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

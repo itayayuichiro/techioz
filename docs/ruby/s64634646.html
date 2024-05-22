@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec テスト時に環境ソースの定数を処理する最善の方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec テスト時に環境ソースの定数を処理する最善の方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec
+テスト時に環境ソースの定数を処理する最善の方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような定数を持つモデルがあります。</p>
+                    <pre><code>  SOURCE_QUOTA = {
+    &#39;free&#39; =&gt; (ENV[&#39;FREE_SOURCE_QUOTA&#39;] || &#39;5&#39;).to_i,
+    &#39;premium&#39; =&gt; (ENV[&#39;PREMIUM_SOURCE_QUOTA&#39;] || &#39;100&#39;).to_i
+  }.freeze
+</code></pre>
+                    <p>RuboCop
+                    は、「Style/MutableConstant」を提案し、フリーズはそこにあるはずだと提案します。</p>
+                    <p>ただし、コード内で変更すると作業が楽になります。例えば：ただし、テスト中は少し異なる値を使用したいと考えています。これで、rspec
+                    を起動する bash セッションの ENV
+                    を実際に変更できるようになりました。もちろん。</p>
+                    <pre><code>  describe &quot;a thing&quot; do
+    it &quot;does stuff&quot; do
+      ENV[&#39;FREE_SOURCE_QUOTA&#39;] = &#39;2&#39;
+      DataSource::SOURCE_QUOTA[&quot;free&quot;] = ENV[&#39;FREE_SOURCE_QUOTA&#39;].to_i
+      # test code
+</code></pre>
+                    <p>上記は定数が固定されていない場合に機能します。これは、フリーズすると、Rails
+                    環境の読み込み中にモデルが読み込まれ、この値をミュートできない
+                    (フリーズしている) ためだと思います。</p>
+                    <p>ここで何をするのが最善でしょうか?</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、定数の代わりにクラスメソッドを使用することを考えます。</p>
+                    <pre><code># in your model
+def self.source_quota
+  {
+    &#39;free&#39; =&gt; (ENV[&#39;FREE_SOURCE_QUOTA&#39;] || &#39;5&#39;).to_i,
+    &#39;premium&#39; =&gt; (ENV[&#39;PREMIUM_SOURCE_QUOTA&#39;] || &#39;100&#39;).to_i
+  }
+end
+</code></pre>
+                    <p>次に、テストでそのメソッドを次のようにモックします。</p>
+                    <pre><code>allow(DataSource).to receive(source_quota)and_return(&#39;free&#39; =&gt; 2)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

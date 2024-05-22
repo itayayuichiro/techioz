@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Google Apps Script (スプレッドシート) で生成されたファイルを Ruby 経由でダウンロードする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Google Apps Script (スプレッドシート) で生成されたファイルを Ruby 経由でダウンロードする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Google Apps Script (スプレッドシート)
+で生成されたファイルを Ruby 経由でダウンロードする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Google スプレッドシートの各タブに基づいて json
+                    ファイルを生成する次の Apps Script
+                    について考えてみましょう。</p>
+                    <pre><code>function makeJSON() {
+  var spreadsheetId = &#39;someId&#39;;
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheets = spreadsheet.getSheets();
+  var urls = []; // Array to store the URLs of the created files
+
+  for (var i =  1; i &lt; sheets.length; i++) {
+    var sheet = sheets[i];
+    var data = sheet.getRange(3,  1, sheet.getLastRow() -  2, sheet.getLastColumn()).getValues();
+    var headers = sheet.getRange(2,  1,  1, sheet.getLastColumn()).getValues()[0];
+
+    var objects = data.map(function(row) {
+    var obj = {};
+    for (var j =  0; j &lt; headers.length; j++) {
+      //process data in the sheets
+    return obj;
+    });
+
+
+    var json = JSON.stringify(objects, null,  2);
+
+// Create a blob from the JSON string
+var blob = Utilities.newBlob(json, &#39;application/json&#39;, sheet.getName() + &#39;.json&#39;);
+
+ var folder = DriveApp.getFolderById(&#39;someId&#39;);
+ var file = folder.createFile(blob);
+
+ file.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.VIEW);
+ urls.push(file.getUrl());
+  }
+}
+
+function doGet() {
+  var urls = makeJSON(); // Call the function to generate JSON files and get their URLs
+  Logger.log(urls) //this logs all the files correctly
+  return ContentService.createTextOutput(JSON.stringify({urls: urls})).setMimeType(ContentService.MimeType.JSON);
+
+}
+</code></pre>
+                    <p>folder.createFile(blob); を使用してすべての json
+                    ファイルを Google
+                    ドライブにダウンロードすると、正常に動作します。ただし、スクリプトを手動で実行してファイルをダウンロードする必要がないように、Ruby
+                    スクリプトを使用してこれを実行しようとしています。そこで、それを
+                    Web アプリ (パブリック権限)
+                    としてデプロイし、それを以下の web_app_url
+                    に置きました。 .rb ファイルは次のとおりです。</p>
+                    <pre><code> require &#39;typhoeus&#39;
+require &#39;json&#39;
+
+web_app_url = &#39;https://script.google.com/macros/s/digits/exec&#39;
+download_directory = &#39;./downloads&#39;
+
+# Make an HTTP GET request to trigger the Web App
+response = Typhoeus.get(web_app_url, followlocation: true)
+
+if response.success?
+  json_response = JSON.parse(response.body)
+  json_urls = json_response[&#39;urls&#39;]
+
+  # Download each file to the specified directory
+  json_urls.each do |url|
+    file_name = File.basename(url)
+    download_path = File.join(download_directory, file_name)
+
+    # Use open-uri to open the URL and download the file
+    require &#39;open-uri&#39;
+    open(url, &#39;rb&#39;) do |file|
+      File.open(download_path, &#39;wb&#39;) do |local_file|
+        local_file.write(file.read)
+      end
+    end
+    puts &quot;Downloaded #{file_name} to #{download_directory}&quot;
+  end
+else
+  puts &quot;HTTP status code: #{response.code}&quot;
+  puts &quot;Response body: #{response.body}&quot;
+  puts &quot;Failed to fetch URLs: #{response.status_message}&quot;
+end
+</code></pre>
+                    <p>しかし、次のエラーが発生します。</p>
+                    <pre><code>    warning: calling URI.open via Kernel#open is deprecated, call URI.open directly or use URI#open
+Traceback (most recent call last):
+    9: from download.rb:15:in `&lt;main&gt;&#39;
+    8: from download.rb:15:in `each&#39;
+    7: from download.rb:21:in `block in &lt;main&gt;&#39;
+    6: from /Users/me/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/open-uri.rb:19:in `open&#39;
+    5: from /Users/me/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/open-uri.rb:50:in `open&#39;
+    4: from /Users/me/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/open-uri.rb:744:in `open&#39;
+    3: from /Users/me/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/open-uri.rb:178:in `open_uri&#39;
+    2: from download.rb:22:in `block (2 levels) in &lt;main&gt;&#39;
+    1: from download.rb:22:in `open&#39;
+download.rb:22:in `initialize&#39;: No such file or directory @ rb_sysopen - ./downloads/view?usp=drivesdk (Errno::ENOENT)
+</code></pre>
+                    <p>どこが間違っているのか誰か教えてもらえますか？また、これらのファイルをマシン上のどこにダウンロードするかを指定するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>表示されているスクリプトから、 Logger.log(urls)
+                    //
+                    これによりすべてのファイルが正しく記録されると思うと、現在の問題の原因は
+                    urls.push(file.getUrl()) の getUrl()
+                    にあるのではないかと推測しました。 ;。 getUrl()
+                    の場合、URL は
+                    https://drive.google.com/file/d//view?usp=drivesdk
+                    のようになります。このリンクはファイルへの直接リンクではありません。これが現在の問題の原因である可能性があると思います。私の推測が正しければ、次の修正はどうでしょうか?</p>
+                    <p>この変更では、Ruby 側が変更されます。</p>
+                    <pre><code>json_urls.each do |url|
+  file_name = File.basename(url)
+</code></pre>
+                    <pre><code>json_urls.each do |url|
+  id = url.split(&quot;/&quot;)[5]
+  url = &quot;https://drive.usercontent.google.com/download?confirm=xxx&amp;id=#{id}&quot; # This is from https://gist.github.com/tanaikech/f0f2d122e05bf5f971611258c22c110f
+  file_name = File.basename(url)
+</code></pre>
+                    <p>変更したスクリプト全体は以下の通りです。</p>
+                    <pre><code>require &#39;typhoeus&#39;
+require &#39;json&#39;
+
+web_app_url = &#39;https://script.google.com/macros/s/{deploymentId}/exec&#39;
+download_directory = &#39;./downloads&#39;
+
+# Make an HTTP GET request to trigger the Web App
+response = Typhoeus.get(web_app_url, followlocation: true)
+
+if response.success?
+  json_response = JSON.parse(response.body)
+  json_urls = json_response[&#39;urls&#39;]
+
+  # Download each file to the specified directory
+  json_urls.each do |url|
+    id = url.split(&quot;/&quot;)[5]
+    url = &quot;https://drive.usercontent.google.com/download?confirm=xxx&amp;id=#{id}&quot;
+    file_name = File.basename(url)
+    download_path = File.join(download_directory, file_name)
+
+    # Use open-uri to open the URL and download the file
+    require &#39;open-uri&#39;
+    open(url, &#39;rb&#39;) do |file|
+      File.open(download_path, &#39;wb&#39;) do |local_file|
+        local_file.write(file.read)
+      end
+    end
+    puts &quot;Downloaded #{file_name} to #{download_directory}&quot;
+  end
+else
+  puts &quot;HTTP status code: #{response.code}&quot;
+  puts &quot;Response body: #{response.body}&quot;
+  puts &quot;Failed to fetch URLs: #{response.status_message}&quot;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

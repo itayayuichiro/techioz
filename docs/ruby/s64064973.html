@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rswag UI を使用して Rails API をテストするためのベアラー トークン パラメータを設定する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rswag UI を使用して Rails API をテストするためのベアラー トークン パラメータを設定する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rswag UI を使用して Rails API
+をテストするためのベアラー トークン パラメータを設定する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rswag UI gem を使用して API
+                    をテストするときに問題が発生します。 param
+                    フィールドにトークンを入力した後、UI
+                    で認証ヘッダーが適切に設定されていないようです。それにもかかわらず、テスト自体は合格しており、ターミナルでテストを実行するとエンドポイントにヒットします。詳細については、以下に添付された画像をご覧ください。</p>
+                    <p>application_controller
+                    の認証メソッドは次のようになります。</p>
+                    <pre><code>def authenticate!
+    authenticate_or_request_with_http_token do |token, _|
+      @auth = ApiKey.exists?(access_token: token)
+    end
+end
+</code></pre>
+                    <p>swagger_helper
+                    セキュリティ定義は次のようになります</p>
+                    <pre><code>  securityDefinitions: {
+    Bearer: {
+      description: &#39;...&#39;,
+      type: :apiKey,
+      name: &#39;Authorization&#39;,
+      in: :header
+    }
+  }
+</code></pre>
+                    <p>合格したテストは次のようになります。</p>
+                    <pre><code>require &#39;swagger_helper&#39;
+
+RSpec.describe &#39;Api::V1::Events&#39;, type: :request do
+
+  let(:access_token) { FactoryBot.create(:api_key).access_token }
+  let(:Authorization) { &quot;Bearer #{access_token}&quot; }
+
+  path &#39;/v1/events&#39; do
+    post &#39;Creates an event&#39; do
+      tags &#39;Events&#39;
+      consumes &#39;application/json&#39;
+      security [Bearer: {}]
+      parameter name: :Authorization, in: :header, type: :string
+      parameter name: :event, in: :body, schema: {
+          type: :object,
+          properties: {
+              name: { type: :string },
+              description: { type: :string },
+              date: { type: :string },
+              time: { type: :string }
+          },
+          required: [ &#39;name&#39;, &#39;description&#39;, &#39;date&#39;, &#39;time&#39; ]
+      }
+
+      response &#39;201&#39;, &#39;created&#39; do
+        let(:event) { { name: &#39;foo&#39;, description: &#39;bar&#39;, date: &#39;2020-09-24&#39;, time: &#39;00:00:00&#39; } }
+        run_test!
+      end
+    end
+   end
+ end
+</code></pre>
+                    <p>これは私が苦労している行です: パラメータ名:
+                    :Authorization、in: :header、type: :string
+                    http、string、apiKey
+                    などのさまざまなタイプを試しましたが、運がありませんでした</p>
+                    <p>Swagger UI が返す Curl は次のようになります。</p>
+                    <pre><code>curl -X POST &quot;http://localhost:3000/v1/events&quot; -H &quot;accept: */*&quot; -H &#39;Authorization: Bearer ab4d77e61a5ccdc402sb75867328ea77&#39; -H &quot;Content-Type: application/json&quot; -d &quot;{\&quot;name\&quot;:\&quot;string\&quot;,\&quot;description\&quot;:\&quot;string\&quot;,\&quot;date\&quot;:\&quot;string\&quot;,\&quot;time\&quot;:\&quot;string\&quot;}&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いただいたコメントをもとに解決策を見つけました。
+                    Swagger UI に [承認]
+                    ボタンが表示されませんでした。したがって、基本的に他のファイルの中で
+                    swagger_helper 内でいくつかの更新を行いました</p>
+                    <p>これを変更しました:</p>
+                    <pre><code>  &#39;v1/swagger.yaml&#39; =&gt; {
+      openapi: &#39;3.0.1&#39;,
+   ...
+</code></pre>
+                    <p>これに</p>
+                    <pre><code>  &#39;v1/swagger.json&#39; =&gt; {
+      swagger: &#39;2.0&#39;,
+      ....
+   }
+</code></pre>
+                    <p>また、ファイルの下部で config.swagger_format =
+                    :yaml を config.swagger_format = :json
+                    に変更しました。</p>
+                    <p>次に、コマンド rswag:specs:swaggerize
+                    を実行して、json ファイルを生成しました。</p>
+                    <p>イニシャライザも更新しました c.swagger_endpoint
+                    ‘/api-docs/v1/swagger.yaml’、‘API V1 ドキュメント’
+                    から c.swagger_endpoint
+                    ‘/api-docs/v1/swagger.json’、‘API V1
+                    ドキュメント’</p>
+                    <p>最後に、サーバーを再起動すると、トークンを入力するための上記のボタンが表示されました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

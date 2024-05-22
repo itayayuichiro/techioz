@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>GitHub アクションを使用して Ruby Gem を RubyGems.org にプッシュする際の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "GitHub アクションを使用して Ruby Gem を RubyGems.org にプッシュする際の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>GitHub アクションを使用して Ruby Gem を
+RubyGems.org にプッシュする際の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>GitHub Actions を使用して Ruby Gems.org に Ruby
+                    gem
+                    を公開しようとしているときに問題が発生しました。ワークフローはエラーなしで実行されているように見えますが、Gem
+                    を RubyGems
+                    にプッシュするときに問題が発生しています。</p>
+                    <p>RubyGems から生成された API
+                    キーを使用しており、これを GitHub
+                    リポジトリにシークレットとして追加しました。ただし、GitHub
+                    Actions ログに次のエラーが表示されます。</p>
+                    <pre><code>Run gem push *.gem --key rubygems_api_key
+ERROR:  No such API key. Please add it to your configuration (done automatically on initial `gem push`).
+Error: Process completed with exit code 1.
+</code></pre>
+                    <p>私のワークフローが release.yml
+                    でどのように構成されているかは次のとおりです。</p>
+                    <pre><code>- name: Publish to RubyGems
+  run: gem push *.gem --key rubygems_api_key
+  env:
+    RUBYGEMS_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
+</code></pre>
+                    <p>API キーが GitHub
+                    にシークレットとして正しく追加されていること、およびシークレット名がワークフロー内で一致していることを確認しました。何かが足りないのでしょうか、それとも追加の手順を実行する必要がありますか?ご協力をいただければ幸いです。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>gem プッシュの –key オプションは、ファイル
+                    ~/.gem/credentials または
+                    ~/.local/share/gem/credentials、または GitHub Runner
+                    上のローカル Gem
+                    ディレクトリにあるキーを見つけることを期待します。</p>
+                    <p>GitHub Actions
+                    を使用すると、キーをファイルに書き込んでそこから読み取るのではなく、環境変数でキーを渡す方がはるかに簡単です。
+                    –key オプションを省略した場合、RubyGems は
+                    GEM_HOST_API_KEY という名前の環境変数で API
+                    キーを検索します。</p>
+                    <p>したがって、必要なのは、Gem Push の呼び出しから
+                    –key オプションを削除し、GEM_HOST_API_KEY
+                    という名前の環境変数でシークレット API
+                    キーを公開することだけです。</p>
+                    <pre><code>- name: Publish to RubyGems
+  run: gem push *.gem
+  env:
+    GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

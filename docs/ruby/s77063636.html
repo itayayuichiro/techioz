@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ネストされたコメントの場合、親コメントの ID をコメント フォームに渡すにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ネストされたコメントの場合、親コメントの ID をコメント フォームに渡すにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ネストされたコメントの場合、親コメントの ID
+をコメント フォームに渡すにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コメントが記事を直接参照している場合、次の形式でコメントを作成することに成功しました。</p>
+                    <pre><code>&lt;%= form_with(model: [@article, @article.comments.build]) do |f| %&gt;
+ 
+ &lt;p&gt;Comment:&lt;/p&gt;
+ &lt;%= f.text_area :body, class:&#39;&#39; %&gt;
+ &lt;%= image_submit_tag(&quot;Post.jpg&quot;, height: &quot;25&quot;, width: &quot;25&quot;, class: &quot;mt-5 ms-3&quot;) %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>しかし、今、ネストされたコメントを作成しようとしていますが、以前に作成したコメントへの返信としてフォームにアクセスするとき、親コメントのIDをフォームに渡す方法、またはnil親を渡す方法がわからずに立ち往生しています。
+                    -コメント
+                    ID。記事自体からフォームに直接アクセスし、その記事を参照している場合。</p>
+                    <p>app/views/articles/show.html.erb
+                    では、記事に直接コメントを作成するためにコメント
+                    フォームが呼び出されます。これは私が試したことです。</p>
+                    <pre><code>&lt;%= render &#39;/comments/comment_form&#39;, locals: {article: @article, parent: nil} %&gt;
+</code></pre>
+                    <p>app/views/comments/show.html.erb
+                    では、以前に作成したコメントへの返信としてフォームが呼び出されますが、これは私が試したことです:</p>
+                    <pre><code> &lt;%= render &#39;/comments/comment_form&#39;, locals: {article: comment.article, parent: comment} %&gt;
+</code></pre>
+                    <p>ネストされたコメントを作成する前に、何も渡さず
+                    (ローカル: {etc.} なし)、articles/show.html.erb
+                    からフォームをレンダリングしただけで、見事に機能しました。</p>
+                    <p>この件に関して何かご指導をいただければ幸いです。以下は、この問題に関連すると思われるコードの残りの部分です。</p>
+                    <p>app/models/comments.rb 内</p>
+                    <pre><code>class Comment &lt; ApplicationRecord
+  belongs_to :article
+  belongs_to :commenter, class_name: &#39;User&#39;, foreign_key: :user_id
+  belongs_to :parent, class_name: &#39;Comment&#39;, optional: true
+
+  has_many :comments, foreign_key: :parent_id
+
+  validates_presence_of :body, length: { minimum: 3, maximum: 500 }
+end
+</code></pre>
+                    <p>app/controllers/comments_controller.rb 内</p>
+                    <pre><code>class CommentsController &lt; ApplicationController
+  before_action :authenticate_user!
+
+  
+
+  def create
+    @comment = Comment.new(comment_params.merge(commenter: current_user))
+    @comment.article_id = params[:article_id]
+    @comment.save
+    redirect_to article_path(params[:article_id])
+  end
+
+  private
+
+  def comment_params
+    params.require(:comment).permit(:body, :article_id, :user_id, :parent_id)
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>インスタンス変数とローカル変数を混同していますが、これは非常に簡単です。</p>
+                    <p>@ 記号が付いたものはすべて、Ruby
+                    のインスタンス変数です。 Rails
+                    での動作方法は、コントローラー内のすべてのインスタンス変数が、テンプレート
+                    エンジンに渡されるコンテキストであるビュー
+                    コンテキストを介してビューで利用できるようにすることです。それは基本的にあなたのビューの中の自己であると考えてください。</p>
+                    <p>一方、ローカル割り当ては、render
+                    を呼び出すときに渡され、通常のメソッドとして、または
+                    local_assigns メソッドを通じて呼び出されます。 Rails
+                    はメタプログラミングを通じてこれらの呼び出しをビュー
+                    コンテキストに委任します。これらの呼び出しには @
+                    記号を含めないでください。また、ビューローカルを言語機能であるローカル変数と混同しないように注意してください。</p>
+                    <p>それでは、実際にローカルを使用するように部分を変更することから始めましょう。</p>
+                    <pre><code>&lt;%= form_with(model: [local_assigns(:parent), comment]) do |f| %&gt;
+  # ..
+&lt;% end %&gt;
+</code></pre>
+                    <p>local_assigns(:parent)
+                    は、ローカルが渡されない場合に NoMethodError
+                    を回避する気の利いたちょっとしたトリックで、浅いネストで同じフォームを再利用可能にするために使用できます。</p>
+                    <p>また、フォーム内で <span class="citation"
+                    data-cites="article.comments.build">@article.comments.build</span>
+                    を実行しないでください。モデルのインスタンス化は、ビューではなくコントローラーの仕事です。また、フォームは常に新しいインスタンスにバインドされます。つまり、フォームが無効で編集のためにフォームを壊した場合、ユーザー入力はすべて失われます。</p>
+                    <p>コントローラー側では、複数の異なるリソースにネストできるリソースを処理する
+                    2 つの異なる方法があります。 1
+                    つ目の方法は、すべてを 1
+                    つのコントローラーにルーティングし、「パラメーター
+                    スニッフィング アプローチ」を使用することです。</p>
+                    <pre><code>class CommentsController &lt; ApplicationController
+  before_action :authenticate_user!
+  before_action :set_parent
+  
+  # Creates articles nested in a Article or in another Comment
+  # POST /articles/1/comments
+  # POST /comments/2/comments
+  def create
+    @comment = @parent.comments.new(comment_params) do |c|
+      c.user = current_user
+    end
+    # don&#39;t assume that saving will always be successful
+    if @comment.save
+      redirect_to @parent
+    else
+      render :new
+    end
+  end
+
+  private
+
+  def set_parent
+    if params[:article_id].present?
+      @parent = Article.find(params[:article_id])
+    elsif params[:comment_id].present?
+      @parent = Comment.find(params[:comment_id])
+    end
+  end
+
+  def comment_params
+    # you should not be permitting any of those params!
+    params.require(:comment).permit(:body)
+  end
+end
+</code></pre>
+                    <p>これは人気がありますが、複雑さが増すにつれて非常に醜くなるため、私はこのアプローチの大ファンではありません。また、単一責任原則も完全に無視しています。たとえば、親のタイプに応じて異なる方法でリダイレクトすることが必要な場合があります。</p>
+                    <p>2
+                    番目のアプローチは、合成を使用して別のコントローラーを作成することです。</p>
+                    <pre><code>resouces :articles do 
+  resouces :comments, only: :create, module: :articles
+end
+
+resouces :comments, only: [] do 
+  resouces :comments, only: :create, module: :comments
+end
+</code></pre>
+                    <pre><code># Creates Comments on an Article 
+class CommentsController &lt; ApplicationController
+  before_action :authenticate_user!
+  before_action :set_parent
+  
+  # Creates comments nested in a parent record. 
+  # This parent record should be set by subclasses. 
+  def create
+    @comment = @parent.comments.new(comment_params) do |c|
+      c.user = current_user
+    end
+    # don&#39;t assume that saving will always be successful
+    if @comment.save
+      redirect_to @parent
+    else
+      render :new
+    end
+  end
+
+  private
+
+  def set_parent
+    raise &quot;This method must be implemented by subclasses!&quot;
+  end
+
+  def comment_params
+    # you should not be permitting any of those params!
+    params.require(:comment).permit(:body)
+  end
+end
+</code></pre>
+                    <pre><code>module Articles 
+  # Creates Comments on an Article 
+  class CommentsController &lt; ::CommentsController 
+    private
+
+    def set_parent
+      @parent = Article.find(params[:article_id])
+    end
+  end
+end
+</code></pre>
+                    <pre><code>module Comments 
+  # Creates Comments nested in another Comment 
+  class CommentsController &lt; ::CommentsController 
+    private
+
+    def set_parent
+      @parent = Comment.find(params[:comment_id])
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

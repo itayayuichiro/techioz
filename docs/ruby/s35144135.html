@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>秘密キーを含む json ファイルを Heroku にアップロードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "秘密キーを含む json ファイルを Heroku にアップロードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>秘密キーを含む json ファイルを Heroku
+にアップロードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 用 Google API クライアント
+                    ライブラリを使用して Google Analytics
+                    からデータを取得する Rails
+                    アプリを構築しています。</p>
+                    <p>私は OAuth2
+                    を使用しており、開発中のすべてをローカル
+                    マシン上で動作させることができます。私の問題は、ライブラリがダウンロードされたファイル
+                    client_secrets.json を使用して 2
+                    つの秘密鍵を保存することです。</p>
+                    <p>問題: Heroku
+                    を使用しているので、ファイルを運用サーバーに取得する方法が必要です。</p>
+                    <p>プロジェクトはパブリックなので、このファイルを
+                    Github リポジトリに追加したくありません。</p>
+                    <p>ファイルを一時的に git に追加して Heroku
+                    にプッシュし、git
+                    から削除する方法があれば、それで問題ありません。私の感覚では、キーはコミット内にあり、github
+                    での表示を防ぐのは非常に難しいと考えています。</p>
+                    <p>試してみた: 私の知る限り、Bash コンソールを介して
+                    Heroku にファイルを SCP
+                    することはできません。これを行うと新しい Dyno
+                    が得られ、追加したものは一時的なものに過ぎないと思います。これを試してみましたが、SCP
+                    を適切に動作させることができなかったので、これについて
+                    100% 確信があるわけではありません。</p>
+                    <p>試してみた: JSON
+                    ファイルを環境または構成変数に保存することを検討しましたが、機能させることができませんでした。誰かが考えているなら、これが最善の方法のように思えます。
+                    Ruby が JSON
+                    を文字列またはハッシュに変換するときによく問題が発生するため、おそらくここではガイダンスが必要です。</p>
+                    <p>試してみた: さらに、JSON
+                    ファイルからキーを取り出して Config Vars
+                    に入れ、JSON ファイルを git
+                    に追加する方法を見つけようとしました。ただし、ENV[“KEY”]をJSONファイルに入れる方法がわかりません。</p>
+                    <p>コード例 Google ライブラリには、JSON
+                    ファイルをロードして認可クライアントを作成するメソッドがあります。次に、クライアントはトークンを取得します
+                    (または認可 URL を与えます)。</p>
+                    <pre><code>client_secrets = Google::APIClient::ClientSecrets.load(&#39;client_secrets.json&#39;)
+auth_client = client_secrets.to_authorization
+</code></pre>
+                    <p>** Google
+                    ページの例では、パスに設定されたデフォルトの ENV
+                    変数を使用しているため、ファイル名が表示されていないことに注意してください。</p>
+                    <p>ClientSecrets.load() メソッドが JSON、Config Var
+                    に入る文字列、またはハッシュを受け取るだけであれば、これはすべてずっと簡単になると思います。</p>
+                    <p>残念ながら、常にファイルパスが必要なようです。
+                    JSON、文字列、またはハッシュを与えると爆発します。ここで誰かが
+                    p12
+                    キーを使用して問題を回避しているのを見ましたが、私の状況でそれを再現する方法がわかりません。</p>
+                    <p>試したことがない: ただし、(AWS への移行を除けば)
+                    私の唯一の方法は、JSON ファイルを AWS
+                    に置き、必要に応じて Rails
+                    がそれを取得するようにすることです。これがオンザフライで実行できるかどうか、または
+                    Rails
+                    サーバーの起動時にファイルをプルダウンする必要があるかどうかはわかりません。作業が多すぎるように思えますが、現時点では数時間を費やしたので、試してみる準備ができています。</p>
+                    <p>これは私が取り組んでいる特定のコントローラーです。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/dladowitz/slapafy/blob/master/app/controllers/welcome_controller.rb</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>github を検索すると、誰かがファイル パスではなく
+                    JSON
+                    文字列を引数として使用する別のメソッドを使用していることがわかりました:
+                    Google::APIClient::ClientSecrets.new(JSON.parse(ENV[‘GOOGLE_CLIENT_SECRETS’]))</p>
+                    <p>これにより、JSON を ENV VAR
+                    にラップできるようになります。世界は再び意味を持ちます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

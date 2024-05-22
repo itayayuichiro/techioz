@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku dyno を毎日再起動すると、複数日にわたる Sidekiq ジョブに影響しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku dyno を毎日再起動すると、複数日にわたる Sidekiq ジョブに影響しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku dyno を毎日再起動すると、複数日にわたる
+Sidekiq ジョブに影響しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>大量のデータを転送する長時間実行プロセスを含むアプリがあります。これらの実行には数日かかる場合があります。</p>
+                    <p>専用キューを使用してsidekiqジョブでこれらのプロセスを実行できればいいのですが、毎日のdynoの再起動によってジョブが中断されるかどうかはHerakuのドキュメントからは明らかではありません。</p>
+                    <p>具体的には、このページでは、dyno
+                    が受信リクエストの処理を完了できるようにグレースフル
+                    リスタートをサポートしていると述べています。それはまだジョブを実行しているsidekiqワーカーにも当てはまりますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、そうなります。あなたがすべきことは、ジョブを分割し、再開できる場所で冪等にすることです。</p>
+                    <p>ワーカーは、使用しているジョブ
+                    キューに応じて、リッスンできる SIGINT
+                    シグナルを受信します。シグナルが発行されてから
+                    SIGKILL を取得するまで 30
+                    秒かかり、正常にシャットダウンすることはできません。</p>
+                    <p>24
+                    時間ごとの再起動を避ける方法はありませんが、私が聞いたところによると、(30
+                    秒以内にシャットダウンできない場合) 6
+                    時間ごとに独自のサーバーをプログラムで再起動し、次の時間にのみ再起動するようにしている人もいます。予想される回数。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

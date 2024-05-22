@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのattr_accessorとは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのattr_accessorとは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのattr_accessorとは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyのattr_accessorを理解するのに苦労しています。
+                    誰かこれを説明してもらえますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>クラス person があるとします。</p>
+                    <pre><code>class Person
+end
+
+person = Person.new
+person.name # =&gt; no method error
+</code></pre>
+                    <p>明らかに、メソッド名を定義したことはありません。そうしよう。</p>
+                    <pre><code>class Person
+  def name
+    @name # simply returning an instance variable @name
+  end
+end
+
+person = Person.new
+person.name # =&gt; nil
+person.name = &quot;Dennis&quot; # =&gt; no method error
+</code></pre>
+                    <p>ああ、名前は読めますが、だからといって名前を割り当てることができるわけではありません。これらは
+                    2
+                    つの異なる方法です。前者をリーダー、後者をライターと呼びます。まだライターを作成していないので作成しましょう。</p>
+                    <pre><code>class Person
+  def name
+    @name
+  end
+
+  def name=(str)
+    @name = str
+  end
+end
+
+person = Person.new
+person.name = &#39;Dennis&#39;
+person.name # =&gt; &quot;Dennis&quot;
+</code></pre>
+                    <p>素晴らしい。これで、リーダー メソッドとライター
+                    メソッドを使用してインスタンス変数 <span
+                    class="citation" data-cites="name">@name</span>
+                    の書き込みと読み取りができるようになりました。ただし、これは非常に頻繁に行われるため、毎回これらのメソッドを作成するのに時間を無駄にする必要はありません。もっと簡単にできるのです。</p>
+                    <pre><code>class Person
+  attr_reader :name
+  attr_writer :name
+end
+</code></pre>
+                    <p>これでも繰り返しになる可能性があります。リーダーとライターの両方が必要な場合は、アクセサーを使用するだけです。</p>
+                    <pre><code>class Person
+  attr_accessor :name
+end
+
+person = Person.new
+person.name = &quot;Dennis&quot;
+person.name # =&gt; &quot;Dennis&quot;
+</code></pre>
+                    <p>同じように動作します!そして、推測してください:
+                    person オブジェクトのインスタンス変数 <span
+                    class="citation" data-cites="name">@name</span>
+                    は、手動で実行したときと同じように設定されるため、他のメソッドでも使用できます。</p>
+                    <pre><code>class Person
+  attr_accessor :name
+
+  def greeting
+    &quot;Hello #{@name}&quot;
+  end
+end
+
+person = Person.new
+person.name = &quot;Dennis&quot;
+person.greeting # =&gt; &quot;Hello Dennis&quot;
+</code></pre>
+                    <p>それでおしまい。 attr_reader、attr_writer、および
+                    attr_accessor
+                    メソッドが実際にどのようにメソッドを生成するかを理解するには、他の回答、書籍、Ruby
+                    ドキュメントを読んでください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

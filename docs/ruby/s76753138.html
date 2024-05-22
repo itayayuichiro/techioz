@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails RSpec で it_behaves_like にブロックを渡すことはできますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails RSpec で it_behaves_like にブロックを渡すことはできますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails RSpec で it_behaves_like
+にブロックを渡すことはできますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>共有された例があるとします。</p>
+                    <pre><code>shared_examples &#39;success&#39; do
+  let(:params) { key: &quot;value&quot; }
+
+  it &quot;returns data&quot; do 
+    post &quot;/api/users&quot;, params: params
+
+    expect(response.status).to eq (201)
+  end
+end
+</code></pre>
+                    <p>この共有サンプルを it_behaves_like
+                    で使用する場合、ブロックを渡して、予想されるリストを拡張できますか?</p>
+                    <p>たとえば、私は次のように書きます。</p>
+                    <pre><code>  it_behaves_like &quot;success&quot; do 
+    expect(response[&#39;id]).to eq(1)
+  end
+</code></pre>
+                    <p>rspec
+                    が次のようにコンパイルすることを期待しています。</p>
+                    <pre><code>  it &quot;returns data&quot; do 
+    post &quot;/api/users&quot;, params: params
+
+    expect(response.status).to eq (201)
+    expect(response[&#39;id]).to eq(1)
+  end
+</code></pre>
+                    <p>上記のコードは明らかに私が望んでいたように機能していませんが、RSpec
+                    が上記の期待した結果のように理解できるようにコードを記述する方法を知りたいです。出来ますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを、API
+                    リクエストを実行する共有コンテキストとステータス
+                    コードをチェックする共有サンプルに分けることができます。例:</p>
+                    <pre><code>shared_context &#39;request&#39; do
+  before do
+    post &#39;/api/users&#39;, params: params
+  end
+end
+
+shared_examples &#39;success&#39; do
+  it &#39;returns with 201 status code&#39; do
+    expect(response.status).to eq (201)
+  end
+end
+</code></pre>
+                    <p>これらは次のように組み合わせることができます。</p>
+                    <pre><code>describe &#39;a successful request&#39; do
+  include_context &#39;request&#39; do
+    let(:params) { { key: &#39;value&#39; } }
+  end
+
+  it_behaves_like &#39;success&#39;
+
+  it &#39;returns data&#39; do
+    expect(response[&#39;id&#39;]).to eq(1)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

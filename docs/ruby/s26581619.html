@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyの&lt;=&gt;演算子とsortメソッド | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyの&lt;=&gt;演算子とsortメソッド",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyの&lt;=&gt;演算子とsortメソッド</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>player1 = Player.new(&quot;moe&quot;)
+player2 = Player.new(&quot;larry&quot;,60)
+player3 = Player.new(&quot;curly&quot;, 125)
+@players = [player1, player2, player3]
+</code></pre>
+                    <p>上記では、いくつかのプレーヤー
+                    オブジェクトを作成し、それらを以前は空だった配列
+                    <span class="citation"
+                    data-cites="players">@players</span>
+                    に追加しました。</p>
+                    <p>次に、 &lt;=&gt; を次のように再定義しました。</p>
+                    <pre><code>def &lt;=&gt;(other)
+    other.score &lt;=&gt; score
+end 
+</code></pre>
+                    <p>その後、このコードを実行できます</p>
+                    <pre><code>@players.sort
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="players">@players</span> 内のプレーヤー
+                    オブジェクトの配列は、高スコアから低スコアの順に並べ替えられます。
+                    これは私には少しブラックボックスのように見えると思います。ここで何が起こっているのか少しわかりません。舞台裏で何が起こっているかを知るにはどうすればよいですか?</p>
+                    <p>私が知っているのは、2
+                    つの値をとり、宇宙船演算子/一般比較演算子を使用すると次のようになることだけです。</p>
+                    <pre><code>2 &lt;=&gt; 1   
+=&gt; 1
+
+1 &lt;=&gt; 2
+=&gt; -1
+
+1 &lt;=&gt; 1
+=&gt;0
+</code></pre>
+                    <p>時々、Ruby
+                    では、私がプログラミングしている高レベルでは見ることができない、多くの下位レベルの処理が行われているように見えます。これは自然なことのように思えます…しかし、このケースは特に、下位レベルの処理からは切り離されているように見えます。ソート方法。ソートは宇宙船オペレーターをどのように使用しますか?なぜ今までと同じように宇宙船のオペレーターを再定義することで、オブジェクトを分類できるようになったのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>オブジェクトの並べ替えを理解する前に。 Ruby の
+                    .sort
+                    メソッドを理解する必要があります。数字が書かれた 5
+                    枚のカードを並べ替える場合、すべてのカードを見て、最も低いカードを簡単に見つけて、そのカードを最初のカードとして選ぶことができます
+                    (最も低いカードから最も高いカードへ並べ替えていると仮定すると、どれがルビーになります)します）。脳は分類するとき、あらゆるものを見てそこから分類することができます。</p>
+                    <p>ここには、めったに取り上げられない、混乱を招く主な要素が
+                    2 つあります。</p>
+                    <p>宇宙船の操縦者を見てください。これは、&lt;、=、&gt;
+                    という 3 つの個別の演算子を 1 つにまとめたものです。
+                    Ruby が 2
+                    つの変数を比較すると、結果は次のいずれかの数値になります。</p>
+                    <p>[宇宙船オペレーター][1]</p>
+                    <p>では、「結果」とは何を意味するのでしょうか？これは、変数の
+                    1 つに 0、1、-1
+                    が割り当てられるという意味ではありません。これは単に、Ruby
+                    が 2
+                    つの変数を受け取り、それらを使って何かを実行できる方法です。ここで、次のように実行すると、</p>
+                    <pre><code>puts 4 &lt;=&gt; 5
+</code></pre>
+                    <p>比較演算子 (宇宙船) の「部分」 (&lt;、=、&gt;
+                    など) が true
+                    であれば、それに割り当てられた番号が取得されるため、結果は
+                    -1 になります (上の図を参照)。 。ただし、Ruby
+                    が配列でこの &lt;=&gt;
+                    を認識した場合、配列に対してのみ 2
+                    つのことを行います。配列をそのままにするか、配列の要素を交換します。</p>
+                    <p>Ruby が &lt;=&gt; を使用して 1
+                    を取得すると、配列の 2 つの要素が交換されます。 Ruby
+                    が -1 または 0
+                    の結果を取得した場合、配列はそのままになります。</p>
+                    <p>例としては、Ruby が配列 [2,1]
+                    を認識した場合です。ソート方法では、2&lt;=&gt;1
+                    のようにこれらの数値を取得します。宇宙船の部分
+                    (そのように考えたい場合) が真であるのは &gt;
+                    であるため (つまり、2&gt;1 が真)、Ruby
+                    からの結果は「1」になります。 Ruby は宇宙船から 1
+                    の結果を確認すると、配列の 2
+                    つの要素を交換します。現在の配列は [1,2] です。</p>
+                    <p>この時点で、Ruby は &lt;=&gt;
+                    演算子とのみ比較し、比較する配列内の 2
+                    つの要素を交換する (またはそのままにする)
+                    ことがお分かりいただけたと思います。</p>
+                    <p>.sort
+                    メソッドは反復メソッドであり、コードのブロックを何度も実行するメソッドであることを理解してください。ほとんどの人は、.each
+                    や .upto などのメソッドを見た後でのみ .sort
+                    メソッドを紹介します
+                    (聞いたことがない場合は、これらのメソッドが何をするのか知る必要はありません)。しかし、これらのメソッドは最後まで実行されます。配列は
+                    1 回のみ。 .sort
+                    メソッドは、必要な回数だけ配列を実行して並べ替えられる
+                    (並べ替えとは、比較して交換するという意味です)
+                    という点が異なります。</p>
+                    <p>Ruby の構文を確実に理解するには:</p>
+                    <pre><code>foo = [4, 5, 6]
+puts foo.sort {|a,b| a &lt;=&gt; b}
+</code></pre>
+                    <p>コードのブロック ({} で囲まれた部分) は、Ruby
+                    が最低位から最高位にソートするときに実行するものです。ただし、.sort
+                    メソッドの最初の反復では、パイプ (a、b)
+                    間の変数を配列の最初の 2
+                    つの要素に割り当てると言うだけで十分です。したがって、最初の反復では
+                    a=4 および b=5 であり、4&lt;5 であるため、結果は -1
+                    になります。Ruby
+                    は、これを配列を交換しないことを意味すると解釈します。これを
+                    2 回目の反復で実行します (a=5 および b=6
+                    を意味します)。5&lt;6 であることが確認され、結果は
+                    -1 となり、配列はそのままになります。 &lt;=&gt;
+                    の結果はすべて -1 だったので、Ruby
+                    はループを停止し、配列が [4,5,6]
+                    でソートされたと感じます。</p>
+                    <p>変数の順序を入れ替えるだけで、高い順から低い順に並べ替えることができます。</p>
+                    <pre><code>bar = [5, 1, 9]
+puts bar.sort {|a,b| b &lt;=&gt; a}   
+</code></pre>
+                    <p>Ruby がやっていることは次のとおりです。</p>
+                    <p>反復 1: 配列 [5,1,9]。 a=5、b=1。 Ruby は
+                    b&lt;=&gt;a を見て、1 &lt; 5?
+                    と言いました。はい。その結果は -1
+                    になります。そのまま。</p>
+                    <p>反復 2: 配列 [5,1,9]。 a=1、b=9。 Ruby は
+                    b&lt;=&gt;a を見て、9 &lt; 1?
+                    と言いました。いいえ。結果は 1 になります。2
+                    つの配列要素を交換します。配列は [5,9,1]
+                    になりました。</p>
+                    <p>反復 3: 配列
+                    [5,9,1]。すべてを実行する前に、配列に +1
+                    の結果があったことを最初からやり直します。
+                    a=5、b=9。 Ruby は b&lt;=&gt;a を見て、9&lt;5
+                    ですか?いいえ。その結果は 1. スワップになります。
+                    [9、5、1]</p>
+                    <p>はい。その結果は -1 になります。反復 4: 配列
+                    [9,5,1]。
+                    したがって、スワップは実行されません。a=5、b=1。
+                    終わり。 Ruby は b&lt;=&gt;a を見て、1&lt;5
+                    ですか?[9,5,1]。</p>
+                    <p>最初の 999 要素が 50、要素 1000 が 1
+                    である配列を想像してください。Ruby
+                    が同じ単純な比較と交換ルーチンを実行してこの配列を何千回も調べてシフトする必要があることがわかれば、ソート方法を完全に理解できるでしょう。それは
+                    [1] 配列の先頭までです。</p>
+                    <p>これで、オブジェクトに関してついに .sort
+                    を確認できるようになりました。</p>
+                    <pre><code>def &lt;=&gt;(other)
+    other.score &lt;=&gt; score
+end 
+</code></pre>
+                    <p>これでもう少し意味がわかるはずです。以下を実行したときなど、オブジェクトに対して
+                    .sort メソッドが呼び出されたとき。</p>
+                    <pre><code>@players.sort
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="players">@players</span>
+                    からの現在のオブジェクトを持つパラメーター (例:
+                    「other」) を使用して「def
+                    &lt;=&gt;」メソッドを呼び出します (例:
+                    「現在のインスタンス オブジェクトが ‘<span
+                    class="citation"
+                    data-cites="players">@players</span>’
+                    のものであれば何でも、これはソート
+                    メソッドであるため)」 、最終的には ‘<span
+                    class="citation"
+                    data-cites="players">@players</span>’
+                    配列のすべての要素を通過することになります)。これは、クラスに対して
+                    put メソッドを実行しようとすると、そのクラス内の
+                    to_s メソッドが自動的に呼び出されるのと同じです。
+                    .sort メソッドでも同じことが自動的に &lt;=&gt;
+                    メソッドを探します。</p>
+                    <p>&lt;=&gt;
+                    メソッド内のコードを見ると、そのクラスには .score
+                    インスタンス変数 (アクセサー メソッドを含む)
+                    または単に .score
+                    メソッドが存在する必要があります。そして、その
+                    .score メソッドの結果は (できれば)
+                    文字列または数値である必要があります。Ruby
+                    が「ソート」できる 2
+                    つのものです。それが数値の場合、Ruby は &lt;=&gt;
+                    ‘sort’
+                    操作を使用して、これらのオブジェクトのすべての部分を並べ替えます。これで、オブジェクトのどの部分を並べ替えるかがわかります
+                    (この場合、それは .score
+                    メソッドまたはインスタンス変数の結果です)。 ）。</p>
+                    <p>最後に、Ruby
+                    は数値に変換することによってアルファベット順にソートします。あらゆる文字に
+                    ASCII のコードが割り当てられていると見なすだけです
+                    (つまり、ASCII
+                    コード表では大文字の数値が小さいため、デフォルトでは大文字が先頭にソートされます)。</p>
+                    <p>お役に立てれば！ [1]:
+                    https://i.sstatic.net/CpwOf.jpg</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

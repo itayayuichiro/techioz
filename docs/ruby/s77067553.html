@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docker Compose でのネイティブ依存関係の更新に Gem ボリューム ブレークを使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docker Compose でのネイティブ依存関係の更新に Gem ボリューム ブレークを使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docker Compose でのネイティブ依存関係の更新に
+Gem ボリューム ブレークを使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Docker Compose で複数の Ruby
+                    サービスを実行し、Gem
+                    ボリュームを共有する場合、ネイティブ拡張を必要とする更新は、ベース
+                    イメージが更新されるときに中断されます。</p>
+                    <p>次のような docker-compose
+                    ファイルがあるとします。</p>
+                    <pre><code>(...)
+services:
+  ruby_service_1:
+    (...)
+    volumes:
+    - gems_volume:/usr/local/bundle
+  ruby_service_2:
+    (...)
+    volumes:
+    - gems_volume:/usr/local/bundle
+   (...)
+</code></pre>
+                    <p>これは、複数の Ruby
+                    サービスを扱うときに多くのガイドで見てきたパターンです。問題は、ベース
+                    イメージが更新されると (たとえば、公式 Ruby
+                    イメージのバージョンを上げた場合に発生します)、ネイティブ
+                    バインディングを持つ gem の .so
+                    ファイルが見つからないというエラーが発生することです。これを解決するには、docker
+                    compose down –volumes
+                    を使用してボリュームを削除します。
+                    これを行うより良い方法はありますか、それとも gem
+                    に共有ボリュームを使用するときにこれに対処する必要があるだけですか?</p>
+                    <p>ありがとう、 フィン</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    バンドルにとって、ボリュームの使用にはそれほど大きな利点はないと思います。
+                    Docker分離の意味が失われる</p>
+                    <p>おそらく、そのようなボリュームはまったく必要ありません。ただし、オプションとして、異なるサービスに対して異なるボリュームを定義できます。</p>
+                    <pre><code>services:
+  ruby_service_1:
+    volumes:
+      - ruby_service_1_gems:/usr/local/bundle
+  ruby_service_2:
+    volumes:
+      - ruby_service_2_gems:/usr/local/bundle
+volumes:
+  ruby_service_1_gems: # Define the named volume for ruby_service_1
+  ruby_service_2_gems: # Define the named volume for ruby_service_2
+</code></pre>
+                    <p>このアプローチにより、各サービスの gem
+                    が分離され、ベースの Ruby
+                    イメージを更新する際の競合のリスクが軽減されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

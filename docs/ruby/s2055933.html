@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sinatra でテストを実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sinatra でテストを実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sinatra
+でテストを実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sinatra
+                    アプリケーションをテストする方法がわかりません。ただ走るだけですか</p>
+                    <p>ルビー</p>
+                    <p>それはうまくいかないようです。世の中にあるすべてのファイルは、ファイルの内容を記述する方法についてのみ説明しており、ファイルを実行する方法については説明していません。</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>十分にシンプルであるべきです。</p>
+                    <p>my_app.rb が与えられた場合:</p>
+                    <pre><code>require &#39;rubygems&#39; # Required only for Ruby version prior to 1.9
+require &#39;sinatra&#39;
+
+get &#39;/hi&#39; do
+  &#39;Hello World!&#39;
+end
+</code></pre>
+                    <p>そして my_app_test.rb:</p>
+                    <pre><code>require &#39;my_app&#39;
+require &#39;test/unit&#39;
+require &#39;rack/test&#39;
+
+set :environment, :test
+
+class MyAppTest &lt; Test::Unit::TestCase
+  include Rack::Test::Methods
+
+  def app
+    Sinatra::Application
+  end
+
+  def test_hi_returns_hello_world
+    get &#39;/hi&#39;
+    assert last_response.ok?
+    assert_equal &#39;Hello World!&#39;, last_response.body
+  end
+end
+</code></pre>
+                    <p>適切な gem
+                    がインストールされていることを確認する必要があります。</p>
+                    <pre><code>gem install sinatra rake rack-test
+</code></pre>
+                    <p>これで、次のようにアプリケーションとテストを実行できるようになります。</p>
+                    <pre><code>ruby my_app.rb
+ruby my_app_test.rb
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カーネルモジュール関数をグローバルに先頭に追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カーネルモジュール関数をグローバルに先頭に追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カーネルモジュール関数をグローバルに先頭に追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のように Kernel.rand
+                    を先頭に追加したいと思います。</p>
+                    <pre><code># I try something like
+
+mod = Module.new do
+  def rand(*args)
+    p &quot;do something&quot;
+
+    super(*args)
+  end
+end
+
+Kernel.prepend(mod)
+</code></pre>
+                    <pre><code># And I expect this behaviour
+
+Kernel.rand            #&gt; prints &quot;do something&quot; and returns random number
+rand                   #&gt; prints &quot;do something&quot; and returns random number
+Object.new.send(:rand) #&gt; prints &quot;do something&quot; and returns random number 
+</code></pre>
+                    <p>残念ながら、上記のコードは期待どおりに動作しません。
+                    Kernel.singleton_class
+                    を先頭に追加しても機能しません</p>
+                    <p>先頭に追加機能を使用する必要はありません。目的の動作を実現するのに役立つ提案は歓迎です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rand などのカーネル メソッドや cos などの Math
+                    メソッドは、いわゆるモジュール関数 (module_function
+                    を参照)
+                    として定義されており、両方として使用できます。</p>
+                    <p>… (パブリック) シングルトン メソッド:</p>
+                    <pre><code>Math.cos(0)  # &lt;- `cos&#39; called as singleton method
+#=&gt; 1.0
+</code></pre>
+                    <p>…および (プライベート) インスタンス メソッド:</p>
+                    <pre><code>class Foo
+  include Math
+
+  def calc
+    cos(0)   # &lt;- `cos&#39; called from included module
+  end
+end
+
+foo = Foo.new
+
+foo.calc
+#=&gt; 1.0
+
+foo.cos(0)   # &lt;- not allowed
+# NoMethodError: private method `cos&#39; called for #&lt;Foo:0x000000010e3ab510&gt;
+</code></pre>
+                    <p>これを実現するために、Math のシングルトン
+                    クラスには、単に Math が含まれるわけではありません
+                    (これにより、すべてのメソッドがシングルトン
+                    メソッドに変換されます)。代わりに、各「モジュール関数」メソッドは、モジュール内とモジュールのシングルトン
+                    クラス内で 2 回定義されます。</p>
+                    <pre><code>Math.private_instance_methods(false)
+#=&gt; [:ldexp, :hypot, :erf, :erfc, :gamma, :lgamma, :sqrt, :atan2, :cos, ...]
+#                                                                  ^^^
+
+Math.singleton_class.public_instance_methods(false)
+#=&gt; [:ldexp, :hypot, :erf, :erfc, :gamma, :lgamma, :sqrt, :atan2, :cos, ...]
+#                                                                  ^^^
+</code></pre>
+                    <p>結果として、別のモジュールを Math
+                    の前に追加したり、Math
+                    にパッチを当てたりすると、一般に (プライベート)
+                    インスタンス メソッドにのみ影響するため、Math
+                    を含むクラスにのみ影響します。 Math のシングルトン
+                    クラスで別途定義された cos
+                    メソッドには影響しません。そのメソッドにもパッチを適用するには、モジュールをシングルトン
+                    クラスの先頭にも追加する必要があります。</p>
+                    <pre><code>module MathPatch
+  def cos(x)
+    p &#39;cos called&#39;
+    super
+  end
+end
+
+Math.prepend(MathPatch)                 # &lt;- patch classes including Math
+Math.singleton_class.prepend(MathPatch) # &lt;- patch Math.cos itself
+</code></pre>
+                    <p>これにより、次のようになります。</p>
+                    <pre><code>Math.cos(0)
+# &quot;cos called&quot;
+#=&gt; 1.0
+</code></pre>
+                    <p>同様に：</p>
+                    <pre><code>foo.calc
+# &quot;cos called&quot;
+#=&gt; 1.0
+</code></pre>
+                    <p>ただし、副作用として、インスタンス
+                    メソッドもパブリックになります。</p>
+                    <pre><code>foo.cos(0)
+# &quot;cos called&quot;
+#=&gt; 1.0
+</code></pre>
+                    <p>Math を例として取り上げたのは、Math
+                    がカーネルほど統合されていないためですが、カーネルの「グローバル関数」にも同じルールが適用されます。</p>
+                    <p>カーネルの特別な点は、カーネルが Ruby
+                    のデフォルトの実行コンテキストである main
+                    にも含まれていることです。つまり、明示的なレシーバーなしで
+                    rand を呼び出すことができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

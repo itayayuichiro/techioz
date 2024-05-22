@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Google Analytics V1 クライアント - 認証情報の種類を変更できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Google Analytics V1 クライアント - 認証情報の種類を変更できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Google Analytics V1 クライアント -
+認証情報の種類を変更できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>google-analytics-data-v1beta Ruby クライアント
+                    ライブラリを使用して Google Analytics V1 API
+                    と対話しようとしています。</p>
+                    <p>ただし、Web
+                    アプリのユーザーからの許可が必要なため、同意画面
+                    (3-Legged OAuth2 フロー) を追加しました。</p>
+                    <p>私が従った（Web）例は、認証
+                    google-auth-library-ruby
+                    のドキュメントにあるものです。</p>
+                    <pre><code>require &#39;googleauth&#39;
+require &#39;googleauth/web_user_authorizer&#39;
+require &#39;googleauth/stores/redis_token_store&#39;
+require &#39;redis&#39;
+
+client_id = Google::Auth::ClientId.from_file(&#39;/path/to/client_secrets.json&#39;)
+scope = [&#39;https://www.googleapis.com/auth/drive&#39;]
+token_store = Google::Auth::Stores::RedisTokenStore.new(redis: Redis.new)
+authorizer = Google::Auth::WebUserAuthorizer.new(
+  client_id, scope, token_store, &#39;/oauth2callback&#39;)
+
+
+get(&#39;/authorize&#39;) do
+  # NOTE: Assumes the user is already authenticated to the app
+  user_id = request.session[&#39;user_id&#39;]
+  credentials = authorizer.get_credentials(user_id, request)
+  if credentials.nil?
+    redirect authorizer.get_authorization_url(login_hint: user_id, request: request)
+  end
+  # Credentials are valid, can call APIs
+  # ...
+end
+
+get(&#39;/oauth2callback&#39;) do
+  target_url = Google::Auth::WebUserAuthorizer.handle_auth_callback_deferred(
+    request)
+  redirect target_url
+end
+</code></pre>
+                    <p>認証情報が利用可能な行で Google Analytics Data V1
+                    ベータ API を呼び出すことができるようですが、Google
+                    Analytics Data V1
+                    ライブラリをチェックすると、上記の認証情報を渡す方法が見つからず、ADC
+                    (アプリケーションのデフォルト)
+                    を使用することを余儀なくされました。 Credentials)
+                    を使用して認証しますが、これは自分の Google
+                    アカウントに権限を与えるためだけです。</p>
+                    <p>Google Analytics データ V1
+                    ベータ版ドキュメントの抜粋: ここ</p>
+                    <pre><code>require &quot;google/analytics/data/v1beta&quot;
+
+client = ::Google::Analytics::Data::V1beta::AnalyticsData::Client.new do |config|
+  config.credentials = &quot;path/to/credentialfile.json&quot;
+end
+</code></pre>
+                    <p>また、google-apis-analyticsadmin_v1beta
+                    ライブラリは他の認証情報タイプを追加しても正常に動作し、次のものが機能することがわかりました。</p>
+                    <pre><code>credentials = Signet::OAuth2::Client.new
+credentials.access_token = token # user&#39;s access token
+
+google_analytics_admin_client = ::Google::Apis::AnalyticsadminV1beta::GoogleAnalyticsAdminService.new
+google_analytics_admin_client.authorization = credentials
+
+accounts = google_analytics_admin_client.list_accounts
+</code></pre>
+                    <p>何かが足りないような気がします。</p>
+                    <p>私が試したこと:</p>
+                    <p>ADC (アプリケーションのデフォルト認証情報)
+                    とは異なる認証情報を渡す方法を探していました。</p>
+                    <p>次のようなもの:</p>
+                    <pre><code>credentials = Signet::OAuth2::Client.new
+credentials.access_token = access_token # User&#39;s access token
+
+client = ::Google::Analytics::Data::V1beta::AnalyticsData::Client.new do |config|
+  config.credentials = credentials
+end
+
+# OR -------
+
+user_id = request.session[&#39;user_id&#39;]
+credentials = authorizer.get_credentials(user_id, request)
+
+client = ::Google::Analytics::Data::V1beta::AnalyticsData::Client.new do |config|
+  config.credentials = credentials
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実用的な例が見つかりました。</p>
+                    <pre><code>credentials = Signet::OAuth2::Client.new # Can be any credentials object
+credentials.access_token = access_token # User&#39;s access token
+
+client = ::Google::Analytics::Data::V1beta::AnalyticsData::Client.new do |config|
+  config.credentials = credentials
+end
+</code></pre>
+                    <p>これは質問で言及されているのと同じスニペットですが、機能します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

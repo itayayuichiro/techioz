@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>入れ子になった配列の宣言は Ruby でどのように解釈されるのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "入れ子になった配列の宣言は Ruby でどのように解釈されるのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>入れ子になった配列の宣言は Ruby
+でどのように解釈されるのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列で作業しているときに、Ruby
+                    のネストされた配列の宣言でカンマを見逃しましたが、言語はこれを別の方法で解釈していました。この動作について詳しい人がいたら、考えてみてください。</p>
+                    <pre><code>arr = [1,2[1,8]]
+[1, 1] 
+arr = [1,5[6,4]]
+[1, 0] 
+arr = [1,3[1,6]]
+[1, 1] 
+arr = [1,6[1,6]]
+[1, 3] 
+arr = [1,7[1,6]]
+[1, 3] 
+arr = [1,0[1,6]]
+[1, 0] 
+arr = [1,8[1,6]]
+[1, 4]
+</code></pre>
+                    <p>虚偽の申告に基づいて例外を発生させる必要があります</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>[1,8[1,6]]
+                    は、配列リテラルのコンテキストでは構文エラーのように見えるかもしれませんが、実際には完全に有効な
+                    Ruby 式です。 1 と 8[1,6] の結果である 4 の 2
+                    つの要素を持つ配列を作成します。</p>
+                    <p>8[1,6] は、整数 8 の一部を抽出します。これは、8
+                    をビットのシーケンス (2 進数 00001000₂)
+                    として扱うことによって行われます。これらのビットから、ビット
+                    1 から始まる 6 ビットが抽出されます: (ビット 0
+                    が右端のビット)</p>
+                    <pre><code>0b00001000[1,6]  #=&gt; 8
+   ↓↓↓↓↓↓
+ 0b000100        #=&gt; 4
+</code></pre>
+                    <p>詳細については、Integer#[]
+                    のドキュメントを参照してください。</p>
+                    <p>これは、文字列の一部を文字のシーケンスとして処理して抽出する
+                    “hello Ruby”[1,6] に非常に似ています (文字 0
+                    が左端の文字です)。</p>
+                    <pre><code>&quot;hello ruby&quot;[1,6]
+  ↓↓↓↓↓↓
+ &quot;ello r&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

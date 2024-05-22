@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveJob retry_on コールバックが無視される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveJob retry_on コールバックが無視される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveJob retry_on
+コールバックが無視される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5.1、ruby 2.5、Sidekiq を実行しています。
+                    簡単なユースケースを設定しました。</p>
+                    <pre><code>class RetryJobException &lt; Exception
+
+end
+
+class CustomJob &lt; ActiveJob::Base
+
+    retry_on RetryJobException, wait: 3.seconds, attempts: 2 do
+        puts &quot;RETRYING&quot;
+    end
+
+    def perform(*args)
+        raise RetryJobException
+    end
+end
+</code></pre>
+                    <p>ここで何が起こるかというと、このジョブを実行して
+                    RetryJobException が発生すると、CustomJob は 30 秒後
+                    (3 回ではなく)、Sidekiq
+                    のプロセスを強制終了するまで無制限に (2 回ではなく)
+                    再実行されます。
+                    「RETRYING」はどこにも出力されません。これは、retry_on
+                    ブロック内のコードが決して実行されないことを示しています。</p>
+                    <p>ドキュメントによると、これは基本的な使用例であるはずですが、それでもこれらの問題が発生しています。私の何が間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは私にとってはうまくいきました：</p>
+                    <pre><code>class RetryJobException &lt; Exception
+
+end
+
+class UnprocessableJob &lt; StandardError; end
+
+class CustomJob &lt; ActiveJob::Base
+
+    retry_on RetryJobException, wait: 3.seconds, attempts: 2 do
+        puts &quot;RETRYING&quot;
+        before_perform { raise UnprocessableJob }
+    end
+
+    discard_on UnprocessableJob
+
+    def perform(*args)
+        raise RetryJobException
+    end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

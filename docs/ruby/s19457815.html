@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>グラファイトからデータを取得する際に正規表現を使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "グラファイトからデータを取得する際に正規表現を使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>グラファイトからデータを取得する際に正規表現を使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような 1
+                    つのリクエストで、グラファイトのさまざまなカウンターからデータをフェッチしたいと考えています。</p>
+                    <pre><code>summarize(site.testing_server_2.triggers_unknown.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json
+
+summarize(site.testing_server_2.requests_failed.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json
+
+summarize(site.testing_server_2.core_network_bad_soap.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json
+</code></pre>
+                    <p>などなど…あと20個。</p>
+                    <p>でも取りたくない</p>
+                    <pre><code>summarize(site.testing_server_2.module_xyz_abc.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json
+</code></pre>
+                    <p>そのリクエストではどうすればよいでしょうか？</p>
+                    <p>これが私が試したことです:</p>
+                    <pre><code>summarize(site.testing_server_2.*.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json&amp;from=-24hour
+</code></pre>
+                    <p>「module_xyz_abc」のjsonデータも取得しますが、これは望ましくありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>正規表現自体を使用することはできませんが、Graphite
+                    Render URL API 内で利用できる類似した
+                    (概念上および形式的にはある程度の)
+                    マッチング手法を使用できます。ターゲットの「バケット」内
+                    (つまり、ドット間)
+                    で「一致」させる方法はいくつかあります。</p>
+                    <p>アスタリスク * 一致</p>
+                    <p>アスタリスクは、任意の 0
+                    個以上の文字と一致するために使用できます。これを使用して、バケット全体
+                    (site.<em>.test) またはバケット内
+                    (site.w</em>t.test)
+                    を置き換えることができます。以下に例を示します。</p>
+                    <pre><code>site.testing_server_2.requests_*.count
+</code></pre>
+                    <p>これは、site.testing_server_2.requests_failed.count、site.testing_server_2.requests_success.count、site.testing_server_2.requests_blah123.count
+                    などと一致します。</p>
+                    <p>文字範囲 [a-z0-9] 一致</p>
+                    <p>文字範囲一致は、ターゲットのバケット内の単一文字
+                    (site.w[0-9]t.test)
+                    と一致するために使用され、範囲またはリストとして指定されます。例えば：</p>
+                    <pre><code>site.testing_server_[0-4].requests_failed.count
+</code></pre>
+                    <p>これは、site.testing_server_0.requests_failed.count、site.testing_server_1.requests_failed.count、site.testing_server_2.requests_failed.count
+                    などに一致します。</p>
+                    <p>値リスト (グループ キャプチャ) {まあ、テスト、…}
+                    一致</p>
+                    <p>値リストの一致を使用すると、ターゲットのバケットの指定された部分にある値のリスト内のあらゆるものと一致することができます。</p>
+                    <pre><code>site.testing_server_2.{triggers_unknown,requests_failed,core_network_bad_soap}.count
+</code></pre>
+                    <p>これは、site.testing_server_2.triggers_unknown.count、site.testing_server_2.requests_failed.count、および
+                    site.testing_server_2.core_network_bad_soap.count
+                    と一致します。しかし他には何もないので、site.testing_server_2.module_xyz_abc.count
+                    は一致しません。</p>
+                    <p>バケットの値をすべて把握していないと、このアプローチ
+                    (おそらく照合オプションの組み合わせによる)
+                    をうまく行うのは難しいため、値リストの照合のみを使用することをお勧めします。これにより、1
+                    つの (やや長い)
+                    リクエストですべての値を取得できるようになります。たとえば、次のとおりです
+                    (すべての値を含める必要があることに注意してください)。</p>
+                    <pre><code>summarize(site.testing_server_2.{triggers_unknown,requests_failed,core_network_bad_soap}.count,&#39;1hour&#39;,&#39;sum&#39;)&amp;format=json&amp;from=-24hour
+</code></pre>
+                    <p>詳細については、「グラファイト
+                    パスとワイルドカード」を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

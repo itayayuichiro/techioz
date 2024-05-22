@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ネストされた属性を受け入れるドット表記ではなく完全なハッシュを使用した API での Ruby on Rails モデル エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ネストされた属性を受け入れるドット表記ではなく完全なハッシュを使用した API での Ruby on Rails モデル エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ネストされた属性を受け入れるドット表記ではなく完全なハッシュを使用した
+API での Ruby on Rails モデル エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、Rails
+                    7をAPIモードで実行しており、ドット表記文字列を含むエラーではなく完全なオブジェクトとしてエラーを返したいと考えています。
+                    Address がphone_number
+                    のネストされた属性を受け入れるとします。</p>
+                    <p>私のコードは次のとおりです。</p>
+                    <pre><code>def create
+  @address = Address.new(address_params)
+  if @address.save
+    render json: @address, status: :created
+  else
+    render json: {errors: @address.errors}, status: :unprocessable_entity
+  end
+end
+</code></pre>
+                    <p>無効な電話番号の場合は返されます</p>
+                    <pre><code>{
+  &quot;errors&quot;: {
+    &quot;phone_number.number&quot;: &quot;is not a valid number&quot;
+  }
+}
+</code></pre>
+                    <p>返してもらう最善の方法は何ですか</p>
+                    <pre><code>{
+  &quot;errors&quot;: {
+    &quot;phone_number&quot;: {
+      &quot;number&quot;: &quot;is not a valid number&quot;
+    }
+  }
+}
+</code></pre>
+                    <p>これらをクライアント側で解析することもできますが、これはサーバーで処理する方が適しているようです。</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが私が入手した中で最も近いものです。私はこのソリューションのファンではありません。これを行うために渡すことができるオプションがあるべきだと思うからです。</p>
+                    <pre><code>
+# Convert a hash that may have flat keys with dots into a nested hash.
+  # This is useful because nested attributes return as dot notation and that creates
+  # redundant code on the client that would have to handle this.
+  # @param hash [Hash] the hash to convert.
+  # @return [Hash] the nested hash.
+  def flat_keys_to_nested(hash)
+    hash.each_with_object({}) do |(key, value), all|
+      key_parts = key.to_s.split(&#39;.&#39;).map!(&amp;:to_sym)
+      leaf = key_parts[0...-1].inject(all) { |h, k| h[k] ||= {} }
+      leaf[key_parts.last] = value
+    end
+  end
+
+  def create
+    @address = Address.new(address_params)
+    if @address.save
+      render json: @address, status: :created
+    else
+      render json: {errors: flat_keys_to_nested(@address.errors.to_hash)}, status: :unprocessable_entity
+    end
+  end
+</code></pre>
+                    <p>これはエラーをハッシュにダンプし、ドット表記を取得して完全なハッシュにするインターネット上の未知のコードを使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

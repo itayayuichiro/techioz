@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby AWS SDK を使用してスレッドで同期 Lambda を呼び出す場合の NetTimeout | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby AWS SDK を使用してスレッドで同期 Lambda を呼び出す場合の NetTimeout",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby AWS SDK を使用してスレッドで同期 Lambda
+を呼び出す場合の NetTimeout</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これには私は本当に困惑しており、誰かがこれについて何らかの洞察を持っていることを願っています。
+                    Ruby と AWS SDK を使用して AWS Lambda
+                    を同期的に呼び出します。 Lambda
+                    が完了するまでにかかる時間は「通常」 7
+                    分以内です。</p>
+                    <p>AWS コンソールで Lambda
+                    に定義されているタイムアウトは 600 秒 (10 分) です。
+                    AWS Lambda クライアント
+                    オブジェクトの構成は次のとおりです。</p>
+                    <pre><code>{
+  http_read_timeout: 600,
+  max_attempts: 1,
+  retry_limit: 0
+}
+</code></pre>
+                    <p>この Lambda
+                    をスレッド内で複数回呼び出す必要があるという要件があります。各スレッドは、異なる
+                    AWS Lambda クライアント オブジェクト
+                    (ただし、上記の構成は同じ)
+                    を使用し、呼び出し時にそれに渡される異なるイベント
+                    ペイロードを使用します。私たちのプログラムは、呼び出しを行っているすべてのスレッドが完了するまで待機します。</p>
+                    <p>ローカルでは、コンピューターからは非常に確実に動作します。ただし、プログラムが
+                    ECS 内で実行されると、NET::Timeout TCP ソケット
+                    エラーが発生します。 Lambda は X 回呼び出します。
+                    Lambda
+                    内のコードは成功します。しかし、呼び出しを実行しているスレッド内の
+                    AWS Lambda クライアントは、Lambda
+                    からの応答を受信せずに 600
+                    タイムアウトに達し、NET::Timeout TCP
+                    エラーで失敗します。</p>
+                    <p>次のように設計を変更できます。</p>
+                    <p>しかし、それは簡単な再設計やリファクタリングではありません。おそらく
+                    6
+                    日間の開発/テスト作業が必要ですが、私たちにはそのような作業はありません。</p>
+                    <p>しかし、この問題に関して貴重な洞察を持っている人には感謝したいと思います。対話をしてアイデアを共有しましょう。</p>
+                    <p>親切な皆さん、ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは解決できたと思います。誰かが同じような問題を抱えている場合、これが彼らを助けることを願っています。</p>
+                    <p>問題はクライアント側にありました。具体的には、alpine
+                    docker コンテナ OS です。する必要がありました</p>
+                    <p>a）。 tcp_keepalive_time = 300 を設定します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/usingkeepalive.html</p>
+                    <p>b）。 tcp_syn_retries = 8 に設定します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://man7.org/linux/man-pages/man7/tcp.7.html
+                    http://willbryant.net/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout</p>
+                    <p>ECS コンテナ内のプログラムが AWS Lambda API に
+                    API 呼び出しを正常に送信していることがわかりました。
+                    Lambda API がそれを受け取り、Lambda
+                    をトリガーしました。しかし、クライアント側 (ECS
+                    コンテナ)
+                    のソケットが閉じられていました。しかし、私たちのアプリはこれをまったく認識していませんでした。</p>
+                    <p>また、AWS Linux 上の RestClient / Net::HTTP での
+                    connect(2)
+                    タイムアウトの増加で説明されているように、Net::HTTP
+                    にモンキーパッチを適用する必要がありました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

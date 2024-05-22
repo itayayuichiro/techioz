@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Puma ウェブサーバーは応答をバッファリングし続け、response.stream.close を呼び出すときに応答を送信します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Puma ウェブサーバーは応答をバッファリングし続け、response.stream.close を呼び出すときに応答を送信します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Puma
+ウェブサーバーは応答をバッファリングし続け、response.stream.close
+を呼び出すときに応答を送信します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>設定した時間間隔でストリームにデータを書き込もうとしています。</p>
+                    <pre><code>class StreamController &lt; ApplicationController
+  include ActionController::Live
+
+  def stream
+    response.headers[&#39;Content-Type&#39;] = &#39;text/event-stream&#39;
+    5.times do
+      response.stream.write &quot;data: hello world\n\n&quot;
+      sleep 1
+    end
+  ensure
+    response.stream.close
+  end
+end
+</code></pre>
+                    <p>しかし、(curl を使用して) get リクエストを
+                    /stream
+                    エンドポイントに送信すると、次のメッセージが表示されます。「data:
+                    hello world</p>
+                    <p>「データを受信する代わりに、5秒後に5回まとめて:
+                    hello world」</p>
+                    <p>「1秒に1回。 私は Rails 7.0.4
+                    に付属するデフォルトの puma Web
+                    サーバーを使用しています。私の推測では、応答をバッファリングしてから、response.stream.closeを呼び出すときに送信すると思います。</p>
+                    <p>puma 設定ファイルに options = {lush_headers: true
+                    }
+                    を追加しようとしましたが、役に立ちませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ラックとピューマは長い間この問題を解決し、バグを修正してきました。公式には、rack
+                    v3 と puma v6 が必要ですが、rails 7 はrack v3
+                    をサポートしていません。</p>
+                    <p>私の知る限り、最後の問題は Rack::ETag
+                    ミドルウェアで、config.middleware.delete Rack::ETag
+                    を削除できます。しかし、おそらくそれが必要なので、現時点での回避策は次のとおりです。</p>
+                    <pre><code>class StreamController &lt; ApplicationController
+  include ActionController::Live
+
+  def stream
+    response.headers[&quot;Content-Type&quot;] = &quot;text/event-stream&quot;
+
+    # this bypasses etag calculation and magic happens
+    response.headers[&quot;Last-Modified&quot;] = Time.now.httpdate
+
+    5.times {
+      response.stream.write &quot;hello world\n&quot;
+      sleep 1
+    }
+  ensure
+    response.stream.close
+  end
+end
+</code></pre>
+                    <p>ETag: W/“53827b3eddcd709c853e748ffd5314fb”
+                    が表示される場合は、間違っています。</p>
+                    <pre><code>$ curl -i http://localhost:3000/stream/stream
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+Last-Modified: Tue, 22 Aug 2023 10:29:34 GMT
+Cache-Control: no-cache
+X-Request-Id: 3dbb7f14-e167-4b5c-9cea-27c4ec131f24
+X-Runtime: 0.094270
+Server-Timing: start_processing.action_controller;dur=0.16
+Transfer-Encoding: chunked
+
+hello world
+hello world
+hello world
+hello world
+hello world
+</code></pre>
+                    <p>わかりませんが、ストリーミングしていました:) puma
+                    v6.3.1 ラック v2.2.7</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rack/rack/issues/1619</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

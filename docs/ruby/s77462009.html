@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 のターボ ストリーム | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 のターボ ストリーム",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 のターボ ストリーム</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はこのチュートリアル
+                    https://www.youtube.com/watch?v=TKIbtbYyRdE&amp;list=PL6SEI86zExmvb4qjVHJWrKRQrKjWksQ81&amp;index=34
+                    とその 2 番目の部分を続けています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.youtube.com/watch?v=akrXCho2m6Y&amp;list=PL6SEI86zExmvb4qjVHJWrKRQrKjWksQ81&amp;index=34</p>
+                    <p>何が間違っているのかを探すのにうんざりしている、</p>
+                    <pre><code>&lt;%= link_to &quot;Connect&quot;, connections_path, class:&quot;btn btn-primary&quot;, data: { controller:&quot;connections&quot;, turbo_method: :post, requester_id: current_user.id, connected_id: user.id, connections_target:&quot;connection&quot; } %&gt;
+</code></pre>
+                    <p>上記の link_to は、POST
+                    リクエストを実行する必要がある StimulusJS
+                    コントローラーの「接続」を使用します。</p>
+                    <p>接続_コントローラー.js</p>
+                    <pre><code>import { Controller } from &quot;@hotwired/stimulus&quot;;
+
+// Connects to data-controller=&quot;connections&quot;
+export default class extends Controller {
+ static targets = [&quot;connection&quot;];
+
+ connect() {}
+
+ initialize() {
+ this.element.setAttribute(&quot;data-action&quot;, &quot;click-&gt;prepareConnectionParams&quot;);
+  }
+
+ prepareConnectionParams(event) {
+    event.preventDefault();
+
+ this.url = this.element.getAttribute(&quot;href&quot;);
+
+ const element = this.connectionTarget;
+ const requesterId = element.dataset.requesterId;
+ const connectedId = element.dataset.connectedId;
+
+ const connectionBody = new FormData();
+
+    connectionBody.append(&quot;connection[user_id]&quot;, requesterId);
+    connectionBody.append(&quot;connection[connected_user_id]&quot;, connectedId);
+    connectionBody.append(&quot;connection[status]&quot;, &quot;pending&quot;);
+
+    console.log(&quot;Connection Body:&quot;, connectionBody);
+
+ fetch(this.url, {
+      method: &quot;POST&quot;,
+      headers: {
+        Accept: &quot;text/vnd.turbo-stream.html&quot;,
+ &quot;X-CSRF-Token&quot;: document
+          .querySelector(&#39;meta[name=&quot;csrf-token&quot;]&#39;)
+          .getAttribute(&quot;content&quot;),
+      },
+
+      body: connectionBody,
+    })
+      .then((response) =&gt; response.text())
+      .then((html) =&gt; Turbo.renderStreamMessage(html));
+  }
+}
+</code></pre>
+                    <p>その後、ConnectionsController.rbがあります</p>
+                    <pre><code>class ConnectionsController &lt; ApplicationController 
+  before_action :authenicate_user!
+ 
+ def create
+ Rails.logger.debug &quot;Params received: #{params.inspect}&quot;
+
+    @connection = current_user.connections.new(connection_params)
+    @connector = User.find(connection_params[:connected_user_id])
+
+    respond_to do |format|
+ if @connection.save
+        format.turbo_stream { 
+          render turbo_stream:
+          turbo_stream.replace(
+ &quot;user-connection-status&quot;,
+ partial: &quot;connection/create&quot;,
+ locals: { connector: @connector }
+          )
+        }
+ end
+ end
+ end
+
+ private
+ def connection_params
+    params.require(:connection).permit(:user_id, :connected_user_id, :status)
+ end
+end
+</code></pre>
+                    <p>リンクをクリックすると、コンソールにエラー 400
+                    Bad Request for POST
+                    が表示され、ページが更新されます。
+                    機能しなかったので、Rails.logger.debug「受信したパラメータ:
+                    #{params.inspect}」を使用しました
+                    したがって、ターミナルログでは、パラメータが送信されていないことが示されています
+                    受信したパラメータ:
+                    #&lt;ActionController::Parameters
+                    {“controller”=&gt;“connections”,
+                    “action”=&gt;“create”} allowed: false&gt;</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アクションのコントローラーがありません:</p>
+                    <pre><code>this.element.setAttribute(&quot;data-action&quot;, &quot;click-&gt;connections#prepareConnectionParams&quot;);
+//                                               ^^^^^^^^^^^
+</code></pre>
+                    <p>以下は、Stimulus
+                    アクションのパラメーターを使用した別の例です。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stimulus.hotwired.dev/reference/actions#action-parameters</p>
+                    <pre><code># there is no need for `turbo_method: :post` since we&#39;re doing our own posting
+# `connections_target` is also a bit redundant on a controller element itself
+&lt;%= link_to &quot;Connect&quot;, connections_path,
+  data: {
+    controller: &quot;connections&quot;,
+    connections_requester_id_param: 1,
+    connections_connected_id_param: 2,
+    connections_status_param: &quot;pending&quot;,
+  }
+%&gt;
+</code></pre>
+                    <pre><code>// app/javascript/controllers/connections_controller.js
+
+import { Controller } from &quot;@hotwired/stimulus&quot;;
+
+export default class extends Controller {
+  connect() {
+    this.element.setAttribute(&quot;data-action&quot;, &quot;connections#prepareConnectionParams&quot;);
+  }
+
+  prepareConnectionParams(event) {
+    event.preventDefault();
+    const { params } = event;
+    const body = new FormData();
+
+    body.append(&quot;connection[user_id]&quot;, params.requesterId);
+    body.append(&quot;connection[connected_user_id]&quot;, params.connectedId);
+    body.append(&quot;connection[status]&quot;, params.status);
+
+    fetch(this.element.getAttribute(&quot;href&quot;), {
+      method: &quot;POST&quot;,
+      headers: {
+        Accept: &quot;text/vnd.turbo-stream.html&quot;,
+        &quot;X-CSRF-Token&quot;: document.querySelector(&#39;meta[name=&quot;csrf-token&quot;]&#39;).getAttribute(&quot;content&quot;),
+      },
+      body,
+    })
+      .then((response) =&gt; response.text())
+      .then((html) =&gt; Turbo.renderStreamMessage(html));
+  }
+}
+</code></pre>
+                    <p>私はチュートリアルを見ていませんが、^
+                    が何か役に立つことを意味するものであることを確認してください。通常の形式で、はるかに少ないコードで同じことを達成できるからです。</p>
+                    <pre><code>&lt;%= button_to &quot;Connect&quot;, connections_path, 
+  params: {
+    connection: {
+      user_id: 1,
+      connected_user_id: 2,
+      status: &quot;pending&quot;,
+    }
+  }
+%&gt;
+</code></pre>
+                    <p>これにより、同じパラメータを持つ TURBO_STREAM
+                    POST リクエストが送信され、turbo_stream
+                    応答が処理されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

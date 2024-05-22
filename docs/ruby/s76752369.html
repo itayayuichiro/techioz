@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7のresponse_doエラーActionController::UnknownFormat | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7のresponse_doエラーActionController::UnknownFormat",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+7のresponse_doエラーActionController::UnknownFormat</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    7でAjaxリクエストを実行しようとしていますが、フォームが送信されると（ボタンが押されると）JavaScriptがレンダリングされます。</p>
+                    <p>私の株式コントローラーには次のものがあります。</p>
+                    <pre><code>class StocksController &lt; ApplicationController
+
+    def search
+        if params[:stock].present?
+            @stock = Stock.new_lookup(params[:stock])
+           if @stock
+                 respond_to do |format|
+                     format.js {render partial: &#39;users/result&#39;}
+                end
+           else
+                flash[:alert] = &quot;Please enter a valid symbol to search&quot;
+                redirect_to my_portfolio_path
+           end
+        else
+            flash[:alert] = &quot;Please enter a symbol to search&quot;
+            redirect_to my_portfolio_path
+        end
+
+    end
+
+end
+</code></pre>
+                    <p>私が持っている私のフォーム:</p>
+                    <pre><code>&lt;div class=&quot;search-area&quot;&gt;
+&lt;h3&gt;Search Stocks&lt;/h3&gt;
+&lt;%= form_tag search_stock_path, method: :get, remote: true do %&gt;
+    &lt;div class=&quot;form-group row&quot;&gt;
+        &lt;div class=&quot;col-sm-9 noRightPad&quot;&gt;
+            &lt;%= text_field_tag :stock, params[:stock], placeholder: &quot;Stock ticker symbol&quot;, 
+            autofocus: true, class: &quot;form-control form-control-lg&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;col-sm-3 noLeftPad&quot;&gt;
+            &lt;%= button_tag type: :submit, class: &quot;btn btn-success&quot; do %&gt;
+                &lt;%= fa_icon &quot;search 2x&quot; %&gt;
+            &lt;% end %&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>エラーメッセージ：</p>
+                    <p>お時間をいただきありがとうございます。</p>
+                    <p>アップデート コントローラが更新されました</p>
+                    <pre><code>class StocksController &lt; ApplicationController
+respond_to :js
+
+def search
+    if params[:stock].present?
+        @stock = Stock.new_lookup(params[:stock])
+       if @stock
+        respond_to do |format|
+            format.turbo_stream do
+              render turbo_stream: turbo_stream.update(
+                &quot;results&quot;,
+                partial: &quot;users/result&quot; # render any partial and remove js code.
+              )
+            end
+          end
+       else
+            flash[:alert] = &quot;Please enter a valid symbol to search&quot;
+            redirect_to my_portfolio_path
+       end
+    else
+        flash[:alert] = &quot;Please enter a symbol to search&quot;
+        redirect_to my_portfolio_path
+    end
+
+end
+</code></pre>
+                    <p>終わり</p>
+                    <p>フォームタグ</p>
+                    <pre><code>&lt;%= form_tag search_stock_path, method: :get, data: {turbo_stream: true}, remote: true do %&gt;
+</code></pre>
+                    <p>コンソールで406 Not
+                    allowedエラーを調査しましたが、respond_toを追加するように指示されていますが、それでも同じ問題が発生します</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この質問がよく寄せられるのを見てきましたので、ここでその魔法を解き明かしてみます。</p>
+                    <p>設定：</p>
+                    <pre><code>rails new rails_formats -c tailwind
+cd rails_formats
+bin/rails g scaffold stock name
+bin/rails db:migrate
+open http://localhost:3000/stocks/new
+bin/dev
+</code></pre>
+                    <p>Rails
+                    はこれを抽象化するので、これに対処する必要はありません。知っておく必要があるヘッダーが
+                    2 つあります。</p>
+                    <p>これは、リクエストでサーバーに送信し、応答で送り返すものです。たとえば、マルチパート
+                    フォーム データを送信し、応答として json
+                    を取得できます (画像を API
+                    サーバーにアップロードする必要がある場合)。</p>
+                    <p>これが応答として取得したいものです。これは、どの形式のブロック
+                    レールを実行するかを決定するものです。</p>
+                    <p>これは、Accept ヘッダーと Content-Type
+                    ヘッダーに含まれるものです。 Rails
+                    にはそれを処理するクラスがあります。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/Mime/Type.html</p>
+                    <pre><code>Mime::Type.register &quot;text/vnd.hyper-stream.html&quot;, :hyper
+# if you send this in Accept ^ header, then run this ^ format block
+
+ActiveSupport.on_load(:action_controller) do
+  ActionController::Renderers.add :hyper do |html, options|
+    # set response type if rendering ^ `render hyper: ..`
+    self.content_type = Mime[:hyper] if media_type.nil?
+    html
+  end
+end
+
+# now you have your own format
+format.hyper { render hyper: ... }
+</code></pre>
+                    <p>どのヘッダーを使用すればよいかはわかりました。その使用方法は次のとおりです。</p>
+                    <pre><code>&lt;!-- app/views/stocks/_form.html.erb --&gt;
+
+&lt;!-- disable Turbo for now so it doesn&#39;t interfere --&gt;
+&lt;script type=&quot;module&quot;&gt; Turbo.session.drive = false &lt;/script&gt;
+
+&lt;!-- make your own remote form --&gt;
+&lt;div id=&quot;remote_response&quot;&gt;&lt;/div&gt;
+&lt;%= form_with model: stock, html: {onsubmit: &quot;remote(event)&quot;} do |form| %&gt;
+  &lt;%= form.submit %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>*実際のアプリではイベント
+                    リスナーとイベント委任を使用します。</p>
+                    <pre><code>&lt;script charset=&quot;utf-8&quot;&gt;
+  function remote(event) {
+    event.preventDefault();
+    const form = event.target;
+
+    fetch(form.action, {
+      // headers: { &quot;Accept&quot;: &quot;text/html&quot; },
+      // headers: { &quot;Accept&quot;: &quot;text/vnd.turbo-stream.html&quot; },
+      headers: { &quot;Accept&quot;: &quot;application/json&quot; },
+      method: form.method,
+      body: new FormData(form),
+    })
+      .then(response =&gt; response.text())
+      .then(text =&gt; {
+        document.querySelector(&quot;#remote_response&quot;).innerHTML = text;
+      })
+  }
+&lt;/script&gt;
+</code></pre>
+                    <pre><code>def create
+  puts &quot;# CONTENT TYPE  | #{request.content_type}&quot;  # what you sent
+  puts &quot;# ACCEPT        | #{request.accept}&quot;        # what you want
+
+  # Change Accept header in `fetch` to choose which format block to run
+  respond_to do |format|
+    format.html         { render html:         &quot;Responded with html&quot; }
+    format.json         { render json:         &quot;Responded with json&quot; }
+    format.js           { render js:           &quot;console.log(&#39;railsujs&#39;)&quot; }
+    format.turbo_stream { render turbo_stream: &quot;Responded with turbo stream&quot; }
+  end
+
+  puts &quot;# RESPONSE TYPE | #{response.content_type}&quot; # what you get
+end
+</code></pre>
+                    <p>Remote: true (または、form_with を使用する場合は
+                    local: false) は、data-remote=“true” を form
+                    タグに追加するだけです。フロントエンドの何かがそれをどうするかを知る必要があります。それは
+                    Rails7 で Turbo に置き換えられた RailsUJS です。</p>
+                    <pre><code>$ bin/importmap pin @rails/ujs
+</code></pre>
+                    <p>Turbo または RailsUJS を選択してください。</p>
+                    <pre><code>// app/javascript/application.js
+
+// import &quot;@hotwired/turbo-rails&quot;
+// import &quot;controllers&quot;
+
+import Rails from &quot;@rails/ujs&quot;;
+Rails.start();
+</code></pre>
+                    <pre><code>&lt;%= form_with model: stock, local: false do |form| %&gt;
+...
+</code></pre>
+                    <p>ここで、RailsUJS は、remote()
+                    関数で行ったことを実行し、format.js
+                    ブロックが実行されるように Accept を text/javascript
+                    に設定します。また、応答を処理し、コードを実行します。</p>
+                    <p>ストリーム、フレーム、ブロードキャストについて理解するには、少し時間がかかります。まずはturbo_streamから始めてください。最初ははるかに理解しやすいと思いました。</p>
+                    <p>セットアップは必要ありません。すべてのフォームは
+                    TURBO_STREAM
+                    形式、別名「Accept」:「text/vnd.turbo-stream.html、text/html、application/xhtml+xml」として「リモート」で送信されます。これは、format.html
+                    または format.turbo_stream
+                    で応答できることを意味します。</p>
+                    <pre><code>respond_to do |format|
+  format.turbo_stream do
+    render turbo_stream: turbo_stream.update(
+      &quot;id_of_the_element_to_update&quot;,
+      partial: &quot;users/result&quot; # render any partial and remove js code.
+    )
+  end
+end
+</code></pre>
+                    <p>ストリームを取得する</p>
+                    <p>data-turbo-stream=“true” をメソッド:get
+                    とリンクを使用してフォームに追加します。</p>
+                    <pre><code>form_tag &quot;/&quot;, method: :get, data: {turbo_stream: true} do
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://turbo.hotwired.dev/handbook/streams#streaming-from-http-responses</p>
+                    <p>ブートストラップ</p>
+                    <p>「ブートストラップ」は、ピンがない限りインポートできません。</p>
+                    <pre><code>import * as bootstrap from &quot;bootstrap&quot;
+//                          ^^^^^^^^^
+// browser doesn&#39;t know how to get that 
+</code></pre>
+                    <p>ピンを追加します (そして cdn
+                    からスタイルを取得します)。</p>
+                    <pre><code>bin/importmap pin bootstrap
+</code></pre>
+                    <p>importmap が面倒すぎる場合は、cssbundling-rails
+                    を使用してください。 Rails
+                    にはこれが組み込まれています。</p>
+                    <pre><code>rails new my_app -c bootstrap
+</code></pre>
+                    <p>ただし、Rails
+                    7にブートストラップをインストールする方法については他にもたくさんの答えがあります。</p>
+                    <p>デバッグ</p>
+                    <p>JavaScript
+                    を使用する場合、ブラウザのコンソールを見る必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

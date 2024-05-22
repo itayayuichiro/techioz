@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails + Heroku のポストリクエストからの迅速な回答 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails + Heroku のポストリクエストからの迅速な回答",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails + Heroku
+のポストリクエストからの迅速な回答</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails
+                    を使用してアプリケーションを作成し、heroku
+                    でデプロイしています メイン
+                    ページやその他のいくつかのページに加えて、ポスト
+                    リクエストを通じてさまざまな情報を受信/記録するためにサードパーティ
+                    アプリケーションによって使用されるエンドポイントがあります。
+                    通常の展開とセットアップでは、DNS、TCP、SSL にさらに
+                    200 ミリ秒かかります</p>
+                    <p>特にこれらのエンドポイントに対して、ドメインのような
+                    http + 静的 IP を使用して、SSL と DNS
+                    の時間をスキップできるようにすることは可能ですか?</p>
+                    <p>config.force_ssl を false に変更すると、SSL
+                    がスキップされます (80 ミリ秒を節約)
+                    が、すべてのリクエストに対して機能します。エンドポイント
+                    ルートのみに制限したいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>SSLを無効にするのは得策とは思えません。また、SSL
+                    を使用した場合、平均応答時間が 10
+                    ミリ秒未満のアプリケーションを使用したことがあります。したがって、SSL
+                    がボトルネックであるとは考えられません。</p>
+                    <p>ただし、特定のルートでのみ SSL
+                    を無効にしてみたい場合は、どのパスで SSL
+                    を強制しないかを構成できます。</p>
+                    <p>config.force_ssl = true は、ActionDispatch::SSL
+                    をアプリケーションのミドルウェア
+                    スタックに追加します。もう 1 つの構成オプション
+                    (ssl_options)
+                    は、リダイレクトの動作を微調整するために使用できます。</p>
+                    <p>ドキュメントのこの例では、ヘルス チェック
+                    ルートがあり、SSL を強制しないため、SSL
+                    を使用するようにリダイレクトされません。</p>
+                    <pre><code>config.ssl_options = { 
+  redirect: { exclude: -&gt; request { /healthcheck/.match?(request.path) } } 
+}
+</code></pre>
+                    <p>ActionDispatch::SSL
+                    のドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

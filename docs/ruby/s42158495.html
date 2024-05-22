@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Redis::TimeoutError: 接続タイムアウト エラー -Rails キャッシュ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Redis::TimeoutError: 接続タイムアウト エラー -Rails キャッシュ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Redis::TimeoutError: 接続タイムアウト エラー
+-Rails キャッシュ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>キャッシュ ストアとして redis(Elasticache)
+                    を使用しています。redis
+                    接続タイムアウトが原因でアプリでクラッシュが発生しています。アプリ
+                    サーバーが 3 つあり、phusion
+                    パッセンジャーを使用しています。クラッシュ時には、約
+                    200 のアクティブな接続があります。</p>
+                    <pre><code>/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/connection/ruby.rb:55:in `rescue in _read_from_socket&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/connection/ruby.rb:48:in `_read_from_socket&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/connection/ruby.rb:41:in `gets&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/connection/ruby.rb:273:in `read&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:248:in `block in read&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:236:in `io&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:247:in `read&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:112:in `block in call&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:217:in `block (2 levels) in process&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:353:in `ensure_connected&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:207:in `block in process&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:292:in `logging&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:206:in `process&#39;
+/home/chillr/deploy/chillr-api/shared/vendor/bundle/ruby/2.2.0/gems/redis-3.2.1/lib/redis/client.rb:112:in `call&#39;
+</code></pre>
+                    <p>SlowLOGコマンド</p>
+                    <pre><code>1) 1) (integer) 6867375
+2) (integer) 1486701507
+3) (integer) 62008
+4) 1) &quot;eval&quot;
+   2) &quot;for i, name in ipairs(redis.call(&#39;KEYS&#39;, &#39;cache:user_transaction_logs:*:9008245678&#39;)) do redis.call(&#39;DEL&#39;, name); end&quot;
+   3) &quot;0&quot;
+ 2) 1) (integer) 6867374
+    2) (integer) 1486701507
+    3) (integer) 61989
+    4) 1) &quot;KEYS&quot;
+       2) &quot;cache:user_transaction_logs:*:9008245678&quot;
+ 3) 1) (integer) 6867373
+    2) (integer) 1486701507
+    3) (integer) 61026
+    4) 1) &quot;eval&quot;
+       2) &quot;for i, name in ipairs(redis.call(&#39;KEYS&#39;, &#39;cache:user_transaction_logs:*:8888662136&#39;)) do redis.call(&#39;DEL&#39;, name); end&quot;
+       3) &quot;0&quot;
+ 4) 1) (integer) 6867372
+    2) (integer) 1486701507
+    3) (integer) 61006
+    4) 1) &quot;KEYS&quot;
+       2) &quot;cache:user_transaction_logs:*:8888662136&quot;
+ 5) 1) (integer) 6867371
+    2) (integer) 1486701507
+    3) (integer) 63070
+    4) 1) &quot;eval&quot;
+</code></pre>
+                    <p>を使用しております</p>
+                    <p>クラッシュ時の接続数 175..200</p>
+                    <p>宝石 リディス (3.2.1) redis-rails (5.0.1)</p>
+                    <p>何ができるだろうか</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Redis
+                    サーバーの現在のリソース使用状況を監視します。 Redis
+                    接続の接続タイムアウトを一時的に増やします。</p>
+                    <p>まずはこのチェックリストを試してみてください</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://redis.io/topics/latency</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

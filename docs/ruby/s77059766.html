@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>define_method の「module」ブロック内でメソッド呼び出しを使用できないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "define_method の「module」ブロック内でメソッド呼び出しを使用できないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>define_method
+の「module」ブロック内でメソッド呼び出しを使用できないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>attr_reader - type_slugs (文字列の配列を返す)
+                    を備えたモデルクラスがあり、これを使用していくつかのメソッドを生成したいと考えています。</p>
+                    <p>例えば：</p>
+                    <pre><code>module Orders
+  module Extensions
+    module Order
+      module TypeCheckable
+        extend ::ActiveSupport::Concern
+
+        ::Orders::Config.type_slugs.each do |type|
+          define_method(&quot;#{type}_order_type?&quot;) { order_type == type }
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>例えば：</p>
+                    <p>次のようなモデルメソッドを使用すると、同じエラーが発生します。</p>
+                    <pre><code>some_method_defined_in_model.each do |type|
+  define_method(&quot;#{type}_order_type?&quot;) { order_type == type }
+end
+</code></pre>
+                    <p>しかし、単語配列を使用すると問題なく動作します</p>
+                    <pre><code>%w(message product another).each do |type|
+  define_method(&quot;#{type}_order_type?&quot;) { order_type == type }
+end
+</code></pre>
+                    <p>この場合、Orders::Config.type_slugs
+                    を使用することは可能ですか?そうでない場合、なぜそうなるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>提供された情報から、モジュール Orders::Config
+                    には type_slugs メソッドがないことがわかります。</p>
+                    <p>コードを機能させたい場合は、次のように定義する必要があります。</p>
+                    <pre><code>module Orders
+  module Config
+    def self.type_slugs
+      %w[message product another]
+    end
+  end
+end
+</code></pre>
+                    <p>または、そのリストが動的に変更されない場合は、次のようになります。</p>
+                    <pre><code>module Orders
+  module Config
+    TYPE_SLUGS = %w[message product another].freeze
+  end
+end
+</code></pre>
+                    <p>その場合は、::Orders::Config.type_slugs を
+                    ::Orders::Config::TYPE_SLUGS に変更します。</p>
+                    <p>Rails
+                    を使用する場合は、たとえば、付属のメソッドを使用する必要があります</p>
+                    <pre><code>module Orders
+  module Extensions
+    module Order
+      module TypeCheckable
+        extend ::ActiveSupport::Concern
+
+        included do
+          ::Orders::Config::TYPE_SLUGS.each do |type|
+            define_method(&quot;#{type}_order_type?&quot;) { order_type == type }
+          end
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>その後、モデルで使用できるようになります</p>
+                    <pre><code>class SuperOrder &lt; ApplicationRecord
+  include Orders::Extensions::Order::TypeCheckable
+end
+
+class BestOrder &lt; ApplicationRecord
+  include Orders::Extensions::Order::TypeCheckable
+end
+</code></pre>
+                    <p>そして、このようなメソッドを呼び出します</p>
+                    <pre><code>SuperOrder.new.product_order_type? # compare super order type with &quot;product&quot;
+BestOrder.new.message_order_type? # compare best order type with &quot;message&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

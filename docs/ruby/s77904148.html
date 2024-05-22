@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>delete_if と拒否の予期しない動作!メソッド | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "delete_if と拒否の予期しない動作!メソッド",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>delete_if と拒否の予期しない動作!メソッド</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyに要素の配列があります</p>
+                    <pre><code>nums = [1,1,1,2,2,3]
+</code></pre>
+                    <p>タスクは、要素が配列内に 2
+                    回以上出現する場合に、その場で重複を削除することです。</p>
+                    <p>次のコードを書きました。</p>
+                    <pre><code>nums = [1,1,1,2,2,3]
+
+def remove_elements(nums)
+  nums.delete_if{ |num| nums.count(num) &gt; 2 } #reject! returns the same result
+end
+</code></pre>
+                    <p>だから私はこの結果を予想していました</p>
+                    <pre><code>[2,2,3]
+</code></pre>
+                    <p>しかし、得た</p>
+                    <pre><code>[2,3]
+</code></pre>
+                    <p>ただし、reject
+                    メソッドは期待される配列を返します</p>
+                    <pre><code>def remove_elements(nums)
+  nums.reject{ |num| nums.count(num) &gt; 2 } # returns [2,2,3]
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは delete_if /拒否の方法によるものです。
+                    (そしてそれに対応する keep_if / select!)
+                    は内部的に動作します。各ステップで数値を出力しながら偶数を削除する別の例を見てみましょう。</p>
+                    <pre><code>nums = [0, 1, 2, 3, 4, 5, 6]
+
+def remove_elements(nums)
+  nums.reject! do |num|
+    p nums: nums
+    num.even?
+  end
+end
+
+p result: remove_elements(nums)
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>{:nums=&gt;[0, 1, 2, 3, 4, 5, 6]}
+{:nums=&gt;[0, 1, 2, 3, 4, 5, 6]}
+{:nums=&gt;[1, 1, 2, 3, 4, 5, 6]}
+{:nums=&gt;[1, 1, 2, 3, 4, 5, 6]}
+{:nums=&gt;[1, 3, 2, 3, 4, 5, 6]}
+{:nums=&gt;[1, 3, 2, 3, 4, 5, 6]}
+{:nums=&gt;[1, 3, 5, 3, 4, 5, 6]}
+{:result=&gt;[1, 3, 5]}
+</code></pre>
+                    <p>ご覧のとおり、nums
+                    は一見奇妙な方法で変更されています。しかし、ここで正確には何が起こるのでしょうか？</p>
+                    <p>Ruby
+                    の実装では、一時配列を作成する代わりに、既存の配列を再利用して結果を保存します。配列を走査する際に、保持する必要がある
+                    (ブロックが偽の結果を返す)
+                    各要素を先頭にコピーし、既存の要素を上書きします。最終的に、配列は最終的なサイズに切り詰められます:
+                    (ASCII アートが先)</p>
+                    <pre><code>[0, 1, 2, 3, 4, 5, 6]
+ ┌──┘
+[1, 1, 2, 3, 4, 5, 6]
+    ┌─────┘
+[1, 3, 2, 3, 4, 5, 6]
+       ┌────────┘
+[1, 3, 5, 3, 4, 5, 6]
+
+[1, 3, 5]
+ ───┬───
+  result
+</code></pre>
+                    <p>1、3、5 が配列の途中で 2
+                    回出現することに注意してください。これが、nums.count
+                    が期待どおりに機能しない理由です。配列が再構築されている間に要素をカウントしていることになります。</p>
+                    <p>この問題を解決するには、事前に要素を数えることができます。集計経由:</p>
+                    <pre><code>nums = [1, 1, 1, 2, 2, 3]
+
+counts = nums.tally
+#=&gt; {1=&gt;3, 2=&gt;2, 3=&gt;1}
+
+nums.delete_if { |num| counts[num] &gt; 2 }
+#=&gt; [2, 2, 3]
+</code></pre>
+                    <p>これは、要素を数えるために各要素の配列全体を再度走査する必要がないため、高速でもあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

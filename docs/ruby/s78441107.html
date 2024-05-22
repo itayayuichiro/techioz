@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この SQL クエリの Rails スコープの記述方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この SQL クエリの Rails スコープの記述方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この SQL クエリの Rails
+スコープの記述方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>複数の条件でデータベースから行を取得する際に問題があります。
+                    テーブル Slot と SlotAlteration があります。</p>
+                    <p>スロットには time_off_id
+                    フィールドがあります。</p>
+                    <p>SlotAlteration には、slot_id と action の 2
+                    つの列があります。アクションは 0 または 1
+                    です。各スロットは、アクション 0 と 1 (0 と
+                    0、および 1 と 1 ではありません) を持つ
+                    SlotAlteration テーブルに最大 2
+                    つのエントリを持つことができます。あるいは、SlotAlteration
+                    への接続をまったく持たないこともできます。</p>
+                    <p>Rails スコープに変換する必要があるクエリは</p>
+                    <pre><code>select *
+from Slot s
+where time_off_id is null
+and not exists (
+  select 1 from Slot 
+  left outer join SlotAlteration a 
+  on s.id = a.slot_id 
+  where a.action = 1
+)
+order by s.id;
+</code></pre>
+                    <p>Alterr は SlotAlteration テーブルです</p>
+                    <p>これは視覚的に表現するための SQL
+                    構造とクエリです。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://dbfiddle.uk/yejKnaAi</p>
+                    <p>私のスロットモデルには関連付けがあります has_many
+                    :変更</p>
+                    <pre><code>  scope :free, -&gt; {
+    left_joins(:alterations)
+      .where(time_off_id: nil)
+      .where.not(alterations: { action: 1 })
+  }
+</code></pre>
+                    <p>試してみましたが、これは変更されていない選択されたスロットではありません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>action = 1 の代替用に専用の has_many
+                    関連付けを追加します。つまり、関連付けは次のようになります。</p>
+                    <pre><code># in app/models/slot.rb
+has_many :alternations, class_name: &#39;SlotAlternation&#39;
+has_many :action_1_alternations, -&gt; { where(action: 1) }, class_name: &#39;SlotAlternation&#39;
+</code></pre>
+                    <p>そうすれば、そのような関連付けられたレコードがなくてもレコードをクエリできるはずです。</p>
+                    <pre><code>Slot
+  .where(time_off_id: nil)
+  .where.missing(:action_1_alternations)
+</code></pre>
+                    <p>欠落しているクエリ メソッドは Ruby on Rails 6.1
+                    で導入されたものであり、6.1 より前の Rails
+                    バージョンでは使用できないことに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

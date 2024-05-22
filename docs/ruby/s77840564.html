@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: テーブルの更新または削除が外部キー制約に違反します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: テーブルの更新または削除が外部キー制約に違反します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+テーブルの更新または削除が外部キー制約に違反します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、Shop.last.destroy
+                    を実行するとこのエラーが発生しますが、理由がわかりません。</p>
+                    <pre><code>PG::ForeignKeyViolation: ERROR:  update or delete on table &quot;credit_changes&quot; violates foreign key constraint &quot;fk_rails_16918229d0&quot; on table &quot;sms_historicals&quot; (ActiveRecord::InvalidForeignKey)
+</code></pre>
+                    <p>そしてこれはPostgres DBです</p>
+                    <p>私のモデルは次のようになります。</p>
+                    <pre><code>class SmsHistorical &lt; ApplicationRecord
+  belongs_to :customer
+  belongs_to :credit_change, optional: true
+  belongs_to :notification_setting, optional: true
+end
+
+class CreditChange &lt; ActiveRecord::Base 
+  belongs_to :credit
+  belongs_to :customer
+  has_one :sms_historicals
+  has_one :email_historicals
+end
+</code></pre>
+                    <p>これらのテーブルを作成するための移行は次のとおりです。</p>
+                    <pre><code>create_table :credit_changes, if_not_exists: true do |t|
+  t.integer &quot;credit_id&quot;
+  t.text &quot;credit_notes&quot;
+  t.decimal &quot;credit_amount_changed&quot;, precision: 4, scale: 2, default: 0.0
+  t.datetime &quot;date&quot;
+  t.string &quot;transaction_type&quot;
+  t.datetime &quot;created_at&quot;, null: false
+  t.datetime &quot;updated_at&quot;, null: false
+end
+
+class CreateSmsHistoricals &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :sms_historicals, if_not_exists: true do |t|
+      t.string :phone_number
+      t.text :message
+      t.references :customer, null: true, foreign_key: true, on_delete: :cascade
+      t.references :credit_change, null: true, foreign_key: true, on_delete: :cascade
+      t.references :notification_setting, null: true, foreign_key: true, on_delete: :cascade
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>belongs_to :credit_change は、Sms テーブルと
+                    Credit テーブルの間の FK です。そして、クレジット ID
+                    は Sms テーブルに保存されます。 Credit
+                    を削除する場合は、Sms
+                    テーブルのデータもクリアする必要があります。例えば</p>
+                    <pre><code>class CreditChange &lt; ActiveRecord::Base 
+  has_one :sms_historicals, dependent: :nullify
+end
+</code></pre>
+                    <p>Sms テーブルのbelongs_to
+                    :credit_changeをオプションとして設定しているため、ここでは
+                    :nullify
+                    を選択します。ただし、他のものにすることもできます:
+                    https://guides.rubyonrails.org/association_basics.html#options-for-has-one</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

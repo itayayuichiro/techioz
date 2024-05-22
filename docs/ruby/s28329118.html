@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 2 (および JRuby 9.3) では、キーワード引数を期待するメソッドに最後の引数としてハッシュを渡すことができ、暗黙的にキーワード引数に変換されます。ただし、Ruby 3 (および JRuby 9.4) では、** を使用して明示的に要求しない限り、これは発生しなくなりました。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 2 (および JRuby 9.3) では、キーワード引数を期待するメソッドに最後の引数としてハッシュを渡すことができ、暗黙的にキーワード引数に変換されます。ただし、Ruby 3 (および JRuby 9.4) では、** を使用して明示的に要求しない限り、これは発生しなくなりました。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 2 (および JRuby 9.3)
+では、キーワード引数を期待するメソッドに最後の引数としてハッシュを渡すことができ、暗黙的にキーワード引数に変換されます。ただし、Ruby
+3 (および JRuby 9.4) では、**
+を使用して明示的に要求しない限り、これは発生しなくなりました。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ランクジェムを使おうとしていました。しかし、何らかの理由で私は</p>
+                    <p>ユーザー_コントローラー.rb</p>
+                    <pre><code>def index
+
+    @q = User.ransack(params[:q])
+    @users = @q.result
+    @users = User.order(:id).includes(:employers)
+    @users = User.order(&#39;last_name  ASC&#39;).page(params[:page]).per_page(2)
+    #Adding CSV export
+    respond_to do |format|
+      format.html
+      format.csv { send_data @users.to_csv }
+    end
+  end
+</code></pre>
+                    <p>私のindex.html.erb</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>受け入れられた回答に加えて、検索用に name
+                    属性をホワイトリストに登録する必要がある場合があります。</p>
+                    <p>これを行うには、次のようにモデルの
+                    self.ransackable_attributes
+                    メソッドを設定します。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+ def self.ransackable_attributes(auth_object = nil)
+    [&quot;id&quot;, &quot;name&quot;] # &lt;-- add this
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでハッシュを複製する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでハッシュを複製する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでハッシュを複製する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デフォルト値を持つ別のハッシュを使用して、Ruby
+                    でハッシュを初期化しようとしています。深いコピーが必要ですが、浅いコピーしか入手できないようです。</p>
+                    <p>以下に例を示します。</p>
+                    <pre><code>DEFAULT_HASH = { a: 0, b: 1 }.freeze
+my_hash = DEFAULT_HASH.dup
+my_hash[:a] = 4 
+</code></pre>
+                    <p>現在、「my_hash」と DEFAULT_HASH の a の値は 4
+                    です。変更したいのはハッシュの値だけです。</p>
+                    <p>他のアプローチも試してみました。</p>
+                    <pre><code>my_hash = {}.merge DEFAULT_HASH
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>my_hash.merge! DEFAULT_HASH
+</code></pre>
+                    <p>これらはすべて同じ効果をもたらします。この種の初期化を実現する最善の方法は何ですか。また、ネストされたハッシュも扱っているため、少し複雑になります。</p>
+                    <p>つまり、私の DEFAULT_HASH
+                    は次のようになります。</p>
+                    <pre><code>DEFAULT_HASH = { a:{a:1, b:2}, b:{a:2, b:1} }
+</code></pre>
+                    <p>これはこれを行う方法に影響しますか?</p>
+                    <p>編集： ネストされたハッシュ ケース</p>
+                    <pre><code>DEFAULT_HASH = { a:{a:1, b:2}, b:{a:2, b:1} }
+=&gt; {:a=&gt;{:a=&gt;1, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}} 
+a=DEFAULT_HASH.dup
+=&gt; {:a=&gt;{:a=&gt;1, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}} 
+a[:b][:a]=12
+=&gt; 12 
+DEFAULT_HASH
+=&gt; {:a=&gt;{:a=&gt;1, :b=&gt;2}, :b=&gt;{:a=&gt;12, :b=&gt;1}} 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="pjs">@pjs</span>
+                    の指摘によれば、Hash#dup
+                    はハッシュの最上位レベルに対して「正しいことを行う」ということです。ただし、ネストされたハッシュの場合は、やはり失敗します。</p>
+                    <p>gem の使用に抵抗がない場合は、(とりわけ)
+                    まさにこの目的のために私が作成した gem である
+                    deep_enumerable の使用を検討してください。</p>
+                    <pre><code>DEFAULT_HASH = { a:{a:1, b:2}, b:{a:2, b:1} }
+dupped = DEFAULT_HASH.dup
+
+dupped[:a][:a] = &#39;updated&#39;
+
+puts &quot;dupped:       #{dupped.inspect}&quot;
+puts &quot;DEFAULT_HASH: #{DEFAULT_HASH.inspect}&quot;
+
+
+require &#39;deep_enumerable&#39;
+DEFAULT_HASH = { a:{a:1, b:2}, b:{a:2, b:1} }
+
+deep_dupped = DEFAULT_HASH.deep_dup
+deep_dupped[:a][:a] = &#39;updated&#39;
+
+puts &quot;deep_dupped:  #{deep_dupped.inspect}&quot;
+puts &quot;DEFAULT_HASH: #{DEFAULT_HASH.inspect}&quot;
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>dupped:       {:a=&gt;{:a=&gt;&quot;updated&quot;, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}}
+DEFAULT_HASH: {:a=&gt;{:a=&gt;&quot;updated&quot;, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}}
+
+deep_dupped:  {:a=&gt;{:a=&gt;&quot;updated&quot;, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}}
+DEFAULT_HASH: {:a=&gt;{:a=&gt;1, :b=&gt;2}, :b=&gt;{:a=&gt;2, :b=&gt;1}}
+</code></pre>
+                    <p>あるいは、次のようなことを試してみることもできます。</p>
+                    <pre><code>def deep_dup(h)
+  Hash[h.map{|k, v| [k,
+    if v.is_a?(Hash)
+      deep_dup(v)
+    else
+      v.dup rescue v
+    end
+  ]}]
+end
+</code></pre>
+                    <p>この最後の関数は deep_enumerable
+                    ほど十分にテストされていないことに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

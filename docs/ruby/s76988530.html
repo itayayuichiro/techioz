@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsの一意性検証が理由もなく失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsの一意性検証が理由もなく失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsの一意性検証が理由もなく失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails Model X
+                    でスコープベースの一意性検証を導入しています:
+                    validates :company_standard, uniqueness: {scope:
+                    :company_id }。</p>
+                    <p>添付のスクリーンショットでは、company_standard
+                    フィールドやその他のブール値フィールドをアクティブにしていない状態で、フォーム
+                    (= 標準プロセス) を介してその会社のクラス X
+                    の新しいオブジェクトを作成しようとしています。</p>
+                    <p>それでも、company_standard
+                    では一意性検証エラーが発生して保存が失敗します
+                    (スクリーンショットを参照)。</p>
+                    <p>この会社のクラス X
+                    の別のオブジェクトがデータベース内に
+                    company_standard=true で存在します
+                    (正しい名前付けについてフォームを再確認しました)。既存のレコードを更新してブール値フィールドを
+                    false
+                    に設定すると、同じ検証エラーが発生して失敗するようです。</p>
+                    <p>なぜこれが失敗するのかわかりません。私には予期せぬ行動のように見えます。</p>
+                    <p><span class="citation"
+                    data-cites="mechnicov">@mechnicov</span>
+                    からのコメント後に更新: モデル</p>
+                    <pre><code>    class MeanOfPayment &lt; ApplicationRecord
+      belongs_to :company
+      has_many :in_payments
+      has_many :out_payments
+      has_many :bank_statements, dependent: :destroy
+    
+      validates :company_standard, uniqueness: { scope: :company_id }
+    
+      before_validation :remove_spaces
+    
+      def balance
+        ...
+      end
+    
+      def account_name
+        ...
+      end
+    
+      private
+    
+      def remove_spaces
+        ...
+      end
+end
+</code></pre>
+                    <p>コントローラ</p>
+                    <pre><code>class Home::MeanOfPaymentsController &lt; HomeController
+  def index
+    @title = t(&#39;titles.mean_of_payments.index&#39;)
+    @mean_of_payments = current_company.mean_of_payments
+  end
+
+  def show
+    @title = t(&#39;titles.mean_of_payments.show&#39;)
+    @mean_of_payment = current_company.mean_of_payments.find(params[:id])
+  end
+
+  def new
+    @title = t(&#39;titles.mean_of_payments.new&#39;)
+    company_id = Company.find(params[:company_id]).id
+    @mean_of_payment = MeanOfPayment.new(company_id: company_id)
+  end
+
+  def create
+    fix_number(mean_of_payment_params[:balance_at_date])
+    @mean_of_payment = (mean_of_payment_params[:type].constantize).new(mean_of_payment_params)
+    if @mean_of_payment.save
+      redirect_to home_company_mean_of_payments_path(Company.find(params[:company_id])), notice: t(&#39;mean_of_payment.notifications.create_successfully&#39;)
+    else
+      render :new
+    end
+  end
+
+  def edit
+    @title = t(&#39;titles.mean_of_payments.edit&#39;)
+    @mean_of_payment = MeanOfPayment.find(params[:id])
+  end
+
+  def update
+    fix_number(mean_of_payment_params[:balance_at_date])
+    @mean_of_payment = MeanOfPayment.find(params[:id])
+    if @mean_of_payment.update(mean_of_payment_params)
+      redirect_to home_company_mean_of_payments_path(Company.find(params[:company_id])), notice: t(&#39;mean_of_payment.notifications.update_successfully&#39;)
+    else
+      render :edit
+    end
+  end
+
+  def destroy
+    mean_of_payment = MeanOfPayment.find(params[:id])
+    company_id = mean_of_payment.company.id
+    mean_of_payment.update!(marked_deleted: true)
+    redirect_to home_company_mean_of_payments_path(company_id: company_id), method: :destroy, notice: t(&#39;mean_of_payment.notifications.delete_successfully&#39;)
+  end
+
+  private
+
+  def mean_of_payment_params
+    validation =  if params[:bank_account].present?
+                    params.require(:bank_account)
+                  elsif params[:cash_counter].present?
+                    params.require(:cash_counter)
+                  elsif params[:mean_of_payment].present?
+                    params.require(:mean_of_payment)
+                  else
+                    raise &quot;Zahlungsmethode muss im Controller eingeführt werden!&quot;
+                  end
+
+    validation.permit(
+        :account_name,
+        :account_number,
+        :balance_at_date,
+        :balance_date,
+        :bank_name,
+        :bank_number,
+        :company_id,
+        :company_standard,
+        :for_out_invoice,
+        :owner,
+        :primary_debitable,
+        :type,
+    )
+
+  end
+end
+</code></pre>
+                    <p>ビュー 1 - 新規</p>
+                    <pre><code>&lt;div class=&quot;row&quot;&gt;
+  &lt;div class=&quot;col-8 offset-2&quot;&gt;
+    &lt;%= link_to t(&#39;common.buttons.back&#39;), home_company_mean_of_payments_path %&gt;
+    &lt;h1&gt;
+      &lt;%= t(&#39;mean_of_payment.new.title&#39;) %&gt;
+    &lt;/h1&gt;
+    &lt;%= render &#39;form&#39;, path: home_company_mean_of_payments_path(id: current_company.id) %&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>ビュー 2 - フォーム</p>
+                    <pre><code>&lt;%= simple_form_for @mean_of_payment, url: path do |f| %&gt;
+  &lt;%= f.hidden_field :company_id, value: current_user.accounting_company.id %&gt;
+  &lt;div class=&quot;row&quot;&gt;
+    &lt;div class=&quot;col-6&quot;&gt;
+      &lt;div class=&quot;ibox float-e-margins&quot;&gt;
+        &lt;div class=&quot;ibox-content&quot;&gt;
+          &lt;% if @mean_of_payment.errors.any? %&gt;
+            &lt;div id=&quot;error_explanation&quot;&gt;
+              &lt;h4&gt;&lt;%= t(&#39;activerecord.errors.models.mean_of_payment.prohibited_save&#39;, count: @mean_of_payment.errors.count) %&gt;&lt;/h4&gt;
+              &lt;ul&gt;
+                &lt;% @mean_of_payment.errors.full_messages.each do |message| %&gt;
+                  &lt;li&gt;&lt;%= message %&gt;&lt;/li&gt;
+                &lt;% end %&gt;
+              &lt;/ul&gt;
+            &lt;/div&gt;
+          &lt;% end %&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :type %&gt;
+            &lt;%= f.select :type, options_for_mean_of_payment_general, class: &#39;form-control&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :bank_name %&gt;
+            &lt;%= f.text_field :bank_name, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :bank_number %&gt;
+            &lt;%= f.text_field :bank_number, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :account_name %&gt;
+            &lt;%= f.text_field :account_name, class: &#39;form-control w-50&#39;%&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :account_number %&gt;
+            &lt;%= f.text_field :account_number, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :owner %&gt;
+            &lt;%= f.text_field :owner, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :balance_at_date %&gt;
+            &lt;%= f.text_field :balance_at_date, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :balance_date %&gt;
+            &lt;%= f.input :balance_date, as: :date, html5: true, class: &#39;form-control w-50&#39;, label: false %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :company_standard %&gt;
+            &lt;%= f.check_box :company_standard, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :for_out_invoice %&gt;
+            &lt;%= f.check_box :for_out_invoice, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.label :primary_debitable %&gt;
+            &lt;%= f.check_box :primary_debitable, class: &#39;form-control w-50&#39; %&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;%= f.submit t(&#39;common.buttons.create_or_modify&#39;), class: &#39;btn btn-primary&#39; %&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、DB に company_standard=false の
+                    company_id
+                    の別のレコードが含まれていることを強く意味します。これを
+                    Rails コンソールから次のように確認してください。</p>
+                    <pre><code>&gt; MeanOfPayment.where company_id: the_company_id
+</code></pre>
+                    <p>これらのコンソール
+                    コマンドと質問への回答をコピー/ペーストして、これを表示してください。レコードが
+                    1 つしかない場合、次に疑わしいのは、remove_spaces
+                    呼び出しです。そのコードを質問に追加してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

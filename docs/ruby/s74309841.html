@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq がキューに入れられたジョブを実行しない (Rails 7 + Redis + Sidekiq + Docker) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq がキューに入れられたジョブを実行しない (Rails 7 + Redis + Sidekiq + Docker)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq がキューに入れられたジョブを実行しない
+(Rails 7 + Redis + Sidekiq + Docker)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>タイトルにあるように、docker で 3
+                    つのコンテナーが実行されています。1 つは Rails 用、1
+                    つは postgres db 用、1 つは Redis 用です。
+                    Job.perform_async
+                    を実行してジョブをキューに入れることはできますが、何らかの理由でジョブが無期限にキューに入れられたままになります。確認したところ、Redis
+                    コンテナーは起動して実行されています。</p>
+                    <p>私の仕事：</p>
+                    <pre><code>class HardJob
+  include Sidekiq::Job
+
+  def perform(*args)
+    puts &#39;HardJob&#39;
+  end
+end
+</code></pre>
+                    <p>Sidekiq の初期化子:</p>
+                    <pre><code>Sidekiq.configure_server do |config|
+    config.redis = { url: (ENV[&quot;REDIS_URL&quot;] || &#39;redis://localhost:6379&#39;) }
+end 
+  
+Sidekiq.configure_client do |config| 
+    config.redis = { url: (ENV[&quot;REDIS_URL&quot;] || &#39;redis://localhost:6379&#39;) }
+end
+</code></pre>
+                    <p>私のdocker-compose:</p>
+                    <pre><code>version: &#39;3.0&#39;
+
+services:
+  web:
+    build: .
+    entrypoint: &gt;
+      bash -c &quot;
+      rm -f tmp/pids/server.pid
+      &amp;&amp; bundle exec rails s -b 0.0.0.0 -p 3000&quot;
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/src/myapp
+    depends_on:
+      - db
+      - redis
+    links:
+      - &quot;db:db&quot;
+    environment:
+      REDIS_URL: &#39;redis://redis:6379&#39;
+  db:
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: &#39;postgres&#39;
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  redis:
+    image: &quot;redis&quot;
+volumes:
+  db_data:
+  redis:
+    driver: local
+</code></pre>
+                    <p>また、私の 3 つの環境では
+                    config.active_job.queue_adapter = :sidekiq
+                    も設定しました。</p>
+                    <p>ここで何が起こっているのかについて何かヒントはありますか？前もって感謝します</p>
+                    <p>アップデート</p>
+                    <p>私のrailsターミナルでsidekiq
+                    -qdefaultを実行すると機能したようです。常にsidekiqを実行するようにDockerを構成するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Sidekiq は独自のプロセスであり、Web サーバー
+                    プロセスと同様に、独自に開始する必要があります。次のようなものを
+                    docker-compose に追加します。</p>
+                    <pre><code>sidekiq:
+  depends_on:
+    - &#39;db&#39;
+    - &#39;redis&#39;
+  build: .
+  command: bundle exec sidekiq
+  volumes:
+  - .:/src/myapp
+  environment:
+    - REDIS_URL_SIDEKIQ=redis://redis:6379/1
+</code></pre>
+                    <p>または、Sidekiq の最新バージョン (&gt;= 7.0)
+                    を使用できる場合は、Sidekiq を puma Web
+                    サーバーと一緒に実行する新しい Sidekiq
+                    組み込みモードを試してみるとよいでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

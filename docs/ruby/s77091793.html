@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アプリケーションを実行しようとすると Ruby で URI エラーが発生する [終了] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アプリケーションを実行しようとすると Ruby で URI エラーが発生する [終了]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アプリケーションを実行しようとすると Ruby で
+URI エラーが発生する [終了]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Windows 10
+                    で新しいアプリケーションを作成しようとすると、何らかの理由で
+                    Ruby でこのエラーが発生します。</p>
+                    <pre><code>rails aborted!
+URI::InvalidURIError: bad URI(is not URI?): C:\\Ruby\\bin;C:\\sqlite;
+C:/Users/Lies/demo42/Rakefile:6:in `&lt;main&gt;&#39; &lt;internal:C:/Ruby/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:38:in `require&#39;
+\&lt;internal:C:/Ruby/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb\&gt;:38:in `require&#39; bin/rails:4:in `\&lt;main\&gt;&#39;
+(See full trace by running task with --trace)
+rails  turbo:install stimulus:install
+rails aborted!
+URI::InvalidURIError: bad URI(is not URI?): C:\\Ruby\\bin;C:\\sqlite;
+C:/Users/Lies/demo42/Rakefile:6:in `&lt;main&gt;&#39; &lt;internal:C:/Ruby/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:38:in `require&#39;
+\&lt;internal:C:/Ruby/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb\&gt;:38:in `require&#39; bin/rails:4:in `\&lt;main\&gt;&#39;
+(See full trace by running task with --trace)
+</code></pre>
+                    <p>Google
+                    であらゆる場所を検索し、これまでのところ、パス変数を
+                    C に変更して再インストールを 2 回試みました。uby
+                    を作成し、パスと DATABASE 変数に追加します。</p>
+                    <p>私の Ruby、Rails は最新バージョンです。</p>
+                    <p>これまでのところ、アプリケーションの作成に役立つのは「rails
+                    new demo
+                    –minimal」の実行だけですが、サーバーを実行しようとすると、次のメッセージが表示されます:
+                    localhost:3000 出力</p>
+                    <p>誰かがこれに遭遇し、修正方法を見つけましたか?私は教授に尋ねましたが、それは教授の脳も理解しようとしていたのです。</p>
+                    <p>データベース.yml</p>
+                    <pre><code># SQLite. Versions 3.8.0 and up are supported. 
+# gem install sqlite3 
+# Ensure the SQLite 3 gem is defined in your Gemfile 
+# gem &quot;sqlite3&quot; 
+#
+default: &amp;default 
+  adapter: sqlite3 
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt; 
+  timeout: 5000
+development: 
+  &lt;&lt;: *default 
+  database: db/development.sqlite3 
+# Warning: The database defined as &quot;test&quot; will be erased and 
+# re-generated from your development database when you run &quot;rake&quot;. 
+# Do not set this db to the same as development or production. 
+test: 
+  &lt;&lt;: *default 
+  database: db/test.sqlite3 
+production: 
+  &lt;&lt;: *default 
+  database: db/production.sqlite3
+</code></pre>
+                    <p>編集：将来の読者のために：
+                    これは、「C:」と「C:in」の 2 つの値を持つ
+                    DATABASE_URL_ 環境変数です。
+                    後で再び問題に遭遇しましたが、「Path」環境変数を編集して
+                    Ruby と git
+                    値のみを含むようにすることで、なんとか再度修正できました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DATABASE_URL 環境変数があるため、Rails
+                    はそれを優先データベース構成として使用し、解析しようとします。しかし、その値は無効です。それがエラーが発生する理由です</p>
+                    <p>この代わりに、config/database.yml
+                    を使用してデータベース設定を保存し、DATABASE_URL
+                    環境変数を削除します。</p>
+                    <p>続きを読む</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

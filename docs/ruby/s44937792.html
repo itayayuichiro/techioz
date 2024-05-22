@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby での Awk の FNR==NR に相当するものは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby での Awk の FNR==NR に相当するものは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby での Awk の FNR==NR
+に相当するものは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Awk
+                    には、現在のファイルから読み取られたレコード数
+                    (通常は行数) と合計を表す組み込み変数 FNR および NR
+                    があります。</p>
+                    <p>awk では、次のものが一般的です。</p>
+                    <pre><code>$ awk &#39;FNR==NR {first file lines; next } {process remaining lines } f1 f2
+</code></pre>
+                    <p>通常、f1
+                    には残りのファイルの処理方法を決定する値が含まれます。
+                    (キーワード、行番号など)</p>
+                    <p>Ruby
+                    には素晴らしいテキスト処理言語の素質が備わっています。ルビーには$があります。
+                    awk の NR に相当するものとして FNR
+                    に相当するものは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>与えられる:</p>
+                    <pre><code>$ head f?.txt
+==&gt; f1.txt &lt;==
+line 1
+line 2
+
+==&gt; f2.txt &lt;==
+line 3
+line 4
+</code></pre>
+                    <p>Ruby には、STDIN を読み取るか、コマンド
+                    ラインからファイルを開く ARGF ストリーム (Perly
+                    を感じたい場合は $&lt; というエイリアス)
+                    があります。 awk と同じ動作:</p>
+                    <pre><code>$ awk &#39;{
+    printf(&quot;FILENAME: %s, FNR: %s, NR: %s, %s\n&quot;, FILENAME, FNR,NR,$0)}
+&#39; f?.txt
+FILENAME: f1.txt, FNR: 1, NR: 1, line 1
+FILENAME: f1.txt, FNR: 2, NR: 2, line 2
+FILENAME: f2.txt, FNR: 1, NR: 3, line 3
+FILENAME: f2.txt, FNR: 2, NR: 4, line 4
+
+$ ruby -lne &#39;
+    printf(&quot;FILENAME: %s, FNR: %s, NR: %s, %s\n&quot;, $&lt;.file.path, $&lt;.file.lineno, $., $_)
+&#39; f?.txt
+FILENAME: f1.txt, FNR: 1, NR: 1, line 1
+FILENAME: f1.txt, FNR: 2, NR: 2, line 2
+FILENAME: f2.txt, FNR: 1, NR: 3, line 3
+FILENAME: f2.txt, FNR: 2, NR: 4, line 4
+</code></pre>
+                    <p>STDIN
+                    とファイルの両方を読み取りたい場合は、ファイルのプレースホルダーとして
+                    - を使用します。</p>
+                    <pre><code>$ echo &#39;123&#39; | awk &#39;1&#39; - &lt;(echo 456)
+123
+456
+$ echo &#39;123&#39; | awk &#39;1&#39; &lt;(echo 456) -
+456
+123
+
+$ echo &#39;123&#39; | ruby -lne &#39;puts $_&#39; - &lt;(echo 456)
+123
+456
+$ echo &#39;123&#39; | ruby -lne &#39;puts $_&#39; &lt;(echo 456) -
+456
+123
+</code></pre>
+                    <p>さらにいくつかの対応する変数:</p>
+                    <pre><code>╔══════════╦═══════════════════╦═════════════════════════════════════════╗
+║   awk    ║       ruby        ║                 comment                 ║
+╠══════════╬═══════════════════╬═════════════════════════════════════════╣
+║ $0       ║ $_                ║ unsplit record (line usually)           ║
+║ NF       ║ $F.length         ║ Number of fields from autosplit         ║
+║ FNR      ║ ARGF.file.lineno  ║ Number records read from current source ║
+║ NR       ║ ARGF.lineno or $. ║ Total number of records so far          ║
+║ (magic)  ║ ARGF or $&lt;        ║ stream from either STDIN or a file      ║
+║ $1..$NF  ║ $F[0]..$F[-1]     ║ First to last field from autosplit      ║
+║ FS       ║ $;                ║ Input field separator                   ║
+║ RS       ║ $/                ║ Input record separator                  ║
+║ FILENAME ║ $&lt;.file.path      ║ Filename of file being processed        ║
+╚══════════╩═══════════════════╩═════════════════════════════════════════╝      
+</code></pre>
+                    <p>したがって、f1
+                    に行番号のリストがあり、それらの行番号でインデックスを付けたいテキスト
+                    ファイルがある場合 (awk または sed
+                    を使用する場合)、Ruby を使用することができます。</p>
+                    <p>与えられる:</p>
+                    <pre><code>$ echo &quot;1
+2
+44
+2017&quot; &gt;f1
+$ seq 10000 | awk &#39;{print &quot;Line&quot;, $1}&#39; &gt;f2
+</code></pre>
+                    <p>awk では次のようにします。</p>
+                    <pre><code>$ awk &#39;FNR==NR{ln[$1]; next} 
+       FNR in ln&#39;    f1 f2
+</code></pre>
+                    <p>Ruby では次のことができます。</p>
+                    <pre><code>$ ruby -lane &#39;BEGIN{h=Hash.new}
+              if $&lt;.file.lineno == $&lt;.lineno
+                 h[$F[0].to_i]=true
+                 next
+              end
+              puts $_ if h[$&lt;.file.lineno]&#39; f1 f2
+</code></pre>
+                    <p>両方とも次のように出力されます。</p>
+                    <pre><code>Line 1
+Line 2
+Line 44
+Line 2017
+</code></pre>
+                    <p>この例の awk バージョンは約 5 倍高速です (awk
+                    に進みます)。ただし、Ruby
+                    バージョンは、JSON、XML、複雑な CSV など、awk
+                    では不可能な入力を簡単にサポートします。</p>
+                    <p>Ruby で awk -v [同じ変数]
+                    と同等の機能が必要な場合は、Ruby で複数の -e
+                    コマンド実行行を使用します。</p>
+                    <p>n をシェル変数として awk でファイルの n
+                    行を出力するには:</p>
+                    <pre><code>awk -v n=&quot;${sh_n}&quot; &#39;FNR==n{print; exit}&#39; big_file.txt
+</code></pre>
+                    <p>または：</p>
+                    <pre><code>awk &#39;FNR==n{print; exit}&#39; n=&quot;${sh_n}&quot; big_file.txt
+</code></pre>
+                    <p>Ruby で同じことを行うには、つまり、 の値を Ruby
+                    プログラムに渡すには、次のようにします。</p>
+                    <pre><code>ruby -e &quot;n=${sh_n}.to_i&quot; -e &#39;$&lt;.each_line{|line| if $.==n then puts line; exit(0) end}&#39; big_file.txt
+</code></pre>
+                    <p>ここに、事前定義された Ruby
+                    変数のリストがあります。</p>
+                    <p>ここにグローバル変数のリストがあります</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>nanoc: pandoc-ruby にオプションを渡すにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "nanoc: pandoc-ruby にオプションを渡すにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>nanoc: pandoc-ruby
+にオプションを渡すにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>pandoc-ruby を使用する pandoc フィルターで nanoc
+                    3.5.0
+                    を使用しようとしています。具体的には、PandocRuby.convert()
+                    への最終呼び出しが次のようになるよう、ルール
+                    ファイルからいくつかのオプションを渡すことができません。</p>
+                    <pre><code>PandocRuby.convert(content,
+                   {:from =&gt; :markdown, :to =&gt; :html}, :no_wrap, 
+                   :table_of_contents, :mathjax, :standalone,
+                   {&quot;template&quot; =&gt; Dir.getwd + &#39;/layouts/pandocTemplate.html&#39;})
+</code></pre>
+                    <p>上記の呼び出しをカスタム
+                    フィルターに配置すると、すべてが正常に機能します。ただし、オプションのセットごとに特別なフィルターを作成する必要がないように、ルールで
+                    Pandoc オプションを指定したいと考えています。</p>
+                    <p>デフォルトの Pandoc フィルターは関数 run(content,
+                    params={}) として定義されており、単に
+                    PandocRuby.convert(content, params) を呼び出します。
+                    PandocRuby.convert()
+                    が正しく呼び出されるようにパラメータを設定するにはどうすればよいですか?ルール内の次のディレクティブは機能しません。</p>
+                    <pre><code>filter :pandoc, :params =&gt; { :from =&gt; :markdown, :to =&gt; :html, :no_wrap, :table_of_contents, :mathjax, :standalone, &quot;template&quot; =&gt; Dir.getwd + &#39;/layouts/pandocTemplate.html&#39; }
+filter :pandoc, :params =&gt; { :from =&gt; :markdown, :to =&gt; :html, :no_wrap =&gt; true, :table_of_contents =&gt; true, :mathjax =&gt; true, :standalone =&gt; true, &quot;template&quot; =&gt; Dir.getwd + &#39;/layouts/pandocTemplate.html&#39; }
+</code></pre>
+                    <p>最初のディレクティブでは Ruby エラーが発生し、2
+                    番目のディレクティブは実行されますが、空白のページが表示され、pandoc
+                    が正しく呼び出されなかったことを示します。 Ruby
+                    についてはあまり詳しくないので、今の取り組みは暗中模索です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>nanoc に付属の Pandoc
+                    フィルターは、現時点ではこれを適切に行うことができません。フィルターに指定されたパラメータは、PandocRuby.convert
+                    に直接渡されます。</p>
+                    <pre><code>def run(content, params={})
+  PandocRuby.convert(content, params)
+end
+</code></pre>
+                    <p>（ソース）</p>
+                    <p>フィルターの呼び出しには 3
+                    つ以上の引数があるため、フィルターがクラッシュします。フィルターは確かに更新する必要があります
+                    (フィルターを呼び出す方法についての私の考えが甘すぎました)。フィルターの改善に挑戦したい場合は、プル
+                    リクエストを送信することを歓迎します。当面の間、これを問題として報告しました
+                    (リンク)。</p>
+                    <p>(そして、この回答をすぐに適切な回答で更新できることを願っています!)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

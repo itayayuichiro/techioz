@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby gem Roo ワークブックの各行シート | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby gem Roo ワークブックの各行シート",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby gem Roo ワークブックの各行シート</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここの他の投稿で述べたように、roo gem
+                    にはいくつかの複雑なドキュメントが含まれており、xlsx
+                    ワークブックのシートを反復処理してから各シートの行を反復処理する方法がわかりません。</p>
+                    <p>ルージェム</p>
+                    <p>各シートを反復処理すると、シート自体への参照ではなく、シートの名前のみが表示されます。だから宣言しなきゃいけないんです。すべての行を反復処理する方法はまだありません。</p>
+                    <pre><code>s = &#39;/Users/user3/Desktop/departments.xlsx&#39;
+a = Roo::Spreadsheet.open(s)
+sheets = a.sheets.reverse
+
+sheets.each_with_index do |index, i|
+  sheet = a.sheet(index)
+  sheet.each_row do|row|
+    puts row
+  end
+end
+</code></pre>
+                    <p>roo ドキュメントの他の例では、ワークブック
+                    ファイル内にデフォルトのシートと 1
+                    つのシートがあることを前提としています。私の場合はそうではないので、すぐに混乱してしまいます。</p>
+                    <p>テストして分析に含めるために、すべてのシートと行を反復処理するにはどうすればよいでしょうか?私が作業しているスプレッドシートには、空白の列と多くの行があり、いくつかのアートワークが含まれています…典型的なオフィス関連のものです。これらの人々はデータ担当者ではありません。スプレッドシートでの「創造性」を回避するには、すべての行を反復してテストし、空白セルを削除します。</p>
+                    <p>ある程度の洞察力のある人は本当に感謝しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>シート名をシートメソッドに渡す必要があります。このメソッドは次のように宣言します:
+                    Roo::Base#sheet</p>
+                    <pre><code>file = &#39;xxx/xxx.xlsx&#39; # your file path
+wb = Roo::Spreadsheet.open(file, extension: :xlsx)
+sheet_names = wb.sheets # all sheet names in this workbook
+
+sheet_names.each do |sheet_name|
+  curr_sheet = wb.sheet(sheet_name) # change default sheet
+
+  curr_sheet.each_row_streaming do |row|
+     # do something 
+  end
+end
+</code></pre>
+                    <p>上記の方法はすべてのテーブルを走査できますが、シートのコンテンツを操作するときに次の問題も発生します。</p>
+                    <p>などなど、問題の連続です</p>
+                    <p>別の Ruby gem を使用するか、Java の poi や
+                    easyexcel
+                    などの別の言語を使用して処理することをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

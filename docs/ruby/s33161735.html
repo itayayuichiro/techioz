@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Sinatra ActiveRecord の基本検索 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Sinatra ActiveRecord の基本検索",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Sinatra ActiveRecord の基本検索</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sinatra
+                    でシンプルな製品在庫アプリの基本的な検索機能を作成しようとしていますが、類似した名前を持つすべての製品を結果ページに適切に出力するためのコントローラーとビューを作成する方法がわかりません。</p>
+                    <p>SearchPage.erb:</p>
+                    <p>&lt;フォームアクション=“/検索”、メソッド=“ポスト”&gt;
+                    <input type="text" name="製品[名前]"></p>
+                    <p>コントローラ：</p>
+                    <pre><code>post &#39;/search&#39; do
+@Products = Product.find_by(name: params[:product][:name])
+@Products = Product.all(:name.like =&gt; &quot;%#{params[:name]}%&quot;) #found this on another question
+erb :&quot;result&quot;
+end
+</code></pre>
+                    <p>結果.erb</p>
+                    <pre><code>&lt;% @Products.each do |product| %&gt;
+&lt;%=product.name %&gt;
+&lt;%=product.details %&gt;
+</code></pre>
+                    <p>編集:次のコードの提案に基づいて検索を機能させることができました。ありがとう！：</p>
+                    <p>Search.erb ビュー</p>
+                    <pre><code>&lt;form action=&quot;/search&quot;, method=&quot;get&quot;&gt;
+&lt;input type=&quot;text&quot; name=&quot;search&quot;&gt;
+</code></pre>
+                    <p>コントローラ</p>
+                    <pre><code>get &#39;/search&#39; do
+@products = Product.all
+if params[:search]
+  @products = Product.search(params[:search])
+else
+  @products = Product.all
+end
+erb :&#39;results&#39;
+end
+</code></pre>
+                    <p>モデル</p>
+                    <pre><code>class Product &lt; ActiveRecord::Base
+def self.search(search)
+where(&quot;name like ?&quot;, &quot;%#{search}%&quot;)
+end
+</code></pre>
+                    <p>Results.erb ビュー</p>
+                    <pre><code>&lt;% if @products.present? %&gt;
+&lt;table&gt;
+&lt;td&gt;Product Name&lt;/td&gt;&lt;td&gt;Company&lt;/td&gt;
+&lt;% @products.each do |product| %&gt;
+&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;/products/&lt;%= product.id %&gt;&quot;&gt;&lt;%=h product.name %&gt;&lt;/a&gt;   &lt;/td&gt;
+&lt;td&gt;&lt;%=h product.company.name %&gt;&lt;/td&gt;
+&lt;% end %&gt;
+&lt;% else %&gt;
+&lt;p&gt;There are no Products containing the term(s) &lt;%= params[:search] %&gt;.&lt;/p&gt;
+&lt;% end %&gt;
+&lt;/table&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>POST
+                    メソッドを使用していることに気づきました。製品の検索機能を作成する簡単な方法があります。これを試して：</p>
+                    <p>ポストコントローラー:</p>
+                    <pre><code>@products = Product.all
+if params[:search]
+  @products = Product.search(params[:search]).order(&quot;created_at DESC&quot;)
+else
+  @products = Product.all.order(&#39;created_at DESC&#39;)
+end
+</code></pre>
+                    <p>Posts モデル (注: SQLite
+                    を使用している場合は、LIKE
+                    のままにしておきます。Postgres
+                    を使用している場合は、LIKE を ILIKE
+                    に変更します)</p>
+                    <pre><code>def self.search(search)
+  where(&#39;name like :pat or content like :pat&#39;, :pat =&gt; &quot;%#{search}%&quot;)
+end
+</code></pre>
+                    <p>検索フォーム (Result.erb
+                    に入れて必要に応じて編集しますが、get
+                    メソッドとして保持します。個人的にはフォーム
+                    ヘルパーを使用するのが好きですが、必要に応じて通常のフォームを作成することもできます)</p>
+                    <pre><code>&lt;%= form_tag(products_path, :method =&gt; &quot;get&quot;, id: &quot;search-form&quot;) do %&gt;
+&lt;%= text_field_tag :search, params[:search], placeholder: &quot;Search Posts&quot; %&gt;
+&lt;%= submit_tag &quot;Search&quot; %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>レンダリング結果</p>
+                    <pre><code>&lt;% if @products.present? %&gt;
+  &lt;%= render @products %&gt;
+&lt;% else %&gt;
+  &lt;p&gt;There are no posts containing the term(s) &lt;%= params[:search] %&gt;.&lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これがうまくいくかどうか教えてください。そうでない場合は、もう少し助けてみます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

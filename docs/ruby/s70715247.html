@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsの親/子をフロントエンドJSに送信して、ネストされたオブジェクトとしてアクセスできるようにする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsの親/子をフロントエンドJSに送信して、ネストされたオブジェクトとしてアクセスできるようにする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsの親/子をフロントエンドJSに送信して、ネストされたオブジェクトとしてアクセスできるようにする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>バックエンドでは、私のオブジェクトの関係は、項目に多数のオプションがあるということです。フロントエンドでアイテムのすべての属性とその子オプションにハッシュとしてアクセスできるようにしたいと考えています。</p>
+                    <pre><code>items = [
+  {
+    id: 1,
+    item_attribute_name: item_attribute_value,
+    options: [
+      {id: 1, option_attribute_name: option_attribute_value},
+      {id: 2, option_attribute_name: option_attribute_value},
+    ]
+  },
+  { 
+    id: 2,
+    item_attribute_name: item_attribute_value,
+    options: []
+  }
+]
+</code></pre>
+                    <p>私は、ajax リクエストに応じて json
+                    オブジェクトを介して、または便利な gon gem
+                    を使用してデータを送信しています。親アイテムを送信したいだけであれば、Item.all
+                    を送り返すだけでフォーマットが自動的に行われ、フロントエンドで各アイテムがその属性を正確に表すハッシュであるアイテムの配列を取得できることに気付きました。私が望むように。</p>
+                    <p>しかし、子供たちを送りたい場合、標準的な方法はあるのでしょうか?以下のように子属性を自分で構築できることはわかりましたが、より直接的な方法があるかどうか疑問に思っています。</p>
+                    <p>子属性を構築してこれを機能させる方法は次のとおりです。</p>
+                    <pre><code>items = Item.all
+items.each do |i|
+  child_attr = {&quot;options&quot; =&gt; i.options }
+  i.attributes.merge(child_attr)
+end
+</code></pre>
+                    <p>ちなみに、完全に受け入れられる答えは、私が今やっていること、つまりバックエンドで各親オブジェクトを属性に変換し、子属性をつなぎ合わせること以外に、これを自動的に行う魔法の方法は存在しないということです。</p>
+                    <p>率直に言って、私がこの質問をしているのは、可能であれば、オブジェクトの関係をバックエンドに保持して、ハッシュに変換するのではなく、他の場所で再利用できるとよいからです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>期待どおりの結果を得る唯一の方法は、モンキーパッチを適用することだと思います。したがって、シリアライザーを使用するか、モデルにデフォルトで含まれる
+                    ActiveModel::Serializers::JSON
+                    を含めるか、使用することができます。</p>
+                    <p>たとえば、ActiveModel::Serializers::JSON
+                    を使用すると、次のようなことができます。</p>
+                    <pre><code>items = Item.all
+items.map! do |i|
+    i.serializable_hash(include: { options: {} })
+end
+</code></pre>
+                    <p>これは、Rails Eerage Loading
+                    によるもので、関連付け (has_many など)
+                    からすべての子をロードする必要がなくなります。どこでシリアル化するかはユースケースによって異なります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

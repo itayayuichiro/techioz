@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の has_one 関連付けは、トランザクションがロールバックされた後でも保存されます [クローズ] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の has_one 関連付けは、トランザクションがロールバックされた後でも保存されます [クローズ]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の has_one
+関連付けは、トランザクションがロールバックされた後でも保存されます
+[クローズ]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 3 アプリを Rails 5
+                    バージョンにアップグレードしています。 has_one
+                    とbelongs_to
+                    の関連付けがあります。トランザクションブロックにレコードを保存しています。
+                    Rails
+                    5では、トランザクションがロールバックされた場合にnullデータが「タスク」テーブルに挿入されることがわかりました。
+                    Rails 3 の場合、これは起こりません。これは Rails 5
+                    で予期される動作ですか?既存の機能を壊したくないので、Rails
+                    5でもRails 3の動作を維持する方法はありますか?</p>
+                    <p>以下は、この問題を発生させるサンプルコードです。</p>
+                    <pre><code>class Student &lt; ApplicationRecord
+    has_one :task
+end
+
+class Task &lt; ApplicationRecord
+    belongs_to :student
+    validates_presence_of :name
+end
+
+student = Student.first
+student.name = nil
+def student.testing
+ begin
+  ActiveRecord::Base.transaction do
+   t = Task.new
+   t.name = &#39;ddd&#39;
+   t.student = self
+   t.save!
+   puts &quot;raising exception&quot;
+   raise &quot;exception&quot;
+  end
+ rescue =&gt; e
+ end
+end
+student.testing
+student.save!
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この例から、私が理解できる問題は 1
+                    つだけです。それは、rails が関連付けの inverse_of
+                    を検出する方法に関するものです。</p>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :student
+end
+
+class Student &lt; ApplicationRecord
+  has_one :task, dependent: :destroy
+end
+</code></pre>
+                    <pre><code>&gt;&gt; Task.reflect_on_association(:student).inverse_of.name
+=&gt; :task
+</code></pre>
+                    <p>inverse_of が設定されているため、student を
+                    task.student に割り当てると、その逆も、student.task
+                    に割り当てられます。</p>
+                    <pre><code>student = Student.first
+
+student.association(:task).target    #=&gt; nil
+Task.new(student: student)
+student.association(:task).target    #=&gt; #&lt;Task:0x00007f2333a18ad0 id: nil, name: nil, student_id: 2&gt;
+
+# something to save ---------------------^
+student.save!
+
+# INSERT INTO &quot;tasks&quot; (&quot;name&quot;, &quot;student_id&quot;) VALUES (?, ?)  [[&quot;name&quot;, nil], [&quot;student_id&quot;, 2]]
+</code></pre>
+                    <p>タスクトランザクションをロールバックしたかどうかは問題ではありません。オブジェクトはまだstudent.taskに割り当てられており、親が保存されるときに新しい関連付けが保存されます。これはまったく同じことを行います:</p>
+                    <pre><code>student = Student.first
+Task.transaction do
+  Task.create!(student: student)
+  raise ActiveRecord::Rollback
+end
+student.save!
+
+TRANSACTION (0.1ms)  begin transaction
+Task Create (0.2ms)  INSERT INTO &quot;tasks&quot; (&quot;name&quot;, &quot;student_id&quot;) VALUES (?, ?)  [[&quot;name&quot;, nil], [&quot;student_id&quot;, 2]]
+TRANSACTION (0.1ms)  rollback transaction
+TRANSACTION (0.0ms)  begin transaction
+Task Create (0.1ms)  INSERT INTO &quot;tasks&quot; (&quot;name&quot;, &quot;student_id&quot;) VALUES (?, ?)  [[&quot;name&quot;, nil], [&quot;student_id&quot;, 2]]
+TRANSACTION (9.8ms)  commit transaction
+</code></pre>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :student, inverse_of: false
+end
+</code></pre>
+                    <p>has_many と同じように動作します。</p>
+                    <pre><code>Task.reflect_on_association(:student).inverse_of #=&gt; nil
+student = Student.first
+
+student.association(:task).target    #=&gt; nil
+Task.new(student: student)
+student.association(:task).target    #=&gt; nil
+
+# nothing to save -----------------------^
+student.save!
+</code></pre>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :student
+end
+
+class Student &lt; ApplicationRecord
+  has_many :tasks, dependent: :destroy
+end
+</code></pre>
+                    <pre><code>Task.reflect_on_association(:student).inverse_of # =&gt; nil
+student = Student.first
+
+student.association(:tasks).target    #=&gt; []
+Task.new(student: student)
+student.association(:tasks).target    #=&gt; []
+
+# nothing to save ------------------------^
+student.save!
+</code></pre>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :student, inverse_of: :tasks
+end
+</code></pre>
+                    <pre><code>Task.reflect_on_association(:student).inverse_of.name #=&gt; :tasks
+student = Student.first
+
+student.association(:tasks).target    #=&gt; []
+Task.new(student: student)
+student.association(:tasks).target    #=&gt; [#&lt;Task:0x00007f007d82b2c8 id: nil, name: nil, student_id: 2&gt;]
+
+# something to save ----------------------^
+student.save!
+
+# INSERT INTO &quot;tasks&quot; (&quot;name&quot;, &quot;student_id&quot;) VALUES (?, ?)  [[&quot;name&quot;, nil], [&quot;student_id&quot;, 2]]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

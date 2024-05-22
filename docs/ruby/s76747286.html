@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>1 回のチェックアウトで複数のサブスクリプションを処理するにはどうすればよいですか?ストライプ Webhook イベントを処理するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "1 回のチェックアウトで複数のサブスクリプションを処理するにはどうすればよいですか?ストライプ Webhook イベントを処理するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>1
+回のチェックアウトで複数のサブスクリプションを処理するにはどうすればよいですか?ストライプ
+Webhook イベントを処理するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コンテキストとして、1
+                    回のチェックアウトで同じ請求間隔のサブスクリプションを実装しています。</p>
+                    <p>私が理解している限り、複数の line_items
+                    をprice_idと数量とともに追加しましたが、すべてのチェックアウトは正常に機能しています。
+                    しかし、このような複数のサブスクリプションのチェックアウトの
+                    Webhook イベントを処理することはできません。</p>
+                    <p>単一のサブスクリプション
+                    チェックアウトを行うと、checkout.session.complete
+                    イベント オブジェクトでサブスクリプション
+                    データを取得します。</p>
+                    <p>このオブジェクトからすべてのサブスクリプション
+                    データを取得するにはどうすればよいですか。すべてのサブスクリプションについて、この配列をループして
+                    DB にレコードを作成できるようにします。</p>
+                    <pre><code>
+def handle_checkout_session_completed(event)
+  puts &quot;checkout.session.completed\n&quot;
+  return unless User.exists?(event.data.object.client_reference_id)
+
+  checkout_session = event.data.object
+  puts &quot;checkout_session: #{checkout_session}\n&quot;
+
+  session = Stripe::Checkout::Session.retrieve({
+    id: checkout_session[&#39;id&#39;],
+    expand: [&#39;line_items&#39;]
+  })
+
+  line_items = session.line_items.data
+  puts line_items
+
+  if checkout_session.payment_status == &#39;paid&#39;
+    fulfill_order(checkout_session, line_items)
+  end
+end
+
+def fulfill_order(checkout_session, line_items)
+  user = User.find(checkout_session.client_reference_id)
+  user.update(stripe_id: checkout_session.customer)
+
+  line_items.each do |line_item|
+    product_id = line_item.price.product
+    tool_id = determine_tool_id(product_id)
+
+    Subscription.create(
+      user: user,
+      subscription_id: checkout_session.subscription,
+      plan_id: tool_id,
+      interval: line_item.price.recurring.interval,
+      status: &#39;active&#39;,
+      current_period_start: Time.at(checkout_session.subscription.current_period_start).to_datetime,
+      current_period_end: Time.at(checkout_session.subscription.current_period_end).to_datetime
+    )
+  end
+end
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>1 つのサブスクリプション モード CheckoutSession
+                    は 1 つのサブスクリプションのみを作成できます。1
+                    つの CheckoutSession
+                    で複数のサブスクリプションを作成する方法はありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

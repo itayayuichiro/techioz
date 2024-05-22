@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>過去の日時ではなく、現在の日時から日付と時刻の範囲を選択します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "過去の日時ではなく、現在の日時から日付と時刻の範囲を選択します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>過去の日時ではなく、現在の日時から日付と時刻の範囲を選択します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RoRを勉強中です。ユーザーから日付を入力するという要件が
+                    1
+                    つありますが、常に現在の日付時刻または将来の日付である必要があります。入力では、ユーザーは開始日時と終了日時を入力しています。現在、以下の構文とヘルパークラスを使用して日付と時刻を選択しています。</p>
+                    <pre><code>&lt;div class=&quot;field&quot;&gt;
+    &lt;%= form.label :start_time %&gt;
+    &lt;%= form.datetime_select :start_time %&gt;
+  &lt;/div&gt;
+</code></pre>
+                    <p>現在のフォームに従って、ユーザーがフォームから選択できるものは次のとおりです。</p>
+                    <p>ここでは、古い日付時刻ではなく、常に現在の日付時刻からになるように日付と時刻の範囲を選択したいと考えました。</p>
+                    <p>ここでは、ユーザーから将来のイベント情報を取得してデータベースに保存したいと考えています。</p>
+                    <p>以下はイベントモデルです。</p>
+                    <pre><code>class Event &lt; ApplicationRecord
+  validates :start_time, presence: true
+  validates :end_time, presence: true
+  validate :valid_start_and_end_time
+
+  def start_time
+    super || end_time
+  end
+
+  private
+
+  def valid_start_and_end_time
+    start_time &lt;= end_time
+  end
+end
+</code></pre>
+                    <p>およびイベントコントローラー:</p>
+                    <pre><code>class EventsController &lt; ApplicationController
+ before_action :set_event only: [:show, :edit, :update, :destroy]
+
+  def index
+    @event = Event.all.where(&#39;start_time &gt; ?&#39;, Time.now).sort_by(&amp;:start_time).sort_by(&amp;:title)
+  end
+
+  def create 
+      @event = Event.new(event_params)
+      @event.save
+  end
+  
+  private
+  
+  def event_params 
+    params.require(:event).permit(:title, :start_time, :end_time)
+  end 
+end
+</code></pre>
+                    <p>基本的に、ここでやりたいことは次のとおりです。 1.
+                    ユーザーに開始日時と終了日時を入力してもらいます。すべて将来のイベントにするか、少なくとも検証を追加する必要があります。
+                    2. モデルでは、イベント インデックスを start_time
+                    で並べ替え、次にタイトルで並べ替えたいと考えています。</p>
+                    <p>RoR
+                    での学習を強化できるように、最適なアプローチでどのように実行できるかを理解するのを誰かが助けてくれませんか。
+                    ここで何か助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>比較バリデータ (Rails 7 で追加)
+                    を使用して、start_time
+                    が過去であってはいけないことを検証できます。</p>
+                    <pre><code>validates :start_time, comparison: { greater_than_or_equal_to: Time.current }
+</code></pre>
+                    <p>比較バリデーターを使用して、end_time が
+                    start_time
+                    以降でなければならないことを検証することもできます。</p>
+                    <pre><code>validates :end_time, comparison: { greater_than_or_equal_to: :start_time }
+</code></pre>
+                    <p>この 2
+                    つの検証では、デフォルトで属性の存在もチェックされるため、start_time
+                    と end_time
+                    が過去ではなく両方とも存在すること、および end_time
+                    が start_time 以降であることを確認できます。</p>
+                    <p>つまり、 validates :start_time、presence:
+                    true、validates :end_time、presence:
+                    true、およびカスタム validate
+                    :valid_start_and_end_time
+                    を削除できることを意味します。</p>
+                    <p>次のように、start_time
+                    でイベントを並べ替え、次にタイトルでイベントを並べ替えることができます。</p>
+                    <pre><code>Event.order(start_time: :asc, title: :asc)
+</code></pre>
+                    <p>これは次の SQL クエリに変換されます。</p>
+                    <pre><code>SELECT
+  events.*
+FROM
+  events
+ORDER BY
+  events.start_time ASC,
+  events.title ASC
+</code></pre>
+                    <p>イベントが start_date (古いものから新しいもの)
+                    順に並べられ、次にタイトル (アルファベット順)
+                    順に表示されます。</p>
+                    <p>Rails
+                    では、これらの一般的に使用されるクエリをスコープ内に置くのが非常に一般的です。これを次のように書きます。</p>
+                    <pre><code>scope :sorted, -&gt; { order(start_time: :asc, title: :asc) }
+</code></pre>
+                    <p>このスコープを定義すると、Event.order(start_time:
+                    :asc, title: :asc) の代わりに Event.sorted
+                    を使用できます。</p>
+                    <p>イベント コントローラーで where(‘start_time &gt;
+                    ?’, Time.now)
+                    を使用しているため、そのスコープも必要だと思います。次のように定義できます。</p>
+                    <pre><code>scope :upcoming, -&gt; { where(&#39;start_time &gt; ?&#39;, Time.current) }
+</code></pre>
+                    <p>インデックス
+                    アクションは次のように書き換えることができます。</p>
+                    <pre><code>def index
+  @events = Event.upcoming.sorted
+end
+</code></pre>
+                    <p>これにより、次の SQL クエリが作成されます。</p>
+                    <pre><code>SELECT
+  events.*
+FROM
+  events
+WHERE
+  (start_time &gt; &#39;2024-05-10 21:03:50.413480&#39;) -- the current time
+ORDER BY
+  events.start_time ASC,
+  events.title ASC
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

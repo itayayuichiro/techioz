@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>stomp content-type ヘッダーを XML コンテンツのプレーンに設定 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "stomp content-type ヘッダーを XML コンテンツのプレーンに設定",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>stomp content-type ヘッダーを XML
+コンテンツのプレーンに設定</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>stompを使用してRubyスクリプトからActiveMQにXMLコンテンツを送信しています</p>
+                    <p>以下に示すように、content-type ヘッダーを
+                    application/xml;charset=utf-8
+                    に明示的に設定しています。</p>
+                    <pre><code>client.publish queue, xml, {&#39;content-type&#39;=&gt;&#39;application/xml;charset=utf-8&#39;}
+</code></pre>
+                    <p>しかし、Spring-integration
+                    を使用してメッセージを読み取る Java
+                    クライアントからメッセージを読み取ると、content-type
+                    は text/plain になります。</p>
+                    <p>その結果、アンマーシャラーが呼び出されるとき、例外が発生して解析が失敗します。</p>
+                    <pre><code>1448446 [org.springframework.jms.listener.DefaultMessageListenerContainer#0-1] WARN org.springframework.jms.listener.DefaultMessageListenerContainer - Execution of JMS message listener failed
+org.springframework.integration.transformer.MessageTransformationException: failed to transform message payload
+    at org.springframework.integration.transformer.AbstractPayloadTransformer.transform(AbstractPayloadTransformer.java:40)
+    at org.springframework.integration.transformer.MessageTransformingHandler.handleRequestMessage(MessageTransformingHandler.java:49)
+    at org.springframework.integration.handler.AbstractReplyProducingMessageHandler.handleMessageInternal(AbstractReplyProducingMessageHandler.java:91)
+    at org.springframework.integration.handler.AbstractMessageHandler.handleMessage(AbstractMessageHandler.java:59)
+    at org.springframework.integration.dispatcher.UnicastingDispatcher.doDispatch(UnicastingDispatcher.java:103)
+    at org.springframework.integration.dispatcher.UnicastingDispatcher.dispatch(UnicastingDispatcher.java:90)
+    at org.springframework.integration.channel.AbstractSubscribableChannel.doSend(AbstractSubscribableChannel.java:43)
+    at org.springframework.integration.channel.AbstractMessageChannel.send(AbstractMessageChannel.java:116)
+    at org.springframework.integration.channel.AbstractMessageChannel.send(AbstractMessageChannel.java:94)
+    at org.springframework.integration.channel.MessageChannelTemplate.doSend(MessageChannelTemplate.java:223)
+    at org.springframework.integration.channel.MessageChannelTemplate.send(MessageChannelTemplate.java:180)
+    at org.springframework.integration.router.AbstractMessageRouter.handleMessageInternal(AbstractMessageRouter.java:76)
+    at org.springframework.integration.handler.AbstractMessageHandler.handleMessage(AbstractMessageHandler.java:59)
+    at org.springframework.integration.dispatcher.UnicastingDispatcher.doDispatch(UnicastingDispatcher.java:103)
+    at org.springframework.integration.dispatcher.UnicastingDispatcher.dispatch(UnicastingDispatcher.java:90)
+    at org.springframework.integration.channel.AbstractSubscribableChannel.doSend(AbstractSubscribableChannel.java:43)
+    at org.springframework.integration.channel.AbstractMessageChannel.send(AbstractMessageChannel.java:116)
+    at org.springframework.integration.channel.AbstractMessageChannel.send(AbstractMessageChannel.java:94)
+    at org.springframework.integration.channel.MessageChannelTemplate.doSend(MessageChannelTemplate.java:223)
+    at org.springframework.integration.channel.MessageChannelTemplate.send(MessageChannelTemplate.java:180)
+    at org.springframework.integration.channel.MessageChannelTemplate.send(MessageChannelTemplate.java:168)
+    at org.springframework.integration.jms.ChannelPublishingJmsMessageListener.onMessage(ChannelPublishingJmsMessageListener.java:203)
+    at org.springframework.jms.listener.AbstractMessageListenerContainer.doInvokeListener(AbstractMessageListenerContainer.java:518)
+    at org.springframework.jms.listener.AbstractMessageListenerContainer.invokeListener(AbstractMessageListenerContainer.java:479)
+    at org.springframework.jms.listener.AbstractMessageListenerContainer.doExecuteListener(AbstractMessageListenerContainer.java:451)
+    at org.springframework.jms.listener.AbstractPollingMessageListenerContainer.doReceiveAndExecute(AbstractPollingMessageListenerContainer.java:323)
+    at org.springframework.jms.listener.AbstractPollingMessageListenerContainer.receiveAndExecute(AbstractPollingMessageListenerContainer.java:261)
+    at org.springframework.jms.listener.DefaultMessageListenerContainer$AsyncMessageListenerInvoker.invokeListener(DefaultMessageListenerContainer.java:982)
+    at org.springframework.jms.listener.DefaultMessageListenerContainer$AsyncMessageListenerInvoker.executeOngoingLoop(DefaultMessageListenerContainer.java:974)
+    at org.springframework.jms.listener.DefaultMessageListenerContainer$AsyncMessageListenerInvoker.run(DefaultMessageListenerContainer.java:876)
+    at java.lang.Thread.run(Thread.java:680)
+Caused by: org.springframework.integration.core.MessagingException: Failed to create Source for payload type [[B]
+    at org.springframework.integration.xml.source.DomSourceFactory.createSource(DomSourceFactory.java:62)
+    at org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer.transformPayload(XmlPayloadUnmarshallingTransformer.java:91)
+    at org.springframework.integration.transformer.AbstractPayloadTransformer.transform(AbstractPayloadTransformer.java:33)
+    ... 30 more
+</code></pre>
+                    <p>何が問題なのでしょうか</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答えが見つかりました。ヘッダーのsuppress_content_lengthです
+                    これを追加すると機能するようになりました</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでメソッドの引数にアクセスする方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでメソッドの引数にアクセスする方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでメソッドの引数にアクセスする方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby と ROR
+                    は初めてですが、毎日気に入っています。Google
+                    で検索する方法がわからないので、ここに質問があります
+                    (試してみました:))</p>
+                    <p>私たちにはメソッドがあります</p>
+                    <pre><code>def foo(first_name, last_name, age, sex, is_plumber)
+    # some code
+    # error happens here
+    logger.error &quot;Method has failed, here are all method arguments #{SOMETHING}&quot;    
+end
+</code></pre>
+                    <p>それで、私が探しているのは、それぞれをリストせずに、メソッドに渡されるすべての引数を取得する方法です。これはRubyなので、方法があると思います:)
+                    Javaだったら、単にそれらをリストするだけです:)</p>
+                    <p>出力は次のようになります:</p>
+                    <pre><code>Method has failed, here are all method arguments {&quot;Mario&quot;, &quot;Super&quot;, 40, true, true}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 1.9.2 以降では、メソッドでパラメータ
+                    メソッドを使用して、そのメソッドのパラメータのリストを取得できます。これにより、パラメータの名前とそれが必須かどうかを示すペアのリストが返されます。</p>
+                    <p>例えば</p>
+                    <p>もし、するなら</p>
+                    <pre><code>def foo(x, y)
+end
+</code></pre>
+                    <p>それから</p>
+                    <pre><code>method(:foo).parameters # =&gt; [[:req, :x], [:req, :y]]
+</code></pre>
+                    <p>特殊変数 <strong>method</strong>
+                    を使用して、現在のメソッドの名前を取得できます。したがって、メソッド内でそのパラメータの名前は次のようにして取得できます。</p>
+                    <pre><code>args = method(__method__).parameters.map { |arg| arg[1].to_s }
+</code></pre>
+                    <p>次に、次のようにして各パラメータの名前と値を表示できます。</p>
+                    <pre><code>logger.error &quot;Method failed with &quot; + args.map { |arg| &quot;#{arg} = #{eval arg}&quot; }.join(&#39;, &#39;)
+</code></pre>
+                    <p>注: この回答は最初に書かれたものなので、Ruby
+                    の現在のバージョンでは、シンボルを使用して eval
+                    を呼び出すことはできなくなりました。これに対処するために、パラメーター名のリスト、つまりparameters.map
+                    { |arg| を作成するときに明示的な to_s
+                    が追加されました。 arg[1].to_s }</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

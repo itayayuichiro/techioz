@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby は接続されるまでプロキシを機械化して再試行します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby は接続されるまでプロキシを機械化して再試行します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+は接続されるまでプロキシを機械化して再試行します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私がやりたいのはこれです</p>
+                    <p>ip|port を含むプロキシ リストがあります</p>
+                    <p>現在、Mechanize
+                    はこれらのプロキシを使用しており、設定しました</p>
+                    <pre><code>open_timeout = 20 
+read_timeout = 20
+</code></pre>
+                    <p>私がやりたいのは再試行ですが、「proxies = <span
+                    class="citation"
+                    data-cites="proxies.order">@proxies.order</span>(“RANDOM()”).first」であっても同じプロキシで再試行されます。新しいプロキシはロードされませんが、代わりにロードされます。キャッシュからロードする</p>
+                    <p>これが私が使用する私のコードです:</p>
+                    <pre><code>begin
+    proxies = @proxies.order(&quot;RANDOM()&quot;).first
+    proxy_ip = proxies.ip
+    proxy_port = proxies.port
+    puts proxy_ip
+    puts proxy_port
+
+    agent = Mechanize.new
+    agent.open_timeout = 20
+    agent.read_timeout = 20
+    agent.set_proxy(proxy_ip, proxy_port)
+
+
+    page = agent.get(&quot;http://whatismyip.org/&quot;
+rescue
+     puts &quot;oh shit, error&quot;
+     retry
+
+end
+    doc = page.parser
+    ip_ad = doc.css(&#39;span&#39;).text
+    puts ip_ad
+</code></pre>
+                    <p>ここで私の質問は、キャッシュからプロキシを使用するのではなく、新しいプロキシをロードするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Googleからここに来た人のために、これが私がそれを解決した方法です</p>
+                    <pre><code>offset = rand(Proxy.count)
+proxies = @proxies.offset(offset).first
+</code></pre>
+                    <p>私はオフセットを使用していますが、それは魅力的に機能します、そしてこれは</p>
+                    <p>始める ページ =
+                    ミニオン.submit(フォーム,ボタン)</p>
+                    <pre><code>        rescue Mechanize::ResponseCodeError =&gt; e
+    
+            offset = rand(Proxy.count)
+            proxies = @proxies.offset(offset).first
+            proxy_ip = proxies.ip
+            proxy_port = proxies.port
+            puts proxy_ip
+            puts proxy_port
+    
+            minion.open_timeout = 3.0
+            minion.read_timeout = 3.0
+            minion.cookie_jar.clear!
+            minion.max_history = 0
+            #minion.set_proxy(proxy_ip, proxy_port)
+    
+            sleep 5.0
+    
+            if page.parser.xpath(&#39;//h2[contains(@class,&quot;name&quot;)]&#39;).text == &quot;Ingen träff&quot;
+                puts &quot;ingen träff&quot;
+            else
+                puts &quot;retrying&quot;
+                retry
+            end
+    
+    end
+</code></pre>
+                    <p>みんな楽しんでください</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

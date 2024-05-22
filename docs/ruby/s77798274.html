@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: 置換部分は変数に含めて保存されますが、gsub を使用すると補間が発生しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: 置換部分は変数に含めて保存されますが、gsub を使用すると補間が発生しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+置換部分は変数に含めて保存されますが、gsub
+を使用すると補間が発生しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <ol type="a">
+                    <li>私が書いたコード。</li>
+                    </ol>
+                    <pre><code>$str = &#39;909090 aa bb cc dd ee ff 00 12345678 aa bb 12345678 aa bb cc dd ee ff 00 11 22 33 123456 FE 89&#39;
+puts $str
+$str.gsub!(/\s+/, &#39;&#39;)
+
+search_1  = &#39;aa bb cc dd ee ff 00 (\S{8} aa bb \S{8} aa bb cc dd ee ff 00 11 22 33 \S{6}) (FF|FE) (89)&#39;
+puts search_1
+search_1.gsub!(/\s+/, &#39;&#39;)
+replace_1 = &#39;11 22 33 44 55 66 77 $1 $2 $3&#39;
+puts replace_1
+replace_1.gsub!(/\s+/, &#39;&#39;)
+
+repls_1 = [
+  [search_1, replace_1],
+]
+
+
+repls_1.each do |x|
+  abc = $str.gsub(Regexp.new(x[0])) {
+    x[1]
+  }
+  puts abc
+end
+</code></pre>
+                    <ol start="2" type="1">
+                    <li>スクリプト実行結果</li>
+                    </ol>
+                    <pre><code>  909090 aa bb cc dd ee ff 00 12345678 aa bb 12345678 aa bb cc dd ee ff 00 11 22 33 123456 FE 89
+  aa bb cc dd ee ff 00 (\S{8} aa bb \S{8} aa bb cc dd ee ff 00 11 22 33 \S{6}) (FF|FE) (89)
+  11 22 33 44 55 66 77 $1 $2 $3
+
+  90909011223344556677$1$2$3
+</code></pre>
+                    <p>、
+                    の補間が行われません。解決する方法はありますか?ありがとう。</p>
+                    <ol type="i">
+                    <li><p>\1 \2 \3 は使いたくないのですが、)</p></li>
+                    <li><p>複数のパターンがありますが、ここでは 1
+                    つの例のみを示します</p></li>
+                    <li><p>一致する部品番号は固定されていません。これは
+                    です。………………..などの他のケースも考えられます。取得した部品番号と位置の両方でコードがこの変動をカバーできることを願っています。
+                    。</p></li>
+                    </ol>
+                    <h2 id="解決策">解決策</h2>
+                    <p>、
+                    を、以前の一致からのそれぞれのキャプチャに動的に置き換えることができます。</p>
+                    <pre><code>repls_1.each do |pattern, replacement|
+  puts $str.gsub(Regexp.new(pattern)) {
+    match_data = $~
+    replacement.gsub(/\$(\d)/) { match_data[$1.to_i] }
+  }
+end
+</code></pre>
+                    <p>ただし、gsub には \1、\2、\3
+                    後方参照による置換が組み込まれているため、これは基本的に車輪の再発明です。</p>
+                    <p>gsub と互換性のある置換文字列を取得するには、単に
+                    , , を \1、\2、\3 に置き換える方がはるかに簡単です。
+                    hBcnotation
+                    を保持したいので、実行時にこの置換を実行できます。
+                    tr経由:</p>
+                    <pre><code>repls_1.each do |pattern, replacement|
+  gsub_replacement = replacement.tr(&#39;$&#39;, &#39;\\&#39;)
+  puts $str.gsub(Regexp.new(pattern), gsub_replacement)
+end
+</code></pre>
+                    <p>gsub で調整された置換文字列と実際のパターンを
+                    repls_1 配列にすでに格納することもできます。</p>
+                    <pre><code># create actual pattern and adjust replacement string
+repls_1.map! { |a, b| [Regexp.new(a), b.tr(&#39;$&#39;, &#39;\\&#39;)] }
+</code></pre>
+                    <p>こうすることで、毎回調整を繰り返す必要がなくなり、交換がさらに簡単
+                    (そして迅速) になります。</p>
+                    <pre><code>repls_1.each do |pattern, replacement|
+  puts $str.gsub(pattern, replacement)
+end
+</code></pre>
+                    <p>上記のコードでは、すべての $ が
+                     に置き換えられることに注意してください。より高度な置換を行うには、別の正規表現を使用できます。次の数字を考慮します。</p>
+                    <pre><code>gsub_replacement = replacement.gsub(/\$(?=\d)/, &#39;\\&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

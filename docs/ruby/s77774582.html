@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>QuickMagick を使用して画像からすべてのグレースケールを削除します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "QuickMagick を使用して画像からすべてのグレースケールを削除します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>QuickMagick
+を使用して画像からすべてのグレースケールを削除します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の QuickMagick または RMagic
+                    を使用して、画像からすべての灰色を削除したいと考えています。ここでこの解決策を見つけました:
+                    https://www.imagemagick.org/discourse-server/viewtopic.php?t=36051
+                    ImageMagick 用ですが、構文を QuickMagick
+                    に適切に変換する方法がわかりません</p>
+                    <pre><code>convert in.jpg \( +clone -colorspace HCL -channel G -separate +channel -threshold 15% \) -alpha off -compose CopyOpacity -composite out.png
+</code></pre>
+                    <p>編集: <span class="citation"
+                    data-cites="8bithero">@8bithero</span>
+                    が試してみました</p>
+                    <pre><code>        image = QuickMagick::Image.read(remote_image.path).first
+
+        # Clone the image and perform operations
+        clone = image.clone
+        clone.colorspace = &#39;HCL&#39;
+        clone.channel(&#39;G&#39;).separate
+        clone.threshold(15)
+
+        # Composite the original and the clone
+        # image.alpha(&#39;off&#39;)
+        image.compose = &#39;CopyOpacity&#39;
+        image = image.composite(clone, 0, 0, &#39;CopyOpacity&#39;)
+
+        # Save the output
+        image.save(outfile)
+</code></pre>
+                    <p>しかし、エラーが発生しました</p>
+                    <pre><code> QuickMagick::QuickMagickError (          Error executing command: command
+15:45:49 web.1  |           Result is:
+15:45:49 web.1  |           Error is: convert: unable to open image &#39;#&lt;QuickMagick::Image:0x000000010d0fe0c0&gt; 0 0 CopyOpacity&#39;: No such file or directory @ error/blob.c/OpenBlob/3572.
+15:45:49 web.1  | convert: no decode delegate for this image format `&#39; @ error/constitute.c/ReadImage/746.
+15:45:49 web.1  | convert: image sequence is required `-composite&#39; @ error/mogrify.c/MogrifyImageList/8049.
+15:45:49 web.1  | convert: no images defined `c8cfa655-8437-4ea6-8c34-e60f88fffe8b-1.png&#39; @ error/convert.c/ConvertImageCommand/3362.
+15:45:49 web.1  |
+15:45:49 web.1  | ):
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを機能させるには、コマンドライン構文を
+                    QuickMagick の Ruby
+                    ベースの構文に変換する必要があります。</p>
+                    <p>これをテストしていないので、うまくいくかどうかはわかりませんが、正しい軌道に乗せることを願っています</p>
+                    <pre><code>require &#39;quick_magick&#39;
+
+# Load the image
+image = QuickMagick::Image.read(remote_image.path).first
+
+# Clone the image and perform operations
+clone = image.clone
+clone.colorspace = &#39;HCL&#39;
+clone.channel(&#39;G&#39;).separate
+clone.threshold(15)
+
+# Composite the original and the clone
+image.alpha(&#39;off&#39;)
+image.compose = &#39;CopyOpacity&#39;
+image = image.composite(clone, 0, 0, &#39;CopyOpacity&#39;)
+
+# Save the output
+image.save(outfile)
+</code></pre>
+                    <p>必ず、remote_image.path
+                    を入力画像へのパスに変更し、出力パスで出力してください。</p>
+                    <p>アップデート： 発生したエラーは、QuickMagick
+                    フレームワーク内で画像オブジェクトが渡され、認識される方法に問題があることを示唆しています。これは、API
+                    呼び出しの違い、または最新バージョンでの画像操作コマンドの構造の違いが原因である可能性があります。
+                    RMagick がインストールされており (gem install
+                    rmagick)、ImageMagick
+                    もシステムにインストールされて適切に設定されており、最新バージョンを使用していると仮定します。それを念頭に置いて、更新されたバージョンを次に示します。</p>
+                    <pre><code>require &#39;rmagick&#39;
+
+# Load the image
+image = Magick::Image.read(remote_image.path).first
+
+# Clone the image and convert to HCL colorspace
+clone = image.clone
+clone.colorspace = Magick::HCLColorspace
+
+# Separate the green channel and apply threshold
+clone = clone.separate(Magick::GreenChannel).first
+threshold_image = clone.threshold(Magick::QuantumRange * 0.15)
+
+# Apply the threshold image as an opacity mask
+image.matte = false # Disable alpha channel
+image = image.composite(threshold_image, Magick::CenterGravity, Magick::CopyOpacityCompositeOp)
+
+# Save the output
+image.write(outfile)
+</code></pre>
+                    <p>アプローチ 2:
+                    上記の提案も失敗する場合は、次のようにして、Ruby
+                    から ImageMagick
+                    コマンドを直接実行することもできます。</p>
+                    <pre><code>require &#39;open3&#39;
+
+input_path = remote_image.path
+output_path = outfile
+command = &quot;convert #{input_path.shellescape} \\( +clone -colorspace HCL -channel G -separate +channel -threshold 15% \\) -alpha off -compose CopyOpacity -composite #{output_path.shellescape}&quot;
+
+Open3.popen3(command) do |stdin, stdout, stderr, wait_thr|
+  exit_status = wait_thr.value
+  unless exit_status.success?
+    raise &quot;ImageMagick command failed: #{stderr.read}&quot;
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

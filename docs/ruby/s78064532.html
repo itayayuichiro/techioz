@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでネストされた配列を反復処理する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでネストされた配列を反復処理する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでネストされた配列を反復処理する</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>test_scores = [
+  [97, 76, 79, 93], [79, 84, 76, 79], [88, 67, 64, 76], [94, 55, 67, 81]
+]
+
+puts test_scores.any? do |scores|
+  scores.all? { |score| score &gt; 80 }
+end
+</code></pre>
+                    <p>上記のコードをReplitとローカルマシン(WSL)で実行すると、出力は「true」であることがわかります。ただし、Odin
+                    プロジェクトと ChatGPT
+                    の説明によると、出力は「false」になるはずです。 Odin
+                    プロジェクトは、「これは非常に簡単に思えます。入れ子になった配列のスコアがすべて
+                    80 を超えていないため、 false
+                    を返します。」と述べています。オーディンプロジェクトのリンク</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは do … end ブロックと { … }
+                    の優先順位の違いに関係していると思います。</p>
+                    <pre><code>puts test_scores.any? do |scores| scores.all? { |score| score &gt; 80 } end
+</code></pre>
+                    <p>実際にやっているのは：</p>
+                    <pre><code>puts(test_scores.any?) do |scores| scores.all? { |score| score &gt; 80 } end
+</code></pre>
+                    <p>その間</p>
+                    <pre><code>puts test_scores.any? { |scores| scores.all? { |score| score &gt; 80 } }
+</code></pre>
+                    <p>する</p>
+                    <pre><code>puts(test_scores.any? { |scores| scores.all? { |score| score &gt; 80 } })
+</code></pre>
+                    <p>これで問題が明確になることを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

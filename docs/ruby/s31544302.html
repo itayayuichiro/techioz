@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>戻るボタンをクリックしたときに表示されるスピナーとメッセージの読み込み | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "戻るボタンをクリックしたときに表示されるスピナーとメッセージの読み込み",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>戻るボタンをクリックしたときに表示されるスピナーとメッセージの読み込み</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>マイページ上のリンクをクリックすると、ページ上にスピナーとメッセージが表示されます。それは機能し、新しいページが読み込まれると適切に消えます。</p>
+                    <p>ここにあるspin.jsを利用してローディングスピナーを実装しました。</p>
+                    <p>バグを見つけましたが。ユーザーがブラウザの戻るボタンをクリックすると前のページに戻りますが、スピナーとエラーメッセージが表示された状態になります。もちろん、メッセージが非表示になり、スピナーが表示されない状態に戻したいです。</p>
+                    <p>この投稿によると、問題はキャッシュに関係しているようです。</p>
+                    <p>jquery-turbolinks gemを使用しています</p>
+                    <p>以下は私のコードです:</p>
+                    <pre><code>#app/assets/javascripts/foo.js
+$(document).ready(function(){  #for turbolinks compatability
+    (function default_hide_waiting_message(){
+        $(&quot;#waiting_message&quot;).hide();
+    }());
+    (function display_loading_spinner_and_message(){
+        $(&quot;.show_loading_spinner_on_click&quot;).on(&#39;click&#39;, function(){
+                var opts = {
+                  lines: 12             // The number of lines to draw
+                , length: 7             // The length of each line
+                , width: 5              // The line thickness
+                , radius: 10            // The radius of the inner circle
+                , scale: 1.0            // Scales overall size of the spinner
+                , corners: 1            // Roundness (0..1)
+                , color: &#39;#000&#39;         // #rgb or #rrggbb
+                , opacity: 1/4          // Opacity of the lines
+                , rotate: 0             // Rotation offset
+                , direction: 1          // 1: clockwise, -1: counterclockwise
+                , speed: 1              // Rounds per second
+                , trail: 100            // Afterglow percentage
+                , fps: 20               // Frames per second when using setTimeout()
+                , zIndex: 2e9           // Use a high z-index by default
+                , className: &#39;spinner&#39;  // CSS class to assign to the element
+                , top: &#39;50%&#39;            // center vertically
+                , left: &#39;50%&#39;           // center horizontally
+                , shadow: false         // Whether to render a shadow
+                , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
+                , position: &#39;absolute&#39;  // Element positioning
+                }
+                var target = document.getElementById(&#39;spinner&#39;)
+                var spinner = new Spinner(opts).spin(target)
+            $(&quot;#waiting_message&quot;).fadeIn(&#39;slow&#39;);
+        });
+    }());
+});
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この問題は、打ち返したときに .ready
+                    関数が呼び出されないために発生します。 Turbolinks
+                    に対応するには JavaScript
+                    を更新する必要があります。</p>
+                    <p>.ready を使用する代わりに、page:load
+                    などの適切なページ
+                    イベントを使用してみてください。利用可能なオプションはターボリンクのドキュメントにリストされています。</p>
+                    <p>最終的な JavaScript
+                    は、.on(“page:fetch”,default_hide_waiting_message)
+                    のようなものになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

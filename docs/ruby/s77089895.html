@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エラー – オムニ認証: (google_oauth2) 認証失敗 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エラー – オムニ認証: (google_oauth2) 認証失敗",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エラー – オムニ認証: (google_oauth2)
+認証失敗</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリにオムニ認証の
+                    Google、Facebook、Twitter
+                    によるログインを追加する必要があります 私は、github
+                    の公式ドキュメントのオムニ認証チュートリアルに従います。しかし、利用可能なリソースがありません
+                    API
+                    のみのアプリですが、私は初心者なので、バックエンドのみに関する有用なリソースが見つかりませんでした。この任務を達成するのを手伝ってください。
+                    コードを提供して、正しい方法を案内します。
+                    http://localhost:3000/users/auth/google_oauth2/callback
+                    で郵便配達員から API
+                    リクエストをヒットし、しばらく取得したときのサーバーのログです。</p>
+                    <p>2023-09-12 18:49:21 +0530 ::1 の POST
+                    “/users/auth/google_oauth2” を開始しました
+                    D、[2023-09-12T18:49:21.941614 #38273] デバッグ
+                    –omniauth: (google_oauth2) リクエスト
+                    フェーズが開始されました。
+                    E、[2023-09-12T18:49:21.943750 #38273] エラー
+                    –omniauth: (google_oauth2) 認証失敗!
+                    ActionController::InvalidAuthenticityToken:
+                    ActionController::InvalidAuthenticityToken、ActionController::InvalidAuthenticityToken
+                    Users::OmniauthCallbacksController#failure
+                    による処理 /</p>
+                    <p>そしてしばらくして</p>
+                    <p>2023-09-12 19:08:53 +0530 ::1 の GET
+                    “/users/auth/google_oauth2/callback” を開始しました
+                    D、[2023-09-12T19:08:53.125607 #39856] デバッグ
+                    –omniauth: (google_oauth2) コールバック
+                    フェーズが開始されました。
+                    E、[2023-09-12T19:08:53.128328 #39856] エラー
+                    –omniauth: (google_oauth2)
+                    認証失敗!未定義のメソッドの有効期限が切れましたか？
+                    nil:NilClass: NoMethodError
+                    の場合、未定義のメソッドの有効期限が切れていますか?
+                    nilの場合:NilClass
+                    Users::OmniauthCallbacksController#failure
+                    による処理 /</p>
+                    <p>コントローラ</p>
+                    <pre><code># frozen_string_literal: true
+class Users::OmniauthCallbacksController &lt; Devise::OmniauthCallbacksController
+  respond_to :json
+  skip_before_action :verify_authenticity_token
+  skip_before_action :authenticate_request
+  protect_from_forgery with: :null_session
+
+  def handle_omniauth(provider)
+    @user = User.from_omniauth(request.env[&quot;omniauth.auth&quot;])
+    
+    if @user.persisted?
+      render json: { status: &#39;success&#39;, message: &quot;Successfully authenticated via #{provider.capitalize}&quot;, user: @user }
+    else
+      render json: { status: &#39;error&#39;, message: &#39;Authentication failed&#39;, errors: @user.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+  
+  def google_oauth2
+    handle_omniauth(&#39;Google&#39;)
+  end
+
+  def twitter
+    handle_omniauth(&#39;Twitter&#39;)
+  end
+
+  def facebook
+    handle_omniauth(&#39;Facebook&#39;)
+  end
+end
+
+</code></pre>
+                    <p>モデル</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  # Devise modules
+  devise :database_authenticatable, :registerable, :confirmable,
+         :recoverable, :rememberable, :validatable, :trackable,
+         :omniauthable, omniauth_providers: [:google_oauth2, :twitter, :facebook]
+
+  # OmniAuth callback method to create or find a user
+  def self.from_omniauth(auth)
+    user = User.find_by(email: auth.info.email)
+
+    if user
+      user.update(provider: auth.provider, uid: auth.uid)
+    else
+      user = User.create(
+        provider: auth.provider,
+        uid: auth.uid,
+        email: auth.info.email,
+        password: Devise.friendly_token[0, 20]
+      )
+    end
+
+    user
+  end
+end
+
+</code></pre>
+                    <p>Device.rb と credentials.yml
+                    で認証情報を設定しました
+                    デバッグしようとしましたが、デバッガで制御が届きません。</p>
+                    <pre><code> devise_for :users, controllers: {
+    omniauth_callbacks: &#39;users/omniauth_callbacks&#39;
+    registrations: &#39;users/registrations&#39;,
+    sessions: &#39;users/sessions&#39;,
+    passwords: &#39;users/passwords&#39;
+  }
+</code></pre>
+                    <p>ルートが明確に定義されており、
+                    しかし、まだオムニ認証でログインできません。</p>
+                    <pre><code>**gems are **
+# Authentication
+gem &#39;devise&#39;
+gem &#39;omniauth&#39;
+gem &#39;omniauth-facebook&#39;
+gem &#39;omniauth-google-oauth2&#39;
+gem &#39;omniauth-twitter&#39;
+gem &#39;omniauth-rails_csrf_protection&#39;
+</code></pre>
+                    <p>サードパーティのログインを追加したいのですが、エラーが発生します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection/ClassMethods.html</p>
+                    <p>Rails のドキュメントには、protect_from_forgery
+                    によって次の行が追加されると記載されています。</p>
+                    <pre><code>    before_action :verify_authenticity_token, options
+</code></pre>
+                    <p>他の行と競合しています</p>
+                    <pre><code>skip_before_action :verify_authenticity_token
+</code></pre>
+                    <p>自分で生成したフォームではなく、サードパーティからのコールバックを期待しているため、このコンテキストでは信頼性トークンは意味がありません。</p>
+                    <p>:null_session を使用して行 protected_from_forgery
+                    を削除する必要があります。
+                    そして何が起こるか見てみましょう</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

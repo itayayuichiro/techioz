@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - キーワード引数 - すべてのキーワード引数をハッシュとして扱うことができますか?どうやって？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - キーワード引数 - すべてのキーワード引数をハッシュとして扱うことができますか?どうやって？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby - キーワード引数 -
+すべてのキーワード引数をハッシュとして扱うことができますか?どうやって？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなメソッドがあります。</p>
+                    <pre><code>def method(:name =&gt; nil, :color =&gt; nil, shoe_size =&gt; nil) 
+  SomeOtherObject.some_other_method(THE HASH THAT THOSE KEYWORD ARGUMENTS WOULD MAKE)
+end
+</code></pre>
+                    <p>どの呼び出しでも、オプションの値の任意の組み合わせを受け入れることができます。私は名前付き引数が気に入っています。メソッドのシグネチャを見るだけで、どのようなオプションが利用可能であるかを確認できるからです。</p>
+                    <p>私が知らないのは、上記のコードサンプルで大文字で説明したものにショートカットがあるかどうかです。</p>
+                    <p>昔は、次のようなものでした。</p>
+                    <pre><code>def method(opts)
+  SomeOtherObject.some_other_method(opts)
+end
+</code></pre>
+                    <p>エレガント、シンプル、そしてほとんど騙されています。</p>
+                    <p>これらのキーワード引数のショートカットはありますか、それともメソッド呼び出しでオプション
+                    ハッシュを再構成する必要がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、これは可能ですが、あまりエレガントではありません。</p>
+                    <p>メソッドのパラメータとその型の配列を返すパラメータ
+                    メソッドを使用する必要があります
+                    (この場合はキーワード引数のみです)。</p>
+                    <pre><code>def foo(one: 1, two: 2, three: 3)
+  method(__method__).parameters
+end  
+#=&gt; [[:key, :one], [:key, :two], [:key, :three]]
+</code></pre>
+                    <p>それがわかっていると、その配列を使用してすべてのパラメーターとその提供された値のハッシュを取得するさまざまな方法があります。</p>
+                    <pre><code>def foo(one: 1, two: 2, three: 3)
+  params = method(__method__).parameters.map(&amp;:last)
+  opts = params.map { |p| [p, eval(p.to_s)] }.to_h
+end
+#=&gt; {:one=&gt;1, :two=&gt;2, :three=&gt;3}
+</code></pre>
+                    <p>したがって、あなたの例は次のようになります</p>
+                    <pre><code>def method(name: nil, color: nil, shoe_size: nil)
+  opts = method(__method__).parameters.map(&amp;:last).map { |p| [p, eval(p.to_s)] }.to_h
+  SomeOtherObject.some_other_method(opts)
+end
+</code></pre>
+                    <p>これを使用する場合はよく考えてください。これは賢いですが、読みやすさを犠牲にして、コードを読む他の人は気に入らないでしょう。</p>
+                    <p>ヘルパー
+                    メソッドを使用すると、もう少し読みやすくすることができます。</p>
+                    <pre><code>def params # Returns the parameters of the caller method.
+  caller_method = caller_locations(length=1).first.label  
+  method(caller_method).parameters 
+end
+
+def method(name: nil, color: nil, shoe_size: nil)
+  opts = params.map { |p| [p, eval(p.to_s)] }.to_h
+  SomeOtherObject.some_other_method(opts)
+end
+</code></pre>
+                    <p>更新: Ruby 2.2 では、Method#parameters
+                    の代わりに使用できる Binding#local_variables
+                    が導入されました。メソッド内で追加のローカル変数を定義する前に、local_variables
+                    を呼び出す必要があるので注意してください。</p>
+                    <pre><code># Using Method#parameters
+def foo(one: 1, two: 2, three: 3)
+  params = method(__method__).parameters.map(&amp;:last)
+  opts = params.map { |p| [p, eval(p.to_s)] }.to_h
+end
+#=&gt; {:one=&gt;1, :two=&gt;2, :three=&gt;3}
+
+# Using Binding#local_variables (Ruby 2.2+)
+def bar(one: 1, two: 2, three: 3)
+  binding.local_variables.params.map { |p|
+    [p, binding.local_variable_get(p)]
+  }.to_h
+end
+#=&gt; {:one=&gt;1, :two=&gt;2, :three=&gt;3}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

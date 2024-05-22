@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Eth::Client::ContractExecutionError - トランザクションの価格が低価格です | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Eth::Client::ContractExecutionError - トランザクションの価格が低価格です",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Eth::Client::ContractExecutionError -
+トランザクションの価格が低価格です</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>eth gem Ruby ライブラリ
+                    https://q9f.github.io/eth.rb/ を使用して ABI
+                    から呼び出される関数を実行していますが、エラー
+                    トランザクションが過小評価され続けます。ガス価格と関係があると思うので、ガス価格を設定しましたが、依然としてエラーが発生します。
+                    「balanceOf」のような情報の取得に依存する関数を呼び出すと正常に動作することに注意してください。</p>
+                    <p>コード：</p>
+                    <pre><code>def self.mint(mint_address, mint_amount)
+      signer = Eth::Key.new(priv: @@private_key)
+
+      client = Eth::Client.create &quot;https://polygon-mainnet.g.alchemy.com/v2/API&quot;
+      
+      contract_name = &quot;WOW&quot;
+      wow_contract = Eth::Contract.from_abi(abi: @@abiWOW.to_json, address:  @@master_contract_address, name: contract_name)
+      wow_contract.key = signer
+
+      # Convert Gwei to Wei for the gas price. 1 Gwei = 1e9 Wei.
+      gas_price = 170 * 1e9
+
+      # Set gas_price for the contract
+      wow_contract.gas_price = gas_price
+      wow_contract.gas_limit = 200000
+
+      puts &quot;gas price: #{wow_contract.gas_price}&quot;
+           
+      mint_amount_in_smallest_unit = (mint_amount.to_f * (10**18)).to_i
+
+      tx_hash = client.transact_and_wait(wow_contract, &quot;mint&quot;, mint_address, mint_amount_in_smallest_unit, sender_key: signer)
+
+      if client.tx_mined?(tx_hash)
+        puts &quot;Transaction was successful!&quot;
+      else
+        puts &quot;Transaction failed!&quot;
+      end
+  end
+</code></pre>
+                    <p>エラー：</p>
+                    <pre><code>Eth::Client::ContractExecutionError - transaction underpriced
+</code></pre>
+                    <p>その他の出力:</p>
+                    <pre><code>gas price: 170000000000.0
+</code></pre>
+                    <p>ネットワークは Polygon で、クライアントは Alchemy
+                    です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ガソリン価格を値上げしてみてください。ブロックチェーンの現在のガス推定器に応じて、価格の
+                    2 ～ 3
+                    倍をお試しください。メタマスクを使用している場合は、メタマスクにガス送信を操作するセクションがあります。それを確認できます。メタマスクにはこれに関するブログが
+                    1 つあります。それをお読みください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

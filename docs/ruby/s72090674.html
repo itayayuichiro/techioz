@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ハッシュが入力されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ハッシュが入力されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ハッシュが入力されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Chef で作業しており、nmcli
+                    によって設定されたネットワーク デバイス情報を含む
+                    Ruby ハッシュを作成/設定しようとしています。 VS
+                    Codeは文句を言っていないので、コードは正しいと思います。chef-shell
+                    -zでも問題なく動作しているようですが、期待どおりにRubyハッシュをクエリできません。実際に始めています。正気を失うこと。</p>
+                    <p>新鮮な目と専門家の助けをいただければ幸いです。ありがとうございます!</p>
+                    <pre><code>interfaces = Hash.new
+#DEVICE,TYPE
+dev = Mixlib::ShellOut.new(&quot;nmcli -terse -field device,type device&quot;).run_command.stdout.split(/\n/)
+dev.each do |output|
+  if &quot;#{output.split(&quot;:&quot;)[1]}&quot; == &#39;ethernet&#39;
+    interfaces[&quot;ethernet&quot; =&gt; &quot;#{output.split(&quot;:&quot;)[0]}&quot;]
+  elsif &quot;#{output.split(&quot;:&quot;)[1]}&quot; == &#39;wifi&#39;
+    interfaces[&quot;wifi&quot; =&gt; &quot;#{output.split(&quot;:&quot;)[0]}&quot;]
+  else
+    Chef::Log.debug(&quot;Interface #{output.split(&quot;:&quot;)} is not supported&quot;)
+  end
+end
+chef (17.6.18)&gt;  
+ =&gt; [&quot;wlp61s0:wifi&quot;, &quot;enp0s31f6:ethernet&quot;, &quot;lo:loopback&quot;] 
+node[interfaces] #nil
+node[:interfaces] #nil
+node[&#39;interfaces&#39;] #nil
+node[&quot;interfaces&quot;] #nil
+</code></pre>
+                    <p>BroiSatse
+                    が提案したように、コードを編集しようとすると</p>
+                    <p>そこでそれを試してみましたが、ハッシュからはまだ
+                    nil の応答が返されます。 Chef
+                    の出力/エラーは次のとおりです。</p>
+                    <pre><code>chef (17.6.18)&gt; interfaces = Hash.new
+chef &gt; #DEVICE,TYPE
+chef (17.6.18)&gt; dev = Mixlib::ShellOut.new(&quot;nmcli -terse -field device,type device&quot;).run_command.stdout.split(/\n/)
+ =&gt; [&quot;wlp61s0:wifi&quot;, &quot;enp0s31f6:ethernet&quot;, &quot;lo:loopback&quot;] 
+chef &gt; dev.each do |output|
+chef &gt;   if &quot;#{output.split(&quot;:&quot;)[1]}&quot; == &#39;ethernet&#39;
+chef &gt;     interfaces[&quot;ethernet&quot;] = &quot;#{output.split(&quot;:&quot;)[0]}&quot;
+chef &gt;   elsif &quot;#{output.split(&quot;:&quot;)[1]}&quot; == &#39;wifi&#39;
+chef &gt;     interfaces[&quot;wifi&quot;] = &quot;#{output.split(&quot;:&quot;)[0]}&quot;
+chef &gt;   else
+chef &gt;     Chef::Log.debug(&quot;Interface #{output.split(&quot;:&quot;)} is not supported&quot;)
+chef &gt;   end
+chef (17.6.18)&gt; end
+ =&gt; [&quot;wlp61s0:wifi&quot;, &quot;enp0s31f6:ethernet&quot;, &quot;lo:loopback&quot;] 
+chef (17.6.18)&gt; node[interfaces] #nil
+ =&gt; nil 
+chef (17.6.18)&gt; node[:interfaces][:ethernet] #nil
+(irb):95:in `&lt;main&gt;&#39;: undefined method `[]&#39; for nil:NilClass (NoMethodError)
+    from /opt/chef/embedded/lib/ruby/gems/3.0.0/gems/chef-17.6.18/lib/chef/shell.rb:93:in `block in start&#39;
+    from /opt/chef/embedded/lib/ruby/gems/3.0.0/gems/chef-17.6.18/lib/chef/shell.rb:92:in `catch&#39;
+    from /opt/chef/embedded/lib/ruby/gems/3.0.0/gems/chef-17.6.18/lib/chef/shell.rb:92:in `start&#39;
+    from /opt/chef/embedded/lib/ruby/gems/3.0.0/gems/chef-bin-17.6.18/bin/chef-shell:31:in `&lt;top (required)&gt;&#39;
+    from /usr/bin/chef-shell:158:in `load&#39;
+    from /usr/bin/chef-shell:158:in `&lt;main&gt;&#39;
+chef (17.6.18)&gt; node[&#39;interfaces&#39;] #nil
+chef (17.6.18)&gt; node[&quot;interfaces&quot;] #nil
+ =&gt; nil 
+chef (17.6.18)&gt; 
+</code></pre>
+                    <p>更新: 2022年5月2日月曜日 12:08 PST</p>
+                    <p>このコマンドを実行すると、ハッシュにデータがあることがわかります…しかし、実際にデータをクエリしようとする試みはすべて失敗します…何が間違っているのかわかりません。</p>
+                    <pre><code>chef (17.6.18)&gt; puts &quot;#{interfaces}&quot;
+{&quot;wifi&quot;=&gt;&quot;wlp61s0&quot;, &quot;ethernet&quot;=&gt;&quot;enp0s31f6&quot;}
+ =&gt; nil 
+chef (17.6.18)&gt; 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ただ電話してください</p>
+                    <pre><code>interfaces[&quot;ethernet&quot;]
+</code></pre>
+                    <p>または</p>
+                    <pre><code>interfaces[&quot;wifi&quot;]
+</code></pre>
+                    <pre><code>interfaces = {}
+
+dev =
+  Mixlib::ShellOut.new(&quot;nmcli -terse -field device,type device&quot;).
+    run_command.
+    stdout.
+    lines(chomp: true)
+
+dev.each do |output|
+  device, type_device = output.split(&quot;:&quot;)
+
+  case type_device
+  when &quot;ethernet&quot;, &quot;wifi&quot;
+    interfaces[type_device] = device
+  else
+    Chef::Log.debug(&quot;Interface #{output} is not supported&quot;)
+  end
+end
+</code></pre>
+                    <p>注: 主要な Wi-Fi とイーサネットは 1
+                    つだけです。したがって、さらに多くのデバイスがある場合は、最後の値だけが使用されます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

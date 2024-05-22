@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby JSON.pretty_generate での余分な行の回避 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby JSON.pretty_generate での余分な行の回避",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby JSON.pretty_generate
+での余分な行の回避</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような形式の JSON
+                    を生成したいと考えています。</p>
+                    <pre><code>{
+   &quot;a&quot;: {
+       &quot;b&quot;: 1
+   },
+   &quot;c&quot;: [
+       2
+   ],
+   &quot;d&quot;: [],
+   &quot;e&quot;: {}
+}
+</code></pre>
+                    <p>これは、Python、JavaScript、Go の標準 JSON
+                    サポートを使用して簡単に実行できます。</p>
+                    <p>Ruby
+                    では、その正確な出力を取得するのに苦労しています。</p>
+                    <pre><code>$ ~/.rbenv/versions/2.6.3/bin/irb 
+irb(main):001:0&gt; require &#39;json&#39;
+=&gt; true
+irb(main):002:0&gt; puts JSON.pretty_generate({&quot;a&quot; =&gt; {&quot;b&quot; =&gt; 1}, &quot;c&quot; =&gt; [2], &quot;d&quot; =&gt; [], &quot;e&quot; =&gt; {}})
+{
+  &quot;a&quot;: {
+    &quot;b&quot;: 1
+  },
+  &quot;c&quot;: [
+    2
+  ],
+  &quot;d&quot;: [
+
+  ],
+  &quot;e&quot;: {
+  }
+}
+=&gt; nil
+</code></pre>
+                    <p>問題点：</p>
+                    <p>Ruby の標準 JSON
+                    サポートを取得して、必要な出力をレンダリングする簡単な方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>✅ 空の配列/ハッシュが 3 行ではなく 1
+                    行でレンダリングされる JSON を生成するのに、neatjson
+                    gem が便利であることがわかりました。</p>
+                    <p>このオンライン ビジュアル
+                    ツールを使用して、アドホック
+                    オプションを見つけることができます。</p>
+                    <p>gem installneatjson を使用するか、Gemfile に gem
+                    ‘neatjson’, ‘0.9’ を追加してインストールできます
+                    (この記事の執筆時点では 0.9
+                    が最新バージョンでした。自由に調整してください)。</p>
+                    <p>次に、それを使用して期待される出力を取得する方法を次に示します。</p>
+                    <pre><code>require &#39;json&#39;
+require &#39;neatjson&#39;
+
+structure = {
+  &quot;a&quot; =&gt; {&quot;b&quot; =&gt; 1},
+  &quot;c&quot; =&gt; [2],
+  &quot;d&quot; =&gt; [],
+  &quot;e&quot; =&gt; {}, 
+  &quot;f&quot; =&gt; &quot;string with [     ] and {       }&quot;
+}
+
+json = JSON.neat_generate(
+  structure,
+  { 
+    wrap:        true,
+    indent:      &#39;    &#39;,
+    after_colon: 1,
+    after_comma: 1
+  }
+)
+puts &quot;#{json}\n&quot;
+</code></pre>
+                    <p>これが役立つことを願っています。JSON.pretty_generate
+                    を設定する方法が見つかりませんでした。この問題は、neatjson
+                    で解決できます。 JSON
+                    文字列を微調整するための無数のオプションが提供されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

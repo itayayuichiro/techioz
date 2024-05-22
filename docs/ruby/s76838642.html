@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails:一意制約を追加すると、structure.sql ファイルとデータベースのインデックスが削除されるのはなぜですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails:一意制約を追加すると、structure.sql ファイルとデータベースのインデックスが削除されるのはなぜですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:一意制約を追加すると、structure.sql
+ファイルとデータベースのインデックスが削除されるのはなぜですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>一意のインデックスを使用する一意の制約を追加するとインデックスが削除されるだけである理由を知りたいのですが、詳しく説明します。次の移行があります。</p>
+                    <pre><code>class AddUniqueIndexOnNamesForProgramsSuppliersCollections &lt; ActiveRecord::Migration[5.2]
+  disable_ddl_transaction!
+
+  def up
+    execute(&quot;CREATE UNIQUE INDEX CONCURRENTLY idx_supplier_company_id_and_name_unique ON public.suppliers USING btree (company_id, name);&quot;)
+    execute(&quot;CREATE UNIQUE INDEX CONCURRENTLY idx_programs_company_id_and_name_unique ON public.programs USING btree (company_id, name);&quot;)
+    execute(&quot;CREATE UNIQUE INDEX CONCURRENTLY idx_collections_supplier_id_and_name_unique ON public.collections USING btree (supplier_id, name);&quot;)
+  end
+
+  def down
+    remove_index :suppliers, name: :idx_supplier_company_id_and_name_unique
+    remove_index :programs, name: :idx_programs_company_id_and_name_unique
+    remove_index :collections, name: :idx_collections_supplier_id_and_name_unique
+  end
+end
+</code></pre>
+                    <p>上記の移行を実行すると、インデックスが
+                    Structure.sql
+                    ファイルに追加されます。次に、次のような別の移行があります。</p>
+                    <pre><code>class AddUniqueConstraintsOnNamesForProgramsSuppliersCollections &lt; ActiveRecord::Migration[5.2]
+  disable_ddl_transaction!
+
+  def up
+    sql = &lt;&lt;~END_OF_SQL
+      ALTER TABLE public.suppliers ADD CONSTRAINT supplier_company_id_and_name_unique UNIQUE USING INDEX idx_supplier_company_id_and_name_unique;
+      ALTER TABLE public.programs ADD CONSTRAINT programs_company_id_and_name_unique UNIQUE USING INDEX idx_programs_company_id_and_name_unique;
+      ALTER TABLE public.collections ADD CONSTRAINT collections_supplier_id_and_name_unique UNIQUE USING INDEX idx_collections_supplier_id_and_name_unique;
+    END_OF_SQL
+
+    execute(sql)
+  end
+
+  def down
+    sql = &lt;&lt;~END_OF_SQL
+      ALTER TABLE public.suppliers DROP CONSTRAINT supplier_company_id_and_name_unique;
+      ALTER TABLE public.programs DROP CONSTRAINT programs_company_id_and_name_unique;
+      ALTER TABLE public.collections DROP CONSTRAINT collections_supplier_id_and_name_unique;
+    END_OF_SQL
+    execute(sql)
+  end
+end
+</code></pre>
+                    <p>2 番目の移行を実行すると、インデックスが
+                    Structure.sql ファイルと DB
+                    から削除され、代わりに制約が追加されます。そのため、インデックスを制約で置き換えているのだと思いますが、両方を使用したいのですが、何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>PostgreSQL
+                    では、制約の名前はそれを実装するインデックスの名前と同じにするという規則があります。</p>
+                    <p>それで、あなたが書くなら</p>
+                    <pre><code>ALTER TABLE tab ADD UNIQUE USING INDEX abc;
+</code></pre>
+                    <p>制約は abc と呼ばれます。次のように書くと、</p>
+                    <pre><code>ALTER TABLE tab ADD CONSTRAINT def UNIQUE USING INDEX abc;
+</code></pre>
+                    <p>インデックス abc の名前は def
+                    に変更されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

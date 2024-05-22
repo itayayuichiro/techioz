@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sequel で複雑な case ステートメントを作成しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sequel で複雑な case ステートメントを作成しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sequel で複雑な case
+ステートメントを作成しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>MySQL で動作するかなり複雑な case
+                    ステートメントがあります。</p>
+                    <pre><code>SELECT # rest of code omitted
+CASE WHEN code = &#39;a&#39; THEN &#39;x&#39;
+  WHEN code IN (&#39;m&#39;, &#39;n&#39;) THEN &#39;y&#39;
+  WHEN class IN (&#39;p&#39;, &#39;q&#39;) AND amount &lt; 0 THEN &#39;z&#39;
+  ELSE NULL END AS status
+FROM # rest of code omitted
+</code></pre>
+                    <p>ただし、これを Sequel
+                    で書こうとする試みはすべて失敗しました。私はこれをテンプレートとして使用しています:</p>
+                    <pre><code>Sequel.case([[:c, 1], [:d, 2]], 0) # (CASE WHEN &quot;c&quot; THEN 1 WHEN &quot;d&quot; THEN 2 ELSE 0 END)
+</code></pre>
+                    <p>(Jeremy Evans の Github より)</p>
+                    <p>私の最善の推測は次のとおりです。</p>
+                    <pre><code>dataset.select( # rest of code omitted...
+[[(:code =&gt; &#39;a&#39;), &#39;x&#39;],
+[(:code =&gt; &#39;b&#39;), &#39;y&#39;],
+[(:class =&gt; [&#39;p&#39;, &#39;q&#39;], :amount &lt; 0), &#39;z&#39;]].case(nil).as(:status))
+</code></pre>
+                    <p>何か案は？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを試してみた結果、続編の gem
+                    は「シンプル、柔軟、そして強力」であることを目指しているものの、少し複雑になると構文がかなり複雑になるという結論に達しました。</p>
+                    <p>あなたのクエリに対する私の最善の試みは次のとおりです。</p>
+                    <pre><code>DB[:testtable].select( 
+  Sequel.case([
+  [{code: &#39;a&#39;}, &#39;x&#39;],
+  [{code: [&#39;m&#39;, &#39;n&#39;]}, &#39;y&#39;], 
+  [{class: [&#39;p&#39;, &#39;q&#39;], (Sequel.expr(:amount) &gt; 0) =&gt; true}, &#39;z&#39;]], 
+  nil).
+  as(:status)
+)
+</code></pre>
+                    <p>これにより、次の (ほぼ正しい) SQL
+                    が生成されます。</p>
+                    <pre><code>SELECT (
+CASE WHEN (`code` = &#39;a&#39;) THEN &#39;x&#39; 
+WHEN (`code` IN (&#39;m&#39;, &#39;n&#39;)) THEN &#39;y&#39; 
+WHEN ((`class` IN (&#39;p&#39;, &#39;q&#39;)) AND ((`amount` &gt; 0) IS TRUE)) THEN &#39;z&#39; 
+ELSE NULL END) AS `status` FROM `testtable`
+</code></pre>
+                    <p>case
+                    ステートメント内で不等号演算子を使用する方法がわかりませんでした。もしかしたら、そのほうが幸運に恵まれるかもしれません。</p>
+                    <p>私の提案は、クエリを SQL
+                    で書くだけで、非常に読みやすく、保守しやすくなるということです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

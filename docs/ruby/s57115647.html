@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>activerecord-import gemを使用した再帰的インポート: 関連付けによる has_many が機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "activerecord-import gemを使用した再帰的インポート: 関連付けによる has_many が機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>activerecord-import
+gemを使用した再帰的インポート: 関連付けによる has_many が機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「activerecord-import
+                    gem」を使用してCSVファイルをデータベースにインポートしようとしています。
+                    私は次のモデルを持っています</p>
+                    <pre><code>require &#39;csv&#39;
+class Question &lt; ApplicationRecord
+    has_many :question_answers, dependent: :destroy
+    has_many :answers, through: :question_answers
+    belongs_to :category
+    belongs_to :product
+</code></pre>
+                    <pre><code>class Answer &lt; ApplicationRecord
+    has_many :question_answers, dependent: :destroy
+    has_many :questions, through: :question_answers
+ end
+</code></pre>
+                    <pre><code>class QuestionAnswer &lt; ApplicationRecord
+    belongs_to :question
+    belongs_to :answer
+end
+</code></pre>
+                    <p>以下の方法は、CSV データを処理し、ActiveRecord
+                    import gem
+                    を使用して保存できるように準備することです。</p>
+                    <pre><code>def self.from_csv(file)
+        questions = []
+        CSV.foreach(file.path, headers: true) do |row|
+            category = Category.find_by(name: row[&#39;category&#39;].strip)
+            product = Product.find_by(title: row[&#39;product&#39;].strip)
+            parent_q = Question.find_by(qname: row[&#39;parent&#39;])
+            question = Question.new(
+                question: row[&#39;question&#39;],
+                qtype: row[&#39;qtype&#39;],
+                tooltip: row[&#39;tooltip&#39;],
+                parent: parent_q,
+                position: row[&#39;position&#39;],
+                qname: row[&#39;qname&#39;],
+                category_id: category.id,
+                product_id: product.id,
+                state_id: row[&#39;state_id&#39;],
+                explanation: row[&#39;explanation&#39;]
+
+            )
+            answers = row[&#39;answers&#39;].split(&quot; | &quot;) if row[&#39;answers&#39;].present?
+
+            if answers.present?
+                answers.each do |a_str|
+                    answer_arr = a_str.split(&#39;,&#39;)
+                    question.answers.build(answer: answer_arr[0] || &quot;&quot;, value: answer_arr[1] || &quot;&quot;, pdf_parag: answer_arr[2] || &quot;&quot;, key: answer_arr[3] || &quot;&quot;, position: answer_arr[4] || &quot;&quot;, note: answer_arr[5] || &quot;&quot;)
+                end
+            end
+            p question.answers.inspect
+            questions &lt;&lt; question
+        end
+        imported_obj = Question.import questions, recursive: true, validate: false
+    end
+</code></pre>
+                    <p>コードは質問を挿入しますが、その答えがないと、次のようなエラーが表示されます。</p>
+                    <pre><code>NoMethodError (undefined method `answer_id=&#39; for #&lt;Answer:0x000000000&gt;
+</code></pre>
+                    <p>Heroku を使用しています</p>
+                    <p>CSVサンプル</p>
+                    <p>助けていただければ幸いです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>CSV
+                    がどのようなものであるかが分からないと、これ以上解決するのは難しいかもしれませんが、エラーはおそらく次の行からのものです。</p>
+                    <pre><code>question.answers.build(answer: answer_arr[0], ...)
+</code></pre>
+                    <p>その行の後半の属性はおそらく問題ありません
+                    (value、pdf_parag、key、position、note
+                    がすべて回答テーブルの列であると仮定しています。そうでない場合は、さらに問題が発生する可能性があります。)
+                    しかし、そこから始めています。答え:answer_arr[0]。</p>
+                    <p>アンサー レコードに回答 (またはanswer_id)
+                    属性を設定しようとしていると考えられます。
+                    Answer_arr[0] がインポートするデータの ID
+                    であると仮定すると、answer:answer_arr[0] を
+                    ID:answer_arr[0]
+                    に置き換えてみることができます。</p>
+                    <p>ただし、データをインポートしている場合は、インポートから
+                    ID を除外し、Rails に新しい ID
+                    を設定させることを検討することもできます。一般に、フレームワークによる主キーの管理方法をオーバーライドしようとするのは得策ではありません。質問に基づいて作成した回答を保存すると、Rails
+                    が賢く外部キーを正しく設定します。インポートするデータの
+                    ID をどうしても保持する必要がある場合は、ID
+                    を新しい列に入れることを検討してください。</p>
+                    <p>それが正しくない場合は、エラー トレースと CSV
+                    からのサンプル データを提供してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

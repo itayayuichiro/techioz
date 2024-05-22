@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Inspec Chef でのログのカスタマイズ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Inspec Chef でのログのカスタマイズ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Inspec Chef でのログのカスタマイズ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby/chef/inspec の初心者はここにいます。</p>
+                    <p>Linuxでユーザーの存在をテストするためにinspec
+                    Chefを使用しています。</p>
+                    <p>次のようなものを実行するとき</p>
+                    <pre><code>describe user(username) do
+      it &quot;should exist&quot; do
+        # The existence check itself is included in the custom description.
+        expect(subject.exists?).to eq(true)
+      end
+    end
+</code></pre>
+                    <p>次のメッセージが出力されます。</p>
+                    <pre><code> User user1 is expected to exist
+</code></pre>
+                    <p>メッセージを抑制したりカスタマイズしたりする方法はありますか?</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Inspec
+                    は、出力をカスタマイズするためのレポーターをサポートしています。
+                    出力から何を変更したいのかは完全には明らかではありませんが、もっと簡潔なものが必要な場合は、進行状況バーまたは進行状況バーのレポーターが適しているようです。</p>
+                    <pre><code>inspec exec example_profile --reporter progress
+</code></pre>
+                    <p>古典的なドットの進行が得られるようです。</p>
+                    <p>行の出力をカスタマイズしたい場合は、 User
+                    クラスは inspec で定義されています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/inspec/inspec/blob/main/lib/inspec/resources/users.rb#L314</p>
+                    <p>単純な to_s メソッドがあるだけです。</p>
+                    <p>セットアップでそのメソッドをオーバーライドできます。例えば、</p>
+                    <pre><code>module Inspec::Resources
+  class User
+    def to_s
+      &quot;User (redacted)&quot;
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

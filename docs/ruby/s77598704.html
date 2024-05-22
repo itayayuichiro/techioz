@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すべてのファイル ディレクトリの所有者とグループを変更する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すべてのファイル ディレクトリの所有者とグループを変更する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すべてのファイル
+ディレクトリの所有者とグループを変更する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ディレクトリ内のすべてのファイルの所有者、グループ、アクセス許可を変更しようとしています。</p>
+                    <pre><code>%w(/etc/nginx/ /etc/nginx/conf.d/ /var/l0g/nginx/).each do |path|
+  directory path do
+    owner &quot;owner1&quot;
+    group &quot;group1&quot;
+    mode &#39;0755&#39;
+  end
+end
+</code></pre>
+                    <p>ただし、%w()
+                    で指定されたディレクトリの値が変更されるだけです。特にディレクトリ
+                    キーワードではこれが再帰的であると予想していました。</p>
+                    <p>このスクリプトで、ディレクトリ自体を含む指定されたディレクトリ内のすべてのファイルの所有者、グループ、およびアクセス許可を変更するにはどうすればよいですか?</p>
+                    <p>手伝ってくれてありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ディレクトリ
+                    リソースには再帰的なプロパティがあり、次のように文書化されています。</p>
+                    <p>そのため、ディレクトリ内のすべてのファイルのアクセス許可を再帰的に設定する組み込みの方法はありません。また、755
+                    のモードではすべての設定ファイルが全員に対して実行可能としてマークされるため、これはいかなる場合でも良いアイデアではありません。
+                    nginx
+                    設定ファイルは通常、実行可能であることを意図していないため、これはおそらく間違った動作をする可能性があります。</p>
+                    <p>それでも、どうしてもこれを実行したい場合は、次のような
+                    Ruby_block リソースに Ruby
+                    を少し書くことができます。</p>
+                    <pre><code>require &#39;fileutils&#39;
+
+%w(/etc/nginx/ /etc/nginx/conf.d/ /var/l0g/nginx/).each do |path|
+  ruby_block &quot;Set recursive permissions for #{path}&quot; do
+    block do
+      FileUtils.chmod_R(0755, path)
+      FileUtils.chown_R(&quot;owner1&quot;, &quot;group1&quot;, path)
+    end
+  end
+end
+</code></pre>
+                    <p>もう少し「正しい」バージョンは次のようになります。</p>
+                    <pre><code>%w(/etc/nginx/ /etc/nginx/conf.d/ /var/l0g/nginx/).each do |path|
+  ruby_block &quot;Set recursive permissions for #{path}&quot; do
+    block do
+      FileUtils.chmod_R(&quot;u=rw+X,go=r+X&quot;, path)
+      FileUtils.chown_R(&quot;owner1&quot;, &quot;group1&quot;, path)
+    end
+  end
+end
+</code></pre>
+                    <p>ここでは、厳密に数値的な説明ではなく、記号的なモード説明を使用します。これにより、単なる
+                    x ではなく X 仕様を使用できるようになります。 chmod
+                    の仕様は次のようになります。</p>
+                    <p>これにより、すべてのディレクトリに実行/検索ビットが設定され、以前に実行ビットが設定されていたファイルのみがそのビットを保持します
+                    (ただし、新しいファイルが実行ビットを取得することはありません)。</p>
+                    <p>最後にいくつか注意事項として:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

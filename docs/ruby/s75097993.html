@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Aws::SES::Errors::InvalidParameterValue: 添付ファイル付きのネストされたグループ Ruby send_raw_email | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Aws::SES::Errors::InvalidParameterValue: 添付ファイル付きのネストされたグループ Ruby send_raw_email",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Aws::SES::Errors::InvalidParameterValue:
+添付ファイル付きのネストされたグループ Ruby send_raw_email</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の aws ses
+                    のドキュメントを使用したとき、次のように言います。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.rubydoc.info/gems/aws-sdk-ses/1.14.0/Aws%2FSES%2FClient:send_raw_email</p>
+                    <p>そのコードを試してみると、次のようなエラーが発生します。
+                    Aws::SES::Errors::InvalidParameterValue:
+                    ネストされたグループ</p>
+                    <p>send_raw_email
+                    を使用して電子メールを送信しようとしましたが、Ruby
+                    用の AWS SES
+                    のドキュメントを使用してドキュメント内のコードをテストすると、プログラムが次のメッセージを返します:
+                    Aws::SES::Errors::InvalidParameterValue: Nested
+                    group and not send email</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは補間に関する問題です。これを使用して解決します。</p>
+                    <pre><code># open and read archive to send in attachment
+file = File.open(path_from_csv_created).read
+
+resp = ses_client.send_raw_email(
+      source: &#39;email_send&#39;,
+      destinations: [&#39;email_to_receive&#39;],
+      raw_message: {
+        data: &lt;&lt;~MESSAGE
+          From: email_send
+          To: email_to_receive
+          Subject: Test email (contains an attachment)
+          MIME-Version: 1.0
+          Content-type: Multipart/Mixed; boundary=&quot;NextPart&quot;
+
+          --NextPart
+          Content-Type: text/plain
+
+          bodyyyy
+
+          --NextPart
+          Content-Type: application/csv;
+          Content-Disposition: attachment; filename=&quot;#{file_csv_name}&quot;
+
+          #{file}
+        MESSAGE
+      }
+    )
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

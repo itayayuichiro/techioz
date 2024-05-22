@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同時実行でテナントプレフィックスを使用して連続した請求書番号を生成します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同時実行でテナントプレフィックスを使用して連続した請求書番号を生成します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同時実行でテナントプレフィックスを使用して連続した請求書番号を生成します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>before_create :generate_invoice_number
+                    コールバックを持つ Invoice モデルがあります。 EU
+                    (プレフィックス 11) と US (プレフィックス 12) の 2
+                    つのテナントもあります。生成される形式は
+                    tenant-00000001
+                    である必要があります。通常の請求書の場合は問題ないようですが、私はサブスクリプションサービスを実行しているため、更新間隔が始まると（月の最初）、バックグラウンドジョブによって大量の請求書（〜1000）が同時に生成されます。</p>
+                    <pre><code>def generate_invoice_number
+  retries = 0
+
+  begin
+    ActiveRecord::Base.transaction do
+      Invoice.where(tenant_identifier: tenant.name).lock(true)
+
+      latest_invoice = Invoice.where(tenant_identifier: tenant.name).order(invoice_number: :desc).first
+      next_sequence_number = latest_invoice ? latest_invoice.invoice_number.split(&#39;-&#39;).last.to_i + 1 : 1
+      padded_sequence = next_sequence_number.to_s.rjust(8, &#39;0&#39;)
+
+      self.invoice_number = &quot;#{tenant.invoice_number_prefix}-#{padded_sequence}&quot;
+    end
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::Deadlocked =&gt; e
+    raise e if retries &gt;= 10
+  
+    puts &quot;RESCUED #{retries}&quot;
+    retries += 1
+    sleep(0.2 * (2 ** retries))
+  
+    retry
+  end
+end
+</code></pre>
+                    <p>これは私のテスト設定です:</p>
+                    <pre><code>it &quot;generates unique invoice numbers under concurrency&quot; do
+  threads = []
+
+  generated_invoice_numbers = Concurrent::Array.new
+
+  50.times do
+    threads &lt;&lt; Thread.new do
+      ActiveRecord::Base.connection_pool.with_connection do
+        invoice = create(:invoice)
+        generated_invoice_numbers &lt;&lt; invoice.invoice_number
+      end
+      ActiveRecord::Base.clear_active_connections!
+    end
+  end
+
+  threads.each(&amp;:join)
+
+  expect(generated_invoice_numbers.uniq.length).to eq(generated_invoice_numbers.length)
+end
+</code></pre>
+                    <p>私はデータベースサーバーとしてmysqlを使用しており、invoice_numberには一意のインデックスがあります。</p>
+                    <p>問題:
+                    レスキューエラーやタイムアウトエラーを実行しても、依然として重複エラーが発生します。
+                    before_create
+                    はおそらくそれを行うのに最適な場所ではないでしょうか?あるいはそれを最適化するにはどうすればよいでしょうか?</p>
+                    <p>mysql トリガーを使用した EDIT バリアント
+                    (ヘアトリガーを使用)</p>
+                    <pre><code>trigger.before(:insert) do
+  &lt;&lt;-SQL
+    DECLARE seq_number INT;
+
+    SELECT next_sequence_number INTO seq_number
+    FROM tenant_invoice_sequence_numbers
+    WHERE tenant_identifier = NEW.tenant_identifier
+    FOR UPDATE;
+
+    IF seq_number IS NOT NULL THEN
+      SET NEW.invoice_number = CONCAT(NEW.tenant_identifier, &#39;-&#39;, LPAD(seq_number, 8, &#39;0&#39;));
+
+      UPDATE tenant_invoice_sequence_numbers
+      SET next_sequence_number = seq_number + 1, updated_at = NOW()
+      WHERE tenant_identifier = NEW.tenant_identifier;
+    ELSE
+      INSERT INTO tenant_invoice_sequence_numbers(tenant_identifier, next_sequence_number, created_at, updated_at)
+      VALUES (NEW.tenant_identifier, 2, NOW(), NOW());
+
+      SET NEW.invoice_number = CONCAT(NEW.tenant_identifier, &#39;-&#39;, LPAD(1, 8, &#39;0&#39;));
+    END IF;
+  SQL
+end
+</code></pre>
+                    <p>これの問題は、テーブルをロックするとデッドロックが発生することです。そして、Rails
+                    はトリガーについて何も知らないため、オブジェクトをリロードする必要があります（Rails
+                    は作成後に ID
+                    をどのようにして知るのでしょうか）。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局、分散ロックと再試行による一意でない番号の救済に
+                    redlock
+                    を使用することになりました。とりあえず問題は解決したようです。</p>
+                    <pre><code>def generate_invoice_number
+  retries = 0
+
+  begin
+    $redlock_client.lock(&quot;invoice_number_lock_#{tenant.name}&quot;, 2000, retries: 10) do |locked|
+      if locked
+        ActiveRecord::Base.transaction do
+          tenant_sequence = TenantInvoiceSequenceNumber.find_or_create_by!(tenant_identifier: tenant_identifier)
+          padded_sequence = tenant_sequence.next_sequence_number.to_s.rjust(8, &#39;0&#39;)
+          self.invoice_number = &quot;#{tenant.invoice_number_prefix}-#{padded_sequence}&quot;
+
+          tenant_sequence.increment!(:next_sequence_number)
+        end
+      else
+        raise &quot;Unable to acquire lock to generate invoice number&quot;
+      end
+    end
+  rescue ActiveRecord::RecordNotUnique =&gt; e
+    raise e if retries &gt;= 10
+
+    retries += 1
+    sleep(0.2 * (2 ** retries))
+  end
+end
+</code></pre>
+                    <p>次の番号を追跡するために追加のモデルも追加されました。</p>
+                    <pre><code>create_table &quot;tenant_invoice_sequence_numbers&quot;, charset: &quot;utf8mb4&quot;, collation: &quot;utf8mb4_0900_ai_ci&quot;, force: :cascade do |t|
+  t.string &quot;tenant_identifier&quot;, null: false
+  t.integer &quot;next_sequence_number&quot;, default: 1, null: false
+  t.datetime &quot;created_at&quot;, null: false
+  t.datetime &quot;updated_at&quot;, null: false
+  t.index [&quot;tenant_identifier&quot;], name: &quot;index_tenant_invoice_sequence_numbers_on_tenant_identifier&quot;, unique: true
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

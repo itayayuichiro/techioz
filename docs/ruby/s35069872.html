@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>テストの実行が完了した後に、Cucumber/Capybara を閉じたり、ブラウザ セッションを終了したりするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "テストの実行が完了した後に、Cucumber/Capybara を閉じたり、ブラウザ セッションを終了したりするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>テストの実行が完了した後に、Cucumber/Capybara
+を閉じたり、ブラウザ
+セッションを終了したりするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Jenkins
+                    でいくつかの問題が発生しています。テストの実行が完了した後も、ブラウザー
+                    セッションはまだ生きているため、パイプラインで別の問題が発生します。そのため、テストスイートで実行が完了した後、ブラウザセッションを終了したいと考えています。
+                    Cucumber＞Capybara＞SitePrism＞Rubyを使用しています。</p>
+                    <p>どうすればそれができるでしょうか？テストスイートの最後に実行される以下のようなものが必要です。</p>
+                    <pre><code>RSpec.configure do |config|
+  config.after(:suite) do
+    puts &#39;Destroy Driver&#39;
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>試してみてもいいでしょう</p>
+                    <pre><code>Capybara.send(:session_pool).each { |name, ses| ses.driver.quit }
+</code></pre>
+                    <p>これは、Selenium::Webdriver
+                    のすべてのインスタンスで quit
+                    を呼び出す必要がありますが、プライベート メソッド
+                    sesion_pool
+                    にアクセスしています。実際、これらのインスタンスは、セッションで何か奇妙なことをしていない限り
+                    (またはバグがある可能性があります)、capybara
+                    が終了すると自動的にクリーンアップされるはずです。
+                    phantomjs で使用する場合は Selenium で)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

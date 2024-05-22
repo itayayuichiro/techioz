@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 3.0 - 引数の数が間違っています (3 が指定され、1..2 が予想されます) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 3.0 - 引数の数が間違っています (3 が指定され、1..2 が予想されます)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 3.0 - 引数の数が間違っています (3
+が指定され、1..2 が予想されます)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>uk_postcode gem
+                    を使用するプロジェクトがあります。次のようなバリデータクラスがあります。</p>
+                    <pre><code>class UkPostcodeValidator &lt; ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    postcode = UKPostcode.parse(value.to_s)
+    return if postcode.full_valid?
+
+    record.errors.add attribute, :invalid_uk_postcode, options
+  end
+end 
+</code></pre>
+                    <p>上記は Ruby 2.7.6
+                    では正常に動作していましたが、Ruby 3.0.0
+                    に更新する必要があります。これを実行すると、テストが壊れて次のエラーが発生します。</p>
+                    <pre><code>Failure/Error: record.errors.add attribute, :invalid_uk_postcode, options
+     
+     ArgumentError:
+       wrong number of arguments (given 3, expected 1..2) 
+</code></pre>
+                    <p>私のRubyとRailsの知識はまだ十分ではありませんが、オンラインでたくさん検索してさまざまなことを試した結果、record.errors.add属性、:invalid_uk_postcode、オプションをrecord.errors.add属性、:invalid_uk_postcode、<strong>optionsに変更することがわかりました。テストを修正します。したがって、最後の引数に
+                    </strong>
+                    を追加するとテストが修正され、検証が通常どおり動作するように見えます。これまで読んだことから、引数はより具体的である必要があり、**を追加することでキーワード引数になります（任意の型/値を取ることができると想定しています）が、私は専門家ではないので、
+                    Ruby と Rails
+                    の専門家ではありますが、これを正しく理解するというよりは推測にすぎません。</p>
+                    <p>誰かがもっと上手にガイドしてくれるでしょうか？上記の変更はこのように修正しても問題ないと思われますか?最後の引数に
+                    **
+                    を追加するとエラーの問題が解決するのはなぜですか?</p>
+                    <p>atm、どのオプションがどのようなことを指しているのか、そして将来的には何かを調べているのかわかりませんが、知っていて答えられる人はよろしくお願いします。ありがとう</p>
+                    <p>オンラインでエラーを検索すると、Ruby
+                    の構文に変更があることがわかります。これを理解しようとしています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>キーワード引数が位置引数から完全に分離されるようになりました。</p>
+                    <pre><code>def new_style(name, **options)
+end
+
+new_style(&#39;John&#39;, {age: 10})
+# Ruby 2.6: works
+# Ruby 2.7: warns: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call
+# Ruby 3.0: ArgumentError (wrong number of arguments (given 2, expected 1))
+new_style(&#39;John&#39;, age: 10)
+# =&gt; works
+h = {age: 10}
+new_style(&#39;John&#39;, **h)
+# =&gt; works, ** is mandatory
+</code></pre>
+                    <p>add メソッドの定義は次のとおりです。</p>
+                    <pre><code>def add(attribute, type = :invalid, **options)
+</code></pre>
+                    <p>したがって、**
+                    なしでオプションにハッシュを渡すことは現在サポートされていません。代わりに、次のようにキーワード引数として直接渡すことができます。これが
+                    ** の動作です。</p>
+                    <pre><code>record.errors.add attribute, :invalid_uk_postcode, count: 25, other_attr: &#39;any text&#39;
+</code></pre>
+                    <p>詳細な記事はこちら:
+                    https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

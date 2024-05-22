@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyはハッシュを角括弧付きの単一レイヤーに変更します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyはハッシュを角括弧付きの単一レイヤーに変更します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyはハッシュを角括弧付きの単一レイヤーに変更します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュを取得しましたが、net/http
+                    に投稿するには、それをフラット形式に変換する必要があることがわかりました。</p>
+                    <p>例</p>
+                    <pre><code>invoice = { :no =&gt; &quot;100&quot;, :date =&gt; &quot;08/08/2022&quot;, :client =&gt; {:name =&gt; &quot;Foo&quot; } }
+</code></pre>
+                    <p>なるだろう</p>
+                    <pre><code>params = { &quot;invoice[no]&quot; =&gt; &quot;100&quot;, &quot;invoice[date]&quot; =&gt; &quot;08/08/2022&quot;, &quot;invoice[client][name]&quot; =&gt; &quot;Foo&quot; }
+</code></pre>
+                    <p>これを自動的に行う方法はありますか? to_param と
+                    to_query 、 flatten 、 encode_www_form
+                    を試しましたが、この必要な形式に変換されません。</p>
+                    <p>私が実行しているポストアクションは、Devise Tokens
+                    を使用して認可する Ruby On Rails
+                    バックエンドに対するものです。</p>
+                    <pre><code>res = Net::HTTP.post_form(uri, params)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>CGI.parseメソッドが必要です。 HTTP
+                    クエリ文字列をキー =&gt;
+                    値のペアのハッシュに解析します。</p>
+                    <pre><code>CGI.parse({ invoice: invoice }.to_query)
+
+# =&gt; {&quot;invoice[client][name]&quot;=&gt;[&quot;Foo&quot;], &quot;invoice[date]&quot;=&gt;[&quot;08/08/2022&quot;], &quot;invoice[no]&quot;=&gt;[&quot;100&quot;]
+</code></pre>
+                    <p>値としての単一要素の配列は気にしないでください。それはうまくいきます</p>
+                    <pre><code>params = CGI.parse({ invoice: invoice }.to_query)
+res = Net::HTTP.post_form(uri, params)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アプリケーションのストライプ チェックアウトとスティミュラス コントローラーの問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アプリケーションのストライプ チェックアウトとスティミュラス コントローラーの問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アプリケーションのストライプ
+チェックアウトとスティミュラス コントローラーの問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリケーションでの Stripe Checkout
+                    のレンダリングと Stimulus
+                    コントローラーの接続で問題が発生しました。以下に詳細を説明しました。</p>
+                    <p>刺激コントローラー:</p>
+                    <p>関連するコード:</p>
+                    <p>ストライプコントローラー.js</p>
+                    <pre><code>import { Controller } from &quot;@hotwired/stimulus&quot;
+
+export default class extends Controller {
+  static values = { publicKey: String, clientSecret: String }
+  stripe = Stripe(this.publicKeyValue, { betas: [&quot;embedded_checkout_beta_1&quot;] });
+
+  connect() {
+    console.log(&quot;Stimulus controller connected&quot;);
+  }
+
+  async connect() {
+    console.log(&quot;Connect method is called&quot;);
+    console.log(&quot;Public Key:&quot;, this.publicKeyValue);
+    console.log(&quot;Client Secret:&quot;, this.clientSecretValue);
+
+    this.checkout = await this.stripe.initEmbeddedCheckout({
+      clientSecret: this.clientSecretValue
+    });
+
+    console.log(&quot;Checkout Object:&quot;, this.checkout);
+
+    this.checkout.mount(this.element);
+  }
+
+  disconnect() {
+    this.checkout.destroy();
+  }
+}
+</code></pre>
+                    <p>インポートマップ.rb</p>
+                    <pre><code># Pin npm packages by running ./bin/importmap
+
+pin &quot;application&quot;, preload: true
+pin &quot;@hotwired/turbo-rails&quot;, to: &quot;turbo.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus&quot;, to: &quot;stimulus.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus-loading&quot;, to: &quot;stimulus-loading.js&quot;, preload: true
+pin_all_from &quot;app/javascript/controllers&quot;, under: &quot;controllers&quot;
+</code></pre>
+                    <p>show.html.erb</p>
+                    <pre><code>&lt;h1&gt;Checkout Page&lt;/h1&gt;
+&lt;%# &lt;script type=&quot;module&quot; src=&quot;/javascript/controllers/stripe_controller.js&quot;&gt;&lt;/script&gt; %&gt;
+&lt;div data-controller=&quot;stripe&quot;
+  data-stripe-public-key-value=&quot;&lt;%= Rails.application.credentials.dig(:stripe, :publishable_key)%&gt;&quot;
+  data-stripe-client-secret-value=&quot;&lt;%= @session.client_secret %&gt;&quot;&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>講じた手順:</p>
+                    <p>インポート
+                    マップの構成をチェックし、正しいパスを確認しました。
+                    アセットは、インポート
+                    マップを変更した後にプリコンパイルされています。
+                    javascript_importmap_tags はレイアウト
+                    ファイルの先頭に配置されます。</p>
+                    <p>アップデート</p>
+                    <p>application.js ファイルで console.log
+                    を実行しましたが、何も記録されませんでした。</p>
+                    <p>発生したエラー:</p>
+                    <p>ブラウザのコンソールに次のようなエラーが表示されます。</p>
+                    <p>キャッチされない TypeError:
+                    モジュール指定子「アプリケーション」を解決できませんでした。相対参照は、「/」、「./」、または「../」のいずれかで始まる必要があります。
+                    Uncaught TypeError: モジュール指定子「<span
+                    class="citation"
+                    data-cites="hotwired/turbo-rails">@hotwired/turbo-rails</span>」を解決できませんでした。相対参照は、「/」、「./」、または「../」のいずれかで始まる必要があります。</p>
+                    <p>バージョン:</p>
+                    <p>Rails バージョン: Rails 7.0.8 ターボバージョン:
+                    <span class="citation"
+                    data-cites="hotwired/turbo-rails">@hotwired/turbo-rails</span>:
+                    8.0.0-beta.2</p>
+                    <p>アプリケーションはローカルホスト上で実行されます。
+                    Stripe
+                    キーをテストキーに変更してみましたが、問題は解決しません。</p>
+                    <p>これらの問題の原因とその解決方法についての洞察や提案をいただければ幸いです。</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>&lt;%= javascript_importmap_tags %&gt;
+                    がすべてを処理するため、application.html.erb
+                    の先頭にあるアプリケーションの JavaScript include
+                    タグを削除することで問題を解決しました。次に、次の行を追加しました。
+                    import { StripeController } から
+                    “./ストライプ_コントローラー”;私の application.js
+                    ファイルに次のように追加します。</p>
+                    <p>アプリ/javascript/コントローラー/application.js</p>
+                    <pre><code>import { Application } from &quot;@hotwired/stimulus&quot;;
+import { StripeController } from &quot;./stripe_controller&quot;;
+
+const application = Application.start();
+application.register(&quot;stripe&quot;, StripeController);
+application.debug = false;
+window.Stimulus = application;
+
+export { application };
+</code></pre>
+                    <p>そしてストライプコントローラーではこれを変更しました:</p>
+                    <pre><code>export class extends Controller {
+</code></pre>
+                    <p>これに：</p>
+                    <pre><code>export class StripeController extends Controller {
+</code></pre>
+                    <p>importmap
+                    に固定されていないインポートもありました。それらも次のようにコメントアウトしました。</p>
+                    <p>アプリ/javascript/application.js</p>
+                    <pre><code>import &quot;@hotwired/turbo-rails&quot;
+import &quot;controllers&quot;
+// import &quot;bootstrap&quot;
+// import &quot;jquery&quot;
+// import &quot;popper.js&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

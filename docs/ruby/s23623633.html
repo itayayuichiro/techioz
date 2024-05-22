@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レールには個別の値が含まれます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レールには個別の値が含まれます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レールには個別の値が含まれます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は標準の Ruby
+                    インクルードを持っています。そのように：</p>
+                    <pre><code>  @properties = Property.where(id: property_ids)
+    .includes(:property_values).select(&#39;select distinct &quot;property_values&quot;.&quot;value&quot;&#39;).references(:property_values)
+</code></pre>
+                    <p>各プロパティのプロパティ値に一意の値が必要です。</p>
+                    <p>しかし、このクエリではエラーが発生します。</p>
+                    <pre><code>PG::SyntaxError - ERROR:  syntax error at or near &quot;select&quot;
+LINE 1: ...S t1_r4, &quot;property_values&quot;.&quot;updated_at&quot; AS t1_r5, select dis...
+</code></pre>
+                    <p>完全なクエリは次のとおりです。</p>
+                    <pre><code>: SELECT &quot;properties&quot;.&quot;id&quot; AS t0_r0, &quot;properties&quot;.&quot;k1c&quot; AS t0_r1, &quot;properties&quot;.&quot;name&quot; AS t0_r2, &quot;properties&quot;.&quot;created_at&quot; AS t0_r3, &quot;properties&quot;.&quot;updated_at&quot; AS t0_r4, &quot;property_values&quot;.&quot;id&quot; AS t1_r0, &quot;property_values&quot;.&quot;value&quot; AS t1_r1, &quot;property_values&quot;.&quot;product_id&quot; AS t1_r2, &quot;property_values&quot;.&quot;property_id&quot; AS t1_r3, &quot;property_values&quot;.&quot;created_at&quot; AS t1_r4, &quot;property_values&quot;.&quot;updated_at&quot; AS t1_r5, select distinct &quot;property_values&quot;.&quot;value&quot; FROM &quot;properties&quot; LEFT OUTER JOIN &quot;property_values&quot; ON &quot;property_values&quot;.&quot;property_id&quot; = &quot;properties&quot;.&quot;id&quot; WHERE &quot;properties&quot;.&quot;id&quot; IN (159, 27, 26, 25, 24, 23, 22, 4, 1) AND &quot;properties&quot;.&quot;id&quot; IN (1)  ORDER BY &quot;properties&quot;.&quot;id&quot; ASC
+</code></pre>
+                    <p>このエラーを回避して、uniq
+                    プロパティ値のみを取得するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>@properties = Property.where(id: property_ids).
+  joins(:property_values).
+  select(&#39;&quot;property_values&quot;.&quot;value&quot;&#39;).
+  distinct.
+  references(:property_values)
+</code></pre>
+                    <p>include
+                    は別のクエリでデータをロードするため、include を
+                    join に変更しましたが、join
+                    は実際に結合を実行するので、クエリ内のデータに対してアクションを実行できることに注意してください。</p>
+                    <p>select内に置く代わりにdistinctメソッドを使用しましたが、これを行うこともできますが、文字列からselectという単語を削除する必要があります</p>
+                    <pre><code>@properties = Property.where(id: property_ids)
+  joins(:property_values).
+  select(&#39;distinct &quot;property_values&quot;.&quot;value&quot;&#39;).
+  references(:property_values)
+</code></pre>
+                    <p>続きを読む
+                    http://blog.bigbinary.com/2013/07/01/preload-vs-eager-load-vs-joins-vs-includes.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

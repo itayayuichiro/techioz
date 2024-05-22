@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>重複のない最長部分文字列の検索 - コードの最適化のヘルプ [Ruby] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "重複のない最長部分文字列の検索 - コードの最適化のヘルプ [Ruby]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>重複のない最長部分文字列の検索 -
+コードの最適化のヘルプ [Ruby]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで私は Leetcode
+                    の質問、「文字列が与えられた場合、文字を繰り返さずに最も長い部分文字列の長さを見つけてください」を解決しようとしています。</p>
+                    <p>例えば</p>
+                    <pre><code>Input: &quot;abcabcbb&quot;
+Output: 3 
+Explanation: The answer is &quot;abc&quot;, with the length of 3. 
+</code></pre>
+                    <p>現在、ハッシュ
+                    テーブルを使用して部分文字列が一意であるかどうかを判断するアルゴリズムを最適化しています。ただし、コードは依然として
+                    O(n^2)
+                    ランタイムで実行され、その結果、送信中に制限時間を超えてしまいます。</p>
+                    <p>私がやろうとしているのは、基本的に考えられるすべての部分文字列を調べて、重複する値があるかどうかを確認することです。ここで強引な方法を実行する場合、私はこれほど効率的でしょうか?スライディング
+                    ウィンドウ法などの他の方法があることは知っていますが、最初に総当たり法を理解しようとしています。</p>
+                    <pre><code># @param {String} s
+# @return {Integer}
+def length_of_longest_substring(s)
+    max_length = 0
+    max_string = &quot;&quot;
+    n = s.length
+    for i in (0..n-1)
+        for j in (i..n-1)
+            substring = s[i..j]
+            #puts substring
+            if unique(substring)
+                if substring.length &gt; max_length
+                    max_length = substring.length
+                    max_string = substring
+                end
+            end
+        end
+    end
+    return max_length
+end
+
+def unique(string)
+    hash = Hash.new(false)
+    array = string.split(&#39;&#39;)
+    array.each do |char|
+        if hash[char] == true
+            return false
+        else
+            hash[char] = true
+        end
+    end
+    return true
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アプローチ</p>
+                    <p>ここでは、文字をインデックスにマッピングするハッシュを使用してこれを行う方法を示します。文字列
+                    s の場合、部分文字列 s[j..j+n-1]
+                    内の文字が一意であるため、その部分文字列が最長の一意の部分文字列の候補であるとします。したがって、次の要素は
+                    e = s[j+n] です。 s[j..j+n-1] に e
+                    が含まれるかどうかを判断したいとします。そうでない場合は、部分文字列に
+                    e を追加して、一意性を保つことができます。</p>
+                    <p>s[j..j+n-1] に e が含まれる場合、n
+                    (部分文字列のサイズ)
+                    が既知の部分文字列の長さより大きいかどうかを判断し、大きい場合はレコードを更新します。
+                    s[j..j+n-1] に e
+                    が含まれるかどうかを判断するには、部分文字列の線形検索を実行できますが、キーと値のペアが
+                    s[i]=&gt;i であるハッシュ c_to_i
+                    を維持する方が高速です。 i = j..j_n-1。つまり、
+                    c_to_i
+                    は部分文字列内の文字を完全な文字列内のインデックスにマップします。そうすれば、単に
+                    c_to_i.key?(e) を評価して、部分文字列に e
+                    が含まれているかどうかを確認できます。部分文字列に e
+                    が含まれる場合、c_to_i を使用して s
+                    内のインデックスを決定し、1 を追加します: j =
+                    c_to_i[e] + 1。したがって、新しい部分文字列は、j
+                    の新しい値を持つ s[j..j+n-1] になります。
+                    。このステップでは、s
+                    のいくつかの文字がスキップされる場合があることに注意してください。</p>
+                    <p>部分文字列に e
+                    が含まれているかどうかに関係なく、(おそらく更新された)
+                    部分文字列に e を追加して、s[j..j+n]
+                    にする必要があります。</p>
+                    <p>コード</p>
+                    <pre><code>def longest_no_repeats(str)
+  c_to_i = {}
+  longest = { length: 0, end: nil }
+  str.each_char.with_index do |c,i|
+    j = c_to_i[c]
+    if j
+      longest = { length: c_to_i.size, end: i-1 } if
+        c_to_i.size &gt; longest[:length]
+      c_to_i.reject! { |_,k| k &lt;= j }
+    end
+    c_to_i[c] = i
+  end
+  c_to_i.size &gt; longest[:length] ? { length: c_to_i.size, end: str.size-1 } :
+    longest
+end
+</code></pre>
+                    <p>例</p>
+                    <pre><code>a = (&#39;a&#39;..&#39;z&#39;).to_a
+  #=&gt; [&quot;a&quot;, &quot;b&quot;,..., &quot;z&quot;]
+
+str = 60.times.map { a.sample }.join
+  #=&gt; &quot;ekgdaxxzlwbxixhlfbpziswcoelplhobivoygmupdaexssbuuawxmhprkfms&quot;
+
+longest = longest_no_repeats(str)
+  #=&gt; {:length=&gt;14, :end=&gt;44} 
+str[0..longest[:end]]
+  #=&gt; &quot;ekgdaxxzlwbxixhlfbpziswcoelplhobivoygmupdaexs&quot; 
+str[longest[:end]-longest[:length]+1,longest[:length]]
+  #=&gt;                                &quot;bivoygmupdaexs&quot; 
+</code></pre>
+                    <p>効率</p>
+                    <p><span class="citation"
+                    data-cites="mechnicov">@mechnicov</span>
+                    のコードとのベンチマーク比較は次のとおりです。</p>
+                    <pre><code>require &#39;benchmark/ips&#39;
+
+a = (&#39;a&#39;..&#39;z&#39;).to_a
+arr = 50.times.map { 1000.times.map { a.sample }.join }
+
+Benchmark.ips do |x|
+  x.report(&quot;mechnicov&quot;) { arr.sum { |s| max_non_repeated(s)[:length]   } }
+  x.report(&quot;cary&quot;)      { arr.sum { |s| longest_no_repeats(s)[:length] } }
+  x.compare!
+end
+</code></pre>
+                    <p>表示:</p>
+                    <pre><code>Comparison:
+            cary:       35.8 i/s
+       mechnicov:        0.0 i/s - 1198.21x  slower
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

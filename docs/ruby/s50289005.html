@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関数を QPushButton プレスに接続する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関数を QPushButton プレスに接続する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関数を QPushButton プレスに接続する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ボタンを押した後にユーザー定義関数を実行したい。コード
+                    スニペットで指定されている動作を実現するために
+                    connect 関数を正しく使用する方法がわかりません。</p>
+                    <pre><code>#!/usr/bin/env ruby
+require &#39;Qt4&#39;
+
+def do_sth
+  print &quot;did something&quot;
+end
+
+app = Qt::Application.new(ARGV)
+
+btn = Qt::PushButton.new(&#39;Button&#39;)
+btn.resize(75, 30)
+btn.setFont(Qt::Font.new(&#39;Times&#39;, 18, Qt::Font::Bold))
+
+# A button click will close the application.
+#Qt::Object.connect(btn, SIGNAL(&#39;clicked()&#39;),app, SLOT(&#39;quit()&#39;))
+#
+# FIXME How to execute the function do_sth if the button was pressed?
+Qt::Object.connect(btn, SIGNAL(&#39;clicked()&#39;),app, SLOT(&#39;do_sth()&#39;))
+
+btn.show()
+app.exec()
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ヒントをありがとう、あなたが提案した方法でうまくいきました。</p>
+                    <pre><code>#!/usr/bin/env ruby
+require &#39;Qt4&#39;
+
+class Qo &lt; Qt::Object
+  slots &#39;do_sth()&#39;
+  slots &#39;bla()&#39;
+
+  def do_sth
+    puts &quot;did something&quot;
+  end
+
+  def bla
+    puts &quot;blabla&quot;
+  end
+end
+
+qobj = Qo.new
+app = Qt::Application.new(ARGV)
+
+btn = Qt::PushButton.new(&#39;Button&#39;)
+btn.resize(75, 30)
+btn.setFont(Qt::Font.new(&#39;Times&#39;, 18, Qt::Font::Bold))
+
+Qt::Object.connect(btn, SIGNAL(&#39;clicked()&#39;),qobj, SLOT(&#39;do_sth()&#39;))
+Qt::Object.connect(btn, SIGNAL(&#39;pressed()&#39;),qobj, SLOT(&#39;bla()&#39;))
+
+btn.show()
+app.exec()
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レールで ahoy を使用してモデルを追跡する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レールで ahoy を使用してモデルを追跡する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レールで ahoy
+を使用してモデルを追跡する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アホイをうまく統合しました。しかし、私の目的は、モデルの展示ページが何回アクセスされたかを追跡することです。</p>
+                    <p>CarModel と CarMake の 2
+                    つのモデルがあるとします。 CarModel.first.visits や
+                    CarMake.first.visits などの訪問をトラクトしたい</p>
+                    <p>しかし、唯一の解決策は、
+                    ahot.track(“model”+car_model.id)
+                    をヒットしてイベントに保存し、文字列でクエリする必要がありますが、これは一般的な方法ではありません。</p>
+                    <p>Model.visits で任意のモデルの訪問を取得したい
+                    アホイサポートってこんな感じですか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでは CarModel の Model.visits
+                    を実現するためのソリューションを示します。他のモデルでも同じことが可能です。</p>
+                    <pre><code>rails g migration CreateCarModelVisits car_model:references visit:references
+</code></pre>
+                    <p>それを Ahoy Visit テーブルに関連付けます (Ahoy
+                    の移行に注意してください)。</p>
+                    <pre><code>class CreateVisitable &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :visitables do |t|
+      t.references :car_model, foreign_key: true
+      t.references :visit, foreign_key: { to_table: :ahoy_visits }
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>1 対多の関連付けを実装できます。Ahoy
+                    テーブルの変更を避けるために、私は単純に多対多の関係を作成しています。</p>
+                    <pre><code>class CarModel &lt; ApplicationRecord
+  has_many :visitables, dependent: :destroy
+  has_many :visits, through: :visitables, class_name: &#39;Ahoy::Visit&#39;
+ end
+
+class Visitable &lt; ApplicationRecord
+  belongs_to :car_model
+  belongs_to :visit, class_name: &#39;Ahoy::Visit&#39;
+end
+
+class Ahoy::Visit &lt; ApplicationRecord
+  has_many :visitables, dependent: :destroy
+  has_many :car_models, through: :visitables
+end
+</code></pre>
+                    <p>これは、任意のコントローラー/モデル
+                    コールバックを介して実行できます。コントローラーのコールバックの場合:</p>
+                    <pre><code>CarModel.first.visits &lt;&lt; current_visit
+</code></pre>
+                    <pre><code>CarModel.first.visits
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

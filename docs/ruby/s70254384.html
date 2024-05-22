@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rbenv を使用して Ruby のバージョンごとに gem の異なるコピーを保持する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rbenv を使用して Ruby のバージョンごとに gem の異なるコピーを保持する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rbenv を使用して Ruby のバージョンごとに gem
+の異なるコピーを保持する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>まず、Ruby 2.6.3 で fluentd
+                    をインストールしました。</p>
+                    <pre><code>$ rbenv versions
+* system (set by /Users/jing/.rbenv/version)
+  2.7.5
+$ gem
+gem env
+RubyGems Environment:
+  - RUBYGEMS VERSION: 3.0.3
+  - RUBY VERSION: 2.6.3 (2019-04-16 patchlevel 62) [universal.x86_64-darwin19]
+  - INSTALLATION DIRECTORY: /Users/jing/.gem
+  - USER INSTALLATION DIRECTORY: /Users/jing/.gem/ruby/2.6.0
+  - RUBY EXECUTABLE: /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby
+  - GIT EXECUTABLE: /usr/bin/git
+  - EXECUTABLE DIRECTORY: /Users/jing/.gem/bin
+  - SPEC CACHE DIRECTORY: /Users/jing/.gem/specs
+  - SYSTEM CONFIGURATION DIRECTORY: /Library/Ruby/Site
+  - RUBYGEMS PLATFORMS:
+    - ruby
+    - universal-darwin-19
+  - GEM PATHS:
+     - /Users/jing/.gem
+     - /Users/jing/.gem/ruby/2.6.0
+     - /Library/Ruby/Gems/2.6.0
+     - /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0
+  - GEM CONFIGURATION:
+     - :update_sources =&gt; true
+     - :verbose =&gt; true
+     - :backtrace =&gt; false
+     - :bulk_threshold =&gt; 1000
+  - REMOTE SOURCES:
+     - https://rubygems.org/
+  - SHELL PATH:
+     - /usr/local/Cellar/rbenv/1.2.0/libexec
+     - /Users/jing/.rbenv/shims
+     - /Users/jing/.tiup/bin
+     - /Users/jing/opt/anaconda3/condabin
+     - /usr/local/sbin
+     - /Users/jing/code/github/zk-code/scripts
+     - /Users/jing/tools/apache-zookeeper-3.5.5-bin/bin
+     - /Users/jing/code/github/trace/sky/skywalking-cli/bin
+     - /Users/jing/tools/apache-skywalking-apm-bin-es7/bin
+     - /usr/local/opt/ruby/bin
+     - /Users/jing/tools/apache-maven-3.6.3/bin
+     - /Users/jing/.gem/bin
+     - /Users/jing/.cargo/bin
+     - /Users/jing/code/github/rtc/depot_tools
+     - /Users/jing/.gem/ruby/2.3.0/bin
+     - /usr/local/opt/coreutils/libexec/gnubin
+     - /Users/jing/tools/apache-skywalking-apm-bin-es7/bin
+     - /Users/jing/tools/confluent-6.1.0/bin
+     - /usr/local/opt/findutils/libexec/gnubin
+     - /usr/local/opt/gnu-sed/libexec/gnubin
+     - /Users/jing/tools/mongodb-osx-x86_64-4.0.2/bin
+     - /usr/local/opt/[email protected]/bin
+     - /Users/jing/tools/spark-2.2.0-bin-hadoop2.7/bin
+     - /Users/jing/bin
+     - /usr/local/bin
+     - /usr/local/bin
+     - /usr/bin
+     - /bin
+     - /usr/sbin
+     - /sbin
+     - /Library/TeX/texbin
+     - /Library/Apple/usr/bin
+     - /Applications/Wireshark.app/Contents/MacOS
+     - /Users/jing/go/bin
+     - /Users/jing/.pub-cache/bin
+     - /Applications/Visual Studio Code.app/Contents/Resources/app/bin
+     - /usr/local/opt/fzf/bin
+$ gem install fluentd
+Successfully installed fluentd-1.14.3
+Parsing documentation for fluentd-1.14.3
+Done installing documentation for fluentd after 3 seconds
+1 gem installed
+$ ls ~/.gem/gems -lrt | tail -n1
+drwxr-xr-x 28 jing staff 896 Dec  7 10:33 fluentd-1.14.3
+$ head -n1 ~/.gem/bin/fluentd
+#!/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby
+</code></pre>
+                    <p>次に、rbenv を使用して Ruby 2.7.5
+                    を選択し、fluentd を再度インストールしました。</p>
+                    <pre><code>$ rbenv shell 2.7.5
+$ gem env
+RubyGems Environment:
+  - RUBYGEMS VERSION: 3.1.6
+  - RUBY VERSION: 2.7.5 (2021-11-24 patchlevel 203) [x86_64-darwin19]
+  - INSTALLATION DIRECTORY: /Users/jing/.gem
+  - USER INSTALLATION DIRECTORY: /Users/jing/.gem/ruby/2.7.0
+  - RUBY EXECUTABLE: /Users/jing/.rbenv/versions/2.7.5/bin/ruby
+  - GIT EXECUTABLE: /usr/bin/git
+  - EXECUTABLE DIRECTORY: /Users/jing/.gem/bin
+  - SPEC CACHE DIRECTORY: /Users/jing/.gem/specs
+  - SYSTEM CONFIGURATION DIRECTORY: /Users/jing/.rbenv/versions/2.7.5/etc
+  - RUBYGEMS PLATFORMS:
+    - ruby
+    - x86_64-darwin-19
+  - GEM PATHS:
+     - /Users/jing/.gem
+     - /Users/jing/.gem/ruby/2.7.0
+     - /Users/jing/.rbenv/versions/2.7.5/lib/ruby/gems/2.7.0
+  - GEM CONFIGURATION:
+     - :update_sources =&gt; true
+     - :verbose =&gt; true
+     - :backtrace =&gt; false
+     - :bulk_threshold =&gt; 1000
+  - REMOTE SOURCES:
+     - https://rubygems.org/
+  - SHELL PATH:
+     - /Users/jing/.rbenv/versions/2.7.5/bin
+     - /usr/local/Cellar/rbenv/1.2.0/libexec
+     - /Users/jing/.rbenv/shims
+     - /Users/jing/.tiup/bin
+     - /Users/jing/opt/anaconda3/condabin
+     - /usr/local/sbin
+     - /Users/jing/code/github/zk-code/scripts
+     - /Users/jing/tools/apache-zookeeper-3.5.5-bin/bin
+     - /Users/jing/code/github/trace/sky/skywalking-cli/bin
+     - /Users/jing/tools/apache-skywalking-apm-bin-es7/bin
+     - /usr/local/opt/ruby/bin
+     - /Users/jing/tools/apache-maven-3.6.3/bin
+     - /Users/jing/.gem/bin
+     - /Users/jing/.cargo/bin
+     - /Users/jing/code/github/rtc/depot_tools
+     - /Users/jing/.gem/ruby/2.3.0/bin
+     - /usr/local/opt/coreutils/libexec/gnubin
+     - /Users/jing/tools/apache-skywalking-apm-bin-es7/bin
+     - /Users/jing/tools/confluent-6.1.0/bin
+     - /usr/local/opt/findutils/libexec/gnubin
+     - /usr/local/opt/gnu-sed/libexec/gnubin
+     - /Users/jing/tools/mongodb-osx-x86_64-4.0.2/bin
+     - /usr/local/opt/[email protected]/bin
+     - /Users/jing/tools/spark-2.2.0-bin-hadoop2.7/bin
+     - /Users/jing/bin
+     - /usr/local/bin
+     - /usr/local/bin
+     - /usr/bin
+     - /bin
+     - /usr/sbin
+     - /sbin
+     - /Library/TeX/texbin
+     - /Library/Apple/usr/bin
+     - /Applications/Wireshark.app/Contents/MacOS
+     - /Users/jing/go/bin
+     - /Users/jing/.pub-cache/bin
+     - /Applications/Visual Studio Code.app/Contents/Resources/app/bin
+     - /usr/local/opt/fzf/binio Code.app/Contents/Resources/app/bin
+     - /usr/local/opt/fzf/bin
+$ gem install fluentd
+Successfully installed fluentd-1.14.3
+Parsing documentation for fluentd-1.14.3
+Done installing documentation for fluentd after 3 seconds
+1 gem installed
+$ ls ~/.gem/gems -lrt | tail -n1
+drwxr-xr-x 28 jing staff 896 Dec  7 10:37 fluentd-1.14.3
+$ head -n1 ~/.gem/bin/fluentd
+#!/Users/jing/.rbenv/versions/2.7.5/bin/ruby
+</code></pre>
+                    <p>上記のコンソール セッションから、Fluent
+                    が同じ場所に再インストールされていることがわかりました。</p>
+                    <p>ある Ruby バージョンの gem が他の Ruby
+                    バージョンの gem
+                    を上書きすることは望ましくありません。 1 つの Ruby
+                    バージョンに対して 1 つの gem
+                    を個別に保持する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>設計上、それはできません。プロジェクトではこれを機能とみなしています。</p>
+                    <p>まあ一つ。 rbenv は Ruby
+                    のバージョンの切り替えのみを対象としています。</p>
+                    <p>プラグインを使用して Gemset
+                    を作成し、アプリケーションごとに切り替えることができます。</p>
+                    <p>私は使用したことがありませんが、rbenv-gemset
+                    プラグインを使用すると、目的のものが得られるようです:
+                    https://github.com/jf/rbenv-gemset。</p>
+                    <p>インストールしたら、プロジェクトのルート
+                    ディレクトリにデフォルトの gemset
+                    を作成できます。</p>
+                    <p>ジェムセットの初期化</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

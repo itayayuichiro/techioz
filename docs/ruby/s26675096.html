@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rack/Test を使用して Sinatra リダイレクトをテストするにはどうすればよいですか?アプリは動作するが、テストが動作しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rack/Test を使用して Sinatra リダイレクトをテストするにはどうすればよいですか?アプリは動作するが、テストが動作しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rack/Test を使用して Sinatra
+リダイレクトをテストするにはどうすればよいですか?アプリは動作するが、テストが動作しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>おそらくこれを回避する方法があるでしょう。そうでない場合、Rack/Test
+                    は役に立たないでしょう。ここで機能させるには何をすべきか誰か教えてもらえますか?</p>
+                    <p>(編集:
+                    最終的に達成したいのは、ステータスではなく、最終的にどのページを取得するかをテストすることです。テストでは、last_response
+                    オブジェクトはアプリに存在しないページを指しており、実際に取得するページではありません。実行すると取得されます。)</p>
+                    <p>アプリの例:</p>
+                    <pre><code>require &#39;sinatra&#39;
+require &#39;haml&#39;
+
+get &quot;/&quot; do
+  redirect to(&#39;/test&#39;)
+end
+
+get &#39;/test&#39; do
+  haml :test
+end
+</code></pre>
+                    <p>これはご想像どおりに機能します。
+                    「/」または「/test」に移動すると、views/test.haml
+                    の内容が取得されます。</p>
+                    <p>しかし、このテストは機能しません。</p>
+                    <pre><code>require_relative &#39;../app.rb&#39;
+require &#39;rspec&#39;
+require &#39;rack/test&#39;
+
+describe &quot;test&quot; do
+  include Rack::Test::Methods
+
+  def app
+    Sinatra::Application
+  end
+
+  it &quot;tests&quot; do
+    get &#39;/&#39;
+    expect(last_response.status).to eq(200)
+  end
+end
+</code></pre>
+                    <p>テストを実行すると次のことが起こります。</p>
+                    <pre><code>1) test tests
+   Failure/Error: expect(last_response.status).to eq(200)
+
+     expected: 200
+          got: 302
+</code></pre>
+                    <p>last_response.inspect は次のようになります。</p>
+                    <pre><code>#&lt;Rack::MockResponse:0x000000035d0838 @original_headers={&quot;Content-Type&quot;=&gt;&quot;text/html;charset=utf-8&quot;, &quot;Location&quot;=&gt;&quot;http://example.org/test&quot;, &quot;Content-Length&quot;=&gt;&quot;0&quot;, &quot;X-XSS-Protection&quot;=&gt;&quot;1; mode=block&quot;, &quot;X-Content-Type-Options&quot;=&gt;&quot;nosniff&quot;, &quot;X-Frame-Options&quot;=&gt;&quot;SAMEORIGIN&quot;}, @errors=&quot;&quot;, @body_string=nil, @status=302, @header={&quot;Content-Type&quot;=&gt;&quot;text/html;charset=utf-8&quot;, &quot;Location&quot;=&gt;&quot;http://example.org/test&quot;, &quot;Content-Length&quot;=&gt;&quot;0&quot;, &quot;X-XSS-Protection&quot;=&gt;&quot;1; mode=block&quot;, &quot;X-Content-Type-Options&quot;=&gt;&quot;nosniff&quot;, &quot;X-Frame-Options&quot;=&gt;&quot;SAMEORIGIN&quot;}, @chunked=false, @writer=#&lt;Proc:0x000000035cfeb0@/home/jonea/.rvm/gems/ruby-1.9.3-p547@sandbox/gems/rack-1.5.2/lib/rack/response.rb:27 (lambda)&gt;, @block=nil, @length=0, @body=[]&gt;
+</code></pre>
+                    <p>Rack/Test
+                    がリダイレクトに「http://example.org」を挿入することを勝手に決定しただけなのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="sirl33tname">@sirl33tname</span>
+                    が指摘しているように、リダイレクトは依然としてリダイレクトであるため、期待できる最高のステータスは
+                    200 ではなく 302
+                    です。リダイレクトの最後に適切なページが得られたかどうかをテストしたい場合は、「ok?」をテストする必要があります。ステータスではありません。</p>
+                    <p>ただし、最終的にどのような URL
+                    になるかをテストしたい場合は、もう少し作業する必要があります。Rack/Test
+                    は基本的にモック システム (原文どおり)
+                    であり、リダイレクト時にページのモックを返すためです。実際のページ。</p>
+                    <p>しかし、これは、follow_redirect!
+                    を使用して簡単にオーバーライドできることがわかりました。</p>
+                    <p>テストは次のようになります。</p>
+                    <pre><code>it &quot;tests&quot; do
+  get &#39;/&#39;
+  follow_redirect!
+  expect(last_response.status).to be_ok
+
+  # ...and now I can test for the contents of test.haml, too...
+  expect(last_response.body).to include(&#39;foo&#39;)
+end
+</code></pre>
+                    <p>そしてそれが仕事をするのです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

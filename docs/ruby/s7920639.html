@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ノコギリレールで第 1 レベルの子を見つける | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ノコギリレールで第 1 レベルの子を見つける",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ノコギリレールで第 1 レベルの子を見つける</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在の要素から最初のレベルの子をどのように見つけるかという問題に直面しました。
+                    たとえば、私は html を持っています:</p>
+                    <pre><code> &lt;table&gt;
+   &lt;tr&gt;abc&lt;/tr&gt;
+   &lt;tr&gt;def&lt;/tr&gt;   
+   &lt;table&gt;
+     &lt;tr&gt;second&lt;/tr&gt;
+   &lt;/table&gt;
+ &lt;/table&gt;
+</code></pre>
+                    <p>レールには Nokogiri を使用しています。</p>
+                    <pre><code>table = page.css(&#39;table&#39;)
+table.css(&#39;tr&#39;)
+</code></pre>
+                    <p>テーブル内のすべての tr を返します。
+                    ただし、テーブルの最初のレベルは 2
+                    つだけ必要です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを言うとき:</p>
+                    <pre><code>table = page.css(&#39;table&#39;)
+</code></pre>
+                    <p>最上位のテーブルだけではなく、両方のテーブルを取得することになります。したがって、ドキュメントルートに戻って、moschが言うように最初のテーブルの行のみに一致するセレクターを使用するか、次のようなものでテーブルを外側のテーブルのみに修正することができます。</p>
+                    <pre><code>table = page.css(&#39;table&#39;).first
+trs   = table.xpath(&#39;./tr&#39;)
+</code></pre>
+                    <p>またはこれさえも (HTML の実際の構造に応じて):</p>
+                    <pre><code>table = page.xpath(&#39;/html/body/table&#39;)
+trs   = table.xpath(&#39;./tr&#39;)
+</code></pre>
+                    <p>または、テーブル用に次のいずれかを使用することもできます
+                    (Phrogz に再度感謝します)。</p>
+                    <pre><code>table = page.at(&#39;table&#39;)
+table = page.at_css(&#39;table&#39;)
+# or various other CSS and XPath incantations
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

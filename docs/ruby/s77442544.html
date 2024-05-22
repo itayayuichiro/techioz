@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Date.parse Rails のクエリ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Date.parse Rails のクエリ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Date.parse Rails のクエリ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、event.start_time
+                    を「2023-11-07」として記録する必要があるカレンダー
+                    gem を使用しています。</p>
+                    <p>start_time と、event.rained_out == false
+                    に基づいて、今月と先月のすべてのイベントを検索する必要があります。</p>
+                    <pre><code>event.start_time[0,4].to_i == Time.now.year &amp;&amp; event.start_time[5,2] == Time.now.month || event.start_time[5,2] == Time.now.month &amp;&amp; event.rained_out== false
+</code></pre>
+                    <p>これを達成するために activerecord
+                    クエリを使用する方法がわかりません。</p>
+                    <pre><code>Event.where(&quot;start_time[5,2].to_i = ?&quot;, Time.now.month)
+</code></pre>
+                    <p>構文エラーです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>データベースの start_time
+                    列の型が文字列であり、日付が前月または今月を示す特定の文字列で始まるすべての行を検索したいことを理解しています。</p>
+                    <p>まず、次のように、書式設定された日付文字列プレフィックスの範囲を作成します。</p>
+                    <pre><code>date_prefixes = [1.month.ago, 1.month.since].map { |time| time.strftime(&#39;%Y-%m&#39;) }
+#=&gt; [&quot;2023-10&quot;, &quot;2023-12&quot;]
+prefixes_range = Range.new(*date_prefixes, exclude_end = true)
+#=&gt; &quot;2023-10&quot;...&quot;2023-12&quot;
+</code></pre>
+                    <p>次に、その範囲を ActiveRecord
+                    クエリに渡して、その範囲に含まれるすべての文字列を検索できます。これは、exclude_end
+                    = true であるため、2023-10 または 2023-11
+                    で始まるすべての開始日になりますが、2023-12
+                    では始まりません。</p>
+                    <pre><code>Event.where(start_time: prefix_range)
+</code></pre>
+                    <p>これは基本的に次のような SQL
+                    クエリに変換されます。</p>
+                    <pre><code>start_date &gt;= &#39;2023-10&#39; AND start_date &lt; &#39;2023-12&#39;
+</code></pre>
+                    <p>すべてをスコープにまとめると、次のようになります。</p>
+                    <pre><code># in app/models/event.rb
+scope :started_this_or_previous_month, -&gt; {
+  where(
+    start_date: Range.new(
+      *[1.month.ago, 1.month.since].map { |t| t.strftime(&#39;%Y-%m&#39;) }, true
+    )
+  )
+}
+
+# use scope like this:
+Event.started_this_or_previous_month.where(rained_out: false)
+</code></pre>
+                    <p>ところで。使用している gem で start_date
+                    が文字列である必要がある場合でも。 start_at または
+                    start_on のような datetime 型または date
+                    型の列をテーブルに追加し、両方の列の同期を保つことを検討することをお勧めします。そうすれば、データベースのクエリがはるかに簡単になります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

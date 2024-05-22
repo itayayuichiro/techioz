@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>IO のブロックを回避するために Ruby ファイバーを使用する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "IO のブロックを回避するために Ruby ファイバーを使用する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>IO のブロックを回避するために Ruby
+ファイバーを使用する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ディレクトリ内の大量のファイルを S3
+                    にアップロードする必要があります。アップロードに必要な時間の
+                    90% 以上は http
+                    リクエストが完了するのを待つのに費やされるため、何らかの方法で複数のリクエストを一度に実行したいと考えています。</p>
+                    <p>ファイバーはこれに関して私を助けることができますか？これらはこの種の問題を解決する方法として説明されていますが、http
+                    呼び出しがブロックされている間に作業を行う方法が思いつきません。</p>
+                    <p>スレッドを使わずにこの問題を解決する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>1.9
+                    のファイバーについては詳しくありませんが、1.8.6
+                    の通常のスレッドでこの問題は解決できます。キュー
+                    http://ruby-doc.org/stdlib/libdoc/thread/rdoc/classes/Queue.html
+                    を使用してみてください</p>
+                    <p>ドキュメントの例を見ると、コンシューマーがアップロードを行う部分です。
+                    URL
+                    とファイルを「消費」し、データをアップロードします。プロデューサーは、動作を継続し、アップロードする新しいファイルを検索するプログラムの一部です。</p>
+                    <p>複数のファイルを一度にアップロードしたい場合は、ファイルごとに新しいスレッドを起動します。</p>
+                    <pre><code>t = Thread.new do
+  upload_file(param1, param2)
+end
+@all_threads &lt;&lt; t
+</code></pre>
+                    <p>次に、「プロデューサー」コードの後半で次のようにします
+                    (これは独自のスレッド内にある必要はなく、メイン
+                    プログラムでもかまいません)。</p>
+                    <pre><code>@all_threads.each do |t|
+  t.join if t.alive?
+end
+</code></pre>
+                    <p>キューは <span class="citation"
+                    data-cites="member_variable">@member_variable</span>
+                    または のいずれかになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

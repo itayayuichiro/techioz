@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsは有効期限が今日から1年かどうかをチェックします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsは有効期限が今日から1年かどうかをチェックします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsは有効期限が今日から1年かどうかをチェックします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>しようとしていますが、日付形式が正しくありません。コントローラーでも実行しています</p>
+                    <p>データベースの有効期限の日付形式は 2025-01-15
+                    08:00:00 です。</p>
+                    <pre><code>if @car_subscription.expiration_date.present?  &amp;&amp; @car_subscription.expiration_date == @car_subscription.expiration_date == Date.today + 1.year 
+   @car_subscription.update(new_cars: @car_subscription.new_cars = 20)
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DateTime インスタンス (<span class="citation"
+                    data-cites="car_subscription.expiration_date">@car_subscription.expiration_date</span>)
+                    と Date インスタンス (Date.today + 1.year)
+                    を比較しようとしています。実際、技術的には、これは間違った比較ではありません。</p>
+                    <p>ただし、expiration_date
+                    フィールドがレコードの作成に応じて作成されるタイムスタンプであると仮定すると
+                    (時間/分/秒の値が大きく異なる場合があります)、Date.today
+                    + 1.year
+                    の戻り値はその最初の秒を参照します。日が経つと、ここで平等になる確率は非常に低いでしょう。</p>
+                    <p>Expiration_date が今日から 1
+                    年に等しいかどうかを確認したい場合は、このフィールドを日付オブジェクトとしてキャストする方が比較に適しています。</p>
+                    <p>したがって、次のようなことを試すことができます。</p>
+                    <pre><code>if @car_subscription.expiration_date.present?  &amp;&amp; @car_subscription.expiration_date.to_date == Date.today + 1.year 
+  @car_subscription.update(new_cars: @car_subscription.new_cars = 20)
+end
+</code></pre>
+                    <p>ちなみに、スニペットでは、以下のステートメント
+                    <span class="citation"
+                    data-cites="car_subscription.expiration_date">@car_subscription.expiration_date</span>
+                    を 2
+                    回書きました。これはタイプミスだと思います。</p>
+                    <p><span class="citation"
+                    data-cites="Stefan">@Stefan</span>
+                    の修正に感謝します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

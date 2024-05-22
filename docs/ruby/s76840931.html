@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>group() および sum() クエリを実行して、アクティブなレコードのグループ化に使用された合計と列以上のものを返す方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "group() および sum() クエリを実行して、アクティブなレコードのグループ化に使用された合計と列以上のものを返す方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>group() および sum()
+クエリを実行して、アクティブなレコードのグループ化に使用された合計と列以上のものを返す方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>has_and_belongs_to_many
+                    によって関連付けられたカテゴリ (名前、画像データ)
+                    と経費 (名前、金額、日付) の 2
+                    つのテーブルがあります
+                    (経費には多くのカテゴリがあり、カテゴリには多くの経費があります)。すべてのカテゴリとそれに関連付けられた経費を選択し、それらをカテゴリ
+                    ID でグループ化し、カテゴリ テーブルの他の列
+                    (名前と画像データ) も返すアクティブ レコード
+                    クエリを作成したいと考えています。</p>
+                    <p>私が試してみました</p>
+                    <ol type="1">
+                    <li></li>
+                    </ol>
+                    <pre><code>Category.includes(:expenses).group(&#39;categories.id&#39;).sum(:amount)
+</code></pre>
+                    <p>しかし、私が得たのは</p>
+                    <pre><code>{4=&gt;0.75e5, 6=&gt;0.18e6, 5=&gt;0.0}
+</code></pre>
+                    <p>これはカテゴリテーブルの列を返しません。</p>
+                    <ol start="2" type="1">
+                    <li></li>
+                    </ol>
+                    <pre><code>k = Category.includes(:expenses).group(&#39;categories.id&#39;).select(&#39;categories.*, SUM(expenses.amount) AS total_amount&#39;).pluck(&#39;categories.id&#39;, &#39;categories.name&#39;, &#39;total_amount&#39;)
+</code></pre>
+                    <p>しかし、列名「total_amount」が不明であるというエラーが表示されます。</p>
+                    <ol start="3" type="1">
+                    <li>また、返したいカテゴリテーブルのすべての列に基づいて結果をグループ化しようとしましたが、これを行うことでクエリが遅くなっていると思います。</li>
+                    </ol>
+                    <pre><code>Category.includes(:expenses).group(&#39;id&#39;, &#39;name&#39;, &#39;image_data&#39;).sum(:amount)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>返された列をグループ化に含める必要があるため、3
+                    番目のオプションが機能するはずです。これは SQL
+                    での集計の仕組みです。グループ化してカウント/合計する場合、グループ化された列ごとに
+                    1
+                    行しか存在しないため、グループ化されていない他の列を含めることはできません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku のバックグラウンド ジョブ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku のバックグラウンド ジョブ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku のバックグラウンド ジョブ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Heroku を初めて使用し、Rails
+                    アプリのチュートリアルを進めています。</p>
+                    <p>現時点では、sidekiq
+                    を使用していくつかのバックグラウンド
+                    ジョブを処理するだけです。唯一のフロントエンド
+                    コンポーネントは Sidekiq ダッシュボードです。</p>
+                    <p>ProcfileでWebサーバーを起動するように書かれています。しかし、必要なのは、特定の間隔でバックグラウンド
+                    ジョブを実行するようにワーカーをスケジュールしておくことだけなので、キューイング
+                    ダッシュボードを見たい場合以外は Web
+                    サーバーを起動できないということなのでしょうか? rake
+                    タスクに他の要素がある限り、Web
+                    サーバーをオフのままにできるはずです。</p>
+                    <p>また、コードを Heroku にプッシュしても、DB
+                    は自動的に移行されないことに気付きました。毎回データベースが最新であることを確認したい場合、それを
+                    Procfile にも入れますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Web サーバーではなく Sidekiq
+                    のみを実行するのは正しいです。次のように procfile
+                    を作成できます。</p>
+                    <pre><code>worker: bundle exec sidekiq -C config/sidekiq.yml
+</code></pre>
+                    <p>この Procfile コマンドは Sidekiq
+                    プロセスを開始しますが、Web
+                    サーバーは開始しません。おっしゃるとおり、バックグラウンド
+                    ジョブの処理にはこの設定で十分です。</p>
+                    <p>一方、デプロイごとに Heroku
+                    でデータベースを移行する場合は、Procfile のリリース
+                    フェーズ
+                    スクリプトを使用してこのプロセスを実際に自動化できます。</p>
+                    <pre><code>release: bundle exec rake db:migrate
+</code></pre>
+                    <p>Procfile に release
+                    コマンドを含めることで、Heraku は各デプロイ後に rake
+                    db:merge を自動的に実行し、データベース
+                    スキーマが最新であることを確認します。</p>
+                    <p>これが最終的な Procfile です。</p>
+                    <pre><code>release: bundle exec rake db:migrate
+worker: bundle exec sidekiq -C config/sidekiq.yml
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

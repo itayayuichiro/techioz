@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails で postgres 列を正しくシリアル化する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails で postgres 列を正しくシリアル化する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails で postgres
+列を正しくシリアル化する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on
+                    Railsを使用してpostgresデータベース内で、データ型が「string」である列に保存しようとしています。この列に整数を保存したいとします。
+                    「string_value」.to_i
+                    関数を呼び出さずに、列の内容を整数として自動的にフェッチする方法で、保存されたデータをシリアル化する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、シリアル化された情報を保存すると、データのフィルタリング、並べ替え、リクエストが複雑になる可能性があることに注意する必要があります。</p>
+                    <p>しかし、それがあなたの計画である場合、最良のアイデアは、その列を文字列とは異なるデータ型で保存することです。</p>
+                    <p>次のように実行できます。</p>
+                    <pre><code>class YourModel &lt; ApplicationRecord
+  # serialize
+  serialize :your_column_name, Hash
+
+  # Optional
+  def set_value_as_hash(data_type, value)
+    self.your_column_name = { datatype: data_type, value: value }
+    save
+  end
+
+  # optional
+  def get_value_from_hash
+    value = self.your_column_name[:value]
+    case self.your_column_name[:datatype]
+    when &#39;Integer&#39;
+      value.to_i
+    when &#39;String&#39;
+      value.to_s
+    else
+      value
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>macOS を ventura (ruby/rails) にアップデートした後、Chromedriver バージョン 114 が現在の Chrome ブラウザ (118) を使用しようとします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "macOS を ventura (ruby/rails) にアップデートした後、Chromedriver バージョン 114 が現在の Chrome ブラウザ (118) を使用しようとします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>macOS を ventura (ruby/rails)
+にアップデートした後、Chromedriver バージョン 114 が現在の Chrome
+ブラウザ (118) を使用しようとします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、OS を ventura (sonoma に変更する直前)
+                    に更新しましたが、それ以来、次のエラーのため、Capybara
+                    を使用するスペックで rspec
+                    を使用できなくなりました。</p>
+                    <pre><code>Selenium::WebDriver::Error::SessionNotCreatedError:
+  session not created: This version of ChromeDriver only supports Chrome version 114
+  Current browser version is 118.0.5993.117 with binary path /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+</code></pre>
+                    <p>アップデート前には、これは決して問題ではありませんでした。私たちのアプリはRails
+                    6.0.6.1とruby 2.6.6p146を使用しています</p>
+                    <p>Ruby/Rails
+                    のアップグレードを目指して頑張っていますが、その間は
+                    selenium-webdriver 4.11+ gem を使用できず、現在
+                    3.142.7
+                    で止まっており、その結果、最大値で止まっています。
+                    chromedriver バージョン 114.0.5735.90</p>
+                    <p>これを徹底的に調査しました。Chromedriverはインストールされ、適切に構成されています。問題は、インストールされているバージョンのChromeを使用しようとしていることであり、現在、対応する114バージョンではなく118.0.5993.117が使用されるべきであり、以前は使用されていました。</p>
+                    <p>解決策が Rails/Ruby/Gems
+                    をアップグレードすることであることはわかっています。私が取り組んでいることを信じてください。しかし、これは非常にオーダーメイドの問題であるため、どこにも解決策を見つけることができませんでした。私が見つけたものはすべていくつかのものです数年前、Chromedriver
+                    のバージョン 114
+                    以降からの変更に関連していましたが、その後、Selenium
+                    4.11
+                    によってほとんどの人にとってこの問題は解消されました。</p>
+                    <p>ここで私の特定のバージョンのChromeをダウンロードしようとしましたが、うまくいきませんでした。これは、Selenium
+                    4.11以降が使用している114以降のオプションである可能性があり、115未満では利用できません。</p>
+                    <p>編集: brew を通じて chromedriver
+                    のバージョンを更新しようとしましたが、次のエラー
+                    メッセージが表示されます。</p>
+                    <pre><code>Webdrivers::VersionError:
+            Unable to find latest point release version for 118.0.5993. You appear to be using a non-production version of Chrome. Please set `Webdrivers::Chromedriver.required_version = &lt;desired driver version&gt;` to a known chromedriver version: https://chromedriver.storage.googleapis.com/index.html
+</code></pre>
+                    <p>私の知る限り、これが Selenium 4.11
+                    以前と後の完全な違いです。前者はインデックスを参照して正しいバージョンを見つけます
+                    (114
+                    より大きいものは見つかりません)。後者は現在のリリースを取得します。
+                    Selenium 4.11 以下で chromedriver 114
+                    以上を使用するように指示する方法がある場合は、教えてください。必要なバージョンを手動で設定すると、次の結果が得られます。</p>
+                    <pre><code>Webdrivers::NetworkError:
+              Net::HTTPServerException: 404 &quot;Not Found&quot; with https://chromedriver.storage.googleapis.com/118.0.5993.70/chromedriver_mac64.zip
+</code></pre>
+                    <p>言い換えれば、それ (webdrivers gem)
+                    はまだ新しいバージョンの古い場所を探しています。</p>
+                    <p>編集:究極の解像度</p>
+                    <p>この問題に対する解決策は見つからず、私の会社はまだ
+                    Ruby/Rails
+                    をアップグレードしていませんでしたが、github
+                    コードスペースを使用してスペックを実行し、以下を
+                    Dockerfile
+                    に追加することでセットアップすることで、この問題を回避することができました。</p>
+                    <pre><code># Setup ChromeDriver
+ARG CHROMEDRIVER_VERSION=114.0.5735.90
+
+# Install Google Chrome and ChromeDriver
+RUN wget -q https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
+    &amp;&amp; unzip chromedriver_linux64.zip \
+    &amp;&amp; rm chromedriver_linux64.zip \
+    &amp;&amp; mv chromedriver /usr/local/bin/
+RUN wget -q -O google-chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb \
+    &amp;&amp; dpkg -i google-chrome.deb \
+    &amp;&amp; apt-get install -y -f \
+    &amp;&amp; rm google-chrome.deb
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Selenium 4.9.1 を試し、Chromedriver を 119.0.0
+                    に更新してください。</p>
+                    <p>更新後、これでうまくいきました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

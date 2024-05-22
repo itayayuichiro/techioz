@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku の Rails 4 アプリでランダムな ActiveRecord::StatementInvalid エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku の Rails 4 アプリでランダムな ActiveRecord::StatementInvalid エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku の Rails 4 アプリでランダムな
+ActiveRecord::StatementInvalid エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails 4
+                    アプリはローカルで正常に動作しますが、本番モードで
+                    Heroku にデプロイした場合も正常に動作します…2
+                    番目のクライアントからアプリにアクセスするまでは…その後、数回クリックすると、次のような一連の奇妙なエラーが発生し始めます
+                    (以下を参照) ）。</p>
+                    <p>正確なクリック数は多少異なりますが、最終的には必ず発生します。ただし、2
+                    番目のクライアントからのリクエストがあった後にのみ発生します。たとえば、アプリを再起動し、携帯電話でのみプレイしても何も起こりません。しかし、ラップトップから数ページをロードするとすぐにクラッシュします…</p>
+                    <p>注: これらのスクリーンショットは
+                    RAILS_ENV=development
+                    を使用しているため、実際のエラーが表示されます。</p>
+                    <p>これらのエラーを正しく理解しているかどうかはわかりませんが、次のようになります。クエリ内で適切に置換されません。</p>
+                    <p>私の Gemfile:</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+
+# Bundle edge Rails instead: gem &#39;rails&#39;, github: &#39;rails/rails&#39;
+gem &#39;rails&#39;, &#39;4.2.3&#39;
+# Use SCSS for stylesheets
+gem &#39;sass-rails&#39;, &#39;~&gt; 5.0&#39;
+# Use Uglifier as compressor for JavaScript assets
+gem &#39;uglifier&#39;, &#39;&gt;= 1.3.0&#39;
+# Use CoffeeScript for .coffee assets and views
+gem &#39;coffee-rails&#39;, &#39;~&gt; 4.1.0&#39;
+# See https://github.com/sstephenson/execjs#readme for more supported runtimes
+# gem &#39;therubyracer&#39;, platforms: :ruby
+
+# Use jquery as the JavaScript library
+gem &#39;jquery-rails&#39;
+# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+gem &#39;turbolinks&#39;, &#39;~&gt; 2.3.0&#39;
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem &#39;jbuilder&#39;, &#39;~&gt; 2.0&#39;
+# bundle exec rake doc:rails generates the API under doc/api.
+gem &#39;sdoc&#39;, &#39;~&gt; 0.4.0&#39;, group: :doc
+gem &#39;devise&#39;
+gem &quot;paperclip&quot;
+gem &#39;aws-sdk&#39;
+gem &#39;dotenv-rails&#39;, :groups =&gt; [:development, :test]
+gem &#39;foundation-rails&#39;
+# Access an IRB console on exception pages or by using &lt;%= console %&gt; in views
+gem &#39;web-console&#39;, &#39;~&gt; 2.0&#39;, group: :development
+gem &#39;mysql&#39;
+gem &#39;rails_12factor&#39;, group: :production
+gem &#39;puma&#39;
+group :development, :test do
+  # Call &#39;byebug&#39; anywhere in the code to stop execution and get a debugger console
+  gem &#39;byebug&#39;
+  # Use sqlite3 as the database for Active Record
+  gem &#39;sqlite3&#39;    
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem &#39;spring&#39;
+end
+</code></pre>
+                    <p>私のProcfileは次のとおりです。</p>
+                    <pre><code>web: bundle exec puma -t 5:5 -p ${PORT:-3000} -e ${RACK_ENV:-development}
+</code></pre>
+                    <p>これが私のdatabase.ymlです</p>
+                    <pre><code># SQLite version 3.x
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem &#39;sqlite3&#39;
+#
+default: &amp;default
+  adapter: sqlite3
+  pool: 5
+  timeout: 5000
+
+development:
+  &lt;&lt;: *default
+  database: db/development.sqlite3
+
+# Warning: The database defined as &quot;test&quot; will be erased and
+# re-generated from your development database when you run &quot;rake&quot;.
+# Do not set this db to the same as development or production.
+test:
+  &lt;&lt;: *default
+  database: db/test.sqlite3
+
+production:
+  url: &lt;%= ENV[&#39;DATABASE_URL&#39;] %&gt;
+</code></pre>
+                    <p>config/production.rb は次のとおりです。</p>
+                    <pre><code>Rails.application.configure do
+  # Settings specified here will take precedence over those in config/application.rb.
+
+  # Code is not reloaded between requests.
+  config.cache_classes = true
+
+  # Eager load code on boot. This eager loads most of Rails and
+  # your application in memory, allowing both threaded web servers
+  # and those relying on copy on write to perform better.
+  # Rake tasks automatically ignore this option for performance.
+  config.eager_load = true
+
+  # Full error reports are disabled and caching is turned on.
+  config.consider_all_requests_local       = false
+  config.action_controller.perform_caching = true
+
+  # Enable Rack::Cache to put a simple HTTP cache in front of your application
+  # Add `rack-cache` to your Gemfile before enabling this.
+  # For large-scale production use, consider using a caching reverse proxy like
+  # NGINX, varnish or squid.
+  # config.action_dispatch.rack_cache = true
+
+  # Disable serving static files from the `/public` folder by default since
+  # Apache or NGINX already handles this.
+  config.serve_static_files = ENV[&#39;RAILS_SERVE_STATIC_FILES&#39;].present?
+
+  # Compress JavaScripts and CSS.
+  config.assets.js_compressor = :uglifier
+  # config.assets.css_compressor = :sass
+
+  # Do not fallback to assets pipeline if a precompiled asset is missed.
+  config.assets.compile = false
+
+  # Asset digests allow you to set far-future HTTP expiration dates on all assets,
+  # yet still be able to expire them through the digest params.
+  config.assets.digest = true
+
+  # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
+
+  # Specifies the header that your server uses for sending files.
+  # config.action_dispatch.x_sendfile_header = &#39;X-Sendfile&#39; # for Apache
+  # config.action_dispatch.x_sendfile_header = &#39;X-Accel-Redirect&#39; # for NGINX
+
+  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  # config.force_ssl = true
+
+  # Use the lowest log level to ensure availability of diagnostic information
+  # when problems arise.
+  config.log_level = :debug
+
+  # Prepend all log lines with the following tags.
+  # config.log_tags = [ :subdomain, :uuid ]
+
+  # Use a different logger for distributed setups.
+  # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
+
+  # Use a different cache store in production.
+  # config.cache_store = :mem_cache_store
+
+  # Enable serving of images, stylesheets, and JavaScripts from an asset server.
+  # config.action_controller.asset_host = &#39;http://assets.example.com&#39;
+
+  # Ignore bad email addresses and do not raise email delivery errors.
+  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
+  # config.action_mailer.raise_delivery_errors = false
+
+  # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
+  # the I18n.default_locale when a translation cannot be found).
+  config.i18n.fallbacks = true
+
+  # Send deprecation notices to registered listeners.
+  config.active_support.deprecation = :notify
+
+  # Use default logging formatter so that PID and timestamp are not suppressed.
+  config.log_formatter = ::Logger::Formatter.new
+
+  # Do not dump schema after migrations.
+  config.active_record.dump_schema_after_migration = false
+
+  config.serve_static_files = true
+
+  config.paperclip_defaults = {
+    storage: :s3,
+    s3_credentials: {
+      bucket: ENV.fetch(&#39;S3_BUCKET&#39;),
+      access_key_id: ENV.fetch(&#39;ACCESS_KEY_ID&#39;),
+      secret_access_key: ENV.fetch(&#39;SECRET_ACCESS_KEY&#39;),
+      s3_region: ENV.fetch(&#39;S3_REGION&#39;),
+      s3_host_name: &#39;s3-us-west-2.amazonaws.com&#39;
+    }
+  }
+
+
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>mysql2 gem を使用してデプロイする際に 2
+                    回目のクラックを実行しましたが、今度はうまくいきました。秘密のソースはこの質問から生まれます</p>
+                    <p>TLDR; 新しいバージョンの Rails
+                    と互換性を持たせるには、mysql2
+                    の古いバージョンを指定する必要があります。ええ、それは奇妙です。</p>
+                    <pre><code>gem &#39;mysql2&#39;, &#39;~&gt; 0.3.18&#39;
+</code></pre>
+                    <p>この gem
+                    をデプロイした後、問題を再現できなくなりました。理解できませんが、うまくいきました。</p>
+                    <p>誰かが何が起こっているのかを説明する回答を提出した場合、私はそれを受け入れます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

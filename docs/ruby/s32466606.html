@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「gem」と「bundle」が同じ libxml2 を使用しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「gem」と「bundle」が同じ libxml2 を使用しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「gem」と「bundle」が同じ libxml2
+を使用しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>イライラのループに陥っているようです。プロジェクトを「バンドルインストール」しようとしていますが、次のような結果になります。</p>
+                    <pre><code>An error occurred while installing nokogiri (1.6.6.2), and Bundler cannot continue.
+Make sure that `gem install nokogiri -v &#39;1.6.6.2&#39;` succeeds before bundling.
+</code></pre>
+                    <p>そこで私はそれを試してみます:</p>
+                    <pre><code>$ gem install nokogiri -v &#39;1.6.6.2&#39;
+Building native extensions.  This could take a while...
+Successfully installed nokogiri-1.6.6.2
+Parsing documentation for nokogiri-1.6.6.2
+Done installing documentation for nokogiri after 2 seconds
+1 gem installed
+</code></pre>
+                    <p>大丈夫です！ただし、「bundle
+                    install」を実行すると、最初に「gem install nokogiri
+                    -v
+                    ‘1.6.6.2’」を取得してインストールする必要があると再度表示されます。ああああ。</p>
+                    <p>mkmf.log ファイルは、これが libxml2
+                    の問題であることを示唆しています
+                    (驚いたことに)。</p>
+                    <pre><code>conftest.c:3:10: fatal error: &#39;libxml/xmlversion.h&#39; file not found
+#include &lt;libxml/xmlversion.h&gt;
+         ^
+1 error generated.
+checked program was:
+/* begin */
+1: #include &quot;ruby.h&quot;
+2: 
+3: #include &lt;libxml/xmlversion.h&gt;
+4: 
+5: #if LIBXML_VERSION &lt; 20621
+6: #error libxml2 is way too old
+7: #endif
+/* end */
+</code></pre>
+                    <p>したがって、libxml2 を (「sudo find / -name
+                    libxml2」で)
+                    検索すると、次のディレクトリが表示されます。これらはすべて、少なくとも
+                    2.9.0 以降であるようです。</p>
+                    <p>ということは、libxml2が見つからないことが問題なのでしょうか？もしそうなら、nokogiri
+                    がすでにインストールされていることを認識するには、または少なくとも「gem
+                    install」と同じ方法でインストールできるように、bundle
+                    install
+                    を取得するにはどうすればよいでしょうか?この解決策を見つけたいと思っていますが、将来トラブルシューティングできるように、「水面下」で何が起こっているのかを知りたいと思っています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Mac OS X
+                    でこれらのコマンドを実行したところ、問題は解決されました。</p>
+                    <pre><code>brew unlink gcc-4.2      # you might not need this step
+gem uninstall nokogiri
+xcode-select --install
+gem install nokogiri
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

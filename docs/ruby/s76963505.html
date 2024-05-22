@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この場合、正しい構文はどれですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この場合、正しい構文はどれですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この場合、正しい構文はどれですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>destroy_order_payment_detail
+                    というこの関数があり、依存オブジェクトを破棄しようとしています。機能しないのですが、正しい構文はどれですか?</p>
+                    <pre><code>has_one :order_payment_detail, inverse_of: :payment_order
+accepts_nested_attributes_for :order_payment_detail, allow_destroy: true
+
+before_destroy :destroy_order_payment_detail
+
+private
+    def destroy_order_payment_detail
+      if :order_payment_detail.present?
+        :order_payment_detail.destroy
+      end
+    end
+</code></pre>
+                    <p>またはこれは :? なしです。</p>
+                    <pre><code>private
+    def destroy_order_payment_detail
+      if order_payment_detail.present?
+        order_payment_detail.destroy
+      end
+    end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>依存する order_payment_detail
+                    を破棄したい場合は、コールバックを記述するよりも良い方法があり、単に次のように依存関係を宣言します。</p>
+                    <pre><code>has_one :order_payment_detail, inverse_of: :payment_order, dependent: :destroy
+</code></pre>
+                    <p>before_destroy コールバックは必要ありません</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

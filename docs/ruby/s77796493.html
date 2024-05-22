@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 アップグレードで Mongoid が読み込まれないという懸念がある | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 アップグレードで Mongoid が読み込まれないという懸念がある",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 アップグレードで Mongoid
+が読み込まれないという懸念がある</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私たちはアプリを Ruby 2.7 から 3.0 に、Rails 5.2
+                    から 6.0 に同時にアップグレードしています (私は Ruby
+                    だけから始めましたが、3.0 は 5.2
+                    と互換性がないようです)。近いですが、ユーザー
+                    モデルのフィールドを懸念に分割すると、起動時に奇妙なエラー:
+                    uninitialized constant UserFields::Boolean
+                    (NameError) が発生します。</p>
+                    <pre><code>class User
+  include Mongoid::Document
+  include Mongoid::Timestamps
+  #field :force_password_change, type: Boolean, default: false
+  include UserFields
+  ....
+end
+</code></pre>
+                    <pre><code>module UserFields
+  extend ActiveSupport::Concern
+
+  included do
+    ## Database authenticatable
+    field :email,              :type =&gt; String, :default =&gt; &quot;&quot;
+    field :force_password_change, type: Boolean, default: false  ### &lt;&lt;&lt;&lt; ERROR HERE
+  end
+end
+</code></pre>
+                    <p>ブール値フィールドをモデルに直接配置すると、正常に機能しますが、それらが懸念される場合は機能しません。エラートレース:</p>
+                    <pre><code> ! Unable to load application: NameError: uninitialized constant UserFields::Boolean
+2024-01-10 15:22:22 bundler: failed to load command: puma (/app/bundle_cache/ruby/3.0.0/bin/puma)
+2024-01-10 15:22:22 /app/app/models/concerns/user_fields.rb:8:in `block in &lt;module:UserFields&gt;&#39;: uninitialized constant UserFields::Boolean (NameError)
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/concern.rb:122:in `class_eval&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/concern.rb:122:in `append_features&#39;
+2024-01-10 15:22:22     from /app/app/models/user.rb:9:in `include&#39;
+2024-01-10 15:22:22     from /app/app/models/user.rb:9:in `&lt;class:User&gt;&#39;
+2024-01-10 15:22:22     from /app/app/models/user.rb:4:in `&lt;main&gt;&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/bootsnap-1.17.0/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:32:in `require&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/bootsnap-1.17.0/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:32:in `require&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/zeitwerk-2.6.12/lib/zeitwerk/kernel.rb:30:in `require&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/inflector/methods.rb:282:in `const_get&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/inflector/methods.rb:282:in `block in constantize&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/inflector/methods.rb:280:in `each&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/inflector/methods.rb:280:in `inject&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/inflector/methods.rb:280:in `constantize&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/activesupport-6.0.6.1/lib/active_support/dependencies/zeitwerk_integration.rb:19:in `constantize&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise.rb:325:in `get&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/mapping.rb:83:in `to&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/mapping.rb:78:in `modules&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/mapping.rb:95:in `routes&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/mapping.rb:162:in `default_used_route&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/mapping.rb:72:in `initialize&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise.rb:361:in `new&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise.rb:361:in `add_mapping&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/rails/routes.rb:243:in `block in devise_for&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/rails/routes.rb:242:in `each&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/devise-4.9.3/lib/devise/rails/routes.rb:242:in `devise_for&#39;
+2024-01-10 15:22:22     from /app/config/routes.rb:264:in `block in &lt;main&gt;&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/actionpack-6.0.6.1/lib/action_dispatch/routing/route_set.rb:426:in `instance_exec&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/actionpack-6.0.6.1/lib/action_dispatch/routing/route_set.rb:426:in `eval_block&#39;
+2024-01-10 15:22:22     from /app/bundle_cache/ruby/3.0.0/gems/actionpack-6.0.6.1/lib/action_dispatch/routing/route_set.rb:408:in `draw&#39;
+2024-01-10 15:22:22     from /app/config/routes.rb:1:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>Devise を使用し、User
+                    モデルを使用しているため、これはルート
+                    ファイルに由来します。同じコードが 5.2/2.7
+                    で何年も機能していたので、これはアップグレードに関係していると確信しています。助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>更新: これは、mongoid gem
+                    のアップグレードに関係している可能性があります。以前に使用していたバージョンはわかりませんが、7.3
+                    未満ではトップレベルの定数 ::Boolean
+                    が定義されていたようです。これにより、Boolean Source
+                    を作成しただけであれば適切に解決できるようになります。新しいバージョンには、この最上位の定数は含まれていません。</p>
+                    <p>リリースノートには次のように記載されています。</p>
+                    <p>懸念事項は Mongoid::Document
+                    を含むクラスのコンテキストの外側で評価されるため、定数を
+                    Mongoid::Boolean
+                    として明示的に修飾する必要があります。</p>
+                    <p>例えば</p>
+                    <pre><code>module UserFields
+  extend ActiveSupport::Concern
+
+  included do
+    ## Database authenticatable
+    field :email,                 type: String,           default: &quot;&quot;
+    field :force_password_change, type: Mongoid::Boolean, default: false  
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

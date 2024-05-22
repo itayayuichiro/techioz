@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>hash[key] が true (ブール値) の値に設定されているかどうかを確認する if 条件が期待どおりに機能しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "hash[key] が true (ブール値) の値に設定されているかどうかを確認する if 条件が期待どおりに機能しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>hash[key] が true (ブール値)
+の値に設定されているかどうかを確認する if
+条件が期待どおりに機能しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>車という名前の次のネストされたハッシュがあります</p>
+                    <pre><code>{:honda=&gt;{year=&gt;2008,is_condition_good?=&gt;true},
+ :toyota=&gt;{year=&gt;2010,is_condition_good?=&gt;false}
+}
+</code></pre>
+                    <p>is_condition_good?を満たすネストされたハッシュを返したいです。
+                    =本当です。 select メソッド cars.select
+                    {|car,attributs| を使用できることに気付きました。
+                    attributes[:is_condition_good?]=true}
+                    ただし、次のコードも同様に機能するように見えますが、何らかの理由で
+                    if
+                    ステートメントのループに入りません。私の何が間違っているのでしょうか？</p>
+                    <pre><code>cars.each do |car, attributes|
+  if attributes[:is_condition_good?] == true then
+     return attributes
+  end
+end
+</code></pre>
+                    <p>cars.each が |car,attributs|
+                    を実行する前に、attributes[:is_condition_good?]
+                    を出力しました。 true または false
+                    が出力され、実際に出力されたことを確認します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたは次のように書くことを提案します。</p>
+                    <pre><code>cars = {
+  :honda =&gt;{ year =&gt; 2008, is_condition_good? =&gt; true },
+  :toyota=&gt;{ year =&gt; 2010, is_condition_good? =&gt; false }
+}
+</code></pre>
+                    <p>Ruby は、年 (文字列でも記号でもありません)
+                    を取得したときに、これをどのように解析するでしょうか。彼女は、それは変数またはメソッドの名前に違いないと結論付けるでしょう。その名前の変数またはメソッドが存在しないことが判明すると、例外が発生します。</p>
+                    <p>同様に、Ruby は find, is_condition_good
+                    を解析するときにまだ例外を発生させていませんでしたか?ただし、疑問符があるため、変数にすることはできません。</p>
+                    <p>両方ともシンボルであることを意図していると思いますが、その場合は次のように記述する必要があります。</p>
+                    <pre><code>cars = {
+  :honda  =&gt; { :year =&gt; 2008, :is_condition_good? =&gt; true },
+  :toyota =&gt; { :year =&gt; 2010, :is_condition_good? =&gt; false }
+}
+</code></pre>
+                    <p>これは、次のように表現することもできます
+                    (お好みで)。</p>
+                    <pre><code>cars = {
+  :honda  =&gt; { year: 2008, condition_good?: true },
+  :toyota =&gt; { year: 2010, condition_good?: false }
+} 
+</code></pre>
+                    <p>または</p>
+                    <pre><code>cars = {
+  honda:  { year: 2008, condition_good?: true },
+  toyota: { year: 2010, condition_good?: false }
+} 
+</code></pre>
+                    <p>次に、「ループ」コードを考えてみましょう。</p>
+                    <pre><code>def doit(cars)
+  cars.each do |car, attributes|
+    puts &quot;car = #{car}, attributes = #{attributes}&quot;
+    if attributes[:condition_good?] == true then
+      return attributes
+    end
+  end
+end
+</code></pre>
+                    <p>コードには return
+                    ステートメントとメソッドからのリターンが含まれているため、(変更した)
+                    コードをメソッドに配置しました。ブロック変数の値を表示するために、puts
+                    ステートメント (後で削除されます)
+                    も追加しました。</p>
+                    <p>このメソッドは、良好な状態の車が見つかるとすぐに返されることに注意してください。対照的に、select
+                    (あなたが言及した)
+                    を使用すると、良好な状態の車ごとに 1
+                    つの要素を含む配列が返されます。</p>
+                    <p>それでは doit を実行してみましょう。</p>
+                    <pre><code>doit(cars) 
+  #=&gt; {:year=&gt;2008, :condition_good?=&gt;true}
+</code></pre>
+                    <p>これにより、次のように表示されます。</p>
+                    <pre><code>car = honda, attributes = {:year=&gt;2008, :condition_good?=&gt;true}
+</code></pre>
+                    <p>良好な状態の車がなかったら、何も返されなかったでしょう。</p>
+                    <p>Enumerable#find
+                    メソッドを使用してコードを改善できます。</p>
+                    <pre><code>def doit(cars)
+  cars.find do |car, attributes|
+    attributes[:condition_good?]
+  end
+end
+</code></pre>
+                    <p>これには return
+                    ステートメントが必要ないことに注意してください。</p>
+                    <p>attributs[:condition_good?] は true または false
+                    を返すため、次と同じです。</p>
+                    <pre><code>attributes[:condition_good?] == true
+</code></pre>
+                    <p>== true は不要であることに気づいていないと他の
+                    Rubiest が陰で嘲笑しないように、== true
+                    を削除する必要があります。</p>
+                    <p>これで以下が得られます。</p>
+                    <pre><code>doit cars
+  #=&gt; [:honda, {:year=&gt;2008, :condition_good?=&gt;true}]
+</code></pre>
+                    <p>電話を保留してください！これにより、値
+                    :condition_good が true
+                    となるキーと値が返されました。値が必要なだけなので、次のように記述する必要があります。</p>
+                    <pre><code>def doit(cars)
+  cars.find do |car, attributes|
+    attributes[:condition_good?]
+  end.last
+end
+</code></pre>
+                    <pre><code>doit cars
+  #=&gt; {:year=&gt;2008, :condition_good?=&gt;true}
+</code></pre>
+                    <p>ここで、 .last
+                    は次の最後の要素を取り出します。</p>
+                    <pre><code>[:honda, {:year=&gt;2008, :condition_good?=&gt;true}]
+</code></pre>
+                    <p>それはちょっと醜い、と思っているのはあなただけではありません。</p>
+                    <p>これらの計算を整理する方法はたくさんあります。以下のようにすればいいかもしれません。</p>
+                    <pre><code>def doit(cars)
+  cars.each_key.find { |name| cars[name][:condition_good?] }
+end
+</code></pre>
+                    <pre><code>car = doit(cars)
+  #=&gt; :honda
+</code></pre>
+                    <p>この時点で、必要な情報はすべて以下から抽出できます。</p>
+                    <pre><code>attributes = cars[:honda]
+  #=&gt; {:year=&gt;2008, :condition_good?=&gt;true}
+</code></pre>
+                    <p>「ハッシュ#each_key」を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

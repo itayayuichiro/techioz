@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ERB を使用して YAML 内で三項演算子を使用することはできますか? 使用できる場合、どのようにすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ERB を使用して YAML 内で三項演算子を使用することはできますか? 使用できる場合、どのようにすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ERB を使用して YAML
+内で三項演算子を使用することはできますか?
+使用できる場合、どのようにすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下の多くの構文のバリエーションを試してみましたが、構文エラー以外の何も取得できません（単純な
+                    erb
+                    補間は単独で機能しますが、論理三項演算子は構文エラーをスローします）。</p>
+                    <pre><code>start_prompt: &quot;Drum roll please \U0001F941\U0001F941\U0001F941.
+    &lt;%= active_player_name %&gt; will &lt;%= @new_game ? &quot;begin&quot; : &quot;continue&quot; %&gt; play.
+    Let the game commence \U0001F3AC. And may the best player win \U0001F3C6.&quot;
+</code></pre>
+                    <p>これを機能させる方法について何かアイデアはありますか?
+                    (そのようなロジックを別の場所で書いたほうが良い練習になるとは思いますが、この文脈で簡単に言うと、ここでの方が簡単です。これがどれほど良い練習か悪い練習かは関係なく、これがどのように行われるかどうかを知りたいのですとにかく可能です、ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>YAML
+                    は、他の言語とは異なり、文字列補間をサポートしていません。
+                    Ruby スクリプトで YAML
+                    ファイルを前処理してから、処理されたコンテンツを
+                    YAML
+                    ファイルに書き込む必要がある場合があります。</p>
+                    <p>以下に例を示します。</p>
+                    <pre><code>active_player_name = &quot;John Doe&quot;
+new_game = true
+
+yaml_content = &lt;&lt;~YAML
+start_prompt: &quot;Drum roll please \\U0001F941\\U0001F941\\U0001F941.
+    #{active_player_name} will #{new_game ? &quot;begin&quot; : &quot;continue&quot;} play.
+    Let the game commence \\U0001F3AC. And may the best player win \\U0001F3C6.&quot;
+YAML
+
+File.open(&#39;output.yaml&#39;, &#39;w&#39;) { |file| file.write(yaml_content) }
+</code></pre>
+                    <p>あるいは、条件に基づいて yaml
+                    ファイルの文字列を動的に変更/置換することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

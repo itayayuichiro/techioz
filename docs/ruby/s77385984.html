@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で、前の文字のみがわかっており、最大 2 桁の文字列内で整数を見つける方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で、前の文字のみがわかっており、最大 2 桁の文字列内で整数を見つける方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で、前の文字のみがわかっており、最大 2
+桁の文字列内で整数を見つける方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような文字列があります</p>
+                    <pre><code>x = &#39;4x4 @ 32&quot; hjy w/ R43 potter&#39;
+</code></pre>
+                    <pre><code>x = &#39;4x4 @ 32&quot; hjy w/ R4 26 potter&#39;
+</code></pre>
+                    <pre><code>x = &#39;Restful4 4 @ 32&quot; hjy R8 26 potter&#39;
+</code></pre>
+                    <p>先頭に R が付いた数字、つまり最初の数字から 43、2
+                    番目の数字から 4、3 番目の数字から 8
+                    を取得する必要があります。</p>
+                    <p>大文字の R が保証されます。</p>
+                    <p>Index(‘R’)
+                    を使用して取得できますが、すべてのケースに対処するのは面倒です。</p>
+                    <p>matchしてみましたが、うまくいかないようでした。何か案は？</p>
+                    <p>これを試してみました:</p>
+                    <pre><code>sFind = x.match /(?&lt;name&gt;R \d+) /
+debug=debug+sFind[:name].to_s + &quot;\n&quot;
+</code></pre>
+                    <p>デバッグでエラーが発生する</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>もうすぐ完成です。R と
+                    の間の空白を削除するだけです。</p>
+                    <pre><code>x = &#39;4x4 @ 32&quot; hjy w/ R43 potter&#39;
+
+x.match /(?&lt;name&gt;R \d+) / #=&gt; nil
+x.match /(?&lt;name&gt;R\d+) /  #=&gt; #&lt;MatchData &quot;R43 &quot; name:&quot;R43&quot;&gt;
+</code></pre>
+                    <p>キャプチャ グループをすぐに抽出できる String#[]
+                    もあります。</p>
+                    <pre><code>x[/(?&lt;name&gt;R\d+) /, :name] #=&gt; &quot;R43&quot;
+</code></pre>
+                    <p>数字のみを取得するには:</p>
+                    <pre><code>x[/R(?&lt;name&gt;\d+) /, :name] #=&gt; &quot;43&quot;
+</code></pre>
+                    <p>または、名前付きキャプチャを使用しないことで少し短くなります。</p>
+                    <pre><code>x[/R(\d+)/, 1] #=&gt; &quot;43&quot;
+</code></pre>
+                    <p>いわゆる肯定後読みアサーションを使用して、R
+                    を含めずに R
+                    が先行する数字を照合することもできます。</p>
+                    <pre><code>x[/(?&lt;=R)\d+/] #=&gt; &quot;43&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

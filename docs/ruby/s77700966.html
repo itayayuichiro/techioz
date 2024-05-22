@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails accepts_nested_attributes_for が渡されたレコードを関連付けることができません (または検索できません) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails accepts_nested_attributes_for が渡されたレコードを関連付けることができません (または検索できません)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails accepts_nested_attributes_for
+が渡されたレコードを関連付けることができません
+(または検索できません)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アタッチメント モデル
+                    (この場合、チームに関連付けられたロゴに使用されます)
+                    は、チームに関連付ける前にデータベースに保存されます。これを行うのは、クライアント側で
+                    S3 アップロードを行うためです。そのため、S3
+                    キーを生成し、それをデータベース内の別のモデルに関連付ける前に確認する必要があります。</p>
+                    <p>チーム モデルは次のようにアタッチメント
+                    クラスを参照します。</p>
+                    <pre><code>Class Team &lt; ApplicationRecord
+ has_many :logos, as: :attachable, class_name: &quot;Attachment&quot;, dependent: :destroy, after_add: :cache_logo_url, inverse_of: :attachable
+ accepts_nested_attributes_for :logos, allow_destroy: true
+end
+</code></pre>
+                    <p>アタッチメント
+                    クラスは、次のようにポリモーフィック
+                    アタッチ可能オブジェクトを参照します。</p>
+                    <pre><code>class Attachment &lt; ApplicationRecord
+  belongs_to :attachable, polymorphic: true, optional: true
+end
+</code></pre>
+                    <p>コントローラーでは、ネストされた属性を受け入れます。</p>
+                    <pre><code>class Api::V1::TeamsController &lt; Api::V1::BaseController
+  def update
+    @team = Team.find(params[:id])
+    authorize @team
+
+    if @team.update(params)
+      render status: :no_content
+    else
+      validation_error(@team.errors)
+    end
+  end
+
+  private
+  def team_params
+    params.require(:team).permit(
+      :name, 
+      logos_attributes: [:id, :_destroy]
+    )
+  end
+end
+
+</code></pre>
+                    <p>しかし、PUT
+                    を実行すると、次のようになります。</p>
+                    <p>基本的に、ID 1021
+                    の添付ファイルにアタッチ可能ファイルが設定されていないため、Rails
+                    はその添付ファイルを見つけることができません。</p>
+                    <p>私が望んでいるのは、Rails が ID (および ID のみ)
+                    に基づいて添付ファイルを検索し、それをチームに関連付けることです。</p>
+                    <p>この場合、ネストされた属性をどのように受け入れるかについて、明らかな何かが欠けているのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>もう少し情報を待っていますが、それまでは次のようにパラメータを渡したいと思うかもしれません。</p>
+                    <pre><code>params: {&quot;teams&quot;=&gt;{logo_ids[1,2,3]}} 
+</code></pre>
+                    <p>Rails はモデルに has_many と
+                    accepts_nested_attributes_for があるため、logo_id
+                    の受け渡しを理解する必要があります。</p>
+                    <p>Rails はこれらのコンテキストで …_id
+                    を理解します。したがって、コンソールで次のように言うことができるはずです。</p>
+                    <pre><code>@team.logo_ids = [1,2,3]
+</code></pre>
+                    <p>そして、それらのロゴを検索し、保存時に添付しようとします。
+                    <span class="citation"
+                    data-cites="team.logo_ids">@team.logo_ids</span>
+                    を呼び出すこともでき、添付されたロゴ ID
+                    の配列が返されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

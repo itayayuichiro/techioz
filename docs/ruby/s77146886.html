@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby On Rails - 名前空間のリソース | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby On Rails - 名前空間のリソース",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby On Rails - 名前空間のリソース</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    でのモデルの名前空間設定で問題が発生しました。
+                    私のアプリにはこれらのモデルがあります</p>
+                    <pre><code>Request
+Food
+Clothing
+Request::Food
+Request::Clothing
+</code></pre>
+                    <p>Request::Food
+                    のような名前空間モデルを引数として渡しましたが、この関数は、名前空間モデル
+                    Request::Food を呼び出す必要がある場所で、依然として
+                    Food を呼び出します。 Requests::Food
+                    のように名前空間を更新してみましたが、うまくいきました。</p>
+                    <p>この件については何か特別な理由があるのでしょうか？この名前空間
+                    Request::Food、Request::Clothing
+                    を維持する方法はありますか?</p>
+                    <p>例：</p>
+                    <pre><code> def authorize(resource)
+    policy_object = &quot;#{resource.name}Policy&quot;.classify.constantize
+ end
+</code></pre>
+                    <p>authorize(Request::Food) は、RequestFoodPolicy
+                    の代わりに FoodPolicy を返します</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデルに名前空間を設定する際には、いくつかの点に注意する必要があります。</p>
+                    <p>したがって、あなたのモデルは次のようになります-</p>
+                    <pre><code>class Request::Food &lt; ApplicationRecord
+  ## this should not be foods
+  self.table_name = &#39;food_requests&#39;
+
+  ## instance method
+  def get_food;end
+</code></pre>
+                    <p>Request::Food.first.get_food
+                    を呼び出す必要があります</p>
+                    <p>これを確認するには、Rails
+                    コンソールにアクセスし、Request::Food.new
+                    を押して、どのテーブルがヒットしているかを確認します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

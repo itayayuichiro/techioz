@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関連モデルの作成中に不必要なロードを回避するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関連モデルの作成中に不必要なロードを回避するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関連モデルの作成中に不必要なロードを回避するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails
+                    アプリには、これに似たモデルがいくつかあります。</p>
+                    <pre><code>class Pen &lt; ActiveRecord::Base
+  has_one :ink
+  after_create :add_ink
+
+  def add_ink
+    create_ink(color: &quot;blue&quot;)
+  end
+end
+
+class Ink &lt; ActiveRecord::Base
+  belongs_to :pen
+end
+</code></pre>
+                    <p>コントローラーでは次のようなことを行います</p>
+                    <pre><code>pen = Pen.new(..)
+pen.save
+</code></pre>
+                    <p>概念的には、ペンには常にインクがあり、ペンの作成時にインクも作成されます。
+                    (これを達成するための after_create
+                    フックよりも優れた方法にもオープンです)。</p>
+                    <p>問題は、関連付けには何もないことが保証されているにもかかわらず、関連付けに対して常に
+                    SELECT を発行していることです。</p>
+                    <pre><code>[DEBUG]   TRANSACTION (0.2ms)  BEGIN
+[DEBUG]   Pen Create (1.5ms)  INSERT INTO pens (&quot;owner_id&quot;) VALUES (&#39;00f74077-c079-4482-aa03-15b23951a7bd&#39;) RETURNING &quot;id&quot;
+[DEBUG]   Ink Load (0.4ms)  SELECT &quot;inks&quot;.* FROM &quot;inks&quot; WHERE &quot;inks&quot;.&quot;pen_id&quot; = &#39;93a45bae-2cf3-48c1-ac00-6b3059dca5ae&#39; LIMIT 1
+[DEBUG]   Ink Create (0.3ms)  INSERT INTO &quot;inks&quot; (&quot;pen_id&quot;, &quot;color&quot;) VALUES (&#39;93a45bae-2cf3-48c1-ac00-6b3059dca5ae&#39;, &#39;blue&#39;) RETURNING &quot;pen_id&quot;
+[DEBUG]   TRANSACTION (0.2ms)  COMMIT
+</code></pre>
+                    <p>具体的には、このようなことは起こらないはずです</p>
+                    <pre><code>[DEBUG]   Ink Load (0.4ms)  SELECT &quot;inks&quot;.* FROM &quot;inks&quot; WHERE &quot;inks&quot;.&quot;pen_id&quot; = &#39;93a45bae-2cf3-48c1-ac00-6b3059dca5ae&#39; LIMIT 1
+</code></pre>
+                    <p>build_association の後に save、create_association
+                    を使用したり、Association.create で association=
+                    を使用したりしてみましたが、いずれもある時点で不要な
+                    Load が発生します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>表示されている現象は、after_create で Ink
+                    が作成されたときに Pen
+                    がすでに永続化されていることが原因で発生します。</p>
+                    <p>ドキュメントから</p>
+                    <p>したがって、あなたが見ているのは、Rails
+                    が関連するレコードがすでに存在するかどうかを判断し、それに応じて更新できるようにしようとしているということです。</p>
+                    <p>希望する結果に応じて、 Ink.create(pen_id:
+                    self.id, color: ‘blue’);
+                    を試すことができます。ただし、これを before_create
+                    アクションに移動するだけで、おそらくより良い実装になると思います。</p>
+                    <pre><code>class Pen &lt; ActiveRecord::Base
+  has_one :ink
+  before_create :add_ink
+
+  def add_ink
+    build_ink(color: &quot;blue&quot;)
+  end
+end
+</code></pre>
+                    <p>ドキュメントによると</p>
+                    <p>したがって、これは before_create
+                    であるため、ペンは新しいレコードであるため、データベースにクエリせずにインクも保存する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

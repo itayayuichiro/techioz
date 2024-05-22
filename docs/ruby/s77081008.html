@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: アプリケーション コントローラー内のソケット ハイジャック | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: アプリケーション コントローラー内のソケット ハイジャック",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails: アプリケーション
+コントローラー内のソケット ハイジャック</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリケーションを使用して生のビデオ
+                    ストリームを提供したいと考えています。これを行うための最良の方法は、ソケットをハイジャックしてビデオ
+                    ストリーム (遠隔地から送信される)
+                    を直接送信することであると理解しました。
+                    つまり、基本的にはビデオリバースプロキシです。
+                    また、これをアプリケーション内でロジックを適用できるようにしたいと考えています。それ以外の場合は、nginxを使用するだけです。
+                    プーマを使っています。</p>
+                    <p>config.ru経由でこれを行うことができましたが、より多くのロジックを使用してリモートへの呼び出しをより動的にできるようにするために、アプリケーションコントローラー内に置きたいと考えています。</p>
+                    <p>私のconfig.ru:</p>
+                    <pre><code>map &#39;/video&#39; do
+    io_lambda = lambda do |io|
+    uri = URI(&quot;http://10.0.0.20/myvideo.ts&quot;)
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new uri
+      http.request request do |response|
+        response.read_body do |chunk|
+          io.write chunk
+        end
+      end
+    end
+  end
+
+  app = lambda do |env|
+    response_headers = {}
+    response_headers[&#39;Transfer-Encoding&#39;] = &#39;binary&#39;
+    response_headers[&quot;Content-Type&quot;] = &quot;video/mp2t&quot;
+    response_headers[&quot;rack.hijack&quot;] = io_lambda
+    [200, response_headers, nil]
+  end
+  run app
+end
+</code></pre>
+                    <p>アプリケーションコントローラーのメソッドに同じものを入れても機能せず、空の応答が返されます。
+                    TemplateError を回避するために :head ok を追加し、
+                    run app 行と app 変数の割り当てを削除しました。 私は
+                    Rails
+                    にまったく慣れていないので、間違った方法で取り組んでいる可能性があります。私が見つけることができるほとんどのリソースは
+                    WebSocket
+                    のみに関するものであるため、正しい方向を示す助けをいただければ幸いです。</p>
+                    <p>また、この投稿も知っています。「Rack
+                    用の軽量ストリーミング HTTP プロキシ (Ruby CPU-light
+                    HTTP クライアント
+                    ライブラリ)」は、私に良い方向を示し、吸収して学ぶべき多くの情報でした。
+                    sendfile gem
+                    は最終的な解決策のように思えますが、ソケットをハイジャックしてアプリケーションコントローラーが生データをクライアントにストリーミングするだけの方法がわかりません。</p>
+                    <pre><code>class SocketController &lt; ApplicationController
+  include ActionController::Live
+  def test
+    i = 0
+    response.headers[&#39;Content-Type&#39;] = &#39;video/mp4&#39;
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new uri
+      http.request request do |remote_response|
+        remote_response.read_body do |chunk|
+          i += 1
+          puts i if i % 1000 == 0
+          response.stream.write chunk
+        end
+      end
+    end
+  ensure
+    response.stream.close
+  end
+end
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが直面している問題は、Rails
+                    アプリケーション
+                    コントローラーのアクションでrack.hijack
+                    ヘッダーを使用しようとしているということです。ただし、rack.hijack
+                    ヘッダーは config.ru
+                    ファイルでのみサポートされます。</p>
+                    <p>Rails アプリケーションで生のビデオ
+                    ストリームを提供するには、sendfile gem
+                    を使用できます。 sendfile gem
+                    を使用すると、最初にファイルをメモリに読み込むことなく、ファイルをクライアントに直接送信できます。これは、ビデオ
+                    ストリームなどの大きなファイルを提供するのに最適です。</p>
+                    <p>sendfile gem を使用するには、それを Gemfile
+                    に追加する必要があります。</p>
+                    <pre><code>gem &#39;sendfile&#39;
+</code></pre>
+                    <p>次に、Rails アプリケーション コントローラーの
+                    send_file メソッドを使用して、ビデオ
+                    ストリームをクライアントに送信できます。</p>
+                    <pre><code>def stream_video
+  send_file &#39;/path/to/video.mp4&#39;, type: &#39;video/mp4&#39;
+end
+</code></pre>
+                    <p>send_file
+                    メソッドは、送信するファイルへのパスとファイルのコンテンツ
+                    タイプという 2
+                    つの引数を取ります。この場合、ファイルは
+                    /path/to/video.mp4 にあり、コンテンツ タイプは
+                    video/mp4 です。</p>
+                    <p>sendfile gem
+                    を使用して、リモートの場所から生のビデオ
+                    ストリームを提供することもできます。これを行うには、まず
+                    Net::HTTP ライブラリを使用してビデオ ストリームを
+                    Rails
+                    アプリケーションにダウンロードする必要があります。次に、send_file
+                    メソッドを使用してビデオ
+                    ストリームをクライアントに送信できます。</p>
+                    <p>以下は、リモートの場所から生のビデオ
+                    ストリームを提供する方法の例です。</p>
+                    <pre><code>def stream_video
+  uri = URI(&#39;http://example.com/video.mp4&#39;)
+  response = Net::HTTP.get(uri)
+  send_file response.body, type: &#39;video/mp4&#39;
+end
+</code></pre>
+                    <p>このコードは、まずビデオ
+                    ストリームをリモートの場所から応答と呼ばれる変数にダウンロードします。次に、send_file
+                    メソッドを使用してビデオ
+                    ストリームをクライアントに送信します。</p>
+                    <p>お役に立てれば幸いです!</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

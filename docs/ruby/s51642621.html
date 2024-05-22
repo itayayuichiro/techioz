@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>条件付きの Rails カウンタ キャッシュ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "条件付きの Rails カウンタ キャッシュ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>条件付きの Rails カウンタ キャッシュ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>中に部屋がある Rails Hotel
+                    アプリケーションがあります。ルームには n
+                    個のチケットを関連付けることができます。カウンターカルチャージェムを使用してカウンターキャッシュを作成し、割り当てられたチケットの数でルームテーブルを更新しました。
+                    問題は、オープンまたは進行中のチケットの数だけが必要であることです。このコードがありますが、通常は正常に機能しますが、条件付きでは機能しません。条件付きでどのように機能させるかを教えてくれる人はいますか?助けていただければ幸いです</p>
+                    <p>ルームテーブル移行ファイル</p>
+                    <pre><code> class AddTicketsCountToRooms &lt; ActiveRecord::Migration[5.0]
+    def self.up
+      add_column :rooms, :tickets_count, :integer, null: false, default: 0
+    end
+  end
+</code></pre>
+                    <p>Ticket.rb ファイル</p>
+                    <pre><code>    belongs_to :room
+  counter_culture :room, column_name: proc {|model| model.status? [0,1] &#39;tickets_count&#39; : nil }
+</code></pre>
+                    <p>これは where 句に従っていません。
+                    というエラーが表示されます</p>
+                    <pre><code>syntax error, unexpected tSTRING_BEG, expecting &#39;}&#39; {|model| model.status? [0,1] &#39;tickets_count&#39; : nil } ^ /Users/mohammedsayerwala/Documents/Aqua/app/models/ticket.rb:8: syntax error, unexpected &#39;:&#39;, expecting keyword_end tatus? [0,1] &#39;tickets_count&#39; : nil }
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails は counter_cache による条件を提供しません。
+                    where 句と each も機能しません。</p>
+                    <p>条件付きカウンターを実現するには、コード内でカスタム
+                    コールバックを使用し、条件付きのカスタム
+                    counter_cache でカウンター ブログを管理します。</p>
+                    <p>あるいは、counter_culture
+                    gem、conditional-counter-cache
+                    を使用することもできます。</p>
+                    <p>同様の質問の回答を参照してください -
+                    条件付きカラムのカウンターキャッシュ?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Content-Type が設定された JS ファイルを提供するラック アプリですが、ブラウザでは Mimetype が「」であると表示されます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Content-Type が設定された JS ファイルを提供するラック アプリですが、ブラウザでは Mimetype が「」であると表示されます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Content-Type が設定された JS
+ファイルを提供するラック アプリですが、ブラウザでは Mimetype
+が「」であると表示されます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ラックアプリがあります:</p>
+                    <pre><code>class Responder
+  def self.call(env)
+    path = env[&#39;PATH_INFO&#39;]
+    path = File.extname(path).blank? ? &#39;index.html&#39; : path
+    extension = File.extname(path)
+    headers = {
+      &#39;Content-Type&#39; =&gt; Rack::Mime.mime_type(extension)
+    }
+   [200, headers, [ File.read(File.join(APP_ROOT, path)) ] ]
+  end
+end
+</code></pre>
+                    <p>この目的は、/foo や /bar などのルートがindex.html
+                    で応答し、それ以外の場合は、ファイルが要求した .js
+                    または .css
+                    のリクエストがそのままパススルーされるようにすることです。</p>
+                    <p>これをテストすると、ヘッダーに正しいコンテンツ
+                    タイプが設定されていることがわかります。これは、curl
+                    でも確認できます。</p>
+                    <pre><code>curl -i http://localhost:3000/foo
+HTTP/1.1 200 OK
+Content-Type: text/html
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>curl -i http://localhost:3000/main.js
+HTTP/1.1 200 OK
+Content-Type: application/javascript
+</code></pre>
+                    <p>しかし、ブラウザでアプリケーションを表示しようとすると、JavaScript
+                    ファイルを呼び出すスクリプト
+                    タグが次のようなエラーで失敗します。</p>
+                    <pre><code>main.js:1 Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of &quot;&quot;. Strict MIME type checking is enforced for module scripts per HTML spec.
+</code></pre>
+                    <p>サーバーが「application/javascript」で応答していることをcurlが示しているのに、ブラウザはサーバーが「」のMIMEタイプで応答していると主張するのはなぜですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際の Rack::Request / Rack::Response
+                    オブジェクトを使用して、MIME
+                    タイプを機能させることができました。</p>
+                    <pre><code>  get &#39;(*path)&#39;, to: -&gt;(env) {
+    request = Rack::Request.new(env)
+    response = Rack::Response.new
+    extension = File.extname(request.path_info)
+
+    if extension.blank?
+      content_type = Rack::Mime.mime_type(&#39;.html&#39;)
+      filename = &#39;index.html&#39;
+    else
+      content_type = Rack::Mime.mime_type(extension)
+      filename = request.path_info
+    end
+
+    response.header[&#39;Content-Type&#39;] = content_type
+    response.status = 200
+    response.write File.read(&quot;public/app/#{filename}&quot;)
+    response.finish
+  }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

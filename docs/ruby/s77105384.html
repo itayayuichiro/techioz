@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アクティブな管理者で after_destroy が機能しない理由を誰か教えてください。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アクティブな管理者で after_destroy が機能しない理由を誰か教えてください。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アクティブな管理者で after_destroy
+が機能しない理由を誰か教えてください。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5 と active_admin 2.0.0
+                    を使用しています</p>
+                    <p>以下のようなアクティブ管理でコールバックを使用しています</p>
+                    <pre><code>  after_destroy do |my_model|
+    account_id = my_model.try(:account_id)
+    Account.desable_something(account_id)
+  end
+</code></pre>
+                    <p>ただし、このコールバックはデータを削除した後は機能しません。</p>
+                    <p>以前にモデルファイルでこれを試しましたが、一部の環境では機能しましたが、すべての環境では機能しませんでした。次に、このアプローチを管理ファイルで使用した後、そこでも機能しません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    では、データベースからレコードを削除するには、destroy
+                    と delete の 2
+                    つの方法があります。それらの違いは、destroy
+                    はコールバック (after_destroy など)
+                    をトリガーするのに対し、delete
+                    はコールバックをトリガーしないことです。</p>
+                    <p>あなたの場合、destroy
+                    メソッドを使用してデータを削除している場合、after_destroy
+                    コールバックがトリガーされる必要があります。ただし、delete
+                    メソッドを使用している場合、コールバックはトリガーされません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

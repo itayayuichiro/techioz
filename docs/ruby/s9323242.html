@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Nested Set Gem はどのように機能するのでしょうか?また、それをプロジェクトに組み込むにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Nested Set Gem はどのように機能するのでしょうか?また、それをプロジェクトに組み込むにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Nested Set Gem
+はどのように機能するのでしょうか?また、それをプロジェクトに組み込むにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、現在の Rails アプリ関係では gem
+                    ネストされたセットを使用する必要があるとアドバイスを受けました。
+                    ( 前回のスレッド / 質問はこちら) 私は現在 3
+                    つのモデルを持っています。</p>
+                    <p>カテゴリにはサブカテゴリが_多くあります
+                    サブカテゴリはカテゴリに属し、製品が_多くあります。
+                    製品はサブカテゴリに属します。こんな感じで表示したかったのですが
+                    +カテゴリー —-サブカテゴリ - - - - 製品 - - - - 製品
+                    —-サブカテゴリ - - - - 製品 - - - - 製品</p>
+                    <p>+カテゴリー —-サブカテゴリ - - - - 製品 - - - -
+                    製品</p>
+                    <p>それでは、これをnested_setで行う場合、モデルでどのように設定すればよいでしょうか?サブカテゴリと製品モデルを削除して、カテゴリ
+                    モデルに act_as_nested_set
+                    を追加するだけでよいでしょうか?モデルの処理が完了したら、作成したネストされたセット内にノードを作成できるようにするには、コントローラーのアクションを何を更新すればよいでしょうか?</p>
+                    <p>このnested_setリストのCRUD、作成、読み取り、更新、および破棄を行う方法を理解するのに役立つと思います。</p>
+                    <p>これは私がすでに持っているコードです</p>
+                    <p>カテゴリコントローラー:</p>
+                    <pre><code>class CategoriesController &lt; ApplicationController
+def new
+  @category = Category.new
+  @count = Category.count
+end
+
+def create
+@category = Category.new(params[:category])
+if @category.save
+  redirect_to products_path, :notice =&gt; &quot;Category created! Woo Hoo!&quot;
+else
+  render &quot;new&quot;
+end
+end
+
+def edit
+  @category = Category.find(params[:id]) 
+end
+
+def destroy
+  @category = Category.find(params[:id])
+  @category.destroy
+  flash[:notice] = &quot;Category has been obliterated!&quot;
+  redirect_to products_path
+end
+
+def update
+  @category = Category.find(params[:id])
+
+if @category.update_attributes(params[:category])
+  flash[:notice] = &quot;Changed it for ya!&quot;
+  redirect_to products_path
+else 
+  flash[:alert] = &quot;Category has not been updated.&quot;
+  render :action =&gt; &quot;edit&quot;
+end
+end
+
+def show
+  @category = Category.find(params[:id])
+end
+
+def index
+  @categories = Category.all
+end 
+end
+</code></pre>
+                    <p>カテゴリモデル:</p>
+                    <pre><code>class Category &lt; ActiveRecord::Base
+  acts_as_nested_set
+  has_many :subcategories
+  validates_uniqueness_of :position
+  scope :position, order(&quot;position asc&quot;)
+
+end
+</code></pre>
+                    <p>サブカテゴリモデル:</p>
+                    <pre><code>class Subcategory &lt; ActiveRecord::Base
+  belongs_to :category
+  has_many :products
+  scope :position, order(&quot;position asc&quot;)
+end
+</code></pre>
+                    <p>そして最後に、製品モデル:</p>
+                    <pre><code>class Product &lt; ActiveRecord::Base
+  belongs_to :subcategory
+  has_many :products
+  scope :position, order(&quot;position asc&quot;)
+end
+</code></pre>
+                    <p>助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>カテゴリと製品は次のようにします。</p>
+                    <pre><code>class Product &gt; ActiveRecord::Base
+  belongs_to :category
+end
+
+class Category &gt; ActiveRecord::Base
+  has_many :products
+  acts_as_nested_set
+end
+
+class CategoryController &lt; ApplicationController
+   def create
+
+      @category = params[:id] ? Category.find(params[:id]).children.new(params[:category]) : Category.new(params[:category])
+
+      if @category.save
+          redirect_to products_path, :notice =&gt; &quot;Category created! Woo Hoo!&quot;
+      else
+          render &quot;new&quot; 
+      end
+   end
+
+   def new
+      @category = params[:id] ? Category.find(params[:id]).children.new : Category.new
+   end
+
+   def index
+      @categories = params[:id] ? Category.find(params[:id]).children : Category.all
+   end
+end
+
+#config/routes.rb your categories resource could be something like..
+resources :categories do
+   resources :children, :controller =&gt; :categories, 
+                              :only =&gt; [:index, :new, :create]
+end
+</code></pre>
+                    <p>この方法は、製品をあらゆるレベルのカテゴリに入れることができるため、最も柔軟です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

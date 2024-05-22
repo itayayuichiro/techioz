@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails は 2 つの日付の違いを見つけます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails は 2 つの日付の違いを見つけます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails は 2 つの日付の違いを見つけます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーがアプリのメンバーになっている期間を計算したいと考えています。次のように表示する必要があります:</p>
+                    <p>ユーザー会員 2y,9m</p>
+                    <p>そのために、User
+                    モデル内にメソッドを作成しました。</p>
+                    <pre><code>  def member_for
+    #calculate number of months
+    month = (Time.current.year * 12 + Time.current.month) - (created_at.year * 12 + created_at.month)
+    #an array [years, months]
+    result = month.divmod(12)
+
+    if result[0].zero? &amp;&amp; result[1].nonzero?
+      &quot;User member for #{result[1]}m&quot;
+    elsif result[1].zero? &amp;&amp; result[0].nonzero?
+      &quot;User member for #{result[0]}y&quot;
+    elsif result[0].zero? &amp;&amp; result[1].zero?
+      &#39;User member for 1m&#39;
+    else
+      &quot;User member for #{result[0]}y, #{result[1]}m&quot;
+    end
+  end
+</code></pre>
+                    <p>しかし、正直に言って、このコードは臭いです。Rails6
+                    には、これをより適切に実行して、コードをもう少しきれいに見せるための組み込みメソッドはありませんか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これには ActiveSupport::Duration
+                    を使用できます。必要なのは、時差を
+                    ActiveSupport::Duration.build
+                    メソッドに渡すことだけです。 例えば：</p>
+                    <pre><code>time_diff = Time.now - 1000.days.ago
+ActiveSupport::Duration.build(time_diff.to_i)         # 2 years, 8 months, 3 weeks, 5 days, 28 minutes, and 47 seconds 
+ActiveSupport::Duration.build(time_diff.to_i).parts   # 2 years, 8 months, 3 weeks, 5 days, 28 minutes, and 47 seconds 
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

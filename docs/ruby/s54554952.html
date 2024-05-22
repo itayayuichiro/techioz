@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>CURL リクエストを Ruby Gem HTTPClient に変換する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "CURL リクエストを Ruby Gem HTTPClient に変換する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>CURL リクエストを Ruby Gem HTTPClient
+に変換する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この CURL
+                    リクエストを変換しようとしています。</p>
+                    <pre><code>curl \
+  -F &#39;slideshow_spec={ 
+    &quot;images_urls&quot;: [ 
+      &quot;&lt;IMAGE_URL_1&gt;&quot;, 
+      &quot;&lt;IMAGE_URL_2&gt;&quot;, 
+      &quot;&lt;IMAGE_URL_3&gt;&quot; 
+    ], 
+    &quot;duration_ms&quot;: 2000, 
+    &quot;transition_ms&quot;: 200 
+  }&#39; \
+  -F &#39;access_token=&lt;ACCESS_TOKEN&gt;&#39; \
+  https://google.com
+</code></pre>
+                    <p>HTTPClient
+                    リクエストに送信しましたが、すべての試行で 400 Bad
+                    Request
+                    が発生しました。私が試したことは次のとおりです。</p>
+                    <pre><code>  payload = {
+        &quot;images_urls&quot;: [
+          &quot;https://cdn-m2.esoftsystems.com/10100028/TAASTRUP%40DANBOLIG.DK/10106239925/160596797/BEST_FIT/1542/1024/IMG_5511.jpg&quot;,
+          &quot;https://cdn-m2.esoftsystems.com/10100028/TAASTRUP%40DANBOLIG.DK/10106239925/160596797/BEST_FIT/1542/1024/IMG_5511.jpg&quot;,
+          &quot;https://cdn-m2.esoftsystems.com/10100028/TAASTRUP%40DANBOLIG.DK/10106239925/160596797/BEST_FIT/1542/1024/IMG_5511.jpg&quot;
+        ],
+        &quot;duration_ms&quot;: 2000,
+        &quot;transition_ms&quot;: 200
+      }
+
+  response = RestClient.post url, {slideshow_spec: payload.to_json, multipart: true, access_token: access_token}
+</code></pre>
+                    <p>何か案は？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたのリクエストは同等ではありません。ここでは
+                    JSON、Multipart、x-www-form-urlencoded
+                    形式を混合していると思います。</p>
+                    <p>RestClient は 3
+                    つの形式すべてをサポートしています (例は
+                    https://github.com/rest-client/rest-client/blob/master/README.md
+                    から取得)</p>
+                    <pre><code># POST JSON
+RestClient.post &quot;http://example.com/resource&quot;, {&#39;x&#39; =&gt; 1}.to_json, {content_type: :json, accept: :json}
+
+# POST Multipart
+# Usually not needed if you don&#39;t want to upload a file
+RestClient.post &#39;/data&#39;, {:foo =&gt; &#39;bar&#39;, :multipart =&gt; true}
+
+# POST x-www-form-urlencoded
+RestClient.post(&#39;https://httpbin.org/post&#39;, {foo: &#39;bar&#39;, baz: &#39;qux&#39;})
+</code></pre>
+                    <p>あなたのcurlサンプルはapplication/x-www-form-urlencodedを使用しているのに対し、Rubyサンプルはmultipart/form-dataを使用しているようです。</p>
+                    <p>背景情報については、以下を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

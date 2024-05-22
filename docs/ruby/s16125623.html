@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Gitlab で電子メール送信をデバッグするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Gitlab で電子メール送信をデバッグするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Gitlab
+で電子メール送信をデバッグするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Gitlab (バージョン 5)
+                    は電子メールを送信していません。何が起こっているのか理解できずに途方に暮れています。ログには有益な情報はありません。
+                    sendmailを使用するように設定しました。</p>
+                    <p>ActionMailer
+                    を介して電子メールを送信する小さなスクリプトを作成しました
+                    (これは、gitlab
+                    が電子メールの送信に使用するものだと思います)。そして、電子メールは正しく送信されます。</p>
+                    <p>しかし、私の Gitlab では、sendmail
+                    が呼び出されさえしていないことを保証できます。</p>
+                    <p>電子メール通知を受け取るために何かを有効にする必要がありますか?問題をデバッグするにはどうすればよいですか?</p>
+                    <p>問題は、どこにも情報が見つからないことです。何も言わずに失敗するだけです。ある種のログはどこで見つけられますか?ログ
+                    ディレクトリ内のログには有用な情報はありません。</p>
+                    <p>私の質問は、Gitlab
+                    をより冗長にするにはどうすればよいですか?何が起こっているかを知らせるようにするにはどうすればよいですか?</p>
+                    <p>バックグラウンド ジョブ
+                    セクションにスケジュールされた大量のメールを見つけました。未処理の
+                    Sidekiq::Extensions::DelayedMailer
+                    が大量にあります。それはどういう意味ですか？これらのジョブが処理されなかったのはなぜですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今日この問題に遭遇したので、私の調査結果を以下に示します。</p>
+                    <p>GitLab GUI での SMTP
+                    接続のデバッグはまだサポートされていません。ただし、保留中の機能リクエストとコマンド
+                    ライン ソリューションがあります。</p>
+                    <p>必要な SMTP 設定 /etc/gitlab/gitlab.rb
+                    を設定し、gitlab-ctl reconfigure を実行します
+                    (https://docs.gitlab.com/omnibus/settings/smtp.html
+                    を参照)。</p>
+                    <p>gitlab-rails console -eproduction
+                    を実行してコンソールを起動します。</p>
+                    <p>コマンド ActionMailer::Base.delivery_method
+                    を実行して、構成された配信方法 (:smtp
+                    である必要があります) を表示します。
+                    ActionMailer::Base.smtp_settings
+                    を実行している構成済みの SMTP
+                    設定をすべて表示します。</p>
+                    <p>テストメールを送信するには</p>
+                    <pre><code>Notify.test_email(&#39;[email protected]&#39;, &#39;Hello World&#39;, &#39;This is a test message&#39;).deliver_now
+</code></pre>
+                    <p>GitLab の管理ページの「バックグラウンド
+                    ジョブ」セクションには、すべてのジョブに関する情報が表示されます。失敗した
+                    SMTP 接続もそこにリストされます。</p>
+                    <p>新しく構成した SMTP 設定を使用するには、GitLab
+                    インスタンスを再起動する必要がある場合があることに注意してください
+                    (私のインスタンスでは、コンソールはメールを送信できましたが、GUI
+                    は再起動が必要でした)。 gitlab-ctl restart
+                    を実行してインスタンスを再起動します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

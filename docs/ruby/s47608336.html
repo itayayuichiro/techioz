@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails SSL の問題: (https://example.com) が request.base_url (http://example.com) と一致しませんでした | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails SSL の問題: (https://example.com) が request.base_url (http://example.com) と一致しませんでした",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails SSL の問題: (https://example.com) が
+request.base_url (http://example.com) と一致しませんでした</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>自分のサイトに SSL
+                    証明書をインストールしました。残念ながらログイン機能が壊れてしまいました。サイトでログイン
+                    フォームを送信すると、ホームページにリダイレクトされるだけです。
+                    Rails
+                    ログを確認すると、次のエラーが表示されます。</p>
+                    <pre><code>(https://example.com) didn&#39;t match request.base_url (http://example.com)
+</code></pre>
+                    <p>これが私のvirtualhostsファイルです。何らかの方法でSSLを強制する必要があるのでしょうか？</p>
+                    <pre><code>&lt;VirtualHost *:80&gt;
+   ServerName example.com
+   ServerAlias www.example.com
+   Redirect permanent / https://example.com/
+&lt;/VirtualHost&gt;
+
+&lt;VirtualHost *:443&gt;
+   ServerAdmin [email protected]
+   ServerName example.com
+   ServerAlias www.example.com
+   SSLEngine on
+   SSLCertificateFile /home/user/sharetribe/lib/certificates/www_example_com.crt
+   SSLCertificateKeyFile /home/user/sharetribe/lib/certificates/example.com.key
+   SSLCertificateChainFile /home/user/sharetribe/lib/certificates/www_example_com.ca-bundle
+
+   ProxyRequests Off
+   &lt;Proxy *&gt;
+      Order deny,allow
+      Allow from all
+   &lt;/Proxy&gt;
+   ProxyPass / http://localhost:3000/
+   ProxyPassReverse / http://localhost:3000/
+&lt;/VirtualHost&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RailsアプリケーションサーバーはSSLが有効になっているWebサーバーの背後で実行されているため。しかし、アプリケーションサーバーはそれを認識せず、HTTP
+                    プロトコルを続行します。 request.base_url が HTTP
+                    URL を与えるためです。</p>
+                    <p>SSL が有効になっていて https
+                    プロトコルが使用されていることをアプリケーション
+                    サーバーに知らせるには、アプリケーション
+                    サーバーに明示的に通知する必要があります。</p>
+                    <p>Nginx
+                    Webサーバーでは、次のものを使用しました。</p>
+                    <pre><code>proxy_set_header X-Forwarded-Proto https;
+proxy_set_header X-Forwarded-Ssl on;
+</code></pre>
+                    <p>Apache Web
+                    サーバーの場合は、同様の設定を見つける必要があります。</p>
+                    <p>config.force_ssl = true
+                    を使用すると問題は解決できると思いますが、この設定ではすべての
+                    HTTP リクエストが HTTPS
+                    に変更されるため、適切には解決されません。つまり、誰かが
+                    HTTP でリクエストした場合、HTTPS
+                    にリダイレクトされます。 config.force_ssl = true
+                    は、クライアント側に URL を送信している API
+                    の場合には機能しません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

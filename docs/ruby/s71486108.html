@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Gem::Ext::BuildError: エラー: macOS Monterey で gem ネイティブ拡張機能をビルドできませんでした | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Gem::Ext::BuildError: エラー: macOS Monterey で gem ネイティブ拡張機能をビルドできませんでした",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Gem::Ext::BuildError: エラー: macOS Monterey
+で gem ネイティブ拡張機能をビルドできませんでした</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5 プロジェクトで Bundle install
+                    を実行すると、ネイティブ拡張機能があると思われる gem
+                    で多数のエラーが発生します。以下は、これらの gem の
+                    1 つの出力の上部です。</p>
+                    <pre><code>Installing nio4r 1.2.1 with native extensions
+
+Gem::Ext::BuildError: ERROR: Failed to build gem native extension.
+
+checking for unistd.h... yes
+checking for rb_thread_blocking_region()... no
+checking for rb_thread_call_without_gvl()... yes
+checking for sys/select.h... yes
+checking for poll.h... yes
+checking for sys/epoll.h... no
+checking for sys/event.h... yes
+checking for sys/queue.h... yes
+checking for port.h... no
+checking for sys/resource.h... yes
+creating Makefile
+
+current directory: /Users/&lt;my-username&gt;/.rvm/gems/ruby-2.7.4/gems/nio4r-1.2.1/ext/nio4r
+make &quot;DESTDIR=&quot; clean
+
+current directory: /Users/&lt;my-username&gt;/.rvm/gems/ruby-2.7.4/gems/nio4r-1.2.1/ext/nio4r
+make &quot;DESTDIR=&quot;
+compiling monitor.c
+monitor.c:91:24: warning: &#39;(&#39; and &#39;{&#39; tokens introducing statement expression appear in different macro expansion contexts [-Wcompound-token-split-by-macro]
+if(interests_id == rb_intern(&quot;r&quot;)) {
+                   ^~~~~~~~~~~~~~
+/Users/&lt;my-username&gt;/.rvm/rubies/ruby-2.7.4/include/ruby-2.7.0/ruby/ruby.h:1847:23: note: expanded from macro &#39;rb_intern&#39;
+    __extension__ (RUBY_CONST_ID_CACHE((ID), (str))) : \
+                  ^
+monitor.c:91:24: note: &#39;{&#39; token is here
+    if(interests_id == rb_intern(&quot;r&quot;)) {
+                       ^~~~~~~~~~~~~~
+</code></pre>
+                    <p>いろいろ試してみました。</p>
+                    <p>この投稿に従って、次の提案を試しました。</p>
+                    <pre><code># didn&#39;t fix it
+bundle config build.nio4r --with-cflags=&quot;-std=c99&quot;
+bundle
+
+# didn&#39;t fix it
+xcode-select --install
+sudo xcodebuild -license accept
+bundle
+</code></pre>
+                    <p>また、この Go Rails ガイド、特に C
+                    拡張機能を必要とする gem
+                    を扱う「最終ステップ」セクションも参照しましたが、macOS
+                    を Mojave
+                    から移行していないため、そのコマンドは適用されないようです。</p>
+                    <p>現時点では、次に何を試すべきかわかりません。結局のところ、問題は
+                    C 拡張機能を必要とする gem
+                    をインストールできないことに関係しているようです。</p>
+                    <p>環境：</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、Gemfile.lock
+                    ファイルで古いバージョンのバンドラーの使用がロックされていたことであることが判明しました。
+                    Gemfile.lock を削除し、バンドルを再実行して
+                    Gemfile.lock を再生成しました。それで解決しました。
+                    Gemfile.lock
+                    ファイルの最後に次のように記述されているため、このバージョンのバンドラーが気に入っています。</p>
+                    <pre><code>BUNDLED WITH
+   2.3.9
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

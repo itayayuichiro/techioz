@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails で has_many::through 関連付けに外部キーを設定するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails で has_many::through 関連付けに外部キーを設定するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails で has_many::through
+関連付けに外部キーを設定するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Item と ItemsBelonging という 2
+                    つのテーブルがあります。アイテム間にツリー関係を作成しようとしています。アイテムのすべての子孫に対して、アイテムと子孫アイテムを結合する
+                    item_belonging を作成します。</p>
+                    <pre><code>Item {
+  id:,
+  ...
+}
+
+ItemBelonging {
+  id:,
+  item_id:,
+  descendant_id:,
+  ...
+}
+</code></pre>
+                    <p>item.descendants
+                    を正常に呼び出して、項目のすべての子孫を受け取ることができます。次のような関係を設定しました。</p>
+                    <pre><code>class ItemBelonging &lt; ApplicationRecord
+  belongs_to :descendant, :class_name =&gt; &#39;Item&#39;
+  ...
+end
+
+class Item &lt; ApplicationRecord
+  has_many :descendants, :through =&gt; :item_belongings, :source =&gt; :descendant
+  ...
+end
+</code></pre>
+                    <p>問題は、同じ itemBelonging 関係を使用して
+                    item.ancestors
+                    を呼び出してアイテムのすべての祖先を取得できるようにしたいことです。私はこれを次のように行うことができます:</p>
+                    <pre><code>  def ancestors
+    Item.joins(:item_belongings).where(&quot;item_belongings.descendant_id = ?&quot;, id)
+  end
+</code></pre>
+                    <p>しかし、has_many/belongs_to
+                    を使用してこの関係を作成するにはどうすればよいでしょうか?これは動作しません：</p>
+                    <pre><code>class ItemBelonging &lt; ApplicationRecord
+  belongs_to :descendant, :class_name =&gt; &#39;Item&#39;
+  belongs_to :ancestor, :class_name =&gt; &#39;Item&#39;, :foreign_key =&gt; :item_id
+  ...
+end
+
+class Item &lt; ApplicationRecord
+  has_many :descendants, :through =&gt; :item_belongings, :source =&gt; :descendant
+  has_many :ancestors, :through =&gt; :item_belongings, :source =&gt; :ancestor, :foreign_key =&gt; :descendant_id
+  ...
+end
+</code></pre>
+                    <p>私の最終目標は、Item.includes(:descendants) と
+                    Items.includes(:ancestors)
+                    を呼び出せるようにすることです。先祖関係をうまく機能させるにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ancestry gem を使用すると、このような DSL
+                    を簡単に使用できます</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  has_ancestry
+end
+</code></pre>
+                    <p>そして、いくつかのレコードを作成します</p>
+                    <pre><code>parent = Item.create
+first_child = Item.create(parent: parent)
+second_child = Item.create(parent: parent)
+first_child_child = Item.create(parent: first_child)
+</code></pre>
+                    <p>そして、そのようなメソッドをすぐに使用できます</p>
+                    <pre><code>parent.children # =&gt; [first_child, second_child]
+parent.descendants # =&gt; [first_child, second_child, first_child_child]
+first_child.siblings # =&gt; [first_child, second_child]
+first_child.subtree # =&gt; [first_child, first_child_child]
+first_child_child.parent # =&gt; first_child
+first_child_child.root # =&gt; parent
+first_child_child.ancestors # =&gt; [parent, first_child]
+first_child_child.path # =&gt; [parent, first_child, first_child_child]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

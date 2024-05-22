@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 6.1 へのアップグレード後の ArgumentError (引数の数が間違っています (1 が指定され、0 が期待されます)) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 6.1 へのアップグレード後の ArgumentError (引数の数が間違っています (1 が指定され、0 が期待されます))",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 6.1 へのアップグレード後の
+ArgumentError (引数の数が間違っています (1 が指定され、0
+が期待されます))</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>オープンソースの Ruby on Rails アプリを Rails
+                    6.0.x から Rails 6.1.x
+                    にアップグレードしています。</p>
+                    <p>アップグレードは正常に完了しましたが、RSS
+                    フィードを取得する非同期 ActiveJob
+                    からエラーが発生しました。開発中にアプリをローカルにデプロイすると、次の
+                    1 つのエラーが発生します。</p>
+                    <pre><code>[ActiveJob] [UpdateFeedJob] [80202040-f40d-46ae-8841-94cf03afbd6c] Error performing UpdateFeedJob (Job ID: 80202040-f40d-46ae-8841-94cf03afbd6c) from Async(default) in 366.36ms: ArgumentError (wrong number of arguments (given 1, expected 0)):
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/2.7.0/rss/rss.rb:53:in `w3cdtf&#39;
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/activesupport-6.1.7.3/lib/active_support/time_with_zone.rb:208:in `to_s&#39;
+...
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/associations/collection_proxy.rb:348:in `create&#39;
+/Users/matt/git/haven/haven/app/jobs/update_feed_job.rb:104:in `block (2 levels) in update_feed&#39;
+/Users/matt/git/haven/haven/app/jobs/update_feed_job.rb:79:in `each&#39;
+/Users/matt/git/haven/haven/app/jobs/update_feed_job.rb:79:in `block in update_feed&#39;
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/locking/pessimistic.rb:88:in `block in with_lock&#39;
+...
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/locking/pessimistic.rb:86:in `with_lock&#39;
+/Users/matt/git/haven/haven/app/jobs/update_feed_job.rb:69:in `update_feed&#39;
+/Users/matt/git/haven/haven/app/jobs/update_feed_job.rb:29:in `block in perform&#39;
+/Users/matt/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/relation/batches.rb:71:in `block (2 levels) in find_each&#39;
+...
+</code></pre>
+                    <p>AWS
+                    の実稼働環境にリモートでデプロイすると、少し異なるエラーが発生します。</p>
+                    <pre><code>E, [2023-04-25T06:46:06.355616 #30503] ERROR -- : [ActiveJob] [UpdateFeedJob] [2996357f-8dd2-4b97-a367-e0be19fb5a16] Error performing UpdateFeedJob (Job ID: 2996357f-8dd2-4b97-a367-e0be19fb5a16) from Async(default) in 1526.52ms: ArgumentError (wrong number of arguments (given 1, expected 0)):
+/home/ubuntu/.rbenv/versions/2.7.6/lib/ruby/2.7.0/time.rb:661:in `rfc2822&#39;
+/var/www/haven/vendor/bundle/ruby/2.7.0/gems/activesupport-6.1.7.3/lib/active_support/time_with_zone.rb:208:in `to_s&#39;
+...
+/var/www/haven/vendor/bundle/ruby/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/associations/collection_proxy.rb:348:in `create&#39;
+/var/www/haven/app/jobs/update_feed_job.rb:104:in `block (2 levels) in update_feed&#39;
+/var/www/haven/app/jobs/update_feed_job.rb:79:in `each&#39;
+/var/www/haven/app/jobs/update_feed_job.rb:79:in `block in update_feed&#39;
+/var/www/haven/vendor/bundle/ruby/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/locking/pessimistic.rb:88:in `block in with_lock&#39;
+...
+/var/www/haven/vendor/bundle/ruby/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/locking/pessimistic.rb:86:in `with_lock&#39;
+/var/www/haven/app/jobs/update_feed_job.rb:69:in `update_feed&#39;
+/var/www/haven/app/jobs/update_feed_job.rb:29:in `block in perform&#39;
+/var/www/haven/vendor/bundle/ruby/2.7.0/gems/activerecord-6.1.7.3/lib/active_record/relation/batches.rb:71:in `block (2 levels) in find_each&#39;
+...
+</code></pre>
+                    <p>Rails 6.1 では、active_support/time_with_zone.rb
+                    コードが次を呼び出します。</p>
+                    <pre><code>utc.to_s(format)
+</code></pre>
+                    <p>Rails 6.0 では同じものを呼び出します。</p>
+                    <p>おそらく、基盤となる UTC オブジェクトのタイプが
+                    Rails 6.0 と 6.1
+                    の間で変更されたのでしょうか?これのデバッグを開始する方法を考え中です。これは
+                    Rails 6.1 のバグのようですが、私が依存していたバグが
+                    6.1 で修正された可能性もあります。 Ruby 2.7 から
+                    Ruby 3.0
+                    にアップグレードしようとしましたが、問題は解決しませんでした。</p>
+                    <p>次にどこを見るべきかについてのアドバイスをいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>.to_formatted_s
+                    が必要で、目的の形式のシンボルを渡します</p>
+                    <p>例えば</p>
+                    <pre><code>Time.current.to_formatted_s(:mysql)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

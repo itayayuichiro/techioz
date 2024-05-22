@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>@milestone_options の nil 変数 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "@milestone_options の nil 変数",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2><span class="citation"
+data-cites="milestone_options">@milestone_options</span> の nil
+変数</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しいタスクを作成しようとすると、この Rails
+                    エラーが発生します。</p>
+                    <pre><code>
+NoMethodError in Tasks#create
+
+Showing /workspace/the-goal/app/views/tasks/_form.html.erb where line #10 raised:
+
+undefined method `map&#39; for nil:NilClass
+
+        container.map do |element|
+                 ^^^^
+
+Extracted source (around line #10):
+
+  &lt;div&gt;
+    &lt;%= form.label :milestone %&gt;
+    &lt;%= form.select(:milestone_id, @milestone_options, :selected =&gt; params[:milestone_id]) %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+
+Trace of template inclusion: #&lt;ActionView::Template app/views/tasks/new.html.erb locals=[]&gt;
+
+Rails.root: /workspace/the-goal
+Application Trace | Framework Trace | Full Trace
+app/views/tasks/_form.html.erb:10
+app/views/tasks/_form.html.erb:1
+app/views/tasks/new.html.erb:5
+app/controllers/tasks_controller.rb:36:in `block (2 levels) in create&#39;
+app/controllers/tasks_controller.rb:32:in `create&#39;
+Request
+
+Parameters:
+
+{&quot;authenticity_token&quot;=&gt;&quot;Zgc5P_w27Hodc0XQTG8-pVRNrugE9bOFqIANwfWeRdPgFKtKIkrnfMWdVnRvgYSXCzuy1uWAu4EHI6np6SS1dA&quot;,
+ &quot;task&quot;=&gt;{&quot;name&quot;=&gt;&quot;[FILTERED]&quot;, &quot;milestone_id&quot;=&gt;&quot;1&quot;, &quot;duration&quot;=&gt;&quot;4&quot;, &quot;priority&quot;=&gt;&quot;No priority&quot;, &quot;description&quot;=&gt;&quot;&quot;, &quot;status&quot;=&gt;&quot;0&quot;},
+ &quot;commit&quot;=&gt;&quot;Create Task&quot;}
+
+</code></pre>
+                    <p>3つのモデルがあります:</p>
+                    <p>プロジェクト.rb:</p>
+                    <pre><code># == Schema Information
+#
+# Table name: projects
+#
+#  id         :bigint           not null, primary key
+#  deadline   :date
+#  name       :string
+#  priority   :integer
+#  progress   :integer
+#  status     :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  account_id :integer
+#
+class Project &lt; ApplicationRecord
+  acts_as_tenant :account
+  has_rich_text :description
+  has_many :milestones
+  validates :name, :progress, :priority, :status, presence: true
+
+  # Broadcast changes in realtime with Hotwire
+  after_create_commit -&gt; { broadcast_prepend_later_to :projects, partial: &quot;projects/index&quot;, locals: {project: self} }
+  after_update_commit -&gt; { broadcast_replace_later_to self }
+  after_destroy_commit -&gt; { broadcast_remove_to :projects, target: dom_id(self, :index) }
+
+  enum priority: [:&quot;No priority&quot;, :Low, :Medium, :High]
+  enum status: [:&quot;Not started&quot;, :&quot;In progress&quot;, :Waiting, :Done]
+
+  def priority
+    super.to_s.humanize
+  end
+
+  def status
+    super.to_s.humanize
+  end
+end
+
+</code></pre>
+                    <p>マイルストーン.rb:</p>
+                    <pre><code># == Schema Information
+#
+# Table name: milestones
+#
+#  id         :bigint           not null, primary key
+#  deadline   :date
+#  name       :string
+#  priority   :integer
+#  status     :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  account_id :bigint           not null
+#  project_id :bigint           not null
+#
+# Indexes
+#
+#  index_milestones_on_account_id  (account_id)
+#  index_milestones_on_project_id  (project_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id =&gt; accounts.id)
+#  fk_rails_...  (project_id =&gt; projects.id)
+#
+class Milestone &lt; ApplicationRecord
+  acts_as_tenant :account
+  has_rich_text :description
+  belongs_to :project
+  has_many :tasks
+  validates :name, :priority, :status, presence: true
+  validates :project, presence: true
+
+  # Broadcast changes in realtime with Hotwire
+  after_create_commit -&gt; { broadcast_prepend_later_to :milestones, partial: &quot;milestones/index&quot;, locals: {milestone: self} }
+  after_update_commit -&gt; { broadcast_replace_later_to self }
+  after_destroy_commit -&gt; { broadcast_remove_to :milestones, target: dom_id(self, :index) }
+
+  enum priority: [:&quot;No priority&quot;, :Low, :Medium, :High]
+  enum status: [:&quot;Not started&quot;, :&quot;In progress&quot;, :Waiting, :Done]
+  
+
+  def priority
+    super.to_s.humanize
+  end
+
+  def status
+    super.to_s.humanize
+  end
+end
+
+</code></pre>
+                    <p>タスク.rb:</p>
+                    <pre><code># == Schema Information
+#
+# Table name: tasks
+#
+#  id           :bigint           not null, primary key
+#  description  :text
+#  duration     :integer
+#  name         :string
+#  priority     :integer
+#  status       :boolean
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  account_id   :bigint           not null
+#  milestone_id :bigint           not null
+#
+# Indexes
+#
+#  index_tasks_on_account_id    (account_id)
+#  index_tasks_on_milestone_id  (milestone_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id =&gt; accounts.id)
+#  fk_rails_...  (milestone_id =&gt; milestones.id)
+#
+class Task &lt; ApplicationRecord
+  acts_as_tenant :account
+  has_rich_text :description
+  belongs_to :milestone
+  validates :name, :priority, :status, :duration, presence: true
+  validates :milestone, presence: true
+
+  # Broadcast changes in realtime with Hotwire
+  after_create_commit  -&gt; { broadcast_prepend_later_to :tasks, partial: &quot;tasks/index&quot;, locals: { task: self } }
+  after_update_commit  -&gt; { broadcast_replace_later_to self }
+  after_destroy_commit -&gt; { broadcast_remove_to :tasks, target: dom_id(self, :index) }
+
+  enum priority: [:&quot;No priority&quot;, :Low, :Medium, :High]
+
+  def priority
+    super.to_s.humanize
+  end
+
+end
+
+</code></pre>
+                    <p>マイルストーン
+                    コントローラーは次のようになります。</p>
+                    <pre><code>class MilestonesController &lt; ApplicationController
+  def new
+    @milestone = Milestone.new
+    @project_options = Project.all.map { |p| [p.name, p.id] }
+    @projects = Project.all
+    @project = Project.find(params[:project_id]) if params[:project_id]
+  end
+
+  def index
+    @project = Project.ids
+  end
+
+  def show
+    @milestone = Milestone.find(params[:id])
+    @tasks = @milestone.tasks
+
+    if request.path != milestone_path(@milestone)
+      redirect_to @milestone, :status =&gt; :moved_permanently
+    end
+  end
+
+  def edit
+    @milestone = Milestone.find(params[:id])
+    @project_options = Project.all.map { |p| [p.name, p.id] }
+  end
+
+  def create
+    @milestone = Milestone.new(milestone_params)
+    respond_to do |format|
+      if @milestone.save
+        format.html { redirect_to milestones_url, notice: &quot;Milestone was successfully created.&quot; }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def update
+    @milestone = Milestone.find(params[:id])
+    respond_to do |format|
+      if @milestone.update(milestone_params)
+        format.html { redirect_to milestones_url, notice: &quot;Milestone was successfully updated.&quot; }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def destroy
+    @milestone = Milestone.find(params[:id])
+    respond_to do |format|
+      if @milestone.destroy
+        format.html { redirect_to milestones_url, notice: &quot;Milestone was successfully destroyed.&quot; }
+      else
+        format.html { render :delete, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  private
+
+  # Only allow a list of trusted parameters through.
+  def milestone_params
+    params.require(:milestone).permit(:name, :deadline, :priority, :status, :description, :project_id)
+  end
+end
+
+</code></pre>
+                    <p>そしてタスクコントローラー:</p>
+                    <pre><code>class TasksController &lt; ApplicationController
+  def new
+    @task = Task.new
+    @milestones = Milestone.all
+    @milestone_options = @milestones.map { |m| [m.name, m.id] }
+  end
+    
+
+  def index
+    @milestone = Milestone.ids
+    # @task = Task.all
+  end
+
+  def show
+    @task = Task.find(params[:id])
+
+    if request.path != task_path(@task)
+      redirect_to @task, :status =&gt; :moved_permanently
+    end
+  end
+
+  def edit
+    @task = Task.find(params[:id])
+    @milestone_options = Milestone.all.map { |p| [p.name, p.id] }
+  end
+
+  def create
+    @task = Task.new(task_params)
+    # @milestone_options = Milestone.all.map { |p| [p.name, p.id] }
+    # @milestones = Milestone.all
+    # @milestone = Milestone.find(params[:milestone_id]) if params[:milestone_id]
+    respond_to do |format|
+      if @task.save
+        format.html { redirect_to tasks_url, notice: &quot;Task was successfully created.&quot; }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+      end
+    end
+  end
+  
+
+  def update
+    @task = Task.find(params[:id])
+    respond_to do |format|
+      if @task.update(task_params)
+        format.html { redirect_to tasks_url, notice: &quot;Task was successfully updated.&quot; }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def destroy
+    @task = Task.find(params[:id])
+    respond_to do |format|
+      if @task.destroy
+        format.html { redirect_to tasks_url, notice: &quot;Task was successfully destroyed.&quot; }
+      else
+        format.html { render :delete, status: :unprocessable_entity }
+      end
+    end
+  end
+  
+  private
+
+  # Only allow a list of trusted parameters through.
+  def task_params
+    params.require(:task).permit(:name, :priority, :status, :description, :duration, :milestone_id)
+  end
+end
+  
+</code></pre>
+                    <p>私のタスクのフォームは次のようになります。</p>
+                    <pre><code>&lt;%= form_with model: @task do |form| %&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :name %&gt;
+    &lt;%= form.text_area :name %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :milestone %&gt;
+    &lt;%= form.select(:milestone_id, @milestone_options, :selected =&gt; params[:milestone_id]) %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :duration %&gt;
+    &lt;%= form.number_field :duration %&gt; %
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :priority %&gt;
+    &lt;%= form.select :priority, [[&quot;No priority&quot;, &quot;No priority&quot;], [&quot;Low&quot;, &quot;Low&quot;], [&quot;Medium&quot;, &quot;Medium&quot;], [&quot;High&quot;, &quot;High&quot;]] %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :description %&gt;
+    &lt;%= form.rich_text_area :description %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :status, &quot;Done&quot; %&gt;
+    &lt;%= form.check_box :status %&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+</code></pre>
+                    <p>マイルストーンを作成しようとすると機能しますが、タスクizを作成すると失敗します。どこに間違ったコードがあるのでしょうか?</p>
+                    <p>タスクはマイルストーンと同じように機能する必要があります。ただし、マイルストーンはプロジェクトに属し、タスクはマイルストーンに属します。</p>
+                    <p>アップデート：
+                    タスクコントローラーの29行目のコメントを外したところ、エラーは表示されませんがタスクは作成されません。これがログです:</p>
+                    <pre><code>Started POST &quot;/tasks&quot; for 217.67.18.195 at 2023-09-14 17:45:45 +0000
+Cannot render console from 217.67.18.195! Allowed networks: 127.0.0.0/127.255.255.255, ::1
+  User Load (0.4ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = $1 ORDER BY &quot;users&quot;.&quot;id&quot; ASC LIMIT $2  [[&quot;id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+Processing by TasksController#create as TURBO_STREAM
+  Parameters: {&quot;authenticity_token&quot;=&gt;&quot;1zgJMGslsBavT9pavWpA55xG9JdHSID9Lif45OyexwZRK5tFtVm7EHehyf6ehPrVwzDoqaY9iPmBhFzM8CQ3oQ&quot;, &quot;task&quot;=&gt;{&quot;name&quot;=&gt;&quot;[FILTERED]&quot;, &quot;milestone_id&quot;=&gt;&quot;1&quot;, &quot;duration&quot;=&gt;&quot;4&quot;, &quot;priority&quot;=&gt;&quot;No priority&quot;, &quot;description&quot;=&gt;&quot;&quot;, &quot;status&quot;=&gt;&quot;0&quot;}, &quot;commit&quot;=&gt;&quot;Create Task&quot;}
+  Account Load (0.6ms)  SELECT &quot;accounts&quot;.* FROM &quot;accounts&quot; INNER JOIN &quot;account_users&quot; ON &quot;accounts&quot;.&quot;id&quot; = &quot;account_users&quot;.&quot;account_id&quot; WHERE &quot;account_users&quot;.&quot;user_id&quot; = $1 AND &quot;accounts&quot;.&quot;id&quot; IS NULL LIMIT $2  [[&quot;user_id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/concerns/set_current_request_details.rb:35:in `account_from_session&#39;
+  Account Load (0.4ms)  SELECT &quot;accounts&quot;.* FROM &quot;accounts&quot; INNER JOIN &quot;account_users&quot; ON &quot;accounts&quot;.&quot;id&quot; = &quot;account_users&quot;.&quot;account_id&quot; WHERE &quot;account_users&quot;.&quot;user_id&quot; = $1 ORDER BY &quot;accounts&quot;.&quot;created_at&quot; ASC LIMIT $2  [[&quot;user_id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/concerns/set_current_request_details.rb:40:in `fallback_account&#39;
+  Notification Count (0.5ms)  SELECT COUNT(*) FROM &quot;notifications&quot; WHERE &quot;notifications&quot;.&quot;recipient_id&quot; = $1 AND &quot;notifications&quot;.&quot;recipient_type&quot; = $2 AND &quot;notifications&quot;.&quot;read_at&quot; IS NULL AND &quot;notifications&quot;.&quot;account_id&quot; = $3  [[&quot;recipient_id&quot;, 1], [&quot;recipient_type&quot;, &quot;User&quot;], [&quot;account_id&quot;, 1]]
+  ↳ app/controllers/concerns/users/navbar_notifications.rb:11:in `set_notifications&#39;
+  Notification Count (0.4ms)  SELECT COUNT(*) FROM &quot;notifications&quot; WHERE &quot;notifications&quot;.&quot;recipient_id&quot; = $1 AND &quot;notifications&quot;.&quot;recipient_type&quot; = $2 AND &quot;notifications&quot;.&quot;read_at&quot; IS NULL AND (&quot;notifications&quot;.&quot;account_id&quot; = $3 OR &quot;notifications&quot;.&quot;account_id&quot; IS NULL)  [[&quot;recipient_id&quot;, 1], [&quot;recipient_type&quot;, &quot;User&quot;], [&quot;account_id&quot;, 1]]
+  ↳ app/controllers/concerns/users/navbar_notifications.rb:12:in `set_notifications&#39;
+  Milestone Load (0.4ms)  SELECT &quot;milestones&quot;.* FROM &quot;milestones&quot; WHERE &quot;milestones&quot;.&quot;account_id&quot; = $1  [[&quot;account_id&quot;, 1]]
+  ↳ app/controllers/tasks_controller.rb:29:in `map&#39;
+  TRANSACTION (0.2ms)  BEGIN
+  ↳ app/controllers/tasks_controller.rb:33:in `block in create&#39;
+  Account Load (0.4ms)  SELECT &quot;accounts&quot;.* FROM &quot;accounts&quot; WHERE &quot;accounts&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/tasks_controller.rb:33:in `block in create&#39;
+  Milestone Load (0.3ms)  SELECT &quot;milestones&quot;.* FROM &quot;milestones&quot; WHERE &quot;milestones&quot;.&quot;account_id&quot; = $1 AND &quot;milestones&quot;.&quot;id&quot; = $2 LIMIT $3  [[&quot;account_id&quot;, 1], [&quot;id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/tasks_controller.rb:33:in `block in create&#39;
+  TRANSACTION (0.2ms)  ROLLBACK
+  ↳ app/controllers/tasks_controller.rb:33:in `block in create&#39;
+  Rendering layout layouts/application.html.erb
+  Rendering tasks/new.html.erb within layouts/application
+  Rendered tasks/_form.html.erb (Duration: 6.0ms | Allocations: 3236)
+  Rendered tasks/new.html.erb within layouts/application (Duration: 6.2ms | Allocations: 3299)
+  Rendered shared/_favicons.html.erb (Duration: 0.0ms | Allocations: 10)
+  Rendered shared/_payments_dependencies.html.erb (Duration: 0.0ms | Allocations: 20)
+  Rendered shared/_flash.html.erb (Duration: 0.1ms | Allocations: 33)
+  Rendered shared/_left_nav.html.erb (Duration: 0.2ms | Allocations: 127)
+  Announcement Load (0.3ms)  SELECT &quot;announcements&quot;.* FROM &quot;announcements&quot; ORDER BY &quot;announcements&quot;.&quot;published_at&quot; DESC LIMIT $1  [[&quot;LIMIT&quot;, 1]]
+  ↳ app/helpers/announcements_helper.rb:19:in `unread_announcements_class&#39;
+  Rendered shared/_right_nav.html.erb (Duration: 1.9ms | Allocations: 774)
+  Rendered shared/_notifications.html.erb (Duration: 0.3ms | Allocations: 266)
+  User Load (0.6ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; INNER JOIN &quot;account_users&quot; ON &quot;users&quot;.&quot;id&quot; = &quot;account_users&quot;.&quot;user_id&quot; WHERE &quot;account_users&quot;.&quot;account_id&quot; = $1 ORDER BY &quot;users&quot;.&quot;id&quot; ASC LIMIT $2  [[&quot;account_id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/helpers/accounts_helper.rb:8:in `account_avatar&#39;
+  ActiveStorage::Attachment Load (0.3ms)  SELECT &quot;active_storage_attachments&quot;.* FROM &quot;active_storage_attachments&quot; WHERE &quot;active_storage_attachments&quot;.&quot;record_id&quot; = $1 AND &quot;active_storage_attachments&quot;.&quot;record_type&quot; = $2 AND &quot;active_storage_attachments&quot;.&quot;name&quot; = $3 LIMIT $4  [[&quot;record_id&quot;, 1], [&quot;record_type&quot;, &quot;User&quot;], [&quot;name&quot;, &quot;avatar&quot;], [&quot;LIMIT&quot;, 1]]
+  ↳ app/helpers/avatar_helper.rb:5:in `avatar_url_for&#39;
+  CACHE User Load (0.0ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; INNER JOIN &quot;account_users&quot; ON &quot;users&quot;.&quot;id&quot; = &quot;account_users&quot;.&quot;user_id&quot; WHERE &quot;account_users&quot;.&quot;account_id&quot; = $1 ORDER BY &quot;users&quot;.&quot;id&quot; ASC LIMIT $2  [[&quot;account_id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/helpers/accounts_helper.rb:8:in `account_avatar&#39;
+  CACHE ActiveStorage::Attachment Load (0.0ms)  SELECT &quot;active_storage_attachments&quot;.* FROM &quot;active_storage_attachments&quot; WHERE &quot;active_storage_attachments&quot;.&quot;record_id&quot; = $1 AND &quot;active_storage_attachments&quot;.&quot;record_type&quot; = $2 AND &quot;active_storage_attachments&quot;.&quot;name&quot; = $3 LIMIT $4  [[&quot;record_id&quot;, 1], [&quot;record_type&quot;, &quot;User&quot;], [&quot;name&quot;, &quot;avatar&quot;], [&quot;LIMIT&quot;, 1]]
+  ↳ app/helpers/avatar_helper.rb:5:in `avatar_url_for&#39;
+  Account Exists? (0.5ms)  SELECT 1 AS one FROM &quot;accounts&quot; INNER JOIN &quot;account_users&quot; ON &quot;accounts&quot;.&quot;id&quot; = &quot;account_users&quot;.&quot;account_id&quot; WHERE &quot;account_users&quot;.&quot;user_id&quot; = $1 AND &quot;accounts&quot;.&quot;id&quot; != $2 LIMIT $3  [[&quot;user_id&quot;, 1], [&quot;id&quot;, 1], [&quot;LIMIT&quot;, 1]]
+  ↳ app/views/shared/_navbar.html.erb:75
+  Rendered shared/_navbar.html.erb (Duration: 17.8ms | Allocations: 7891)
+  Rendered shared/_footer.html.erb (Duration: 2.9ms | Allocations: 1392)
+  Rendered layout layouts/application.html.erb (Duration: 30.6ms | Allocations: 14682)
+Completed 422 Unprocessable Entity in 50ms (Views: 29.6ms | ActiveRecord: 5.0ms | Allocations: 23005)
+
+
+[ActionCable] [User 1] [Account 1] Unsubscribing from channel: {&quot;channel&quot;:&quot;NotificationChannel&quot;}
+[ActionCable] [User 1] [Account 1] NotificationChannel stopped streaming from notification:Z2lkOi8vanVtcHN0YXJ0LWFwcC9Vc2VyLzE
+[ActionCable] [User 1] [Account 1] NotificationChannel is transmitting the subscription confirmation
+[ActionCable] [User 1] [Account 1] NotificationChannel is streaming from notification:Z2lkOi8vanVtcHN0YXJ0LWFwcC9Vc2VyLzE
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>わかった。問題は、ステータスの存在を検証していることでした。ただし、ステータスはブール値のデフォルトで
+                    false に設定されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

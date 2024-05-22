@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 新しい 6.1 アプリがデフォルト画面以外のリクエストを処理できません: Webpacker::Manifest::MissingEntryError | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 新しい 6.1 アプリがデフォルト画面以外のリクエストを処理できません: Webpacker::Manifest::MissingEntryError",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 新しい 6.1
+アプリがデフォルト画面以外のリクエストを処理できません:
+Webpacker::Manifest::MissingEntryError</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しい Rails 6.1.7.4
+                    アプリで、デフォルトの「Rails::WelcomeController#index」画面以外のページにリクエストを行うと、次のエラーが発生します。</p>
+                    <pre><code>rails new rails_6-1_app
+cd rails_6-1_app
+rails g scaffold blog title
+rails db:migrate
+rails s
+# Make request to http://localhost:3000/blogs/
+</code></pre>
+                    <p>Rails webpacker:compile
+                    を試行すると、何が起こっているかに関する詳細情報が得られることに気付きました。</p>
+                    <pre><code>Compiling...
+Compilation failed:
+node:internal/process/promises:279
+            triggerUncaughtException(err, true /* fromPromise */);
+            ^
+
+Error: Cannot find package &#39;@babel/plugin-proposal-private-methods&#39; imported from /&lt;Path-TO-MY-APP&gt;/rails_6-1_app/babel-virtual-resolve-base.js
+</code></pre>
+                    <p>この Rails の問題を通じて、デフォルトで生成された
+                    babel.config.js ファイル内の 2
+                    行を変更することが提案されました。</p>
+                    <pre><code>// babel.config.js 
+// replace this line 
+// &#39;@babel/plugin-proposal-private-methods&#39;,
+// with this line
+&#39;@babel/plugin-transform-private-methods&#39;, 
+
+// also replace this line
+// &#39;@babel/plugin-proposal-private-property-in-object&#39;,
+// with this line
+&#39;@babel/plugin-transform-private-property-in-object&#39;,
+</code></pre>
+                    <p>ただし、その変更を行ってから Rails
+                    webpacker:compile
+                    を実行すると、新しいエラーが生成されます。</p>
+                    <pre><code>Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:69:19)
+    at Object.createHash (node:crypto:133:10)
+    at module.exports (/&lt;Path-To-My-App&gt;/rails_6-1_app/node_modules/webpack/lib/util/createHash.js:135:53)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでも同じエラーが発行されます。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/issues/48372</p>
+                    <p>説明：</p>
+                    <p>これは、webpacker が
+                    plugin-proposal-private-methods を含む
+                    babel.config.js
+                    を生成するために発生しているようです。ただし、plugin-proposal-private-methods
+                    への依存関係は追加されません。代わりに、plugin-proposal-private-methods
+                    に依存するパッケージに依存します。</p>
+                    <p>最近、そのパッケージは
+                    plugin-transform-private-methods babel/babel#15614
+                    に名前変更され、おそらく babel/babel@389ecb0
+                    がリリースされました。</p>
+                    <p>したがって、babel
+                    が実行しようとすると、babel.config.js
+                    ファイルが読み取られ、plugin-proposal-private-methods
+                    が必要であることがわかります。これをロードしようとしましたが、plugin-proposal-private-methods
+                    がインストールされていないため
+                    (依存関係ではなくなったため)、失敗します。</p>
+                    <p>解決：</p>
+                    <p>babel.config.js
+                    内の名前をプロポーザルからトランスフォームに置き換えることができます。</p>
+                    <pre><code>// &#39;@babel/plugin-proposal-private-methods&#39;,
+&#39;@babel/plugin-transform-private-methods&#39;, 
+
+// &#39;@babel/plugin-proposal-private-property-in-object&#39;,
+&#39;@babel/plugin-transform-private-property-in-object&#39;,
+
+// etc.
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

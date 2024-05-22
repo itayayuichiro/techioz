@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RVM と OpenSSL に関する問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RVM と OpenSSL に関する問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RVM と OpenSSL に関する問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>同僚のために新しい MacBook
+                    をセットアップしようとしています。うまくいかない。</p>
+                    <p>まず、OpenSSL をインストールします。</p>
+                    <pre><code>Heathers-MacBook-Pro:~ heather$ rvm pkg install openssl
+Fetching openssl-1.0.1c.tar.gz to /Users/heather/.rvm/archives
+######################################################################## 100.0%
+Extracting openssl to /Users/heather/.rvm/src/openssl-1.0.1c
+Configuring openssl in /Users/heather/.rvm/src/openssl-1.0.1c.
+Compiling openssl in /Users/heather/.rvm/src/openssl-1.0.1c.
+Installing openssl to /Users/heather/.rvm/usr
+
+Please note that it&#39;s required to reinstall all rubies:
+
+    rvm reinstall all --force
+
+Updating openssl certificates
+</code></pre>
+                    <p>次に、opensslでrubyをインストールしようとします…</p>
+                    <pre><code>Heathers-MacBook-Pro:website heather$ rvm install 1.9.3 --with-openssl-dir=$HOME/.rvm/usr
+Fetching yaml-0.1.4.tar.gz to /Users/heather/.rvm/archives
+Extracting yaml to /Users/heather/.rvm/src/yaml-0.1.4
+Configuring yaml in /Users/heather/.rvm/src/yaml-0.1.4.
+Compiling yaml in /Users/heather/.rvm/src/yaml-0.1.4.
+Installing yaml to /Users/heather/.rvm/usr
+Installing Ruby from source to: /Users/heather/.rvm/rubies/ruby-1.9.3-p392, this may take a while depending on your cpu(s)...
+ruby-1.9.3-p392 - #downloading ruby-1.9.3-p392, this may take a while depending on your connection...
+ruby-1.9.3-p392 - #extracting ruby-1.9.3-p392 to /Users/heather/.rvm/src/ruby-1.9.3-p392
+ruby-1.9.3-p392 - #extracted to /Users/heather/.rvm/src/ruby-1.9.3-p392
+ruby-1.9.3-p392 - #configuring
+ruby-1.9.3-p392 - #compiling
+ruby-1.9.3-p392 - #installing 
+Removing old Rubygems files...
+Installing rubygems-1.8.25 for ruby-1.9.3-p392 ...
+Installation of rubygems completed successfully.
+Saving wrappers to &#39;/Users/heather/.rvm/bin&#39;.
+ruby-1.9.3-p392 - #adjusting #shebangs for (gem irb erb ri rdoc testrb rake).
+ruby-1.9.3-p392 - #importing default gemsets, this may take time ...
+Install of ruby-1.9.3-p392 - #complete 
+
+Heathers-MacBook-Pro:website heather$ bundle update
+Could not load OpenSSL.
+You must recompile Ruby with OpenSSL support or change the sources in your Gemfile from &#39;https&#39; to &#39;http&#39;. Instructions for
+compiling with OpenSSL using RVM are available at rvm.io/packages/openssl.
+</code></pre>
+                    <p>ところで、gem ファイルには「source
+                    https://rubygems.org」と書かれています。</p>
+                    <p>アイデアは？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>OPは実際に私の一日を救ってくれました！
+                    私の場合：</p>
+                    <pre><code>$ rvm pkg install openssl
+$ rvm remove 2.4
+$ rvm install 2.4 --with-openssl-dir=$HOME/.rvm/usr
+$ gem install bundler
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

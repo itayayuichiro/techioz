@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ローカル変数としての解釈はメソッド名をオーバーライドしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ローカル変数としての解釈はメソッド名をオーバーライドしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ローカル変数としての解釈はメソッド名をオーバーライドしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この質問のように、定義されていないローカル変数が独自の代入内で使用されると、nil
+                    と評価されます。</p>
+                    <pre><code>x = x # =&gt; nil 
+</code></pre>
+                    <p>ただし、ローカル変数の名前が既存のメソッド名と競合する場合は、さらに注意が必要になります。以下の最後の例が
+                    nil を返すのはなぜですか?</p>
+                    <pre><code>{}.instance_eval{a = keys} # =&gt; []
+{}.instance_eval{keys = self.keys} # =&gt; []
+{}.instance_eval{keys = keys} # =&gt; nil
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    では、明示的なレシーバーや括弧なしでメソッドを呼び出すことができるため、ローカル変数参照とレシーバーなしの引数なしのメソッド呼び出しの間には構文上のあいまいさが存在します。</p>
+                    <pre><code>foo
+</code></pre>
+                    <p>「引数なしで自分自身に対してメソッド foo
+                    を呼び出す」または「ローカル変数 foo
+                    を逆参照する」のいずれかを意味します。</p>
+                    <p>スコープ内にローカル変数 foo
+                    が存在する場合、これはメソッド呼び出しとしてではなく、常にローカル変数の逆参照として解釈されます。</p>
+                    <p>ローカル変数は解析時に定義されます。ローカル変数への代入がパーサーによって認識されると、その時点からローカル変数がスコープ内になります。ただし、これは実行時にのみ初期化され、コードのコンパイル時の評価は行われません。では、ローカル変数が「スコープ内にある」とは何を意味するのでしょうか?これは、実行時の意味論ではなく、解析時に構文的に決定されます。これはとても重要です！</p>
+                    <pre><code>if false
+  foo = 42 # from this point on, the local variable foo is in scope
+end
+
+foo # evaluates to nil, since it is declared but not initialized
+</code></pre>
+                    <p>ローカル変数がメソッドを回避するのではなく、メソッドを「シャドウ」するのが理にかなっているのはなぜですか?そうですね、メソッドがローカル変数をシャドウする場合、それらのローカル変数を逆参照する方法はなくなります。ただし、ローカル変数がメソッドをシャドウする場合でも、それらのメソッドを呼び出す方法はまだあります。あいまいさはレシーバーなしの引数なしメソッド呼び出しにのみ存在することを覚えておいてください。明示的なレシーバーまたは明示的な引数リストを追加した場合でも、メソッドを呼び出すことができます。</p>
+                    <pre><code>def bar; &#39;Hello from method&#39; end; public :bar
+
+bar # =&gt; &#39;Hello from method&#39;
+
+bar = &#39;You will never see this&#39; if false
+
+bar # =&gt; nil
+
+bar = &#39;Hello from local variable&#39;
+
+bar      # =&gt; &#39;Hello from local variable&#39;
+bar()    # =&gt; &#39;Hello from method&#39;
+self.bar # =&gt; &#39;Hello from method&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

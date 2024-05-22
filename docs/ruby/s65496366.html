@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails/Rspec - 作業をやり直さずに複数の it を使用する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails/Rspec - 作業をやり直さずに複数の it を使用する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails/Rspec - 作業をやり直さずに複数の it
+を使用する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>同じアクションで複数のことを確認したいことが何度もあります。たとえば、PUT
+                    を実行して、リクエストが 200
+                    を返したかどうか、応答値に値が含まれているかどうか、ActiveRecord
+                    モデルが更新されたかどうかを確認したいとします。</p>
+                    <p>次の例では、以前に使用してみましたが、それぞれの直前に実行されます。</p>
+                    <pre><code>context &quot;with valid params&quot; do
+  before do
+    put my_url
+  end
+
+  it &quot;returns a 200 response&quot; do
+    expect(response).to have_http_status(200)
+  end
+
+  it &quot;updates the right values&quot; do
+    expect(my_model.min_area).to eq(111)
+    expect(my_model.max_area).to eq(222)
+  end
+
+  it &quot;dont update a param if it is not sent&quot; do
+    expect(my_model.budget).to eq(333)
+  end
+end
+</code></pre>
+                    <p>before ブロックを 1
+                    回だけ実行して、そのたびに内容を確認したいと考えています。
+                    このアプローチを使用すると、失敗したときに何が失敗したかが明確にわかります。</p>
+                    <p>それを行う他の方法は、それぞれを削除し、次のように
+                    1 つだけを持つことです。</p>
+                    <pre><code>context &quot;with valid params&quot; do
+  it &quot;updates all&quot; do
+    put my_url
+
+    expect(response).to have_http_status(200)
+    expect(my_model.min_area).to eq(111)
+    expect(my_model.max_area).to eq(222)
+    expect(my_model.budget).to eq(333)
+  end
+end
+</code></pre>
+                    <p>しかし、このアプローチでは、失敗したときに何が失敗したかがすぐにわかりません。</p>
+                    <p>ブロックごとに before
+                    を実行せずにこれを行うにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>before(:context)
+                    の代わりにこれを行うこともできます</p>
+                    <pre><code>context &quot;with valid params&quot; do
+  it &quot;updates all&quot; do
+    put my_url
+
+    expect(response).to have_http_status(200)
+    expect(my_model.min_area).to eq(111)
+    expect(my_model.max_area).to eq(222)
+    expect(my_model.budget).to eq(333)
+  end
+end
+</code></pre>
+                    <p>ただし、必要なのは、RSpec
+                    に障害を集約するように指示することです</p>
+                    <p>ブロックごとに実行できます</p>
+                    <pre><code>context &quot;with valid params&quot;, :aggregate_failures do
+  it &quot;updates all&quot; do
+    put my_url
+
+    expect(response).to have_http_status(200)
+    expect(my_model.min_area).to eq(111)
+    expect(my_model.max_area).to eq(222)
+    expect(my_model.budget).to eq(333)
+  end
+end
+</code></pre>
+                    <p>または、プロジェクトに対してグローバルに設定することもできます。その他のオプションも利用できるので、最も好きなものを選択してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

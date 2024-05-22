@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Dropzone.js を Ruby on Rails 7.1.2 に統合するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Dropzone.js を Ruby on Rails 7.1.2 に統合するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Dropzone.js を Ruby on Rails 7.1.2
+に統合するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rail バージョン 7.1.2 に Dropzone.js
+                    を統合しようとしていますが、JavaScript
+                    が機能しません。 Rails の最新バージョンではノード
+                    モジュールのインポートに問題があるようです。そのため、スタイルシートのフォルダーにドロップゾーンの
+                    CSS
+                    スタイルを手動で追加しました。ただし、このアプローチは
+                    JavaScript では機能しません。私が観察したもう 1
+                    つの点は、Dropzone js cdn は機能しますが、JavaScript
+                    をローカルにロードする必要があることです。</p>
+                    <p>これは私の application.js ファイルです</p>
+                    <pre><code>// Entry point for the build script in your package.json
+import &quot;@hotwired/turbo-rails&quot;
+import &quot;./controllers&quot;
+
+
+import jquery from &quot;jquery&quot;
+
+//= require dropzone
+
+window.jQuery = jquery
+window.$ = jquery
+
+
+
+window.Dropzone = require(dropzone)
+
+
+// import &quot;trix&quot;
+// import &quot;@rails/actiontext/&quot;
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>$ yarn add dropzone
+</code></pre>
+                    <pre><code>// app/javascript/application.js
+
+import Dropzone from &quot;dropzone&quot;;
+
+document.addEventListener(&quot;turbo:load&quot;, function(event) {
+  let myDropzone = new Dropzone(&quot;.dropzone&quot;);
+  myDropzone.on(&quot;addedfile&quot;, file =&gt; {
+    console.log(`File added: ${file.name}`);
+  });
+})
+</code></pre>
+                    <pre><code>&lt;!-- app/views/layouts/application.html.erb --&gt;
+
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/dropzone@5/dist/min/dropzone.min.css&quot; type=&quot;text/css&quot; /&gt;
+</code></pre>
+                    <pre><code># _form.html.erb
+
+&lt;%= form_with url: &quot;/&quot;, class: :dropzone do |f| %&gt;
+  &lt;%= f.file_field :img %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

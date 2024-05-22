@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 外部リンク [閉鎖] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 外部リンク [閉鎖]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 外部リンク [閉鎖]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>外部リンクを提供しようとしていますが、 http
+                    または https で始まる URL
+                    を指定しない限り、常に「localhost:3000」が先頭に追加されます。
+                    www.google.com
+                    で始まるようにすると、外部リンクに移動することは拒否されますが、現在のページに結合されます。</p>
+                    <pre><code> &lt;div class=&quot;col-10 d-flex justify-content-center gap-2&quot;&gt;
+                &lt;% @user.links.each do |link| %&gt;
+                  &lt;% if link.url.length &gt; 1%&gt;
+                   &lt;div&gt;
+                    &lt;%= link_to  link.url ,target: &quot;_blank&quot;, class: &quot;btn btn-primary&quot; do %&gt;
+                        &lt;span&gt;&lt;%= link.title %&gt;&lt;/span&gt;
+                    &lt;% end %&gt;
+                   &lt;/div&gt;
+                  &lt;% end %&gt;
+                &lt;% end %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>私のどこが間違っているのでしょうか？リンクからクリーンな
+                    URL
+                    を取得することを期待していました。しかし、localhost:3000/usersページにいると、localhost:3000/users/www.youtube.comが表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>
+    def external_link(link)
+      return link if link.include?(&#39;https://&#39;)
+    
+      link.prepend(&#39;https://&#39;)
+    end
+</code></pre>
+                    <p>次に、コード内で以下を使用するだけです。</p>
+                    <pre><code>
+    link_to external_link(link), target: &#39;_blank&#39;, class: &#39;btn btn-primary&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails - Mysql2::Error: 非アクティブのため、クライアントはサーバーによって切断されました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails - Mysql2::Error: 非アクティブのため、クライアントはサーバーによって切断されました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails - Mysql2::Error:
+非アクティブのため、クライアントはサーバーによって切断されました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails プロジェクトの Ruby バージョンを
+                    2.5.8 から 3.0.6 にアップグレードしました。私の Ruby
+                    on Rails のバージョンは 6.1.7.6 です。 Ruby
+                    のバージョンをアップグレードした後、Rails
+                    コンソールを使用しているときに次のようなエラーが大量に発生するようになりました。
+                    Ruby v2.5.8
+                    ではそうではありませんでした。アプリ使用中は発生せず、コンソールからのみ発生するようです。</p>
+                    <pre><code>/usr/local/bundle/gems/mysql2-0.5.5/lib/mysql2/client.rb:151:in `_query&#39;: Mysql2::Error: The client was disconnected by the server because of inactivity. See wait_timeout and interactive_timeout for configuring this behavior. (ActiveRecord::StatementInvalid)
+/usr/local/bundle/gems/mysql2-0.5.5/lib/mysql2/client.rb:151:in `_query&#39;: The client was disconnected by the server because of inactivity. See wait_timeout and interactive_timeout for configuring this behavior. (Mysql2::Error)
+</code></pre>
+                    <p>これが私のdatabase.ymlです</p>
+                    <pre><code>defaults: &amp;defaults
+  adapter: mysql2
+  wait_timeout: 30 
+  timeout: 500
+  reconnect: true
+  strict: false
+  host: somehostname
+  port: someportnumber
+  username: someusername
+  password: somepassword
+  database: somedatabasename
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
+  pool: 13
+
+development:
+  primary:
+    &lt;&lt;: *defaults
+  shard1:
+    &lt;&lt;: *defaults
+    database: shard1
+  shard2:
+    &lt;&lt;: *defaults
+    database: shard2
+  
+
+</code></pre>
+                    <p>mysql2 gem を 0.5.5 から 0.5.4
+                    にダウングレードしようとしましたが、問題は解決していません。さらに、database.ymlのタイムアウトを増やしてみましたが、それも問題を解決していないようです。
+                    Database.yml
+                    の再接続オプションが機能しなくなったようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、database.yml の wait_timeout 設定 30
+                    秒です。 wait_timeout
+                    は、サーバーが非対話型接続でのアクティビティを閉じるまで待機する秒数です。
+                    mysql2 gem
+                    は、デフォルトでは非対話型クライアントです
+                    (CLIENT_INTERACTIVE
+                    を使用して明示的に構築した場合を除く)。 wait_timeout
+                    設定を削除するかもしれません。デフォルトの 8
+                    時間は妥当だと思われます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

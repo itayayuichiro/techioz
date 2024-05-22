@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 - ページを更新せずにラベル（ Enums で実装）を更新するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 - ページを更新せずにラベル（ Enums で実装）を更新するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 - ページを更新せずにラベル（ Enums
+で実装）を更新するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Enumを使用して実装したステータスを示す表があります</p>
+                    <p>ステータスを好きなものに変更することもできます</p>
+                    <p>したがって、問題は、ステータスを変更するたびにページが更新され、ラベルが変更されることです。</p>
+                    <p>それでは、ステータスを変更するたびに（列挙型を使用して実装）、ページを更新する必要がないように、バッジにライブアクションを追加するにはどうすればよいですか??</p>
+                    <p>このテーブルを 2 台の異なるラップトップで開き、1
+                    台のラップトップでステータスを変更すると、ページを更新することなく、他のラップトップのラベルも自動的に更新されるはずですが、このライブ
+                    アクション機能をラベルに実装するにはどうすればよいですか?</p>
+                    <p>これが私のコードです</p>
+                    <p>注文コントローラー.rb</p>
+                    <pre><code>class OrdersController &lt; ApplicationController
+    before_action :set_order, only: %i[show file_error success cancelled processing pending]
+    before_action :authenticate_user!
+    include ActiveStorage::SendZip
+
+    def file_error
+        authorize @order
+        @order.file_error!
+        redirect_back(fallback_location: root_path)
+        flash[:alert] = &quot;The Order is having a file error for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+        
+
+    end
+
+    def success
+        authorize @order
+        @order.success!
+        redirect_back(fallback_location: root_path)
+        flash[:alert] = &quot;The Order is success for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+
+    end
+
+    def cancelled
+        authorize @order
+        @order.cancelled!
+        redirect_back(fallback_location: root_path)
+        flash[:alert] = &quot;The Order is cancelled for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+    end
+
+    def processing
+        authorize @order
+        @order.processing!
+        redirect_back(fallback_location: root_path)
+        flash[:alert] = &quot;The Order is processing for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+    end
+
+    def pending
+        authorize @order
+        @order.pending!
+        redirect_back(fallback_location: root_path)
+        flash[:alert] = &quot;The Order is pending for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+    end
+        
+
+
+    def universals
+        @orders = Order.all.order(created_at: :desc).page(params[:page]).per(5)
+        authorize @orders
+    end
+
+    def download_files
+        @order = Order.find(params[:id])
+        authorize @order
+        send_zip @order.files, filename: &quot;#{@order.user.name + @order.id.to_s}.zip&quot;
+        @order.processing!
+        flash[:alert] = &quot;The Order is processing for #{@order.user.name } #OrderID: #{@order.id.to_s}&quot;
+    end
+</code></pre>
+                    <p>views/shared/_table_details.html.erb</p>
+                    <pre><code>&lt;td class=&quot;px-6 py-4 text-gray-600&quot;&gt;
+    &lt;div class=&quot;flex flex-row items-center&quot;&gt;
+        &lt;span class=&quot;p-1 rounded-md &lt;%= badges(order.status) %&gt;&quot;&gt;&lt;%= order.status %&gt;&lt;/span&gt;
+        &lt;div class=&quot;relative&quot; data-controller=&quot;dropdown&quot;&gt;
+            
+            &lt;button type=&quot;button&quot;
+                    id=&quot;dropdown_example&quot;
+                    class=&quot;inline-flex justify-center items-center&quot;
+                    data-dropdown-target=&quot;button&quot;
+                    data-action=&quot;click-&gt;dropdown#toggle keydown.esc-&gt;dropdown#toggle click@window-&gt;dropdown#hide&quot;
+                    tabindex=&quot;0&quot;
+                    aria-haspopup=&quot;true&quot; aria-expanded=&quot;true&quot;&gt;
+                &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; class=&quot;h-4 w-4 inline-block text-gray-500 hover:text-slate-700&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+                &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z&quot; /&gt;
+                &lt;/svg&gt;
+            &lt;/button&gt;
+
+        
+            &lt;div role=&quot;menu&quot;
+                class=&quot;absolute right-0 origin-top-right w-48 shadow-xl rounded z-1 hidden&quot;
+                data-dropdown-target=&quot;menu&quot;
+                data-transition-enter=&quot;transition ease-out duration-100&quot;
+                data-transition-enter-start=&quot;transform opacity-0 scale-95&quot;
+                data-transition-enter-end=&quot;transform opacity-100 scale-100&quot;
+                data-transition-leave=&quot;transition ease-in duration-75&quot;
+                data-transition-leave-start=&quot;transform opacity-100 scale-100&quot;
+                data-transition-leave-end=&quot;transform opacity-0 scale-95&quot;
+                aria-orientation=&quot;vertical&quot; aria-labelledby=&quot;dropdown_example&quot;&gt;
+                &lt;div class=&quot;bg-white rounded-md&quot;&gt;
+                &lt;div class=&quot;p-1 space-y-1&quot;&gt;
+                    &lt;%= link_to success_order_path(order), class:&quot;flex items-center space-x-2 rounded py-2 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:bg-slate-100 focus:text-slate-700&quot; do %&gt;
+                    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke-width=&quot;1.5&quot; stroke=&quot;currentColor&quot; class=&quot;w-6 h-6&quot;&gt;
+                        &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M4.5 12.75l6 6 9-13.5&quot; /&gt;
+                    &lt;/svg&gt;
+
+                    &lt;span&gt;Success&lt;/span&gt;
+
+                    &lt;% end %&gt;
+
+                    &lt;%= link_to cancelled_order_path(order), class:&quot;flex items-center space-x-2 rounded py-2 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:bg-slate-100 focus:text-slate-700&quot; do %&gt;
+                    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke-width=&quot;1.5&quot; stroke=&quot;currentColor&quot; class=&quot;w-6 h-6&quot;&gt;
+                        &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M6 18L18 6M6 6l12 12&quot; /&gt;
+                    &lt;/svg&gt;
+
+                    &lt;span&gt;Cancel&lt;/span&gt;
+
+                    &lt;% end %&gt;
+
+                    &lt;%= link_to file_error_order_path(order), class:&quot;flex items-center space-x-2 rounded py-2 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:bg-slate-100 focus:text-slate-700&quot; do %&gt;
+                    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke-width=&quot;1.5&quot; stroke=&quot;currentColor&quot; class=&quot;w-6 h-6&quot;&gt;
+                        &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z&quot; /&gt;
+                    &lt;/svg&gt;
+
+                    &lt;span&gt;File Error&lt;/span&gt;
+
+                    &lt;% end %&gt;
+
+                    &lt;%= link_to processing_order_path(order), class:&quot;flex items-center space-x-2 rounded py-2 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:bg-slate-100 focus:text-slate-700&quot; do %&gt;
+                    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke-width=&quot;1.5&quot; stroke=&quot;currentColor&quot; class=&quot;w-6 h-6&quot;&gt;
+                        &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99&quot; /&gt;
+                    &lt;/svg&gt;
+
+                    &lt;span&gt;Processing&lt;/span&gt;
+
+                    &lt;% end %&gt;
+
+                    &lt;%= link_to pending_order_path(order), class:&quot;flex items-center space-x-2 rounded py-2 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:bg-slate-100 focus:text-slate-700&quot; do %&gt;
+                    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke-width=&quot;1.5&quot; stroke=&quot;currentColor&quot; class=&quot;w-6 h-6&quot;&gt;
+                        &lt;path stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; d=&quot;M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0&quot; /&gt;
+                    &lt;/svg&gt;
+
+                    &lt;span&gt;Pending&lt;/span&gt;
+
+                    &lt;% end %&gt;
+                    
+                &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/td&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>バックエンドでデータが変更されるとすぐに、ページを更新せずにすべての場所に反映されるリアルタイムの更新を探していると思います。この種の機能は、WebSocket
+                    経由で実現できます。 Rails では、これに ActionCable
+                    を使用できます。ぜひ実装してみてください。うまくいくことを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

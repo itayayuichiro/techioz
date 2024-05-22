@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>本番環境で Rails アプリを起動するときに SECRET_KEY_BASE 環境変数はどこにありますか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "本番環境で Rails アプリを起動するときに SECRET_KEY_BASE 環境変数はどこにありますか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>本番環境で Rails アプリを起動するときに
+SECRET_KEY_BASE 環境変数はどこにありますか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 4 In Action Book
+                    には、他のセットアップを行った後、Rails
+                    アプリを本番モード (Web ブリックを使用)
+                    で起動するための最終セットアップは、ターミナルで次のコマンドを入力することであると記載されています。</p>
+                    <pre><code>SECRET_KEY_BASE=&#39;rake secret&#39; rails s -e production
+</code></pre>
+                    <p>SECRET_KEY_BASEの環境変数がどこに保存されているかを確認しようとしています。</p>
+                    <p>/app/config/secrets.yml 内では、secret_key_base
+                    変数が環境変数であることが示されています。</p>
+                    <pre><code>production:
+  secret_key_base: &lt;%= ENV[&quot;SECRET_KEY_BASE&quot;] %&gt;
+</code></pre>
+                    <p>しかし、.bashrc と .bash_profile
+                    内を調べたところ、変数 SECRET_KEY_BASE
+                    がありませんでした。</p>
+                    <p>最終的に知りたいのは、環境変数とその値はどこにあるのかということです。
+                    Rails
+                    アプリのどこかに保存されていますか?このアプリを
+                    github
+                    にプッシュする場合、セキュリティ目的ではないことを願います。アプリではなくコンピューターシステムのどこかに保存されていると思います。別の端末ウィンドウ内で
+                    echo を実行しますが、何も返されません。</p>
+                    <p>不足している部分を理解するのを手伝ってくれてありがとう。</p>
+                    <p>補足:
+                    この質問は知っていますが、質問はそれほど詳細ではなく、回答も提供されていません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを実行すると:</p>
+                    <pre><code>SECRET_KEY_BASE=&#39;rake secret&#39; rails s -e production
+</code></pre>
+                    <p>実際には、将来のために秘密鍵を「保存」しているわけではありません。
+                    1 回限りで定義します。 Ruby
+                    コマンドを実行するたびに、一時的な環境変数を設定できます。</p>
+                    <pre><code># from shell
+KEY=&quot;VAL&quot; OTHER_KEY=OTHER_VAL ruby my_command.rb
+
+# from the ruby script
+puts ENV[&quot;KEY&quot;] # =&gt; &quot;VAL&quot;
+puts ENV[&quot;OTHER_KEY&quot;] # =&gt; &quot;OTHER_VAL&quot;
+</code></pre>
+                    <p>環境変数を永続化するには、いくつかのオプションがあります。これらをソース
+                    コードにハードコーディングすることもできますが、コードを
+                    Github
+                    にプッシュすると誰でも見ることができるため、これはおそらく良い考えではありません。とにかく、環境変数をシステム固有に保持できるのは、環境変数の重要な点のようなものです。</p>
+                    <p>オプションA</p>
+                    <p>.bashrc または .bash_profile で設定できます。</p>
+                    <p>まず、rake シークレットの結果
+                    (ランダムな文字列になります)
+                    を取得し、シェル変数を設定します。</p>
+                    <pre><code>KEY=`rake secret` # uses backticks to get command result
+</code></pre>
+                    <p>次に、bashrc
+                    にエクスポートする行を追加します。</p>
+                    <pre><code>echo -e &quot;export SECRET_KEY_BASE=$KEY&quot; &gt;&gt; ~/.bashrc
+</code></pre>
+                    <p>オプション B</p>
+                    <p>これは私がお勧めする方法です。dotenv または
+                    figaro を使用すると、アプリ固有の方法で、つまり
+                    bashrc
+                    を乱雑にすることなく環境変数を管理できます。</p>
+                    <p>たとえば、dotenv を使用すると、次の内容を含む
+                    .env ファイルを作成します。</p>
+                    <pre><code># change this to the result of rake secret  
+SECRET_KEY_BASE=j3e2dd293d 
+</code></pre>
+                    <p>これは、gitignore
+                    に追加することでソース管理から除外されます。</p>
+                    <p>次に、Ruby アプリで呼び出します</p>
+                    <pre><code>require &#39;dotenv&#39;
+Dotenv.load
+</code></pre>
+                    <p>ENV[“SECRET_KEY_BASE”] が設定されます。</p>
+                    <p>必要に応じて、どの環境変数を定義する必要があるかを示す
+                    .env.example ファイル (ソース管理に含まれています)
+                    を作成できます。次に、アプリのクローンを作成するときに、
+                    mv .env.example .env を実行して、.env
+                    をカスタマイズできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

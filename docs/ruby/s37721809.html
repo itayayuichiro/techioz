@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 4 がレイアウトをレンダリングしない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 4 がレイアウトをレンダリングしない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 4 がレイアウトをレンダリングしない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    4のレイアウトに関して私は現在びっくりしています。現時点では、コントローラーのレイアウトを作成し、レイアウト「layout_name」を使用してコントローラーで正常に呼び出されています。</p>
+                    <p>しかし、問題は、そのコントローラーにリダイレクトするたびに、ページ自体がレンダリングされるだけで、その上のレイアウトはレンダリングされないことです。</p>
+                    <p>コードの抜粋は次のとおりです。</p>
+                    <pre><code>class LoginController &lt; ApplicationController
+  layout &quot;login_layout&quot;
+  def index
+    user = User.new
+  end
+
+  def login_user
+    validate_credential = User.login(params[:user])
+    if validate_credential[0] == true
+      session[:user_firstname] = validate_credential[1][0][&quot;firstname&quot;].capitalize
+      session[:user_lastname] = validate_credential[1][0][&quot;lastname&quot;].capitalize
+      session[:user_id] = validate_credential[1][0][&quot;id&quot;]
+      session[:advisory_class] = validate_credential[1][0][&quot;advisory_class&quot;].capitalize
+      redirect_to :controller=&gt; &#39;dashboard&#39;, :action=&gt; &#39;home&#39;
+    else
+      redirect_to :action=&gt;&#39;index&#39;
+    end
+  end
+</code></pre>
+                    <p>私のlogin_user関数のredirect_toがレイアウトをレンダリングしないことに注意してください。</p>
+                    <p>これは（別のコントローラーからの）ログアウトのコードです</p>
+                    <pre><code>class DashboardController &lt; ApplicationController
+  layout &#39;dashboard_layout&#39;
+  def home
+  end
+
+  def settings
+  end
+
+  def students
+  end
+
+  def logout
+    session.clear
+    redirect_to :controller=&gt;&#39;login&#39;,:action=&gt;&#39;index&#39;
+  end
+</code></pre>
+                    <p>ページ自体はレンダリングされますが、そのコントローラーのレイアウトは含まれません。</p>
+                    <p>多くの解決策を探しましたが、それでも希望はありません。</p>
+                    <p>これは、ダッシュボード
+                    コントローラーから呼び出されたとき
+                    (redirect_to)、root_path
+                    がどのように見えるかを示した写真です。</p>
+                    <p>そしてこれは私の root_path
+                    の設計に違いありません。 (レイアウトも含まれます)。
+                    URL
+                    は同じですが、レイアウトがレンダリングされていないことに注意してください。しかし、ページを更新するとレイアウトが表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラーを見つけました。それは Turbolinks です。
+                    application.js と gem
+                    ファイルのターボリンクを削除したところ、魅力的に動作しました。呼び出される特定のレイアウトの
+                    CSS
+                    は変更されないため、レイアウトは変更されません。アプリがログイン
+                    コントローラーにリダイレクトするときの CSS
+                    は、login.self?etc.etc
+                    である必要があります。ただし、ダッシュボードの CSS
+                    として残ります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

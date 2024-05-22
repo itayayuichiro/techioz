@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>モデル属性をシンボルとして扱う | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "モデル属性をシンボルとして扱う",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>モデル属性をシンボルとして扱う</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のモデルには文字列フィールド（短い）があり、それをdbに保存しますが、これは問題ありません。しかし、文字列ではなく常にシンボルを返すようにしたいのですが、また、この文字列属性にシンボルを割り当てたいと考えています。今やっていることはうまくいきません。</p>
+                    <pre><code>class MyModel &lt; ActiveRecord::Base
+  attr_accessible :attr1
+
+  def attr1
+    # self.try(:attr1).to_sym # how to return symbol?
+  end
+
+  def attr1= value
+   #    super.attr1.to_sym # doesn&#39;t work either
+  end
+end
+</code></pre>
+                    <p>どうすればこれに到達できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ゲッターを上書きするだけでよいと思います。フィールドの場合、セッターはおそらく正常に機能します。</p>
+                    <pre><code>class MyModel &lt; ActiveRecord::Base  
+  def attr1
+    attributes[&#39;attr1&#39;]&amp;.to_sym
+  end
+end
+</code></pre>
+                    <p>または、シリアライザーを作成することもできます。</p>
+                    <pre><code>class SymbolSerializer
+  def self.dump(obj)
+    return unless obj
+    obj.to_s
+  end
+
+  def self.load(text)
+    return unless text
+    text.to_sym
+  end
+end
+</code></pre>
+                    <p>そして、モデル内で次のようにします。</p>
+                    <pre><code>class MyModel &lt; ActiveRecord::Base
+  serialize :attr1, SymbolSerializer
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

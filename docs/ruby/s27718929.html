@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>s27718929 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "s27718929",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                    <h2 id="概要">概要</h2>
+                    <p>json
+                    ldを使用してschema.orgメタデータをセットアップしたいと考えています。たとえば、次のリンクはゴーストを使用しており、「application/ld+json」メタデータがあります。</p>
+                    <p>私のRailsアプリでも同様のことを実現したいと考えています。どのように実装すればよいでしょうか。
+                    これを行うための宝石はありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>JSON-LD gem (http://rubygems.org/gems/json-ld)
+                    がありますが、特に探しているものではないかもしれません。
+                    JSON-LD のポイントは、それが単なる JSON
+                    であるという点であり、この場合は値を解釈するために
+                    schema.org
+                    コンテキストを使用していることに注意してください。データが
+                    ActiveRecord
+                    モデル内にあると仮定すると、レコードのプロパティが適切な
+                    schema.org
+                    プロパティに対応していることを確認する方法が必要になります。この場合、モデルを
+                    JSON (#to_json)
+                    にシリアル化するだけで、ほとんどの作業が完了します。残っているのは、<span
+                    class="citation"
+                    data-cites="context">@context</span>、<span
+                    class="citation" data-cites="id">@id</span>、および
+                    <span class="citation"
+                    data-cites="type">@type</span> フィールドを JSON
+                    に追加することです。</p>
+                    <p>たとえば、次のようなものにシリアル化された User
+                    モデルがあるとします。</p>
+                    <pre><code>{
+  &quot;name&quot;: &quot;Harry&quot;,
+  &quot;email&quot;: &quot;[email protected]&quot;
+}
+</code></pre>
+                    <p>http://schema.org/person
+                    の「name」と「email」の両方のプロパティとして、次のように
+                    <span class="citation"
+                    data-cites="context">@context</span> と <span
+                    class="citation" data-cites="type">@type</span>
+                    を追加するだけで途中までは完了できます。</p>
+                    <pre><code>{
+  &quot;@context&quot;: &quot;http://schema.org/&quot;,
+  &quot;@type&quot;: &quot;Person&quot;,
+  &quot;name&quot;: &quot;Harry&quot;,
+  &quot;email&quot;: &quot;[email protected]&quot;
+}
+</code></pre>
+                    <p>RESTful
+                    アプリを構築していると仮定すると、すべてのオブジェクトに、この人のリソース
+                    URL に対応する <span class="citation"
+                    data-cites="id">@id</span>
+                    を与えることをお勧めします。これは次のようになります。</p>
+                    <pre><code>{
+  &quot;@context&quot;: &quot;http://schema.org/&quot;,
+  &quot;@id&quot;: &quot;http://example.com/people/harry&quot;,
+  &quot;@type&quot;: &quot;Person&quot;,
+  &quot;name&quot;: &quot;Harry&quot;,
+  &quot;email&quot;: &quot;[email protected]&quot;
+}
+</code></pre>
+                    <p>ここで、http://example.com/people/harry を JSON
+                    (または JSON-LD)
+                    として取得すると、その表現を取り戻すことができます。</p>
+                    <p>JSON-LD のもう 1 つの点は、これが「リンク
+                    データ」用であるため、HTML
+                    内で行うのと同じように、他のリソースへの参照を含めると、それらを見つけられるようにするのに役立ちます。
+                    schema.org
+                    ドキュメントには、定義されているほとんどすべての型に対して、JSON-LD
+                    を含むさまざまな型のマークアップを生成する方法の例が多数含まれています。一例については
+                    http://schema.org/person を、完全な型階層については
+                    http://schema.org/docs/full.html
+                    を参照してください。</p>
+                    <p>JSON-LD gem は、このデータを他のソース
+                    (通常は何らかの RDF 形式)
+                    から生成する場合、または受信したデータを解釈する場合に便利です。
+                    http://json-ld.org/playground
+                    でこれを試すことができます。</p>
+                    <p>例のように、type=“application/ld+json”
+                    のスクリプト タグを使用して、HTML に JSON-LD
+                    を含めることもできます。データがどのように表示されるかを確認したい場合は、Google
+                    構造化データ テスト ツールまたは
+                    http://linter.structurd-data.org/
+                    でテストできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

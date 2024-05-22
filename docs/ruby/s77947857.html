@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Admin で、ある条件ではドロップダウン リストを表示し、それ以外の場合は文字列フィールドを表示するフィールドを実装するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Admin で、ある条件ではドロップダウン リストを表示し、それ以外の場合は文字列フィールドを表示するフィールドを実装するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Admin で、ある条件ではドロップダウン
+リストを表示し、それ以外の場合は文字列フィールドを表示するフィールドを実装するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>:value
+                    フィールドに次のロジックを実装しようとしています。
+                    :key == “test” の場合、2 つのオプション
+                    [‘option1’、’option2] を含むドロップダウン
+                    リストが表示されます。
+                    それ以外の場合は、通常の行フィールドが表示されます。</p>
+                    <p>私は次のようなことを期待していました:</p>
+                    <pre><code>#Table name: settings
+#key   :string
+#value :string
+
+class Setting &lt; ApplicationRecord
+extend Enumerize
+rails_admin do
+  edit do
+    field :value do
+      formatted_value do
+        if bindings[:object].key == &quot;test&quot;
+          enum do
+            [&#39;option1&#39;, &#39;option2]&#39;]
+          end
+        else
+          bindings[:view].text_field(:value, value: value)
+        end
+      end
+    end
+  end
+end
+
+end
+</code></pre>
+                    <p>ただし、このコードは機能しません
+                    (すべてのフィールドに対してドロップダウン リスト
+                    [‘option1’, ’option2]’] が表示されます)
+                    次のようなことを試してみました:</p>
+                    <pre><code>bindings[:view].select_tag(&quot;value&quot;,binding[:view].options_for_select([&quot;1&quot;, &quot;2&quot;], value))
+</code></pre>
+                    <p>しかし、options_for_select
+                    のモデルには問題があります。</p>
+                    <p>ビューを編集するのではなく、より良く編集したいと考えています。何かあれば喜んでお手伝いさせていただきます！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が見つけた唯一の有効なオプションは、attr_accessor
+                    を使用するものです。</p>
+                    <pre><code>#Table name: settings
+#key   :string
+#value :string
+
+class Setting &lt; ApplicationRecord
+extend Enumerize
+
+attr_accessor :extra_field
+before_save :assign_extra_field_to_value
+
+rails_admin do
+  edit do
+    field :value do
+      visible do
+        bindings[:object].key != &quot;test&quot;
+      end
+    end
+    field :extra_field, :enum do
+      label &quot;Value&quot;
+      visible do
+        bindings[:object].key == &quot;test&quot;
+      end
+      enum do
+        [&#39;option1&#39;, &#39;option2&#39;]
+      end
+    end
+  end
+end
+
+private
+  def assign_extra_field_to_value
+    self.value = extra_field if self.key == &quot;test&quot;
+  end
+
+end
+</code></pre>
+                    <p>誰かがもっと良いアイデアを持っているなら、喜んでそれを見てみたいと思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

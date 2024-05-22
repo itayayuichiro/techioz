@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>単純な API 呼び出しでの Rails/Ruby dry-monads エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "単純な API 呼び出しでの Rails/Ruby dry-monads エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>単純な API 呼び出しでの Rails/Ruby dry-monads
+エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Shftcos API
+                    ボイラープレートをテストしています。これには、これまでに出会ったことのない
+                    dry-monads gem を含む大量の追加機能があります。</p>
+                    <p>FakeStoreApi
+                    製品をフェッチするサービス呼び出しで、トラバースのようなエラーがスローされます。</p>
+                    <pre><code>require &#39;faraday&#39;
+require &#39;json&#39;
+
+class FetchProductsService &lt; ApplicationService
+  def call
+    result = yield fetch_products
+
+    Success(result)
+  end
+
+  private
+
+  def fetch_products
+    products = []
+    response = Faraday.get(&#39;https://fakestoreapi.com/products&#39;) 
+    if response.status == 200
+      products = JSON.parse(response.body)
+    end
+    products
+  end
+end 
+
+                                                     
+</code></pre>
+                    <p>型なしリスト?これは製品データの配列を返す必要があるため、その理由を知っている人はいますか?
+                    これにはいくつかのリストスタイルを使用する必要がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私はあなたと同じ問題に遭遇しました。問題は、関数でモナドを返さなかったためです。</p>
+                    <p>関数の最後に Success を追加するとよいでしょう</p>
+                    <pre><code>  def fetch_products
+    products = []
+    response = Faraday.get(&#39;https://fakestoreapi.com/products&#39;) 
+    if response.status == 200
+      products = JSON.parse(response.body)
+    end
+    Success(products) # &lt;-- Wrap it here!
+  end
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

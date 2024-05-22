@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 の ActionView::Template::Error (アセット “application.css” がアセット パイプラインに存在しません。) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 の ActionView::Template::Error (アセット “application.css” がアセット パイプラインに存在しません。)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 の ActionView::Template::Error
+(アセット “application.css” がアセット
+パイプラインに存在しません。)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 で webpacker から importmaps
+                    に移行した後、解決するために何をしてもこのエラーが発生し続けます。以下はエラーの出力です。</p>
+                    <pre><code>I, [2022-12-02T11:33:16.828698 #2401]  INFO -- : [ca024b47-6054-444f-ab01-7f92d98e099f] Started GET &quot;/&quot; for 127.0.0.1 at 2022-12-02 11:33:16 +0500
+I, [2022-12-02T11:33:16.858168 #2401]  INFO -- : [ca024b47-6054-444f-ab01-7f92d98e099f] Processing by Devise::SessionsController#new as HTML
+I, [2022-12-02T11:33:17.079797 #2401]  INFO -- : [ca024b47-6054-444f-ab01-7f92d98e099f]   Rendered /Users/hamzaaamir/.rvm/gems/ruby-3.1.0/gems/devise-4.8.1/app/views/devise/sessions/new.html.erb within layouts/application (Duration: 10.1ms | Allocations: 3457)
+I, [2022-12-02T11:33:17.080678 #2401]  INFO -- : [ca024b47-6054-444f-ab01-7f92d98e099f]   Rendered layout layouts/application.html.erb (Duration: 11.0ms | Allocations: 4035)
+I, [2022-12-02T11:33:17.080831 #2401]  INFO -- : [ca024b47-6054-444f-ab01-7f92d98e099f] Completed 500 Internal Server Error in 223ms (ActiveRecord: 74.8ms | Allocations: 17972)
+F, [2022-12-02T11:33:17.081562 #2401] FATAL -- : [ca024b47-6054-444f-ab01-7f92d98e099f]   
+[ca024b47-6054-444f-ab01-7f92d98e099f] ActionView::Template::Error (The asset &quot;application.css&quot; is not present in the asset pipeline.
+):
+[ca024b47-6054-444f-ab01-7f92d98e099f]      6:     &lt;%= csrf_meta_tags %&gt;
+[ca024b47-6054-444f-ab01-7f92d98e099f]      7:     &lt;%= csp_meta_tag %&gt;
+[ca024b47-6054-444f-ab01-7f92d98e099f]      8: 
+[ca024b47-6054-444f-ab01-7f92d98e099f]      9:     &lt;%= stylesheet_link_tag &quot;application&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+[ca024b47-6054-444f-ab01-7f92d98e099f]     10:     &lt;%= javascript_importmap_tags %&gt;
+[ca024b47-6054-444f-ab01-7f92d98e099f]     11:   &lt;/head&gt;
+[ca024b47-6054-444f-ab01-7f92d98e099f]     12: 
+[ca024b47-6054-444f-ab01-7f92d98e099f]   
+[ca024b47-6054-444f-ab01-7f92d98e099f] app/views/layouts/application.html.erb:9
+</code></pre>
+                    <p>importmaps rake タスクを実行し、CSS
+                    ファイルをコンパイルするために sassc-rails
+                    を追加しました。開発環境では正常に動作しますが、運用環境ではエラーが発生します。また、Rails
+                    Assets:precompile も実行しました。</p>
+                    <p>assets/config/manifest.jsの私のコード</p>
+                    <pre><code>//= link_tree ../images
+//= link_directory ../stylesheets .css
+//= link_tree ../../javascript .js
+//= link_tree ../../../vendor/javascript .js
+</code></pre>
+                    <p>assets/stylesheets/application.scss
+                    にある私のコード</p>
+                    <pre><code>@import &quot;bootstrap&quot;;
+@import &quot;./dashboard.scss&quot;;
+@import &quot;./sidebar.scss&quot;;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 7の場合は次のコマンドを実行します</p>
+                    <pre><code>rails assets:precompile
+</code></pre>
+                    <p>これにより、パブリック フォルダーにアセット
+                    フォルダーが作成されます。次に、サーバーを再起動します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

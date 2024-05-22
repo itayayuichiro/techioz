@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyはフラット化されたハッシュをネストされたハッシュに変換します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyはフラット化されたハッシュをネストされたハッシュに変換します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyはフラット化されたハッシュをネストされたハッシュに変換します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は次のものを持っています：</p>
+                    <pre><code>{ :a_b_c =&gt; 42, :a_b_d =&gt; 67, :a_d =&gt; 89, :e =&gt; 90 }
+</code></pre>
+                    <p>これを以下のように変換するにはどうすればよいですか</p>
+                    <pre><code>{ a: { b: { c: 42, d: 67 }, d: 89 }, e: 90 } 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActiveSupport を備えた Rail には Hash#deep_merge
+                    と Hash#deep_merge があります。</p>
+                    <p>持っていない場合は、定義できます</p>
+                    <pre><code>class Hash
+  def deep_merge(other_hash, &amp;block)
+    dup.deep_merge!(other_hash, &amp;block)
+  end
+
+  def deep_merge!(other_hash, &amp;block)
+    merge!(other_hash) do |key, this_val, other_val|
+      if this_val.is_a?(Hash) &amp;&amp; other_val.is_a?(Hash)
+        this_val.deep_merge(other_val, &amp;block)
+      elsif block_given?
+        block.call(key, this_val, other_val)
+      else
+        other_val
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>または、これらのメソッドを必要とするだけです</p>
+                    <pre><code>require &#39;active_support/core_ext/hash/deep_merge&#39;
+</code></pre>
+                    <p>そして最後に</p>
+                    <pre><code>hash =
+  { :a_b_c =&gt; 42, :a_b_d =&gt; 67, :a_d =&gt; 89, :e =&gt; 90 }
+
+hash.each_with_object({}) do |(k, v), h|
+  h.deep_merge!(k.to_s.split(&#39;_&#39;).map(&amp;:to_sym).reverse.reduce(v) { |assigned_value, key| { key =&gt; assigned_value } })
+end
+
+# =&gt; {:a=&gt;{:b=&gt;{:c=&gt;42, :d=&gt;67}, :d=&gt;89}, :e=&gt;90}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

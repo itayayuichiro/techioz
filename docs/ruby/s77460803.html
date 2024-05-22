@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>できるだけシンプルにするために each_blob を使用します。 「.git ディレクトリだけを含む空のリポジトリ」が何を意味するのかを確認するために、.git には操作するものは何もありません。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "できるだけシンプルにするために each_blob を使用します。 「.git ディレクトリだけを含む空のリポジトリ」が何を意味するのかを確認するために、.git には操作するものは何もありません。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>できるだけシンプルにするために each_blob
+を使用します。 「.git
+ディレクトリだけを含む空のリポジトリ」が何を意味するのかを確認するために、.git
+には操作するものは何もありません。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で AWS SecretsManager SDK
+                    を使用しようとしていますが、次のエラーが発生します。</p>
+                    <pre><code>.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/aws-sdk-core-3.186.0/lib/aws-sdk-core/ini_parser.rb:28:in `block in ini_parse&#39;: undefined method `[]&#39; for nil:NilClass (NoMethodError)
+
+              if current_prefix.nil? &amp;&amp; previous_item[2].strip.empty?
+</code></pre>
+                    <p>このコードは、シークレット
+                    マネージャーにシークレットをアップロードするときに
+                    AWS によって提案される標準です。</p>
+                    <pre><code>require &#39;aws-sdk-secretsmanager&#39;
+
+# Retrieves secrets from AWS Secrets Manager
+module SecretsManager
+  def aws_secret(secret)
+    client = Aws::SecretsManager::Client.new(region: &#39;eu-central-1&#39;)
+
+    begin
+      get_secret_value_response = client.get_secret_value(secret_id: secret)
+    rescue StandardError =&gt; e
+      raise e
+    end
+
+    get_secret_value_response.secret_string
+  end
+
+  def secrets
+    secrets ||= aws_secret(&#39;test&#39;)
+    JSON.parse(secrets)
+  end
+end
+</code></pre>
+                    <p>私の推測では、SDK が ~/.aws/config
+                    ファイルの解析に失敗しているようですが、私の知る限りそのファイルには何も問題はなく、AWS
+                    にログインし、CLI で SecretsManager
+                    を使用してシークレットを正常に取得できます。</p>
+                    <p>何か案は？ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私のマシンで問題を再現することができました。</p>
+                    <p>これは、エラーを発生させた ~/.aws/config でした。
+                    aws_access_key_id と aws_secret_access_key
+                    の間の空行と、aws_secret_access_key
+                    の直前のスペースに注目してください。</p>
+                    <pre><code>[default]
+region = ap-northeast-1
+aws_access_key_id = AKIABLAHBLAHBLAH
+
+ aws_secret_access_key = secretSECRET+secret/SECRET
+</code></pre>
+                    <pre><code>/Users/xxxx/.rvm/gems/ruby-3.2.2/gems/aws-sdk-core-3.186.0/lib/aws-sdk-core/ini_parser.rb:28:in `block in ini_parse&#39;: undefined method `[]&#39; for nil:NilClass (NoMethodError)
+
+              if current_prefix.nil? &amp;&amp; previous_item[2].strip.empty?
+</code></pre>
+                    <p>空行と不要なスペースを削除することで、SDK
+                    は問題なく構成を解析できました。</p>
+                    <pre><code>[default]
+region = ap-northeast-1
+aws_access_key_id = AKIABLAHBLAHBLAH
+aws_secret_access_key = secretSECRET+secret/SECRET
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>条件付きで作成された配列が作成後に表示されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "条件付きで作成された配列が作成後に表示されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>条件付きで作成された配列が作成後に表示されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>与えられたファイルまたはストリームの行を反転するタイプの
+                    tac を Ruby で書いているとします。</p>
+                    <p>1行目 2行目 3行目 [Rubyスクリプト] =&gt; 3行目
+                    2行目 ライン1</p>
+                    <p>以下にいくつかのテスト ファイルを示します。</p>
+                    <pre><code>printf &quot;f1, Line %s\n&quot; $(seq 3) &gt;f1
+printf &quot;f2, Line %s\n&quot; $(seq 5) &gt;f2
+printf &quot;f3, Line %s\n&quot; $(seq 7) &gt;f3
+</code></pre>
+                    <p>それを簡単に書く方法は次のとおりです。</p>
+                    <pre><code>ruby -e &#39; # read each ARGF and reverse it
+$&lt;.each_line{|line| 
+    lines=Array.new if $&lt;.file.lineno==1 
+    lines.unshift(line)
+    p lines if $&lt;.eof?
+}&#39;
+</code></pre>
+                    <p>ただし、そのバージョンでは次のエラーが発生します。</p>
+                    <pre><code>-e:4:in `block in &lt;main&gt;&#39;: undefined method `unshift&#39; for nil:NilClass (NoMethodError)
+
+    lines.unshift(line)
+         ^^^^^^^^
+    from -e:2:in `each_line&#39;
+    from -e:2:in `each_line&#39;
+    from -e:2:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>スクリプトを次のように変更することでこれを修正できます。</p>
+                    <pre><code>ruby -e &#39;BEGIN{lines=[]}
+$&lt;.each_line{|line| 
+    lines=Array.new if $&lt;.file.lineno==1 
+    lines.unshift(line)
+    p lines if $&lt;.eof?
+}&#39;
+</code></pre>
+                    <p>しかし、なぜ BEGIN
+                    ブロックが必要なのでしょうか?ライン配列は最初のスルーで作成されませんか？配列の使い捨て定義のようです…</p>
+                    <p>最終バージョンは実際に動作します。</p>
+                    <pre><code>cat f1 | ruby -e &#39;BEGIN{lines=[]}
+$&lt;.each_line{|line| 
+    lines=Array.new if $&lt;.file.lineno==1 
+    lines.unshift(line)
+    p lines if $&lt;.eof?
+}&#39; - f2 f3
+[&quot;f1, Line 3\n&quot;, &quot;f1, Line 2\n&quot;, &quot;f1, Line 1\n&quot;]
+[&quot;f2, Line 5\n&quot;, &quot;f2, Line 4\n&quot;, &quot;f2, Line 3\n&quot;, &quot;f2, Line 2\n&quot;, &quot;f2, Line 1\n&quot;]
+[&quot;f3, Line 7\n&quot;, &quot;f3, Line 6\n&quot;, &quot;f3, Line 5\n&quot;, &quot;f3, Line 4\n&quot;, &quot;f3, Line 3\n&quot;, &quot;f3, Line 2\n&quot;, &quot;f3, Line 1\n&quot;]
+</code></pre>
+                    <p>しかし、ループ内で再度定義するためにのみ、BEGIN
+                    ブロック内で行を定義する必要があるのはなぜでしょうか?
+                    BEGIN
+                    ブロック内でどの行が定義されているかは関係ありません。数値、ブール値、ハッシュなど何でも構いませんが、名前は存在する必要があります。</p>
+                    <p>アイデアは？</p>
+                    <pre><code>% ruby -v
+ruby 3.2.2 (2023-03-30 revision e51014f9c0) [arm64-darwin23]
+</code></pre>
+                    <p>コメントと回答ありがとうございます。なぜ私の筋肉の記憶が混乱したのかを考えるときに、この
+                    Python を参照してください。</p>
+                    <pre><code>def f():
+    # local li is created first iteration and used on subsequent... 
+    # Similar to Ruby, li is local to this scope of f()
+    for x in [1,2,3,4]:
+        if x==1: li=[] 
+        li.append(x)
+
+    return li 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、Unix
+                    パイプや入出力とは何の関係もありません。 Ruby
+                    のみのバリアントでも同じエラーが発生します。</p>
+                    <pre><code>[1, 2, 3].each do |i|
+  ary = [] if i == 1 
+  ary.unshift(i)
+end
+# undefined method `unshift&#39; for nil:NilClass
+</code></pre>
+                    <p>最初の反復では ary
+                    が定義されているが、後続の反復では定義されていないため、例外が発生します。ここでは、ary
+                    は nil になります。 Ruby
+                    では、ブロックは新しいローカル変数スコープを作成し、</p>
+                    <p>これは、同じブロックを複数回呼び出す場合にも当てはまります。</p>
+                    <pre><code>def foo
+  yield
+  yield
+end
+
+foo do
+  p before: defined? a
+  a = 1
+  p after: defined? a
+end
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>{:before=&gt;nil}
+{:after=&gt;&quot;local-variable&quot;}
+{:before=&gt;nil}
+{:after=&gt;&quot;local-variable&quot;}
+</code></pre>
+                    <p>ご覧のとおり、変数のスコープはブロック呼び出し間では保持されません。同じことが、ブロックを複数回呼び出すそれぞれにも当てはまります。</p>
+                    <p>望ましい動作を得るには、ブロックの外に変数を作成するだけです。例:</p>
+                    <pre><code>ary = []
+[1, 2, 3].each do |i|
+  ary.unshift(i)
+end
+ary #=&gt; [3, 2, 1]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

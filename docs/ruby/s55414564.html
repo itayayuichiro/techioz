@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec は、指定されたキーを除外して 2 つのハッシュを比較することを期待します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec は、指定されたキーを除外して 2 つのハッシュを比較することを期待します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec は、指定されたキーを除外して 2
+つのハッシュを比較することを期待します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>指定されたキーのみを除外して2つのハッシュを比較する仕様はありますか。</p>
+                    <pre><code>H1 = {&#39;name&#39; =&gt; &#39;XXXXx&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;}
+H2 = {&#39;name&#39; =&gt; &#39;XXXXX&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;}
+</code></pre>
+                    <p>DOB キーのみを除いて、上記 2
+                    つのハッシュを比較します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>なぜそうする必要があるのかわかりませんが、Hash#delete_if
+                    を使用できます</p>
+                    <pre><code>RSpec.describe do
+  let(:hash1) { {&#39;name&#39; =&gt; &#39;XXXXX&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;} }
+  let(:hash2) { {&#39;name&#39; =&gt; &#39;XXXXX&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;} }
+
+  it &#39;should correctly compare two subhashes&#39; do
+    expect(hash1.delete_if { |k,_| k == &#39;DOB&#39; }).to eql(hash2.delete_if { |k,_| k == &#39;DOB&#39; })
+  end
+end
+</code></pre>
+                    <p>期待をより正確にしたい場合は、事前にハッシュを変換できます。</p>
+                    <p>また、Hash#rejectを使用することもできます</p>
+                    <pre><code>RSpec.describe do
+  it &#39;should correctly compare two subhashes&#39; do
+    hash1 = {&#39;name&#39; =&gt; &#39;XXXXX&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;}
+    hash2 = {&#39;name&#39; =&gt; &#39;XXXXX&#39;, &#39;age&#39; =&gt; 29, &#39;DOB&#39; =&gt; &#39;dd/mm/yyyy&#39;}
+    hash1, hash2 = [hash1, hash2].map { |h| h.reject { |k,_| k == &#39;DOB&#39; } }
+
+    expect(hash1).to eql(hash2)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

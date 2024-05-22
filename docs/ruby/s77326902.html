@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby スレッド プールが ThreadError.queue _empty で一時停止中 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby スレッド プールが ThreadError.queue _empty で一時停止中",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby スレッド プールが ThreadError.queue
+_empty で一時停止中</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サブディレクトリを実行して内容を分析するスクリプトを作成しようとしています。私はスレッドプールを使用していますが、これによりパフォーマンスが大幅に向上しました。ただし、ThreadError
+                    -&gt; empty queue
+                    エラーにより、スクリプトが完了近くで一時停止しており、プログラムが
+                    1
+                    分近くハングします。エラーを無視してプロセスを続行することはできないようです。現在のコード:</p>
+                    <pre><code>children = Dir.children(MEDIA_FOLDER)
+
+Thread.report_on_exception = false
+Thread.abort_on_exception = false
+
+jobs = Queue.new
+children.each { |i| jobs.push i }
+
+workers = 8.times.map do
+  Thread.new do
+    begin
+      while (x = jobs.pop(true))
+        check_subdirectory(x)
+      end
+    rescue Exception =&gt; error
+      # handle error so it doesnt hang
+      puts error
+    end
+  end
+end
+
+workers.map(&amp;:join)
+</code></pre>
+                    <p>助けていただければ幸いです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここで例外を発生させる必要はありません。jobs.pop
+                    を使用してキューを閉じるだけです (deq は Pop
+                    のエイリアスです)。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://rubyapi.org/3.3/o/thread/queue#method-i-close</p>
+                    <p>例えば：</p>
+                    <pre><code>jobs = Thread::Queue.new
+
+10.times do |i|
+  jobs &lt;&lt; i
+  puts &quot;#{i} produced&quot;
+end
+
+workers = 4.times.map do
+  Thread.new do
+    while value = jobs.pop
+      sleep rand(2)
+      puts &quot;consumed #{value}&quot;
+    end
+  end
+end
+
+jobs.close
+workers.map(&amp;:join)
+
+# =&gt;
+# 0 produced
+# 1 produced
+# 2 produced
+# 3 produced
+# 4 produced
+# 5 produced
+# 6 produced
+# 7 produced
+# 8 produced
+# 9 produced
+# consumed 2
+# consumed 3
+# consumed 4
+# consumed 5
+# consumed 6
+# consumed 8
+# consumed 9
+# consumed 0
+# consumed 1
+# consumed 7
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

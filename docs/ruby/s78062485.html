@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec で Rails の移行をテストするときにインデックスを同時に削除する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec で Rails の移行をテストするときにインデックスを同時に削除する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec で Rails
+の移行をテストするときにインデックスを同時に削除する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>postgresデータベースのRails
+                    ActiveRecordを使用した新しい移行をテストするためのRspecテストを作成しています。移行ファイルは同時にインデックスを追加するため、私の移行には以下が含まれます。</p>
+                    <pre><code>disable_ddl_transaction!
+
+add_index :table_name, [:column_1, :column_2], algorithm: :concurrently
+</code></pre>
+                    <p>移行の実行やロールバックに問題はありません。しかし、仕様ファイルを作成しているときに、インデックスの削除を含む以前の移行に戻す必要があり、次のエラーが発生します。</p>
+                    <pre><code>ActiveRecord::StatementInvalid:
+       PG::InFailedSqlTransaction: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+       : SELECT pg_advisory_unlock(7815322980726126075)
+     # ./spec/migrations/&lt;FILE_NAME&gt;.rb:17:in `block (3 levels) in &lt;top (required)&gt;&#39;
+     # ------------------
+     # --- Caused by: ---
+     # PG::ActiveSqlTransaction:
+     #   ERROR:  DROP INDEX CONCURRENTLY cannot run inside a transaction block
+</code></pre>
+                    <p>開発段階では移行をロールバックできるのに、テスト環境でこの
+                    postgres
+                    エラーが発生する理由を理解しようとしています。</p>
+                    <p>編集：これは、仕様ファイル内の目的の移行にロールバックする方法です。これがエラーを生成するものです。</p>
+                    <pre><code>before :each do
+  ActiveRecord::MigrationContext.new(migration_paths).migrate(previous_version)
+  ConferenceLink.reset_column_information
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails-rspec
+                    にはデフォルト設定があり、各サンプルを独自のデータベース
+                    トランザクションで実行します。通常、サンプルの後にロールバックされ、次のサンプルで再びデータベースがクリーンになるようにします。</p>
+                    <p>rspec-rails
+                    でこれらのトランザクションをグローバルに無効にすることができます。</p>
+                    <pre><code>RSpec.configure do |c|
+  c.use_transactional_examples = false
+end
+</code></pre>
+                    <p>ただし、各テストで実行している変更が他のテストの既存のデータベースに影響を与えないことを手動で確認する必要があります。
+                    after
+                    ブロックでクリーンアップを実行するか、データベース
+                    クリーナー gem のようなものを使用します。</p>
+                    <p>詳細と例についてはドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Swagger: ハッシュ エラーでの enum プロパティの表現 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Swagger: ハッシュ エラーでの enum プロパティの表現",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Swagger: ハッシュ エラーでの enum
+プロパティの表現</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は現在、Ruby on Rails API の Swagger
+                    ドキュメントに取り組んでいます。 API
+                    には、さまざまなモデルに含まれる多数の列挙子 (enum)
+                    があります。列挙型は app/models/concerns
+                    ディレクトリに配列ではなくハッシュとして保存されるため、後で問題なく変更できます。</p>
+                    <p>状態列挙型 (state.rb)</p>
+                    <pre><code>module State
+  extend ActiveSupport::Concern
+  included do
+    enum state: { state1: &#39;State 1&#39;,
+                  state2: &#39;State 2&#39;,
+                  state3: &#39;State 3&#39;,
+                  state4: &#39;State 4&#39;,
+                  state5: &#39;State 5&#39; }
+  end
+end
+</code></pre>
+                    <p>ただし、これを Swagger のコンポーネント
+                    スキーマで次のように表現しようとすると、次のようになります。</p>
+                    <pre><code>components:
+  schemas:
+    State:
+      type: object
+      properties:
+        enum: { state1: &#39;State 1&#39;,
+                state2: &#39;State 2&#39;,
+                state3: &#39;State 3&#39;,
+                state4: &#39;State 4&#39;,
+                state5: &#39;State 5&#39; }
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <p>列挙型を配列ではなくハッシュで表現したいと考えています。これを機能させるための回避策はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ついにそれを実現する方法を見つけました。
+                    このソリューションは、この質問に答える時点での
+                    OpenAPI 仕様の最新バージョンである OpenAPI 3
+                    に適用されます。</p>
+                    <p>私がやった方法は次のとおりです。</p>
+                    <p>解決策 1</p>
+                    <pre><code>components:
+  schemas:
+    State:
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        state1: State 1
+        state2: State 2
+        state3: State 3
+        state4: State 4
+        state5: State 5
+</code></pre>
+                    <p>これはハッシュ全体をリクエストの応答本文に渡していたため、エラーがスローされていました</p>
+                    <p>解決策 2:</p>
+                    <p>もう 1
+                    つの方法は、それらを配列として表すことです。これは私の理想的なソリューションではありませんでしたが、これにより、Swagger
+                    は配列から項目を 1
+                    つだけ選択して、リクエストの応答本文に渡すことができました。ただし、列挙型はハッシュであるため、クライアント側で列挙型のハッシュの
+                    collection_select
+                    を実行する必要があることに注意してください。</p>
+                    <pre><code>components:
+  schemas:
+    State:
+      type: string
+      description: List of States
+      enum:
+        - State 1
+        - State 2
+        - State 3
+        - State 4
+        - State 5
+</code></pre>
+                    <p>最後に、どのソリューションを選択しても、次のように他のモデルでそれらを参照できます。</p>
+                    <pre><code>components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        first_name:
+          type: string
+        last_name:
+          type: string
+        password:
+          type: string
+          format: password
+        state:
+          $ref: &#39;#/components/schemas/State&#39;
+</code></pre>
+                    <p>Swagger ドキュメントへのリンクは次のとおりです:
+                    辞書、ハッシュマップ、連想配列</p>
+                    <p>それだけです。</p>
+                    <p>これがお役に立てば幸いです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

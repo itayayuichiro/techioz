@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rake を使用した Ruby 単体テストの実行 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rake を使用した Ruby 単体テストの実行",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rake を使用した Ruby 単体テストの実行</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rake ビルド
+                    ツールを使用して単体テストの実行を自動化することを調査していました。
+                    Web を検索しましたが、すべて Rails
+                    を使用する例でした。私は通常、小さなコマンドライン
+                    プログラムや単純な Sinatra
+                    アプリケーションを作成するだけです。</p>
+                    <p>そこで私は、コマンドラインで行うことをエミュレートするだけの次の
+                    (おそらく悪い) 解決策を思いつきました:
+                    (例として単体テストを 1 つ実行しただけです)。</p>
+                    <pre><code>desc &#39;Run unit tests&#39;
+task :test do
+    sh &#39;ruby -I lib test/test_entry.rb&#39;
+end
+task :default =&gt; :test
+</code></pre>
+                    <p>それは機能しますが、もっと良い方法があるはずだと思わずにはいられません。
+                    require ‘test/test_entry.rb’
+                    と書くだけでは機能しません。必要な問題が発生し、Ruby
+                    がすべてのファイルが存在する lib
+                    ディレクトリを見つけることができません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rake::TestTask
+                    http://rake.rubyforge.org/classes/Rake/TestTask.html
+                    を使用します。これを Rake ファイルに入れて、rake
+                    テストを実行します。</p>
+                    <pre><code>require &#39;rake/testtask&#39;
+
+Rake::TestTask.new do |t|
+  t.libs &lt;&lt; &quot;test&quot;
+  t.test_files = FileList[&#39;test/test*.rb&#39;]
+  t.verbose = true
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

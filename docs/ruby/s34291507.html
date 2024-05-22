@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで「=?UTF-8?B?…」文字列をデコードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで「=?UTF-8?B?…」文字列をデコードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで「=?UTF-8?B?…」文字列をデコードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Mandrill Inbound Email API
+                    を使用していますが、電子メールのファイル名に 1
+                    つ以上のスペースが含まれる添付ファイルがある場合、ファイル名はデコード方法がわからない形式でエンコードされます。</p>
+                    <p>ファイル名として受け取った文字列の例は次のとおりです:
+                    Missionary Faith Promise and Cash Receipts YTD
+                    253599 April-2015.csv</p>
+                    <p>Base64.decode64(#{encoded_value})
+                    を試しましたが、読み取り可能なテキストは返されませんでした。</p>
+                    <p>その値を読み取り可能な文字列にデコードするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、RFC-2822 で定義されている MIME
+                    エンコードされた単語の構文です。ウィキペディアより:</p>
+                    <p>幸いなことに、このためにデコーダを作成する必要はありません。
+                    Mail gem には、完全に動作し、十分にテストされた
+                    Mail::Encodings.value_decode
+                    メソッドが付属しています。</p>
+                    <pre><code>subject = &quot;Missionary Faith Promise and Cash Receipts YTD 253599 July-2015.csv&quot;
+Mail::Encodings.value_decode(subject)
+# =&gt; &quot;Missionary Faith Promise and Cash Receipts YTD 253599 July-2015.csv&quot;
+</code></pre>
+                    <p>おそらく思いつかないような多くのエッジケースを適切に処理します
+                    (アプリがそれらを処理しようとして失敗するまで)。</p>
+                    <pre><code>subject = &quot;Re:[グルーポン・ジャパン株式会\n 社] 返信：\n  【グルーポン】お問い合わせ\n の件について（リクエスト#1056273\n ）&quot;
+Mail::Encodings.value_decode(subject)
+# =&gt; &quot;Re:[グルーポン・ジャパン株式会社] 返信：【グルーポン】お問い合わせの件について（リクエスト#1056273\n ）&quot;
+</code></pre>
+                    <p>Rails を使用している場合は、Mail gem
+                    がすでにあります。それ以外の場合は、Gemfile に gem
+                    “mail”
+                    を追加してからバンドルインストールし、スクリプト内で
+                    “mail” を要求します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

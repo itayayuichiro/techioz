@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec - ActiveRecord::RecordNotFound をテストする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec - ActiveRecord::RecordNotFound をテストする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec - ActiveRecord::RecordNotFound
+をテストする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>人々の属性を更新するメソッドがあり、人々が見つからない場合に
+                    ActiveRecord::RecordNotFound
+                    を救出します。方法は次のとおりです。</p>
+                    <pre><code>  def update
+    @people= People.find(params[:id])
+    if @people.update(people_params)
+      render json: { success: &#39;Success&#39; }
+    else
+      render :edit
+    end
+  rescue ActiveRecord::RecordNotFound =&gt; e
+    render json: { error: &#39;Failed&#39;) }
+  end
+</code></pre>
+                    <p>そして、レコードが見つからないときの状況をテストしたいと思います。今のところのテストは次のとおりです。</p>
+                    <pre><code>    let(:people) { create(:people) }
+    let(:people_id) { people.id }
+    let(:user) { people}
+    # Other tests...
+    context &#39;when person not found&#39; do
+      let(:exception) { ActiveRecord::RecordNotFound }
+
+      # What should I write so that I can let the record not been found?
+
+      before { allow(People).to receive(:find).and_raise(exception) }
+
+      it &#39;responds with json containing the error message&#39; do
+        expect(JSON.parse(response.body)).to eq({error:&#39;Error&#39;})
+      end
+    end
+</code></pre>
+                    <p>レコードが見つからない条件でテストを実行したいと考えています。でもどうすればいいのか分かりません。
+                    let(people) {nil}
+                    を設定しようとしましたが、機能しませんでした。とにかくそれを行う方法はありますか？ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはそもそも良い解決策ではありません。 Rails
+                    では、コントローラー
+                    レベルで一般的なエラーを処理するために、rescue_from
+                    を使用したいと考えています。</p>
+                    <pre><code>class ApplicationController
+  rescue_from ActiveRecord::RecordNotFound, with: :not_found
+
+  def not_found
+    respond_to do |format|
+      format.json { head :404 }
+    end
+  end
+end
+</code></pre>
+                    <p>これにより、継承を使用してコードを DRY
+                    できるようになります。</p>
+                    <pre><code>render json: { error: &#39;Failed&#39;) }
+</code></pre>
+                    <p>アンチパターンです。リクエストが失敗した場合は、正しい
+                    HTTP ステータス
+                    コードを送信してクライアントに通知する必要があります。</p>
+                    <p>コントローラーが不足しているリソースを正しく処理するかどうかをテストしたい場合は、次のようにします。</p>
+                    <pre><code>let(:people) { create(:people) }
+let(:people_id) { people.id }
+let(:user) { people}
+
+it &quot;returns the correct response code if the person cannot be found&quot; do
+  get &#39;/people/notarealid&#39;
+  expect(response).to have_http_status :not_found
+end
+</code></pre>
+                    <p>これはスタブを使用せず、実装を実際にテストします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

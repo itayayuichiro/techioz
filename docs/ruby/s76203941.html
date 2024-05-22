@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Fastlane、upload_to_play_store でパッケージ名を自動入力 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Fastlane、upload_to_play_store でパッケージ名を自動入力",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Fastlane、upload_to_play_store
+でパッケージ名を自動入力</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、私は fastlane
+                    を初めて使用しますが、fastlane
+                    でセットアップした反応ネイティブ iOS および Android
+                    アプリケーションを持っています。さまざまなアプリのバージョンに複数の
+                    productFlavor があります。</p>
+                    <pre><code>productFlavors {
+    flavor1 {
+        applicationId &quot;com.package.flavor1&quot;
+    }
+    flavor2 {
+        applicationId &quot;com.package.flavor2&quot;
+    }
+    flavor3 {
+        applicationId &quot;com.package.flavor3&quot;
+    }
+    flavor4 {
+        applicationId &quot;com.package.flavor4&quot;
+    }
+</code></pre>
+                    <p>これで、Fastfile 上で、汎用の gradle
+                    コマンドを使用して、すべてのフレーバーのすべての AAB
+                    を生成できるようになりました。</p>
+                    <pre><code>gradle( task: &#39;clean bundle&#39;, build_type: &#39;release&#39;, project_dir:&#39;android/&#39;)
+</code></pre>
+                    <p>アップロード
+                    コマンドを実行しようとすると、fastlane が
+                    package_name パラメータを要求します</p>
+                    <pre><code>upload_to_play_store(release_status: releaseStatus, changes_not_sent_for_review: shouldSendReview)
+</code></pre>
+                    <p>すべてのフレーバーを反復処理し、その
+                    applicationId
+                    キーにアクセスしてコマンドを追加できるようにしたいのですが、どこに行けばよいのかわかりません。私が調べたものはすべて、プロジェクトに単一のパッケージ名があることのみを前提としています。誰かがファストレーンでこれを行うためのロープを教えてくれませんか。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パッケージ名を使用して fastlane
+                    を呼び出すことができます。残念ながら、プロセスのさまざまな部分に応じて
+                    2 つの異なる方法があります。</p>
+                    <p>fastlane Supply の場合は、コマンドライン
+                    オプションとして fastlane Supply init –package name
+                    com.package.flavor1 として指定できます。</p>
+                    <p>特定のレーンの場合は、オプション
+                    フラグとしてレーンに提供する必要があります。</p>
+                    <pre><code>lane :flavor1 do |options|
+  upload_to_play_store(
+    package_name: options[:package_name],
+    &lt;etc&gt;
+  )
+end
+</code></pre>
+                    <p>次に、オプション fastlane フレーバー 1
+                    パッケージ名:com.package.flavor1
+                    を使用してレーンを呼び出すことができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

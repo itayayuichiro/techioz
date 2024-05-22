@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby クライアントを使用して Google Analytics Data API (GA4) のリストにフィルター式を追加するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby クライアントを使用して Google Analytics Data API (GA4) のリストにフィルター式を追加するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby クライアントを使用して Google Analytics
+Data API (GA4)
+のリストにフィルター式を追加するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby クライアントで GA4 API をクエリするために
+                    google-analytics-data gem を使用しています。</p>
+                    <p>フィルター式の配列をフィルター式リストに追加しようとすると、161
+                    行目でエラーが発生します。</p>
+                    <pre><code>analytics_request_object_filter_expression_list.expressions = analytics_request_object_filter_expression_list_expressions
+
+method_missing&#39;: Expected repeated field array
+</code></pre>
+                    <p>これが私のコードです</p>
+                    <pre><code>#! /usr/bin/ruby
+
+require &#39;google-analytics-data&#39;
+
+module GoogleAnalyticsObjects
+
+    def self.get_analytics_data( analytics:,
+                                 start_date:,
+                                 end_date:,
+                                 metrics:,
+                                 dimensions:, 
+                                 order_bys: [] )
+                                 
+                          
+      analytics_date_range_object = Google::Analytics::Data::V1beta::DateRange.new
+      analytics_date_range_object.start_date = start_date
+      analytics_date_range_object.end_date = end_date
+  
+     
+      report_request_object_metrics = []
+  
+      metrics.each { |metric|
+        
+      analytics_metric_object = Google::Analytics::Data::V1beta::Metric.new
+      analytics_metric_object.name = metric 
+      
+      report_request_object_metrics.push(analytics_metric_object) } 
+  
+      unless dimensions.empty?
+  
+        report_request_object_dimensions = []
+  
+        dimensions.each { |dimension|
+          analytics_dimension_object = Google::Analytics::Data::V1beta::Dimension.new
+          analytics_dimension_object.name = dimension
+          report_request_object_dimensions.push(analytics_dimension_object) }
+      end       
+
+      unless order_bys.empty?
+  
+        report_request_object_order_bys = []
+  
+        order_bys.each { |orderby|
+          analytics_orderby_object = Google::Analytics::Data::V1beta::OrderBy.new 
+
+          analytics_orderby_object.field_name = orderby
+          analytics_orderby_object.sort_order = &#39;DESCENDING&#39;
+          report_request_object_order_bys.push(analytics_orderby_object)}
+      end
+      
+      ################
+      analytics_request_object_filter_expression = Google::Analytics::Data::V1beta::FilterExpression.new    
+      ################
+
+      ################
+      analytics_request_object_filter_expression_campaign = Google::Analytics::Data::V1beta::FilterExpression.new  
+      ################
+      
+      ################
+      analytics_request_object_filter_campaign = Google::Analytics::Data::V1beta::Filter.new
+
+      analytics_request_object_filter_campaign.field_name = &#39;campaign&#39;
+
+      analytics_request_object_filter_campaign_string_filter = Google::Analytics::Data::V1beta::Filter::StringFilter.new
+
+      analytics_request_object_filter_campaign_string_filter.case_sensitive = false
+
+      analytics_request_object_filter_campaign_string_filter.value = &#39;(not set)&#39;
+
+      analytics_request_object_filter_campaign_string_filter.match_type = &#39;EXACT&#39;
+
+      analytics_request_object_filter_campaign.string_filter = analytics_request_object_filter_campaign_string_filter 
+     
+      analytics_request_object_filter_expression_campaign.filter = analytics_request_object_filter_campaign # this filter expression gets added to the top level filter expression
+      
+      puts 
+      puts &#39;not expression filter expression&#39;
+      puts analytics_request_object_filter_expression_campaign.inspect
+      ###############
+
+      ###############
+      analytics_request_object_filter_expression.not_expression = analytics_request_object_filter_expression_campaign  # here
+      ###############    
+
+      puts
+      puts &#39;top level filter expression after not expression added&#39;
+      puts analytics_request_object_filter_expression.inspect
+
+      ###############
+      analytics_request_object_filter_expression_list = Google::Analytics::Data::V1beta::FilterExpressionList.new # gets added to the top level filter expression list
+      ###############
+            
+      ###############
+      analytics_request_object_filter_expression_list_expressions = [] # array to hold top level filter expression and group filter expressions
+      ###############
+   
+      ###############
+      analytics_request_object_filter_expression_source_medium = Google::Analytics::Data::V1beta::FilterExpression.new
+  
+      analytics_request_object_filter_source_medium = Google::Analytics::Data::V1beta::Filter.new
+
+      analytics_request_object_filter_source_medium.field_name = &#39;sourceMedium&#39;
+
+      analytics_request_object_filter_source_medium_string_filter = Google::Analytics::Data::V1beta::Filter::StringFilter.new
+
+      analytics_request_object_filter_source_medium_string_filter.case_sensitive = false
+
+      analytics_request_object_filter_source_medium_string_filter.match_type = &#39;EXACT&#39;
+
+      analytics_request_object_filter_source_medium_string_filter.value = &#39;aomestring&#39;
+
+      analytics_request_object_filter_source_medium.string_filter = analytics_request_object_filter_source_medium_string_filter 
+
+      analytics_request_object_filter_expression_source_medium.filter = analytics_request_object_filter_source_medium  
+
+      puts
+      puts &#39;sourceMedium filter expression&#39;
+      puts analytics_request_object_filter_expression_source_medium.inspect
+      ##############
+
+      ##############
+      analytics_request_object_filter_expression_list_expressions.push(analytics_request_object_filter_expression_source_medium)  # add to array 
+      ##############
+
+
+      ##############
+      analytics_request_object_filter_expression_transactions = Google::Analytics::Data::V1beta::FilterExpression.new
+
+      analytics_request_object_filter_transactions = Google::Analytics::Data::V1beta::Filter.new
+
+      analytics_request_object_filter_transactions.field_name = &#39;transactions&#39;
+      
+      analytics_request_object_filter_transactions_numeric_filter = Google::Analytics::Data::V1beta::Filter::NumericFilter.new
+
+      analytics_request_object_filter_transactions_numeric_filter.operation = &#39;GREATER_THAN&#39;
+
+      analytics_request_object_filter_transactions_numeric_value = Google::Analytics::Data::V1beta::NumericValue.new
+
+      analytics_request_object_filter_transactions_numeric_value.int64_value = 0
+
+      analytics_request_object_filter_transactions_numeric_filter.value = analytics_request_object_filter_transactions_numeric_value
+
+      analytics_request_object_filter_transactions.numeric_filter = analytics_request_object_filter_transactions_numeric_filter 
+
+      analytics_request_object_filter_expression_transactions.filter = analytics_request_object_filter_transactions
+
+      puts
+      puts &#39;transactions filter expression&#39;
+      puts analytics_request_object_filter_expression_transactions.inspect
+      #############
+
+      #############
+      analytics_request_object_filter_expression_list_expressions.push(analytics_request_object_filter_expression_transactions) # add to array
+      #############
+
+      puts
+      puts &#39;array of and group expressions&#39;
+      puts analytics_request_object_filter_expression_list_expressions.inspect
+      #############   
+
+      analytics_request_object_filter_expression_list.expressions = analytics_request_object_filter_expression_list_expressions
+
+      puts
+      puts &#39;and group expressions list final&#39;
+      puts analytics_request_object_filter_expression_list.inspect
+      #############
+
+      #############
+      #analytics_request_object_filter_expression.and_group = analytics_request_object_filter_expression_and_group   
+      analytics_request_object_filter_expression.and_group = analytics_request_object_filter_expressions_list
+
+      puts
+      puts &#39;top level filter expression&#39;
+      puts analytics_request_object_filter_expression.inspect
+      #############
+
+      report_request_object = Google::Analytics::Data::V1beta::RunReportRequest.new(
+        property: &quot;properties/#{ANALYTICS_PROPERTY_ID}&quot;,
+        metrics: report_request_object_metrics,
+        dimensions: report_request_object_dimensions,
+        order_bys: report_request_object_order_bys,
+        date_ranges: [analytics_date_range_object],
+        dimension_filter: analytics_request_object_filter_expression) 
+
+      response = analytics.run_report(report_request_object)
+
+    end
+  
+end # module  
+</code></pre>
+                    <p>編集。これは上記のコードからの出力です</p>
+                    <pre><code>not expression filter expression. This filter expression attaches to the not expression of the top level filter expression 
+&lt;Google::Analytics::Data::V1beta::FilterExpression: 
+    filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+        field_name: &quot;campaign&quot;, 
+        string_filter: &lt;Google::Analytics::Data::V1beta::Filter::StringFilter: 
+        match_type: :EXACT, 
+        value: &quot;(not set)&quot;, 
+        case_sensitive: false&gt;&gt;&gt;
+
+top level filter expression after not expression added
+&lt;Google::Analytics::Data::V1beta::FilterExpression: 
+    not_expression: 
+        &lt;Google::Analytics::Data::V1beta::FilterExpression: 
+            filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+            field_name: &quot;campaign&quot;, 
+            string_filter: &lt;Google::Analytics::Data::V1beta::Filter::StringFilter: 
+                match_type: :EXACT, 
+                value: &quot;(not set)&quot;, 
+                case_sensitive: false&gt;&gt;&gt;&gt;
+
+Above is a singleton filter expression.
+
+sourceMedium filter expression. First element of the and group
+&lt;Google::Analytics::Data::V1beta::FilterExpression: 
+    filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+        field_name: &quot;sourceMedium&quot;, 
+        string_filter: &lt;Google::Analytics::Data::V1beta::Filter::StringFilter: 
+            match_type: :EXACT, 
+            value: &quot;somestring&quot;, 
+            case_sensitive: false&gt;&gt;&gt;
+
+transactions filter expression. Second element of the and group
+&lt;Google::Analytics::Data::V1beta::FilterExpression: 
+    filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+        field_name: &quot;transactions&quot;, 
+        numeric_filter: &lt;Google::Analytics::Data::V1beta::Filter::NumericFilter: 
+            operation: :GREATER_THAN, 
+            value: &lt;Google::Analytics::Data::V1beta::NumericValue: int64_value: 0&gt;&gt;&gt;&gt;
+
+Array of and group expressions. Error occurs adding this array to top level filter and group
+
+&quot;google_analytics_objects.rb:173:in `method_missing&#39;: Expected repeated field array&quot;
+
+[
+    &lt;Google::Analytics::Data::V1beta::FilterExpression: 
+        filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+            field_name: &quot;sourceMedium&quot;, 
+            string_filter: &lt;Google::Analytics::Data::V1beta::Filter::StringFilter: 
+                match_type: :EXACT, 
+                value: &quot;somestring&quot;, 
+                case_sensitive: false&gt;&gt;&gt;, 
+                
+    &lt;Google::Analytics::Data::V1beta::FilterExpression: 
+        filter: &lt;Google::Analytics::Data::V1beta::Filter: 
+            field_name: &quot;transactions&quot;, 
+            numeric_filter: &lt;Google::Analytics::Data::V1beta::Filter::NumericFilter: 
+                operation: :GREATER_THAN, 
+                value: &lt;Google::Analytics::Data::V1beta::NumericValue: int64_value: 0&gt;&gt;&gt;&gt;
+]
+
+API doc [https://cloud.google.com/ruby/docs/reference/google-analytics-data-v1beta/latest/Google-Analytics-Data-V1beta-FilterExpression][1]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このエラーは、gRPC
+                    のバーフィングのように見えます。配列を予期したときに別のものを受け取ったか、配列を受け取ったものの、配列内の何かが予期した種類の反復オブジェクトではないためです。</p>
+                    <p>コードにプッシュするために渡される引数は配列ですか?その場合は、要素を個々の引数に分散するために、先頭にスプラット
+                    (*) を付ける必要があります。その式割り当ての
+                    protobuf が、繰り返される Expression 式 = 1
+                    の行に沿った定義を持つメッセージを予期している場合。そして、要素の
+                    1
+                    つが要素の別の配列である配列オブジェクトを受け取ると、そのようなエラーが発生します。
+                    expression=(value)
+                    割り当てメソッドのドキュメントには、FilterExpression
+                    オブジェクトの配列が必要であることが示されており、コードでもそれが行われているように見えますが、コード内の変数名の一部は追跡されないため、いくつかの仮定を立てます。
+                    …</p>
+                    <p>Analytics_request_object_filter_expression_list
+                    の初期化が欠落していますが、Google::Analytics::Data::V1beta::FilterExpressionList
+                    として初期化されていると仮定します。</p>
+                    <p>これが実際の問題行だと思います:</p>
+                    <pre><code>analytics_request_object_filter_expression_and_group.push(analytics_request_object_filter_expression_list)
+</code></pre>
+                    <p>タイプミスがあり、最後から 2
+                    番目のアンダースコアがピリオドであると仮定すると、この行は、and_group
+                    アクセサー メソッドによって返された ExpressionList
+                    に ExpressionList 全体を (単一の要素として)
+                    追加することになります
+                    (これにより、エラーが発生します)取得）。これはうまくいくと推測します。</p>
+                    <pre><code>analytics_request_object_filter_expression.and_group.push(
+  *analytics_request_object_filter_expression_list
+)
+</code></pre>
+                    <p>ただし、API は and_group
+                    の割り当てメソッドとアクセサー
+                    メソッドを定義していますが、追加メソッドは定義していません…アクセサー
+                    メソッドによって返されたリストに対して #push
+                    を呼び出すと、技術的には新しい要素を追加するように機能しますが、Ruby
+                    の変数処理を使用してハッキングしています。オブジェクトがどのように対話できるように設計されているか。そのオブジェクトの
+                    and_group
+                    も、指定した内容に基づいてすでに空になっているはずなので、単にリストを
+                    and_group=
+                    割り当てメソッドに渡すことをお勧めします。</p>
+                    <pre><code># If you don&#39;t need to merge the list into the existing `and_group` list:
+analytics_request_object_filter_expression.and_group = analytics_request_object_filter_expression_list
+</code></pre>
+                    <p>コンソールでコードを 1
+                    行ずつ実行し、オブジェクトを詳しく調べることをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

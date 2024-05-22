@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュから nil 値を削除する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュから nil 値を削除する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュから nil 値を削除する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュから値が nil
+                    のキーを削除しようとしています。 Article
+                    は各記事を格納するクラスで、Attributes
+                    メソッドは記事をハッシュとして格納します。</p>
+                    <p>期待される結果：</p>
+                    <pre><code>{&quot;articles&quot;:[{&quot;results&quot;:[{&quot;author&quot;:null,&quot;title&quot;:&quot;Former bar manager jailed for preying on homeless 14-year-old girl&quot;,&quot;summary&quot;:&quot;&lt;p&gt;&lt;img src=\&quot;http://images.theage.com.au/2015/08/24/6790912/Thumbnail999662740gisd08image.related.thumbnail.320x214.gj68pg.png1440386418031.jpg-90x60.jpg\&quot; width=\&quot;90\&quot; height=\&quot;60\&quot; style=\&quot;float:left;margin:4px;border:0px\&quot;/&gt;&lt;/p&gt;A man who preyed on a 14-year-old girl he came across living on the streets of&amp;#160;Wodonga has been jailed for nine months.&quot;,&quot;images&quot;:null,&quot;source&quot;:null,&quot;date&quot;:&quot;Mon, 24 Aug 2015 03:20:21 +0000&quot;,&quot;guid&quot;:&quot;&lt;guid isPermaLink=\&quot;false\&quot;&gt;gj68pg&lt;/guid&gt;&quot;,&quot;link&quot;:&quot;http://www.theage.com.au/victoria/former-bar-manager-jailed-for-preying-on-homeless-14yearold-girl-20150824-gj68pg.html&quot;,&quot;section&quot;:null,&quot;item_type&quot;:null,&quot;updated_date&quot;:null,&quot;created_date&quot;:null,&quot;material_type_facet&quot;:null,&quot;abstract&quot;:null,&quot;byline&quot;:null,&quot;kicker&quot;:null}]}]}
+</code></pre>
+                    <p>上記の出力から null
+                    値を削除しようとしています。</p>
+                    <pre><code>def attributes
+  hash = {
+    &quot;author&quot; =&gt; @author,
+    &quot;title&quot; =&gt; @title,
+    &quot;summary&quot; =&gt; @summary,
+    &quot;images&quot; =&gt; @images,
+    &quot;source&quot; =&gt; @source,
+    &quot;date&quot; =&gt; @date
+  }
+  hash = {}
+  count = 0
+  article.attributes.each do |key,value|
+    if value == nil
+      hash[count] = article.attributes.delete(key)
+      count += 1
+    end
+  end
+  hash.to_json
+</code></pre>
+                    <p>結果は以下の通りです。</p>
+                    <pre><code>{&quot;0&quot;:null,&quot;1&quot;:null,&quot;2&quot;:null,&quot;3&quot;:null,&quot;4&quot;:null,&quot;5&quot;:null,&quot;6&quot;:null,&quot;7&quot;:null,&quot;8&quot;:null,&quot;9&quot;:null,&quot;10&quot;:null}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コンパクトにお使いいただけます。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ruby-doc.org/core-2.7.0/Hash.html#method-i-compact</p>
+                    <p>例：</p>
+                    <pre><code>hash = {:foo =&gt; nil, :bar =&gt; &quot;bar&quot;}
+=&gt; {:foo=&gt;nil, :bar=&gt;&quot;bar&quot;}
+hash.compact
+=&gt; {:bar=&gt;&quot;bar&quot;}
+hash
+=&gt; {:foo=&gt;nil, :bar=&gt;&quot;bar&quot;}
+</code></pre>
+                    <p>コンパクトもあります！これは nil
+                    値を削除するか、ハッシュ内の値が nil でない場合は
+                    nil を返します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ruby-doc.org/core-2.7.0/Hash.html#method-i-compact-21</p>
+                    <p>例：</p>
+                    <pre><code>hash
+=&gt; {:foo=&gt;nil, :bar=&gt;&quot;bar&quot;}
+hash.compact!
+=&gt; {:bar=&gt;&quot;bar&quot;}
+hash
+=&gt; {:bar=&gt;&quot;bar&quot;}
+hash.compact!
+=&gt; nil
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

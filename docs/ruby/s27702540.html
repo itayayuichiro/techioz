@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>なぜあちこちに固定された定数があるのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "なぜあちこちに固定された定数があるのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>なぜあちこちに固定された定数があるのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ラックやレールなど、多くの有名なリポジトリからそのようなスタイルを簡単に見つけることができます。</p>
+                    <p>たとえばラック内では次のようになります。</p>
+                    <pre><code>PATH_INFO      = &#39;PATH_INFO&#39;.freeze
+REQUEST_METHOD = &#39;REQUEST_METHOD&#39;.freeze
+SCRIPT_NAME    = &#39;SCRIPT_NAME&#39;.freeze
+QUERY_STRING   = &#39;QUERY_STRING&#39;.freeze
+CACHE_CONTROL  = &#39;Cache-Control&#39;.freeze
+CONTENT_LENGTH = &#39;Content-Length&#39;.freeze
+CONTENT_TYPE   = &#39;Content-Type&#39;.freeze
+</code></pre>
+                    <p>Rails での別の例:</p>
+                    <pre><code>HTTP_IF_MODIFIED_SINCE = &#39;HTTP_IF_MODIFIED_SINCE&#39;.freeze
+HTTP_IF_NONE_MATCH     = &#39;HTTP_IF_NONE_MATCH&#39;.freeze
+HTTP_IF_NONE_MATCH     = &#39;HTTP_IF_NONE_MATCH&#39;.freeze
+</code></pre>
+                    <p>なぜこれらの定数文字列が凍結されているのか不思議です。これらはすべて定数であるため、インスタンスは
+                    1
+                    つだけ存在する必要があります。もちろん、同じシングルトン
+                    インスタンスを参照するために “foo”.freeze
+                    をどこかに置くこともできますが、通常は代わりに
+                    HTTP_IF_MODIFIED_SINCE
+                    のようなリテラル変数名を書きます。</p>
+                    <p>私の意見では、#freeze
+                    を使用しても何の違いもありません。では、なぜ人々は定数を凍結するのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>既に初期化された定数に値を再代入すると、Ruby
+                    が警告を出力するのは正しいです。</p>
+                    <pre><code>FOO = &#39;foo&#39;
+FOO = &#39;bar&#39;
+# :2: warning: already initialized constant FOO
+# :1: warning: previous definition of FOO was here
+FOO
+#=&gt; &quot;bar&quot;
+</code></pre>
+                    <p>ただし、定数の値の一部を変更することに対する保護はありません。フリーズなしの例:</p>
+                    <pre><code>FOO = &#39;foo&#39;
+FOO[1] = &#39;-&#39;
+FOO
+#=&gt; &quot;f-o&quot;
+</code></pre>
+                    <p>ただし、フリーズすると、定数の値が変更されないように保護できます。フリーズを使用した例:</p>
+                    <pre><code>FOO = &#39;foo&#39;.freeze
+FOO[1] = &#39;-&#39;
+#=&gt; RuntimeError: can&#39;t modify frozen String
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

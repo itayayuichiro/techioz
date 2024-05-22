@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby配列内の同一の文字列要素を数える方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby配列内の同一の文字列要素を数える方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby配列内の同一の文字列要素を数える方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の配列があります = [“Jason”, “Jason”, “Teresa”,
+                    “Judah”, “Michelle”, “Judah”, “Judah”,
+                    “Allison”]</p>
+                    <p>同一の要素ごとにカウントを生成するにはどうすればよいですか?</p>
+                    <pre><code>Where:
+&quot;Jason&quot; = 2, &quot;Judah&quot; = 3, &quot;Allison&quot; = 1, &quot;Teresa&quot; = 1, &quot;Michelle&quot; = 1?
+</code></pre>
+                    <p>またはハッシュを生成します。</p>
+                    <p>どこ： ハッシュ = { “ジェイソン” =&gt;
+                    2、“ジュダ” =&gt; 3、“アリソン” =&gt; 1、“テレサ”
+                    =&gt; 1、“ミシェル” =&gt; 1 }</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby v2.7.0 (2019 年 12 月リリース)
+                    の時点で、コア言語には Enumerable#tally
+                    (この問題専用に設計された新しいメソッド)
+                    が含まれるようになりました。</p>
+                    <pre><code>names = [&quot;Jason&quot;, &quot;Jason&quot;, &quot;Teresa&quot;, &quot;Judah&quot;, &quot;Michelle&quot;, &quot;Judah&quot;, &quot;Judah&quot;, &quot;Allison&quot;]
+
+names.tally
+#=&gt; {&quot;Jason&quot;=&gt;2, &quot;Teresa&quot;=&gt;1, &quot;Judah&quot;=&gt;3, &quot;Michelle&quot;=&gt;1, &quot;Allison&quot;=&gt;1}
+</code></pre>
+                    <p>次のコードは、この質問が最初に質問されたとき
+                    (2011 年 2 月)、標準 Ruby
+                    では使用できませんでした。</p>
+                    <p>Ruby
+                    へのこれらの最新の追加により、次の実装が可能になります。</p>
+                    <pre><code>names = [&quot;Jason&quot;, &quot;Jason&quot;, &quot;Teresa&quot;, &quot;Judah&quot;, &quot;Michelle&quot;, &quot;Judah&quot;, &quot;Judah&quot;, &quot;Allison&quot;]
+
+names.group_by(&amp;:itself).transform_values(&amp;:count)
+#=&gt; {&quot;Jason&quot;=&gt;2, &quot;Teresa&quot;=&gt;1, &quot;Judah&quot;=&gt;3, &quot;Michelle&quot;=&gt;1, &quot;Allison&quot;=&gt;1}
+</code></pre>
+                    <p>さらに古い Ruby バージョンの場合は、上記の
+                    Hash#transform_values
+                    メソッドにアクセスせずに、代わりに Ruby v2.1.0 (2013
+                    年 12 月リリース) に追加された Array#to_h
+                    を使用できます。</p>
+                    <pre><code>names.group_by(&amp;:itself).map { |k,v| [k, v.length] }.to_h
+#=&gt; {&quot;Jason&quot;=&gt;2, &quot;Teresa&quot;=&gt;1, &quot;Judah&quot;=&gt;3, &quot;Michelle&quot;=&gt;1, &quot;Allison&quot;=&gt;1}
+</code></pre>
+                    <p>Ruby のさらに古いバージョン (&lt;= 2.1)
+                    の場合、これを解決する方法はいくつかありますが、(私の意見では)
+                    明確な「最善の」方法はありません。この投稿に対する他の回答を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>引数を渡すレールのaround_action? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "引数を渡すレールのaround_action?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>引数を渡すレールのaround_action?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>引数を受け入れる Rails で around_action
+                    を呼び出すにはどうすればよいですか?</p>
+                    <pre><code>around_action only: [:follow] do
+ set_follow_source(@source)
+end
+
+def set_follow_source
+  puts &#39;before&#39;
+  yield
+  puts &#39;after&#39;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの質問を明確にしなければなりません。正確に誰またはどのコンポーネントがこの引数を設定すべきでしょうか?</p>
+                    <p>DSL
+                    を作成してアクションの周囲に事前に引数を設定したい場合は、次のようなことができます。</p>
+                    <pre><code>def self.say_hello_to(name)
+  lambda do |controller, block|
+    hello name, &amp;block
+  end
+end
+
+around_action say_hello_to(&#39;smith&#39;), only: :index
+
+def index
+end
+
+private
+
+def hello(name, &amp;block)
+  puts &#39;hello&#39;
+  yield
+  puts name
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

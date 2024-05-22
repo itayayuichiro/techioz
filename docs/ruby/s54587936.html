@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsでjson列のキーを取得および設定する巧妙な方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsでjson列のキーを取得および設定する巧妙な方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsでjson列のキーを取得および設定する巧妙な方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようにjson列を含むモデル/テーブルがあります</p>
+                    <pre><code>t.json :options, default: {}
+</code></pre>
+                    <p>列には、次のような多くのキーを含めることができます。</p>
+                    <pre><code>options = {&quot;details&quot; : {key1: &quot;Value1&quot;, key2: &quot;Value2&quot;}}
+</code></pre>
+                    <p>これらの値を簡単に設定および取得したいと考えています。そこで私は同じゲッターとセッターを作成しました。</p>
+                    <pre><code>def key1
+  options[&#39;details&#39;]&amp;.[](&#39;key1&#39;)
+end
+
+def key1=(value)
+  options[&#39;details&#39;] ||= {}
+  options[&#39;details&#39;][&#39;key1&#39;] ||=0 
+  options[&#39;details&#39;][&#39;key1&#39;] += value 
+end
+</code></pre>
+                    <p>ただし、これはコードに行を追加するだけであり、詳細が追加されても拡張されません。これを行うクリーンできちんとした方法を提案していただけますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>動的メソッド作成を使用します。</p>
+                    <pre><code>options[&#39;details&#39;].default_proc = -&gt;(_,_) {{}}
+ALLOWED_KEYS = %i[key1 key2 key3]
+
+ALLOWED_KEYS.each do |key|
+  define_method key do
+    options[&#39;details&#39;][key] if options[&#39;details&#39;].key?(key)
+  end
+  define_method &quot;#{key}=&quot; do |value|
+    (options[&#39;details&#39;][key] ||= 0) += value
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

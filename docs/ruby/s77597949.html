@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Gem Geocoder が Rails の郵便番号に誤った緯度値を与える | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Gem Geocoder が Rails の郵便番号に誤った緯度値を与える",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Gem Geocoder が Rails
+の郵便番号に誤った緯度値を与える</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>郵便番号をジオコーディングするためにレールを使用しています。テストとして、次のコードを使用して郵便番号
+                    60601 のコードを使用しました。</p>
+                    <pre><code>Geocoder.search(60601).first.latitude
+</code></pre>
+                    <p>ただし、この結果は 9.42233953846154
+                    となり、これは正しくありません。正しい値は
+                    41.something
+                    である必要があります。だからそれはかなり外れています。</p>
+                    <p>正確な結果を得るより良い方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>試してみてください、</p>
+                    <pre><code> Geocoder.search(60601)[1].latitude
+</code></pre>
+                    <p>この特定の「60601」郵便番号には地球上に複数の場所があるため、ここのハッシュから特定の住所を見つける必要があります。60601
+                    を検索すると、そこに合計 3
+                    つの場所があることを確認できます。</p>
+                    <pre><code>Geocoder.search(60601)
+=&gt; 
+[#&lt;Geocoder::Result::Nominatim:0x00007faaf0440ac8
+  @cache_hit=nil,
+  @data=
+   {&quot;place_id&quot;=&gt;328970067,
+    &quot;licence&quot;=&gt;&quot;Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright&quot;,
+    &quot;lat&quot;=&gt;&quot;9.42233953846154&quot;,
+    &quot;lon&quot;=&gt;&quot;-84.15445643076923&quot;,
+    &quot;class&quot;=&gt;&quot;place&quot;,
+    &quot;place_rank&quot;=&gt;21,
+    &quot;importance&quot;=&gt;0.22500009999999993,
+    &quot;addresstype&quot;=&gt;&quot;postcode&quot;,
+    &quot;name&quot;=&gt;&quot;60601&quot;,
+    &quot;display_name&quot;=&gt;&quot;Quepos, Cantón Quepos, 60601, Puntarenas Province, Costa Rica&quot;,
+    &quot;address&quot;=&gt;{&quot;town&quot;=&gt;&quot;Quepos&quot;, &quot;county&quot;=&gt;&quot;Cantón Quepos&quot;, &quot;postcode&quot;=&gt;&quot;60601&quot;, &quot;province&quot;=&gt;&quot;Puntarenas Province&quot;, &quot;ISO3166-2-lvl4&quot;=&gt;&quot;CR-P&quot;, &quot;country&quot;=&gt;&quot;Costa Rica&quot;, &quot;country_code&quot;=&gt;&quot;cr&quot;},
+    &quot;boundingbox&quot;=&gt;[&quot;9.2623395&quot;, &quot;9.5823395&quot;, &quot;-84.3144564&quot;, &quot;-83.9944564&quot;]}&gt;,
+ #&lt;Geocoder::Result::Nominatim:0x00007faaf04407d0
+  @cache_hit=nil,
+  @data=
+   {&quot;place_id&quot;=&gt;331500121,
+    &quot;licence&quot;=&gt;&quot;Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright&quot;,
+    &quot;lat&quot;=&gt;&quot;41.838471146546546&quot;,
+    &quot;lon&quot;=&gt;&quot;-87.80685671291292&quot;,
+    &quot;class&quot;=&gt;&quot;place&quot;,
+    &quot;type&quot;=&gt;&quot;postcode&quot;,
+    &quot;place_rank&quot;=&gt;21,
+    &quot;addresstype&quot;=&gt;&quot;postcode&quot;,
+    &quot;name&quot;=&gt;&quot;60601&quot;,
+    &quot;display_name&quot;=&gt;&quot;Riverside, Riverside Township, Cook County, 60601, Illinois, United States&quot;,
+    &quot;address&quot;=&gt;
+ {&quot;village&quot;=&gt;&quot;Riverside&quot;,
+      &quot;municipality&quot;=&gt;&quot;Riverside Township&quot;,
+      &quot;county&quot;=&gt;&quot;Cook County&quot;,
+      &quot;postcode&quot;=&gt;&quot;60601&quot;,
+      &quot;state&quot;=&gt;&quot;Illinois&quot;,
+      &quot;ISO3166-2-lvl4&quot;=&gt;&quot;US-IL&quot;,
+      &quot;country&quot;=&gt;&quot;United States&quot;,
+      &quot;country_code&quot;=&gt;&quot;us&quot;},
+    &quot;boundingbox&quot;=&gt;[&quot;41.6784711&quot;, &quot;41.9984711&quot;, &quot;-87.9668567&quot;, &quot;-87.6468567&quot;]}&gt;,
+ #&lt;Geocoder::Result::Nominatim:0x00007faaf04404d8
+  @cache_hit=nil,
+   {&quot;place_id&quot;=&gt;331343428,
+    &quot;licence&quot;=&gt;&quot;Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright&quot;,
+    &quot;lat&quot;=&gt;&quot;52.41794258392857&quot;,
+    &quot;lon&quot;=&gt;&quot;16.910198301785712&quot;,
+    &quot;class&quot;=&gt;&quot;place&quot;,
+    &quot;type&quot;=&gt;&quot;postcode&quot;,
+    &quot;place_rank&quot;=&gt;25,
+    &quot;importance&quot;=&gt;0.12500009999999995,
+    &quot;addresstype&quot;=&gt;&quot;postcode&quot;,
+    &quot;name&quot;=&gt;&quot;60-601&quot;,
+    &quot;display_name&quot;=&gt;&quot;Sołacz, Poznan, 60-601, Greater Poland Voivodeship, Poland&quot;,
+    &quot;address&quot;=&gt;{&quot;suburb&quot;=&gt;&quot;Sołacz&quot;, &quot;city&quot;=&gt;&quot;Poznan&quot;, &quot;postcode&quot;=&gt;&quot;60-601&quot;, &quot;state&quot;=&gt;&quot;Greater Poland Voivodeship&quot;, &quot;ISO3166-2-lvl4&quot;=&gt;&quot;PL-30&quot;, &quot;country&quot;=&gt;&quot;Poland&quot;, &quot;country_code&quot;=&gt;&quot;pl&quot;},
+    &quot;boundingbox&quot;=&gt;[&quot;52.2579426&quot;, &quot;52.5779426&quot;, &quot;16.7501983&quot;, &quot;17.0701983&quot;]}&gt;]
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

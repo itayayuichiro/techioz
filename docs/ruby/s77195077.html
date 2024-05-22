@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>配列上の Ruby #union が非常に奇妙な反応をする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "配列上の Ruby #union が非常に奇妙な反応をする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>配列上の Ruby #union
+が非常に奇妙な反応をする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Array#union または #|
+                    を使用するのが好きです。メソッドを使用して、重複が削除されたオブジェクトの配列を返します。
+                    eql のカスタム実装がありますか?私のクラスで。
+                    それを実行すると、本当に奇妙な動作が発生します。要素が
+                    8
+                    つまでの場合、結合は正常に機能しますが、要素がそれ以上になると重複は削除されません。それは実際には
+                    Ruby
+                    のバグなのでしょうか、それとも何か見落としているのでしょうか?</p>
+                    <pre><code>class A
+  attr_accessor :name
+
+  def initialize(name)
+    self.name = name
+  end
+
+  def eql?(other)
+    other.name.eql?(name)
+  end
+end
+
+as = names.map { |name| A.new(name) }
+bs = names.map { |name| A.new(name) }
+
+as | bs
+=&gt;
+[#&lt;A:0x00007fe503692388 @name=&quot;a&quot;&gt;,
+ #&lt;A:0x00007fe503692310 @name=&quot;b&quot;&gt;,
+ #&lt;A:0x00007fe5036922e8 @name=&quot;c&quot;&gt;,
+ #&lt;A:0x00007fe5036922c0 @name=&quot;d&quot;&gt;,
+ #&lt;A:0x00007fe503692298 @name=&quot;e&quot;&gt;,
+ #&lt;A:0x00007fe503692270 @name=&quot;f&quot;&gt;,
+ #&lt;A:0x00007fe503692248 @name=&quot;g&quot;&gt;,
+ #&lt;A:0x00007fe503692220 @name=&quot;h&quot;&gt;,
+ #&lt;A:0x00007fe5036921f8 @name=&quot;i&quot;&gt;,
+ #&lt;A:0x00007fe5036921d0 @name=&quot;j&quot;&gt;,
+ #&lt;A:0x00007fe5036921a8 @name=&quot;k&quot;&gt;,
+ #&lt;A:0x00007fe503692180 @name=&quot;l&quot;&gt;,
+ #&lt;A:0x00007fe5035732e0 @name=&quot;a&quot;&gt;,
+ #&lt;A:0x00007fe5035732b8 @name=&quot;b&quot;&gt;,
+ #&lt;A:0x00007fe503573290 @name=&quot;c&quot;&gt;,
+ #&lt;A:0x00007fe503573268 @name=&quot;d&quot;&gt;,
+ #&lt;A:0x00007fe503573240 @name=&quot;e&quot;&gt;,
+ #&lt;A:0x00007fe503573218 @name=&quot;f&quot;&gt;,
+ #&lt;A:0x00007fe5035731f0 @name=&quot;g&quot;&gt;,
+ #&lt;A:0x00007fe5035731c8 @name=&quot;h&quot;&gt;,
+ #&lt;A:0x00007fe5035731a0 @name=&quot;i&quot;&gt;,
+ #&lt;A:0x00007fe503573178 @name=&quot;j&quot;&gt;,
+ #&lt;A:0x00007fe503573150 @name=&quot;k&quot;&gt;,
+ #&lt;A:0x00007fe503573128 @name=&quot;l&quot;&gt;]
+
+as[0..7] | bs[0..7]
+=&gt;
+[#&lt;A:0x00007fe503692388 @name=&quot;a&quot;&gt;,
+ #&lt;A:0x00007fe503692310 @name=&quot;b&quot;&gt;,
+ #&lt;A:0x00007fe5036922e8 @name=&quot;c&quot;&gt;,
+ #&lt;A:0x00007fe5036922c0 @name=&quot;d&quot;&gt;,
+ #&lt;A:0x00007fe503692298 @name=&quot;e&quot;&gt;,
+ #&lt;A:0x00007fe503692270 @name=&quot;f&quot;&gt;,
+ #&lt;A:0x00007fe503692248 @name=&quot;g&quot;&gt;,
+ #&lt;A:0x00007fe503692220 @name=&quot;h&quot;&gt;] 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>両方の eql
+                    を実装する必要がありますか?およびハッシュメソッドは、Object#eql?
+                    に関する <span class="citation"
+                    data-cites="engineersmnky">@engineersmnky</span>
+                    のコメントに従っており、その
+                    eql?インスタンスのハッシュが同じであることを期待します</p>
+                    <pre><code>class A
+  attr_accessor :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def eql?(other)
+    other.name.eql?(@name)
+  end
+
+  def hash
+    [@name].hash
+  end
+end
+
+#declare inclusive range from &#39;a&#39; to &#39;m&#39;
+
+names = &#39;a&#39;..&#39;m&#39;
+
+as = names.map { |name| A.new(name) }
+bs = names.map { |name| A.new(name) }
+
+as | bs
+
+
+
+</code></pre>
+                    <p>出力:</p>
+                    <pre><code>[#&lt;A:0x0000558a74860020 @name=&quot;a&quot;&gt;,
+ #&lt;A:0x0000558a7485bf98 @name=&quot;b&quot;&gt;,
+ #&lt;A:0x0000558a7485bf70 @name=&quot;c&quot;&gt;,
+ #&lt;A:0x0000558a7485bf48 @name=&quot;d&quot;&gt;,
+ #&lt;A:0x0000558a7485bf20 @name=&quot;e&quot;&gt;,
+ #&lt;A:0x0000558a7485bef8 @name=&quot;f&quot;&gt;,
+ #&lt;A:0x0000558a7485bed0 @name=&quot;g&quot;&gt;,
+ #&lt;A:0x0000558a7485bea8 @name=&quot;h&quot;&gt;,
+ #&lt;A:0x0000558a7485bd90 @name=&quot;i&quot;&gt;,
+ #&lt;A:0x0000558a7485bd40 @name=&quot;j&quot;&gt;,
+ #&lt;A:0x0000558a7485bd18 @name=&quot;k&quot;&gt;,
+ #&lt;A:0x0000558a7485bcf0 @name=&quot;l&quot;&gt;,
+ #&lt;A:0x0000558a7485bcc8 @name=&quot;m&quot;&gt;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

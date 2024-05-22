@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsのafter_validationでエラーを削除する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsのafter_validationでエラーを削除する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsのafter_validationでエラーを削除する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>モデルの一部の値が検証に失敗した場合に null
+                    に設定できる機能が必要です。私のモデルは次のように設定しています。</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  attr_accessor :should_set_fields_to_null_if_invalid
+
+  NULL_IF_INVALID_FIELDS = [:address, :phone]
+
+  after_validation :set_fields_to_null_if_invalid, if: :should_set_fields_to_null_if_invalid
+  ...
+  # custom validations for address and phone
+  ...
+
+  def set_fields_to_null_if_invalid
+    NULL_IF_INVALID_FIELDS.each do |attribute|
+      self[attribute] = nil if errors.key?(attribute)
+      errors.delete(attribute)
+    end
+  end
+end
+</code></pre>
+                    <p>基本的に、エラーが存在する場合は削除し、属性を
+                    null
+                    に設定していますが、次のエラーが発生します。</p>
+                    <pre><code>     ActiveRecord::RecordInvalid:
+       Validation failed: 
+     # /Users/albertjankowski/.rvm/gems/ruby-3.0.3/gems/activerecord-6.1.7.3/lib/active_record/validations.rb:80:in `raise_validation_error&#39;
+     # /Users/albertjankowski/.rvm/gems/ruby-3.0.3/gems/activerecord-6.1.7.3/lib/active_record/validations.rb:53:in `save!&#39;
+</code></pre>
+                    <p>検証メッセージが表示されずにまだ失敗する理由がわかりません。これを実装することについて提案がある人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>save
+                    でレコードを保存します。これにより例外が発生します…そのため、after_validation
+                    メソッドは実行されません。 save! の代わりに save
+                    メソッドを使用することも、例外をレスキューして属性値を修正することもできます。</p>
+                    <pre><code>begin
+  @my_model_instance.save!
+rescue
+  # fix the problematic attributes and save again
+end
+</code></pre>
+                    <p>ただし、検証は通常、入力内の何かを修正する必要があることをユーザーに通知するために使用されます。より良い方法は、次のように、ActiveRecord
+                    の検証スキームを使用せずに、単に住所と電話の属性をテストし、テストに失敗した場合に修正することです。</p>
+                    <pre><code>class MyModelController &lt; ApplicationController
+  def create
+    # read csv file
+    @my_model = MyModel.new(...params from csv file...)
+    @my_model.address = nil unless @my_model.valid_imported_address?
+    @my_model.phone = nil unless @my_model.valid_imported_phone?
+    @my_model.save!
+  end
+end
+
+class MyModel &lt; ApplicationRecord
+  def valid_imported_address?
+    # some test for compliant address, return true if acceptable
+  end
+
+  def valid_imported_phone?
+    # some test for compliant phone, return true if acceptable
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

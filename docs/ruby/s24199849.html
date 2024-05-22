@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ルートで使用される lib クラスの Rails Rspec テストにはプライベート メソッドが含まれています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ルートで使用される lib クラスの Rails Rspec テストにはプライベート メソッドが含まれています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ルートで使用される lib クラスの Rails Rspec
+テストにはプライベート メソッドが含まれています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Simplecov は、lib/api_verson.rb
+                    クラスでいくつかのテストが欠落していることを検出しました。</p>
+                    <pre><code>class ApiVersion
+
+  def initialize(version)
+    @version = version
+  end
+
+  def matches?(request)
+    versioned_accept_header?(request) || version_one?(request)
+  end
+
+  private
+
+  def versioned_accept_header?(request)
+    accept = request.headers[&#39;Accept&#39;]
+    accept &amp;&amp; accept[/application\/vnd\.#{Rails.application.secrets.my_app_accept_header}-v#{@version}\+json/]
+  end
+
+  def unversioned_accept_header?(request)
+    accept = request.headers[&#39;Accept&#39;]
+    accept.blank? || accept[/application\/vnd\.#{Rails.application.secrets.my_app_accept_header}/].nil?
+  end
+
+  def version_one?(request)
+    @version == Rails.application.secrets.my_app_default_api_version &amp;&amp; unversioned_accept_header?(request)
+  end
+
+end
+</code></pre>
+                    <p>このクラスは、API
+                    バージョンのセットアップを支援するためにルート
+                    ファイルによって使用されます。</p>
+                    <pre><code>namespace :api, path: &quot;&quot;, defaults: {format: :json} do
+
+scope module: :v1, constraints: ApiVersion.new(1) do
+  get &#39;/alive&#39;, to: &#39;api#alive&#39;
+end
+
+scope module: :v2, constraints: ApiVersion.new(2) do
+  get &#39;/alive&#39;, to: &#39;api#alive&#39;
+end
+
+end
+</code></pre>
+                    <p>この設定は versioning_your_ap_is
+                    から移植されました。</p>
+                    <p>ここで、simplecov
+                    が失敗として報告しているメソッドをテストしようとしています。</p>
+                    <pre><code>require &#39;spec_helper&#39;
+
+describe ApiVersion do
+
+  before(:each) do
+    @apiversion = ApiVersion.new(1)
+    @request = ActionController::TestRequest.new(host: &#39;localhost&#39;)
+    @request.headers[&quot;Accept&quot;] = &quot;application/vnd.#{Rails.application.secrets.my_app_accept_header}-#{Rails.application.secrets.my_app_default_api_version}+json&quot;
+  end
+
+  describe &#39;Method #versioned_accept_header =&gt;&#39; do
+    it &#39;Should return the correct accept header version&#39; do
+
+binding.pry
+
+
+    end
+  end
+
+end
+</code></pre>
+                    <p>この最初のテストを構築しようとしていますか? <span
+                    class="citation"
+                    data-cites="apiversion.send">@apiversion.send</span>(:unversioned_accept_header,
+                    <span class="citation"
+                    data-cites="request">@request</span>)
+                    に送信すると、次のエラーが発生します。</p>
+                    <pre><code>@apiversion.send(:unversioned_accept_header, @request)
+NoMethodError: undefined method `unversioned_accept_header&#39; for #&lt;ApiVersion:0x007fae009bdad8 @version=1&gt;
+from (pry):1:in `block (3 levels) in &lt;top (required)&gt;&#39;
+</code></pre>
+                    <p>基本的に、「matches?、versioned_accept_header?、unversioned_accept_header?、version_one?」のメソッドにフラグが設定されます。</p>
+                    <p>私は Rspec の専門家ではありません。</p>
+                    <p>ちなみに、これは Rails 4
+                    アプリケーションが実行されています。</p>
+                    <pre><code>group :development, :test do
+    gem &#39;pry&#39;
+    gem &#39;pry-doc&#39;
+    gem &#39;pry-debugger&#39;
+    gem &#39;pry-rails&#39;
+    gem &#39;pry-plus&#39;
+    gem &#39;pry-rescue&#39;
+    gem &#39;pry-stack_explorer&#39;
+    gem &#39;pry-clipboard&#39;
+    gem &#39;pry-nav&#39;
+  gem &#39;rspec-rails&#39;
+    gem &#39;factory_girl_rails&#39;
+    gem &#39;faker&#39;
+    gem &#39;seedbank&#39;
+    gem &#39;capybara&#39;
+end
+
+group :test do
+    gem &#39;simplecov&#39;, &#39;~&gt; 0.7.1&#39;
+    gem &#39;shoulda-matchers&#39;
+    gem &#39;spork-rails&#39;
+  gem &#39;database_cleaner&#39;
+  gem &#39;email_spec&#39;
+  gem &#39;timecop&#39;
+    gem &#39;json_spec&#39;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このコードを実行すると、</p>
+                    <pre><code>@apiversion.send(:unversioned_accept_header, @request)
+</code></pre>
+                    <p>しかし、あなたにはメソッドがあります:</p>
+                    <pre><code>def unversioned_accept_header?(request)
+  accept = request.headers[&#39;Accept&#39;]
+  accept.blank? || accept[/application\/vnd\.#{Rails.application.secrets.my_app_accept_header}/].nil?
+end
+</code></pre>
+                    <p>変えてみる</p>
+                    <pre><code>@apiversion.send(:unversioned_accept_header, @request) -&gt; @apiversion.send(:unversioned_accept_header?, @request)
+</code></pre>
+                    <p>またはメソッド名を変更する</p>
+                    <pre><code>def unversioned_accept_header? -&gt; def unversioned_accept_header
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

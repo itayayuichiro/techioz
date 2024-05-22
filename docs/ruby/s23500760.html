@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>cassandra Ruby : ブロックパラメーターの複数の値 (2 対 1) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "cassandra Ruby : ブロックパラメーターの複数の値 (2 対 1)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>cassandra Ruby :
+ブロックパラメーターの複数の値 (2 対 1)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ビッグデータに関するチュートリアルに従おうとしていますが、cqlshで定義されたキースペースからデータを読み取ろうとしています。</p>
+                    <p>このコード部分は正常にコンパイルされました。</p>
+                    <pre><code>require &#39;rubygems&#39;
+require &#39;cassandra&#39;
+
+db = Cassandra.new(&#39;big_data&#39;, &#39;127.0.0.1:9160&#39;)
+
+# get a specific user&#39;s tags
+row = db.get(:user_tags,&quot;paul&quot;)
+
+###
+def tag_counts_from_row(row)
+  tags = {}
+
+  row.each_pair do |pair|
+    column, tag_count = pair
+    #tag_name = column.parts.first
+    tag_name = column
+    tags[tag_name] = tag_count
+  end
+
+  tags
+end
+###
+# insert a new user
+db.add(:user_tags, &quot;todd&quot;, 3, &quot;postgres&quot;)
+db.add(:user_tags, &quot;lili&quot;, 4, &quot;win&quot;)
+
+
+tags = tag_counts_from_row(row)
+puts &quot;paul - #{tags.inspect}&quot;
+</code></pre>
+                    <p>しかし、みんなのタグを出力するためにこの部分を書くとエラーが発生します。</p>
+                    <pre><code> user_ids = []
+    db.get_range(:user_tags, :batch_size =&gt; 10000) do |id|
+    #  user_ids &lt;&lt; id
+    end
+
+    rows_with_ids = db.multi_get(:user_tags, user_ids)
+    rows_with_ids.each do |row_with_id|
+      name, row = row_with_id
+
+      tags = tag_counts_from_row(row)
+      puts &quot;#{name} - #{tags.inspect}&quot;
+    end
+</code></pre>
+                    <p>エラーは次のとおりです:</p>
+                    <p>このエラーは、Cassandra と Ruby
+                    のバージョンに互換性がないことが原因である可能性があると思います。それを修正するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>どの行が 33
+                    であるかを判断するのは少し難しいですが、問題は
+                    get_range が 2
+                    つの値を生成するのに、ブロックが最初の値しか取得していないことのようです。列ではなく行キーのみを考慮する場合は、get_range_keys
+                    を使用する必要があります。</p>
+                    <p>db.multi_get
+                    を使用して列の値を再度フェッチしているため、実際には列の値を気にしているようです。これは不必要な追加のクエリです。コードを次のように更新できます。</p>
+                    <pre><code>db.get_range(:user_tags, :batch_size =&gt; 10000) do |id, columns|
+  tags = tag_counts_from_row(columns)
+  puts &quot;#{id} - #{tags.inspect}&quot;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

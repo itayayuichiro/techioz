@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定のバージョンの Ruby のインストールに関する問題 (OpenSSL の問題) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定のバージョンの Ruby のインストールに関する問題 (OpenSSL の問題)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定のバージョンの Ruby
+のインストールに関する問題 (OpenSSL の問題)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sonoma を実行している 2020 Intel Mac
+                    を持っています。 Rails で実行される Web アプリ
+                    プロジェクトに取り組んでいます。ここ数か月間、何を試しても同じ問題が発生しました。
+                    Rails の Web サイトの手順に従っていますが、OpenSSL
+                    エラーが発生し続けます。パッケージマネージャーとしてasdf、rvm、rbenvを試し、アプリが実行されるRuby
+                    3.0.4をインストールしようとしています。</p>
+                    <p>次のようなエラーが発生し続けます。</p>
+                    <pre><code>*** Following extensions are not compiled:
+openssl:
+    Could not be configured. It will not be installed.
+</code></pre>
+                    <p>OpenSSL
+                    をダウンロードして再ダウンロードし、さまざまなバージョンを試し、それに応じてパスを変更したり、フラグなどを変更したりしてみました。ただし、私のマシンではこれを機能させることができないようです。最終的には
+                    Oracle VirtualBox
+                    上で動作させることができましたが、私の Mac
+                    上でのみ実行したいと考えています。</p>
+                    <p>誰でもアイデアや解決策を持っています。さまざまなウェブサイトでこれに関する多くの投稿を見てきたので、多くの人が問題を抱えているようですが、私にとっては何もうまくいきません。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 3.0 には OpenSSL バージョン 1.1
+                    が必要ですが、これは現在かなり古く、多くの環境ではサポートされていません。最新の
+                    OpenSSL バージョンを使用する Ruby 3.1
+                    以上で実行されるようにアプリをアップグレードすることをお勧めします。</p>
+                    <p>とはいえ、OSX では homebrew、rbenv、ruby-build
+                    を使用してこれを実行できます。このガイドでは rbenv
+                    を Ruby
+                    マネージャーとして使用することに注意してください。他のもの
+                    (rvm など)
+                    を使用する場合は、それに対応するためにガイドの一部を変更する必要があります。
+                    (またはアンインストールして rbenv
+                    に切り替えます)</p>
+                    <p>以下のガイドでは Ruby 3.0.4 ではなく 3.0.6
+                    をインストールすることに注意してください。これは
+                    3.0.x
+                    ブランチの最新版であるため、おそらくこのバージョンに移行する必要がありますが、既存のアプリが壊れることはありません。</p>
+                    <p>また、必要に応じて、以下の手順は Ruby 2.7
+                    でも機能することに注意してください。 2.6
+                    ではある程度の成功を収めましたが、それを実行するには他にもいくつかの手順が必要でしたが、覚えていません。</p>
+                    <pre><code>brew install rbenv
+
+if [ -n &quot;$ZSH_VERSION&quot; ]; then
+  SHELL_CONFIG_FILE_PATH=~/.zshrc
+elif [ -n &quot;$BASH_VERSION&quot; ]; then
+  SHELL_CONFIG_FILE_PATH=~/.bashrc
+else
+  SHELL_CONFIG_FILE_PATH=~/.profile
+fi
+
+echo &quot;eval &#39;$(rbenv init -)&#39;&quot; &gt;&gt; $SHELL_CONFIG_FILE_PATH
+echo &quot;export PATH=&#39;$HOME/.rbenv/bin:$PATH&#39;&quot; &gt;&gt; $SHELL_CONFIG_FILE_PATH
+source $SHELL_CONFIG_FILE_PATH
+</code></pre>
+                    <p>RVM や chruby
+                    などの他のものを使用する場合は、上記の手順を省略できますが、ruby-build
+                    は rbenv
+                    で最適に動作することに注意してください。</p>
+                    <pre><code>brew install ruby-build
+</code></pre>
+                    <pre><code>brew install [email protected]
+</code></pre>
+                    <pre><code>export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix [email protected])&quot;
+rbenv install 3.0.6
+</code></pre>
+                    <p>rbenv を使用しない場合は、ruby-build
+                    をネイティブに使用する必要があることに注意してください。</p>
+                    <pre><code>export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix [email protected])&quot;
+ruby-build 3.0.6 /opt/rubies/3.0.6
+</code></pre>
+                    <p>次に、他の Ruby マネージャーがこのバージョンの
+                    Ruby を指すように設定します。</p>
+                    <p>Rosetta で実行されている Intel Mac または
+                    Homebrew の場合:</p>
+                    <pre><code>ln -sf /usr/local/opt/[email protected]/lib/libcrypto.dylib /usr/local/lib/libcrypto.dylib
+ln -sf /usr/local/opt/[email protected]/lib/libssl.dylib /usr/local/lib/libssl.dylib
+</code></pre>
+                    <p>ARM Macの場合:</p>
+                    <pre><code>ln -sf /opt/homebrew/opt/[email protected]/lib/libcrypto.dylib /usr/local/lib/libcrypto.dylib
+ln -sf /opt/homebrew/opt/[email protected]/lib/libssl.dylib /usr/local/lib/libssl.dylib
+</code></pre>
+                    <pre><code>rbenv local 3.0.6
+
+gem install openssl -v &#39;2.2.3&#39; -- --with-openssl-dir=$(brew --prefix [email protected])
+</code></pre>
+                    <p>(バンドル ファイルにある openssl gem
+                    バージョンごとにこれを実行します)</p>
+                    <p>一部の gem は別の openssl
+                    にリンクする必要がある場合があります。その場合は、以下を使用できます。たとえば、puma
+                    と eventsmachine に問題がありました。</p>
+                    <pre><code>brew install openssl@3 openssl
+
+bundle config set --global build.eventmachine --with-ssl-dir=$(brew --prefix openssl@3)
+bundle config set --global build.puma --with-openssl-dir=$(brew --prefix openssl@3)
+</code></pre>
+                    <p>これらの手順は完了し、2024 年 1
+                    月の時点でも、Intel Mac と ARM Mac の両方の Sonoma
+                    で動作します。</p>
+                    <p>また、3.0.6 のサポートを維持しながら新しい Ruby
+                    をインストールする必要がある場合は、以下を使用する必要があります。</p>
+                    <pre><code>export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix openssl@3)&quot;
+
+rbenv install 3.1.4
+# works with 3.2 and 3.3 as well
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

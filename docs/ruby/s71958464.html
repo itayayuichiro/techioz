@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで関数に引数を事前に入力するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで関数に引数を事前に入力するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで関数に引数を事前に入力するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>関数 foo があるとします。</p>
+                    <pre><code>def foo(A, B, C)
+ A + B + C
+end
+</code></pre>
+                    <p>そして、最後のパラメータのみを変更して、次のように呼び出します。</p>
+                    <pre><code>foo(&quot;foo&quot;, &quot;bar&quot;, &quot;123&quot;)
+foo(&quot;foo&quot;, &quot;bar&quot;, &quot;456&quot;)
+foo(&quot;foo&quot;, &quot;bar&quot;, &quot;789&quot;)
+</code></pre>
+                    <p>変更されない引数を「ベイク」または「事前入力」するにはどうすればよいですか?それで、foo_baked(“123”)
+                    が foo(“foo”, “bar”, “123”)
+                    と同じになるような新しい呼び出し可能な foo_baked
+                    を取得することになるでしょうか?</p>
+                    <p>そして、次のように使用します。</p>
+                    <pre><code>foo_baked = ...?
+foo_baked(&quot;123&quot;)
+foo_baked(&quot;456&quot;)
+foo_baked(&quot;789&quot;)
+</code></pre>
+                    <p>def
+                    を使用して新しい関数を定義するのではなく、実行時にオンザフライで、おそらく配列に対して
+                    foo_baked
+                    を作成できるようにしたいことに注意してください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    には、カリーメソッドによる関数カリーが組み込まれています。</p>
+                    <pre><code>def foo(a, b, c)
+  a + b + c
+end
+
+foo_baked = method(:foo).curry.call(&#39;foo&#39;, &#39;bar&#39;)
+
+# this returns &quot;foobar123&quot;
+foo_baked.call(&#39;123&#39;)
+
+# ArgumentError (wrong number of arguments (given 4, expected 3))
+foo_baked.call(&#39;123&#39;, &#39;234&#39;)
+</code></pre>
+                    <p>Method#curry
+                    は、カリー化されたプロシージャを作成します。これは引数が事前にロードされた関数で、メソッドの署名を満たすのに十分な引数が渡された場合にのみ実行されます。</p>
+                    <p>foo_baked.lambda に注意してください。 true
+                    を返すため、カリー化されたプロシージャは実際にはラムダです。引数の最大数を超えると
+                    ArgumentError
+                    が発生することになるため、これは重要です。</p>
+                    <p>カリーにアリティ引数を渡すことで、必須引数以外の追加引数を許可できます。</p>
+                    <pre><code>def foo(*args)
+  args.join
+end
+
+# does not execute since only 2 arguments have been supplied
+foo_baked = method(:foo).curry(3).call(&#39;foo&#39;, &#39;bar&#39;)
+
+# executes on the third argument
+# this returns &quot;foobar123&quot;
+foo_baked.call(&#39;123&#39;)
+
+# this returns &quot;foobar123234&quot;
+foo_baked.call(&#39;123&#39;, &#39;234&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

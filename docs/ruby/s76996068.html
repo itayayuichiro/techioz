@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>多態性クラスから関連クラスへの関連付けを取得するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "多態性クラスから関連クラスへの関連付けを取得するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>多態性クラスから関連クラスへの関連付けを取得するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかのポリモーフィックな関連付けを適切に機能させようとしていますが、正しく動作させることができません。現在、直接の関係ではなく、両方のテーブルに一致する
+                    ID がすべて提供されます。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  belongs_to :origin, polymorphic: true
+  has_one :customer, foreign_key: :id, primary_key: :origin_id, class_name: &quot;Customer&quot;
+  has_one :employee, foreign_key: :id, primary_key: :origin_id, class_name: &quot;Employee&quot;
+end
+
+class Customer &lt; ApplicationRecord
+  has_one :user, class_name: &quot;User&quot;, foreign_key: :origin_id
+end
+
+class Employee &lt; ApplicationRecord
+  has_one :user, class_name: &quot;User&quot;, foreign_key: :origin_id
+end
+</code></pre>
+                    <p>私が行った場合：</p>
+                    <pre><code>user = User.create(origin: Customer.find(1))
+user.customer # =&gt; #&lt;Customer:0x000000014a78d2c8&gt;
+# I expect that the code below to be nil but it is not
+user.employee # =&gt; #&lt;Employee:0x000000014a78d2c8&gt;
+</code></pre>
+                    <p>適切な関連付けを取得する方法を知っている人はいますか?前もって感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails ガイドには、 has_many
+                    のポリモーフィックな関連付けの例があります</p>
+                    <p>has_one にはほぼ同じコードがあります。belongs_to
+                    関連付けオプションについてもお読みください。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  belongs_to :origin, polymorphic: true
+
+  belongs_to :customer, -&gt; { where(users: { origin_type: &#39;Customer&#39; }).includes(:user) }, foreign_key: :origin_id
+  belongs_to :employee, -&gt; { where(users: { origin_type: &#39;Employee&#39; }).includes(:user) }, foreign_key: :origin_id
+
+  # Or simply define instance methods if you don&#39;t need above associations:
+  # def customer
+  #   origin if origin_type == &#39;Customer&#39;
+  # end
+
+  # def employee
+  #   origin if origin_type == &#39;Employee&#39;
+  # end
+end
+
+class Customer &lt; ApplicationRecord
+  has_one :user, as: :origin
+end
+
+class Employee &lt; ApplicationRecord
+  has_one :user, as: :origin
+end
+</code></pre>
+                    <p>いずれの場合も、そのようなスキーマの移行が必要です。</p>
+                    <pre><code>create_table :users do |t| # or change_table if it is existing table
+  t.belongs_to :origin, polymorphic: true # origin_id and origin_type columns
+end
+</code></pre>
+                    <p>出力は次のようになります</p>
+                    <pre><code>user = User.create(origin: Customer.find(1))
+user.customer # =&gt; #&lt;Customer:0x000000014a78d2c8&gt;
+user.employee # =&gt; nil
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

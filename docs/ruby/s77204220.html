@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ファイルに適用される RuboCop ルールをクエリするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ファイルに適用される RuboCop ルールをクエリするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ファイルに適用される RuboCop
+ルールをクエリするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、コードベースの特定の領域でrubocopがどのように使用されているか（有効化/無効化されているか）、修正されているか（todoリストに除外されているか）を分析するツールに取り組んでいます。多数の構成オプションを考慮すると、ファイルまたはフォルダーが指定されているか、特定のルールが有効になっているか、このファイルが
+                    todo によって除外されているかどうかをプログラムで
+                    RuboCop
+                    に問い合わせる方法を探していると思います。これ用の
+                    API はありますか?</p>
+                    <p>私はこれまで https://github.com/rubocop/rubocop
+                    を調べて API を見つけられるかどうかを確認しました…SO
+                    と Google
+                    で検索しましたが、何も見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが望むもののためのパブリックインターフェイスはないと思います。ランナー内のこの
+                    Mobize_team メソッドは、RuboCop::Cop::Team
+                    をインスタンス化します。チーム
+                    オブジェクトは、このroundup_relevant_copsメソッドで使用する警官を決定します。これらのメソッドは両方ともプライベートですが、send
+                    を使用してこれを回避できます。</p>
+                    <p>たとえば、test_one.rb と test_two.rb という 2
+                    つのファイルを含むプロジェクトがあるとします。</p>
+                    <p>.rubocop_todo.yml には、ファイルの 1
+                    つをまだ処理する必要があることが示されています。</p>
+                    <pre><code># .rubocop_todo.yml
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - &#39;test_two.rb&#39;
+</code></pre>
+                    <p>.rubocop.yml
+                    設定では、Style/FrozenStringLiteralComment
+                    のみを考慮する必要があると述べています。</p>
+                    <pre><code># .rubocop.yml
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  DisabledByDefault: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+</code></pre>
+                    <p>これを実行すると、RuboCop
+                    が各ファイルに適用する警官を確認できます。</p>
+                    <pre><code>require &#39;rubocop&#39;
+
+# Set up the Runner. Assumes no special command line options are involved.
+options, _paths = RuboCop::Options.new.parse([])
+config_store = RuboCop::ConfigStore.new
+runner = RuboCop::Runner.new(options, config_store)
+
+# For each file, figure out which cops are enabled for that file
+[&#39;test_one.rb&#39;, &#39;test_two.rb&#39;].each do |filename|
+  full_path = File.join(Dir.pwd, filename)
+  config = config_store.for_file(full_path)
+  source = RuboCop::ProcessedSource.from_file(full_path, config.target_ruby_version)
+  team = runner.send(:mobilize_team, source)
+  cops = team.send(:roundup_relevant_cops, source)
+  puts &quot;#{filename}: #{cops.map(&amp;:name).join(&#39;, &#39;)}&quot;
+end
+</code></pre>
+                    <p>これにより、次の出力が表示されます。</p>
+                    <pre><code>test_one.rb: Lint/Syntax, Style/FrozenStringLiteralComment
+test_two.rb: Lint/Syntax
+</code></pre>
+                    <p>Enable_cop のこの特殊な条件のせいでしょうか?
+                    Lint/Syntax cop
+                    は常に有効になっています。また、test_one.rb は TODO
+                    リストに含まれていないため、Style/FrozenStringLiteralComment
+                    コップの対象となる唯一のファイルです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

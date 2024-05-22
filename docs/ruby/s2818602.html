@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby では、inspect() が object_id() が与えるものとは異なるある種のオブジェクト ID を出力するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby では、inspect() が object_id() が与えるものとは異なるある種のオブジェクト ID を出力するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby では、inspect() が object_id()
+が与えるものとは異なるある種のオブジェクト ID
+を出力するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>p 関数を使用してオブジェクトを出力すると、ID
+                    が与えられる場合がありますが、それは object_id()
+                    が与えるものとは異なります。数値が異なる理由は何ですか?</p>
+                    <p>更新: 0x4684abc は 36971870 (0x234255E)
+                    とは異なります</p>
+                    <pre><code>&gt;&gt; a = Point.new
+=&gt; #&lt;Point:0x4684abc&gt;
+
+&gt;&gt; a.object_id
+=&gt; 36971870
+
+&gt;&gt; a.__id__
+=&gt; 36971870
+
+&gt;&gt; &quot;%X&quot; % a.object_id
+=&gt; &quot;234255E&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Inspection のデフォルト実装は to_s
+                    のデフォルト実装を呼び出します。これは、Object#to_s
+                    ドキュメントにあるように、オブジェクトの 16
+                    進値を直接表示するだけです
+                    (メソッドの説明をクリックするとソースが表示されます)。</p>
+                    <p>一方、object_id の実装の基礎となる C
+                    ソースのコメントは、オブジェクトのタイプに応じて、Ruby
+                    値とオブジェクト ID
+                    に異なる「名前空間」があることを示しています
+                    (たとえば、Fixnum
+                    を除くすべての最下位ビットはゼロのようです)。これは
+                    Object#object_id ドキュメントで確認できます
+                    (クリックするとソースが表示されます)。</p>
+                    <p>そこから、「オブジェクト ID 空間」 (object_id
+                    によって返される) ではオブジェクトの ID が右の 2
+                    番目のビット (最初のビットは 0)
+                    から始まりますが、「値空間」 (inspect
+                    によって使用される)
+                    ではであることがわかります。右側の 3
+                    番目のビットから始まります (最初の 2
+                    ビットはゼロです)。したがって、値を「オブジェクト ID
+                    空間」から「値空間」に変換するには、object_id を 1
+                    ビット左にシフトし、inspect
+                    で表示されるのと同じ結果を得ることができます。</p>
+                    <pre><code>&gt; &#39;%x&#39; % (36971870 &lt;&lt; 1)
+=&gt; &quot;4684abc&quot;
+
+&gt; a = Foo.new
+=&gt; #&lt;Foo:0x5cfe4&gt;
+&gt; &#39;%x&#39; % (a.object_id &lt;&lt; 1)
+=&gt; &quot;5cfe4&quot;
+</code></pre>
+                    <p>注: object_id に関する詳細は、当時 (2010 年)
+                    には正確でしたが、新しい Ruby バージョンで object_id
+                    がメモリ
+                    アドレスから分離された後は、正確ではなくなりました。答えは「object_id
+                    がオンデマンドで生成されるから」ということになります。コメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

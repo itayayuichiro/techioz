@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveSupport を使用したデフォルトのタイムゾーン (Rails なし) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveSupport を使用したデフォルトのタイムゾーン (Rails なし)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveSupport
+を使用したデフォルトのタイムゾーン (Rails なし)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デフォルトのタイムゾーンは ActiveSupport
+                    でどのように設定されますか?</p>
+                    <p>何が起こっているかは次のとおりです。</p>
+                    <pre><code>irb -r &#39;rubygems&#39;
+ruby-1.8.7-p174 &gt; require &#39;active_support&#39; 
+ruby-1.8.7-p174 &gt; require &#39;active_support/time_with_zone&#39;
+ruby-1.8.7-p174 &gt; Time.zone
+ruby-1.8.7-p174 &gt; nil
+</code></pre>
+                    <p>それをデフォルトで現在の場所に設定するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Railsでは、rails初期化子を介してenvironment.rbに設定されます</p>
+                    <pre><code>Rails::Initializer.run do |config|
+    config.time_zone = &#39;Pacific Time (US &amp; Canada)&#39;
+    # ...
+</code></pre>
+                    <p>テストを行ったところ、config.time_zone
+                    がコメントアウトされている場合、Rails
+                    プロジェクトでは Time.zone も nil
+                    を返します。したがって、「デフォルト」はなく、初期化子に設定されるだけだと思います</p>
+                    <p>これが「うまくいく」ことはすでにわかっていると思いますか?</p>
+                    <pre><code>irb -r &#39;rubygems&#39;
+ruby-1.8.7-p174 &gt; require &#39;active_support&#39; 
+ruby-1.8.7-p174 &gt; require &#39;active_support/time_with_zone&#39;
+ruby-1.8.7-p174 &gt; Time.zone
+ruby-1.8.7-p174 &gt; nil
+ruby-1.8.7-p174 &gt; Time.zone = &#39;Pacific Time (US &amp; Canada)&#39;
+ruby-1.8.7-p174 &gt; Time.zone
+=&gt; #&lt;ActiveSupport::TimeZone:0x1215a10 @utc_offset=-28800, @current_period=nil, @name=&quot;Pacific Time (US &amp; Canada)&quot;, @tzinfo=#&lt;TZInfo::DataTimezone: America/Los_Angeles&gt;&gt;
+</code></pre>
+                    <p>注: 上記のコードは Rails 2.2.2
+                    を使用していますが、新しいバージョンでは異なる可能性があります。</p>
+                    <p>編集者注: Rails &gt;= 3.0 では、すべてのモンキー
+                    パッチが core_ext
+                    名前空間に移動されているため、上記の要求は Time
+                    を延長しません。新しい ActiveSupport
+                    バージョンの場合は、以下を使用します。</p>
+                    <pre><code>require &#39;active_support/core_ext/time/zones&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

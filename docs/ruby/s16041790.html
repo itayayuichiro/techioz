@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の孤立した移行を解決する最善の方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の孤立した移行を解決する最善の方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+の孤立した移行を解決する最善の方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロジェクト内のブランチ間を切り替えており、それぞれのブランチで異なる移行が行われています…これはシナリオです:</p>
+                    <pre><code> Status   Migration ID    Migration Name
+--------------------------------------------------
+   ...
+   up     20130307154128  Change columns in traffic capture
+   up     20130311155109  Remove log settings
+   up     20130311160901  Remove log alarm table
+   up     20130320144219  ********** NO FILE **********
+   up     20130320161939  ********** NO FILE **********
+   up     20130320184628  ********** NO FILE **********
+   up     20130322004817  Add replicate to root settings
+   up     20130403190042  ********** NO FILE **********
+   up     20130403195300  ********** NO FILE **********
+   up     20130403214000  ********** NO FILE **********
+   up     20130405164752  Fix ap hostnames
+   up     20130410194222  ********** NO FILE **********
+</code></pre>
+                    <p>問題は、ファイルが不足しているため、rake
+                    db:rollback がまったく機能しないことです…</p>
+                    <p>再度ロールバックして NO FILE
+                    メッセージを取り除くにはどうすればよいですか?</p>
+                    <p>ところで、rake db:reset または rake db:drop
+                    はオプションではありません。他のテーブルからデータを失うことはできません…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最終的に次のように問題を解決しました。</p>
+                    <ol type="1">
+                    <li>移行ファイルがあるブランチに移動し、それらをロールバックします。多数のブランチがあり、それらをマージしようとすると多くの競合が発生する場合、これは簡単ではありません。そこで、このコマンドを使用して、各孤立移行のブランチが属することを確認します。</li>
+                    </ol>
+                    <p>したがって、最後に移行が変更されたときのコミットを見つける必要があります。</p>
+                    <pre><code>git log --all --reverse --stat | grep &lt;LASTEST_ORPHAN_MIGRATION_ID&gt; -C 10
+</code></pre>
+                    <p>コミット
+                    ハッシュを取得し、それがどのブランチに属するかを次のように判断します。</p>
+                    <pre><code>git branch --contains &lt;COMMIT_HASH&gt;
+</code></pre>
+                    <p>次に、そのブランチに戻り、ロールバックを実行し、不足しているすべてのファイルに対してこのプロセスを繰り返します。</p>
+                    <ol start="2" type="1">
+                    <li>移行を実行します。最終的に作業するブランチをチェックアウトし、移行を実行すれば準備完了です。</li>
+                    </ol>
+                    <p>トラブルシューティング</p>
+                    <p>また、削除されたブランチ上で孤立した移行が行われる場合もありました。</p>
+                    <p>これを解決するために、不足しているファイルと同じ
+                    migration_id
+                    を持つダミーの移行ファイルを作成し、ロールバックしました。その後、ダミーの移行を削除し、クリーンな移行ステータスを得ることができました:)</p>
+                    <p>もう 1
+                    つの方法は、不足しているファイルをデータベースから直接削除することです
+                    (rails dbconsole)。</p>
+                    <pre><code>delete from schema_migrations where version=&#39;&lt;MIGRATION_ID&gt;&#39;;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

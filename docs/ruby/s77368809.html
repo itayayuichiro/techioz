@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関連モデルに 2 つの特定の ID がある場合、relative_model を含むモデルのデータベースをクエリします。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関連モデルに 2 つの特定の ID がある場合、relative_model を含むモデルのデータベースをクエリします。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関連モデルに 2 つの特定の ID
+がある場合、relative_model
+を含むモデルのデータベースをクエリします。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリには、Room、User、および Room と User
+                    間の関連付けテーブルである UsersRoom の 3
+                    つのモデルがあります。
+                    複数のユーザーに関連するルームをクエリしたいと考えています。</p>
+                    <p>私が行った場合：</p>
+                    <pre><code>Room.includes(:users_rooms).where(users_rooms: { user_id: user_ids }
+</code></pre>
+                    <p>1 つの users_id を含む少なくとも 1 つの
+                    users_room を持つすべてのルームを取得します。
+                    user_idごとにusers_roomsが存在するルームを取得したいと考えています。</p>
+                    <p>部屋をクエリした後にループすることなくこれを行うきれいな方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私なら次のことを試してみます。</p>
+                    <pre><code>Room
+  .select(&#39;rooms.*, COUNT(users_rooms.user_id)&#39;)
+  .joins(:users_rooms)
+  .where(users_rooms: { user_id: user_ids })
+  .group(&#39;rooms.id&#39;)
+  .having(&#39;COUNT(users_rooms.user_id) &gt;= ?&#39;, user_ids.size)
+</code></pre>
+                    <p>ノート：</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

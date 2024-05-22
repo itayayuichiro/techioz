@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ルートが正しく機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ルートが正しく機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ルートが正しく機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>編集:
+                    返信ありがとうございます。以下にリストされているすべてを試しましたが、まだ運が良くありません。
+                    「localhosts/posts/new」と入力するとフォームが表示されますが、ナビゲーション
+                    バーをクリックしてもリンクが機能しません。コードを更新し、rake
+                    ルートの結果を含めました。</p>
+                    <p>私は Ruby
+                    を初めて使用しており、チュートリアルを進めていますが、リンクの
+                    1
+                    つが機能せず、何が起こっているのかわかりません。</p>
+                    <p>新しい投稿を作成するためのナビゲーション
+                    リンクが正しいページに移動しません。「posts_path」へのリンクをクリックしてもページが変わりません。</p>
+                    <p>アドレス バーに /posts/new
+                    と入力すると新しい投稿を作成できますが、ナビゲーション
+                    バーの [新しい投稿]
+                    リンクをクリックしてもページが更新されません (URL
+                    には /posts
+                    が表示されます)。これを修正する方法はありますか?</p>
+                    <p>config/routes.rb</p>
+                    <pre><code>Rails.application.routes.draw do
+get &#39;sessions/new&#39;
+root &#39;static_pages#home&#39;
+get  &#39;/search&#39;, to: &#39;static_pages#search&#39;
+get  &#39;/login&#39;, to: &#39;sessions#new&#39;
+get  &#39;/posts&#39;, to: &#39;posts#new&#39;, as: &#39;new_post&#39;
+post  &#39;/login&#39;, to: &#39;sessions#create&#39;
+delete  &#39;/logout&#39;, to: &#39;sessions#destroy&#39;
+get  &#39;/signup&#39;, to: &#39;users#new&#39;
+get &#39;users/new&#39;
+get &#39;static_pages/home&#39;
+get &#39;posts/new&#39;
+get &#39;sessions/new&#39;
+resources :users
+resources :account_activations, only: [:edit]
+resources :password_resets, only: [:new, :create, :edit, :update]
+resources :posts, only: [:new, :create, :destroy]
+end
+</code></pre>
+                    <p>app/views/layouts/_header.html.erb</p>
+                    <pre><code>&lt;header class=&quot;navbar navbar-fixed-top navbar-inverse&quot;&gt;
+&lt;div class=&quot;container&quot;&gt;
+  &lt;% link_to &quot;sample app&quot;, root_path, id: &quot;logo&quot; %&gt;
+    &lt;nav&gt;
+      &lt;ul class=&quot;nav navbar-nav navbar-right&quot;&gt;
+        &lt;li&gt;&lt;%= link_to &quot;Home&quot;, root_path %&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;%= link_to &quot;Search&quot;, search_path %&gt;&lt;/li&gt;
+          &lt;% if logged_in? %&gt;
+            &lt;li&gt;&lt;%= link_to &quot;Users&quot;, users_path %&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;%= link_to &quot;Posts&quot;, posts_new_path %&gt;&lt;/li&gt;
+            &lt;li class=&quot;dropdown&quot;&gt;
+             &lt;a href=&#39;#&#39; class=&quot;dropdown-toggle&quot; data-toggle=&quot;dropdown&quot;&gt;Account &lt;b class=&quot;caret&quot;&gt;&lt;/b&gt;&lt;/a&gt;
+             &lt;ul class=&quot;dropdown-menu&quot;&gt;
+              &lt;li&gt;&lt;%= link_to &quot;Profile&quot;, current_user %&gt;&lt;/li&gt;
+              &lt;li&gt;&lt;%= link_to &quot;Settings&quot;, edit_user_path(current_user) %&gt;&lt;/li&gt;
+              &lt;li class=&quot;divider&quot;&gt;&lt;/li&gt;
+              &lt;li&gt;&lt;%= link_to &quot;Logout&quot;, logout_path, method: &quot;delete&quot; %&gt;&lt;/li&gt;
+             &lt;/ul&gt;
+           &lt;/li&gt;
+           &lt;% else %&gt;
+             &lt;li&gt;&lt;%= link_to &quot;Log in&quot;, login_path %&gt;&lt;/li&gt;
+           &lt;% end %&gt;
+          &lt;/ul&gt;
+       &lt;/nav&gt;
+  &lt;/div&gt;
+</code></pre>
+                    <p>post_controller.rb</p>
+                    <pre><code>class PostsController &lt; ApplicationController
+    before_action :logged_in_user, only: [:create, :destroy]
+    before_action :correct_user, only: :destroy
+
+    def create
+            @post = current_user.posts.build(post_params)
+            if @post.save
+                    flash[:success] = &quot;Post created!&quot;
+                    redirect_to root_url
+            else
+                    @feed_items = []
+                    render &#39;static_pages/home&#39;
+            end
+    end
+
+    def destroy
+            @post.destroy
+            flash[:success] = &quot;Post Deleted&quot;
+            redirect_to request.referrer || root_url
+    end
+    def new
+       @post = current_user.posts.build if logged_in?
+    end
+
+    private
+
+    def post_params
+            params.require(:post).permit(:description, :picture)
+    end
+
+    def correct_user
+            @post = current_user.posts.find_by(id:params[:id])
+            redirect_to root_url if @post.nil?
+    end
+end
+</code></pre>
+                    <p>レーキルート:</p>
+                    <pre><code>password_resets_new     GET     /password_resets/new(.:format)          password_resets#new
+password_resets_edit    GET     /password_resets/edit(.:format)         password_resets#edit
+sessions_new            GET     /sessions/new(.:format)                 sessions#new
+root                    GET     /                                       static_pages#home
+search                  GET     /search(.:format)                       static_pages#search
+login                   GET     /login(.:format)                        sessions#new
+new_post                GET     /posts(.:format)                        posts#new
+                        POST    /login(.:format)                        sessions#create
+logout                  DELETE  /logout(.:format)                       sessions#destroy
+signup                  GET     /signup(.:format)                       users#new
+users_new               GET     /users/new(.:format)                    users#new
+static_pages_home       GET     /static_pages/home(.:format)            static_pages#home
+static_pages_about      GET     /static_pages/about(.:format)           static_pages#about
+static_pages_search     GET     /static_pages/search(.:format)          static_pages#search
+posts_new               GET     /posts/new(.:format)                    posts#new
+                        GET     /password_resets/new(.:format)          password_resets#new
+                        GET     /password_resets/edit(.:format)         password_resets#edit
+                        GET     /sessions/new(.:format)                 sessions#new
+help                    GET     /help(.:format)                         static_pages#help
+about                   GET     /about(.:format)                        static_pages#about
+contact                 GET     /contact(.:format)                      static_pages#contact
+users                   GET     /users(.:format)                        users#index
+                        POST    /users(.:format)                        users#create
+new_user                GET     /users/new(.:format)                    users#new
+edit_user               GET     /users/:id/edit(.:format)               users#edit
+user                    GET     /users/:id(.:format)                    users#show
+                        PATCH   /users/:id(.:format)                    users#update
+                        PUT     /users/:id(.:format)                    users#update
+                        DELETE  /users/:id(.:format)                    users#destroy
+edit_account_activation GET     /account_activations/:id/edit(.:format) account_activations#edit
+password_resets         POST    /password_resets(.:format)              password_resets#create
+new_password_reset      GET     /password_resets/new(.:format)          password_resets#new
+edit_password_reset     GET     /password_resets/:id/edit(.:format)     password_resets#edit
+password_reset          PATCH   /password_resets/:id(.:format)          password_resets#update
+                        PUT     /password_resets/:id(.:format)          password_resets#update
+posts                   POST    /posts(.:format)                        posts#create
+                        GET     /posts/new(.:format)                    posts#new
+post                    DELETE  /posts/:id(.:format)                    posts#destroy
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>get ‘sessions/new’ と get ‘/posts’
+                    を削除して、‘posts#new’ を ‘new_post’
+                    に変更します。</p>
+                    <p>サーバーを再起動します</p>
+                    <p>link_to “Posts”、new_post_path、method: :post
+                    を試してください。</p>
+                    <p>うまくいくはずです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

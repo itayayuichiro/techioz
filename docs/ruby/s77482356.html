@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails での FullCalendar の実装 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails での FullCalendar の実装",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails での FullCalendar の実装</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RoR プロジェクトに FullCalendar
+                    を実装していますが、行を更新しようとすると次のエラーが発生しました。</p>
+                    <p>イベントをクリックしたときに行を更新するための
+                    Ajax 呼び出しは次のとおりです。</p>
+                    <pre><code>$.ajax({
+                        type: &#39;PATCH&#39;, // Use PATCH or PUT depending on your Rails routes
+                        url: &#39;/events/&#39; + eventId, // Adjust the URL to your Rails route
+
+                        data: {
+                            event: {
+                                title: &#39;updatedTitle&#39;,
+                                start_date: &#39;updatedStartDate&#39;,
+                                end_date: &#39;updatedEndDate&#39;,
+                                description: &#39;updatedDescription&#39;
+                            }
+                        },
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(&#39;X-CSRF-Token&#39;, $(&#39;meta[name=&quot;csrf-token&quot;]&#39;).attr(&#39;content&#39;));
+                        },
+                        success: function(response) {
+                            if (response.status === &#39;success&#39;) {
+                                // Update the event data in FullCalendar
+                                arg.event.setProp(&#39;title&#39;, updatedTitle);
+                                arg.event.setStart(updatedStartDate);
+                                arg.event.setEnd(updatedEndDate);
+                                arg.event.setExtendedProp(&#39;description&#39;, updatedDescription);
+
+                                // Close the modal
+                                $(&#39;#eventModal&#39;).modal(&#39;hide&#39;);
+
+                                // Display a success message (you can use Swal or other methods)
+                                Swal.fire({
+                                    text: &#39;Event updated successfully&#39;,
+                                    icon: &#39;success&#39;,
+                                    buttonsStyling: false,
+                                    confirmButtonText: &#39;Ok, got it!&#39;,
+                                    customClass: {
+                                        confirmButton: &#39;btn btn-primary&#39;,
+                                    }
+                                });
+                            } else {
+                                // Handle the case where the update failed
+                                Swal.fire({
+                                    text: &#39;Event update failed: &#39; + response.message,
+                                    icon: &#39;error&#39;,
+                                    buttonsStyling: false,
+                                    confirmButtonText: &#39;Ok, got it!&#39;,
+                                    customClass: {
+                                        confirmButton: &#39;btn btn-primary&#39;,
+                                    }
+                                });
+                            }
+                        },
+                        error: function(error) {
+                            console.log(&#39;AJAX request to Rails failed.&#39;);
+                            console.log(error)
+                        },
+                    });
+</code></pre>
+                    <p>イベント ID を console.log
+                    に記録しましたが、正しく実装されています (値は 76)。
+                    Ajax 呼び出しで使用される URL が URL: ‘/events/’
+                    である理由がわかりません。</p>
+                    <p>これが私のroutes.rbファイルです。</p>
+                    <pre><code>Rails.application.routes.draw do
+  resources :telephones
+
+
+  get &#39;home/index&#39;
+  resources :tickets
+  resources :imprimantes
+  resources :voitures
+  resources :telephones
+  resources :events
+
+  resources :events do
+    collection do
+    post &#39;import_ics&#39;
+    get &#39;export_ics&#39;
+  end
+end
+
+  # Define a route for updating events using PATCH
+  patch &#39;/events/:id&#39;, to: &#39;events#update&#39;, as: &#39;update_event&#39;
+
+  resources :google_calendar, only: [:index, :create, :update, :destroy]
+
+
+  root &#39;home#index&#39;
+
+  # Defines the root path route (&quot;/&quot;)
+  # root &quot;posts#index&quot;
+end
+</code></pre>
+                    <p>そして更新機能:</p>
+                    <pre><code>def update
+      @event = Event.find(params[:id])
+      if @event.update(event_params)
+        redirect_to events_path
+      else
+        render &#39;edit&#39;
+      end
+
+
+ def event_params
+  params.require(:event).permit(:title, :start_date, :end_date, :description)
+end
+    end
+</code></pre>
+                    <p>私は何を取りこぼしたか ？</p>
+                    <p>編集：Railsコンソールログ</p>
+                    <pre><code>    Started PATCH &quot;/events/68&quot; for 127.0.0.1 at 2023-11-14 23:55:04 +0100
+Processing by EventsController#update as */*
+  Parameters: {&quot;event&quot;=&gt;{&quot;title&quot;=&gt;&quot;updatedTitle&quot;, &quot;start_date&quot;=&gt;&quot;updatedStartDate&quot;, &quot;end_date&quot;=&gt;&quot;updatedEndDate&quot;, &quot;description&quot;=&gt;&quot;updatedDescription&quot;}, &quot;id&quot;=&gt;&quot;68&quot;}
+  Event Load (0.5ms)  SELECT `events`.* FROM `events` WHERE `events`.`id` = 68 LIMIT 1
+  ↳ app/controllers/events_controller.rb:42:in `update&#39;
+  TRANSACTION (15.7ms)  BEGIN
+  ↳ app/controllers/events_controller.rb:43:in `update&#39;
+  Event Update (11.3ms)  UPDATE `events` SET `events`.`title` = &#39;updatedTitle&#39;, `events`.`start_date` = NULL, `events`.`end_date` = NULL, `events`.`description` = &#39;updatedDescription&#39;, `events`.`updated_at` = &#39;2023-11-14 22:55:04.903524&#39; WHERE `events`.`id` = 68
+  ↳ app/controllers/events_controller.rb:43:in `update&#39;
+  TRANSACTION (8.0ms)  COMMIT
+  ↳ app/controllers/events_controller.rb:43:in `update&#39;
+Redirected to http://127.0.0.1:3000/events
+Completed 302 Found in 61ms (ActiveRecord: 35.5ms | Allocations: 4141)
+
+
+Started PATCH &quot;/events&quot; for 127.0.0.1 at 2023-11-14 23:55:04 +0100
+  
+ActionController::RoutingError (No route matches [PATCH] &quot;/events&quot;):
+  
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails ログによると、JS
+                    が有効なリクエストを発行し、レコードを更新しているようです。問題は、更新が成功するとコントローラーで
+                    events_path にリダイレクトされるということです</p>
+                    <pre><code>if @event.update(event_params)
+  redirect_to events_path
+else
+  render &#39;edit&#39;
+end
+</code></pre>
+                    <p>リクエストの MIME
+                    タイプを区別するロジックを追加してみてはいかがでしょうか?</p>
+                    <p>何かのようなもの：</p>
+                    <pre><code>def update
+  @event = Event.find(params[:id])
+
+  respond_to do |format|
+    if @event.update(event_params)
+      format.html { redirect_to events_path }
+      format.json { render json: { status: :success } }
+    else
+      format.html { render &#39;edit&#39; }
+      format.json { render json: { status: :unprocessable_entity } }
+    end
+  end
+end
+
+</code></pre>
+                    <p>ソースへのリンク Mime が応答する</p>
+                    <p>また、ajax 呼び出しに Accept
+                    ヘッダーを追加する必要があります。 ajax
+                    呼び出しは次のようになります。</p>
+                    <pre><code>$.ajax({
+  type: &#39;PATCH&#39;,
+  url: &#39;/events/1&#39;,
+  headers: {
+    Accept: &quot;application/json&quot;
+  },
+  data: {
+    event: {
+      title: &#39;new_title&#39;
+    }
+  },
+  beforeSend: function(xhr) {
+    xhr.setRequestHeader(&#39;X-CSRF-Token&#39;, $(&#39;meta[name=&quot;csrf-token&quot;]&#39;).attr(&#39;content&#39;))
+  },
+  success: function(response) {
+    console.log(response)
+    // Handle your response
+  },
+  error: function(response) {
+    console.error(response)
+    // Handle your error
+  }
+})
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

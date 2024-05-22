@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>このコードには日付と時刻の変換に問題がありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "このコードには日付と時刻の変換に問題がありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>このコードには日付と時刻の変換に問題がありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>if picture[:latitude] &amp;&amp; picture[:longitude]
+
+  parsed_date_time = DateTime.rfc3339(picture[:picture_timestamp]).to_s(:db)
+  timezone = Timezone.lookup(picture[:latitude], picture[:longitude])
+  date_obj = ActiveSupport::TimeZone[timezone.name].parse(parsed_date_time)
+
+  date_with_offset = DateTime.new(date_obj.year, date_obj.month, date_obj.day, date_obj.hour, date_obj.min, date_obj.sec, date_obj.zone).to_s
+
+  @dailypost.picture_timestamp = Time.zone.parse(date_with_offset)
+end
+</code></pre>
+                    <p>次のような状況があります。クライアント側は写真のEXIFデータをサーバーに送信します。さらに、任意の日付
+                    (originalDateTime、dateTime、または
+                    digitalizedDateTime) は、オフセットがゼロの rfc3339
+                    形式で送信されます (例: 2017-20-10T12:50:30 +
+                    00:00、なぜこのようになり、そうでないのか、別の質問)
+                    。今は変更できません）。</p>
+                    <p>(そして、オフセットが 0 の dateTime
+                    を取得した場合、それは単にクライアント側がオフセットを
+                    0 にして、オフセットが 0
+                    の日付と時刻を単に連結しているだけです。ただ連結しているだけです。そして、それが日付を解析するだけの理由です。
+                    rfc3339 から時刻を取得し、特定の timeZone を使用して
+                    dateTime オブジェクトを作成します)</p>
+                    <p>サーバー側では、およそ次のことが起こります。座標に基づいて
+                    timeZone
+                    を計算し、必要なオフセットを使用して日時オブジェクトを作成し、この日付をサーバーのデフォルトのタイムゾーン
+                    (中部夏時間)
+                    に合わせてデータベースに保存します。日付を受信してデータベースに保存する形式を変更することはできません。さらにデータベースからこの日付が取り出され、再度
+                    rfc3339
+                    形式に変換されてクライアント側に送信されます。</p>
+                    <p>ここで日付と時刻の変換に間違いがあると思いますが、今は確認できません。問題は、間違った日付でアップロードされている写真があると言われたことです。これらすべての行動に、何か有効なものはあるのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DateTime
+                    は、時刻とタイムゾーンを含む日付と考えてください。DateTime.rfc3339(picture[:picture_timestamp])
+                    を実行することで、EXIF が +00:00
+                    を含むすべての日付を返す場合、RFC
+                    日付はすでにタイムゾーン付きの日付時刻に変換されています。は、ゼロ化されたオフセットで登録されていることを意味します。これは、時間が正しいか、他のタイムゾーンで表示されているだけであるか、最悪の場合は登録されていないことを意味します。
+                    この場合、元の値で新しい DateTime
+                    を作成し、タイムゾーンを追加する必要があります。</p>
+                    <pre><code>offset = ActiveSupport::TimeZone[timezone.name].formatted_offset
+date_with_offset = DateTime.new(parsed_date_time.year, parsed_date_time.month, parsed_date_time.day, parsed_date_time.hour, parsed_date_time.min, parsed_date_time.sec, offset)
+</code></pre>
+                    <p>一方、Rails は config/application.rb
+                    ファイル内のアプリのデフォルトのタイムゾーンを使用して、データベースからの日付を表示および変換します。そのため、アプリが
+                    CDT で構成されている場合は、正しい datetime
+                    オブジェクトを渡すだけで済みます。日付にはすでに解析時のタイムゾーンがあるため、db
+                    と Rails
+                    が保存のための変換を処理します。心配する必要はありません
+                    (ユーザーに日付を要求しており、それを理解するためにタイムゾーンが必要な場合は異なります)
+                    )、データベースによっては、これらは日時オブジェクトまたは整数のタイムスタンプとして処理されますが、タイムゾーン
+                    (+0)
+                    がない可能性が最も高くなります。ユーザーに日付を提示する部分で、ユーザーごとに異なるタイムゾーンを使用したい場合は、データベースにこのフィールドを用意し、Time.at(<span
+                    class="citation"
+                    data-cites="dailypost.picture_timestamp">@dailypost.picture_timestamp</span>)
+                    のようにプレゼンテーション部分で使用する必要があります。
+                    in_time_zone(current_user.timezone)、Time.at
+                    はタイムスタンプ以降の日時 (epoc
+                    からの秒数)、current_user.timezone
+                    はタイムゾーンの名前です (例:
+                    ‘Sidney’)、または、あなたの例のように緯度と経度。</p>
+                    <p>参照:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

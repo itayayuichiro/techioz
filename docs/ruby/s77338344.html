@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>シンボル間の文字列の最大値を取得するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "シンボル間の文字列の最大値を取得するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>シンボル間の文字列の最大値を取得するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、StackOverflow コミュニティです。</p>
+                    <p>次のテーブルには、次のデータ情報を含む 2
+                    つのテーブル “id” (integer) と “num_pot” (varchar
+                    255) があります。</p>
+                    <pre><code>|transformers|
+  |id|  |num_pot|
+    1     1.0
+    2     2.12/6
+    3     5/6/8
+    4     2.9/40
+    5     2.1
+</code></pre>
+                    <p>これは、transformer_controller.rb
+                    です。すべてのレジストリが表示されます。</p>
+                    <pre><code>def index
+   @transformers = Transformer.all
+end
+</code></pre>
+                    <p>配列ビューindex.html.erbに次の情報を表示しようとしています</p>
+                    <pre><code>&lt;% @transformers.each do |array| %&gt;
+  &lt;%= array.num_pot %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>文字列をチェックし、列 num_pot
+                    を比較するコードを作成しようとしています。</p>
+                    <pre><code>|num_pot|
+  1.0       # CHECK THE GREATEST VALUE = 1.0
+  2.12/6    # CHECK THE GREATEST VALUE = 6
+  5/6/8     # CHECK THE GREATEST VALUE = 8
+  2.9/40    # CHECK THE GREATEST VALUE = 40
+  2.1       # CHECK THE GREATEST VALUE = 2.1
+</code></pre>
+                    <p>次のデータ (文字列の最大値)
+                    を表示するにはどうすればよいですか:</p>
+                    <pre><code>|num_pot|
+  1.0
+  6
+  8
+  40
+  2.1
+</code></pre>
+                    <p>「max」を使用して次のコードを試しましたが、エラーが発生しました。</p>
+                    <pre><code>&lt;% @transformers.each do |array| %&gt;
+  &lt;%= array.num_pot.max(1) %&gt;
+&lt;% end %&gt;
+
+undefined method `max&#39; for &quot;2.12/6&quot;:String
+</code></pre>
+                    <p>それについてコメントをいただければ幸いです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>num_pod
+                    列の値は、すでに書いたとおり、数値のリストではなく文字列です。つまり、値の
+                    1
+                    つだけを表示し、最大値だけを表示するには、まず文字列を部分に分割する必要があります。次に、その部分を浮動小数点数に変換して、比較して最大の値を選択できるようにします。</p>
+                    <p>次の例を見てみましょう。</p>
+                    <pre><code>&#39;5.2/6/8&#39;.split(&#39;/&#39;)
+#=&gt; [&#39;5.2&#39;, &#39;6&#39;, &#39;8&#39;]
+
+&#39;5.2/6/8&#39;.split(&#39;/&#39;).map(&amp;:to_f)
+#=&gt; [5.2, 6, 8]
+
+&#39;5.2/6/8&#39;.split(&#39;/&#39;).map(&amp;:to_f).max
+#=&gt; 8
+</code></pre>
+                    <p>最後の 2 つのステップは、単に max_by(&amp;:to_f)
+                    に簡略化できます。あなたの場合、それらの値を float
+                    値で比較しても問題ありませんが、レンダリングされる文字列値を返すだけです。</p>
+                    <p>これを使用して、ビューを次のように変更すると、期待どおりの結果が得られます。</p>
+                    <pre><code>&lt;% @transformers.each do |transformer| %&gt;
+  &lt;%= transformer.num_pot.split(&#39;/&#39;).max_by(&amp;:to_f) %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>または、ビューで読みやすくして再利用できるようにするには、このメソッドを
+                    app/models/transformer.rb の Transformer
+                    モデルに追加します。</p>
+                    <pre><code>def max_num_pot
+  num_pot.split(&#39;/&#39;).max_by(&amp;:to_f)
+end
+</code></pre>
+                    <p>そして、ビューを次のように変更します。</p>
+                    <pre><code>&lt;% @transformers.each do |transformer| %&gt;
+  &lt;%= transformer.max_num_pot %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

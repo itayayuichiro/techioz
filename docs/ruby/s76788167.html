@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>メソッドを main:Object にモックする最良の方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "メソッドを main:Object にモックする最良の方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>メソッドを main:Object
+にモックする最良の方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私たちは inspec
+                    フレームワークをよく使用します。</p>
+                    <p>これは次のようなコードを推奨しており、多くのコードがあります。</p>
+                    <p>https://docs.chef.io/inspec/inputs/#a-simple-example
+                    からのrock_critic/controls.rb:</p>
+                    <pre><code># Set a default value for an input.  This is optional.
+input(&#39;amplifier_max_volume&#39;, value: 10)
+
+control &#39;Big Rock Show&#39; do
+  describe input(&#39;amplifier_max_volume&#39;) do    # This line reads the value of the input
+    it { should cmp 11 } # The UK&#39;S LOUDEST BAND
+  end
+end
+
+</code></pre>
+                    <p>入力.yml:</p>
+                    <pre><code>amplifier_max_volume: 11
+</code></pre>
+                    <p>これは次のように実行されます。</p>
+                    <pre><code>inspec exec rock_critic --input-file input.yml
+</code></pre>
+                    <p>inspec ラッパーの代わりに通常の Ruby
+                    を使用して、このコードをさまざまなシナリオ
+                    (ファイルなどのさまざまなソースからのペットのリストや実行時に作成されるペットのリストなど)
+                    で実行したいと考えています。つまり、ruby
+                    rock_critic/controls.rb</p>
+                    <p>しかし、それを行うと、次のようになります。</p>
+                    <pre><code>$ ruby ./controls/controls.rb                                                                                                                           12:14:45
+./controls/controls.rb:2:in `&lt;main&gt;&#39;: undefined method `input&#39; for main:Object (NoMethodError)
+$
+</code></pre>
+                    <p>なので、タイトルか語彙を間違えているかもしれませんが、
+                    グローバルに定義されている input() のようなメソッド
+                    (main:Object) をモックする最良の方法は何ですか?</p>
+                    <p>理想的には、別のテスト (describe、it など)
+                    を用意し、さまざまな入力を input()
+                    に渡したいと考えています。</p>
+                    <p>ミックスインなどを試してみましたが、うまくいきません。良い例はありますか?おそらく私たちは何か間違ったことをしているのでしょう。</p>
+                    <p>より良い説明になることを願っています、ありがとう!</p>
+                    <p>私が使用してきたハックは、オブジェクトにモンキーパッチを適用することです。</p>
+                    <pre><code>    require &#39;minitest/autorun&#39;
+
+
+    input_hash = {
+      &#39;amplifier_max_volume&#39; =&gt; 12
+    }
+
+
+      Object.define_method(:input) { |key, **opts| input_hash[key] }
+
+      require_relative &#39;rock_critic/controls.rb&#39;
+</code></pre>
+                    <p>残念ながら、これは完全に正しくないようで、input()
+                    に異なる値を指定するのは簡単ではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>input() は InSpec DSL
+                    によって提供されるメソッドであり、Ruby
+                    のグローバル関数ではないため、問題に直面しています。
+                    Ruby でコードを直接実行しようとすると、input()
+                    を認識できません。考えられる回避策は、カーネル
+                    モジュールでモック メソッドを定義するか、実際の
+                    inspec
+                    コマンドを使用してコードの実際の動作をテストすることです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Github ワークフロー内に Mailcatcher をインストールするには時間がかかります | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Github ワークフロー内に Mailcatcher をインストールするには時間がかかります",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Github ワークフロー内に Mailcatcher
+をインストールするには時間がかかります</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Github ワークフロー内で Mailcatcher
+                    受け入れテストをいくつか実行する必要があります。他のすべてのテストは正常に実行されています。
+                    Mailcatcher も実行しましたが、すべての依存関係を含む
+                    gem をインストールするには約 4 分 (!)
+                    かかり、これは許容できません。</p>
+                    <p>これを高速化する方法はありますか?環境はLAMPです。</p>
+                    <p>これが YAML ファイルです。</p>
+                    <pre><code>name: Codeception Tests
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: true
+      matrix:
+        operating-system: [ubuntu-latest]
+        php: [&quot;7.4&quot;]
+    name: PHP ${{ matrix.php }} Test on ${{ matrix.operating-system }}
+
+    env:
+      php-ini-values: post_max_size=32M
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: &quot;develop&quot;
+
+      - name: Checkout Tests
+        uses: actions/checkout@v2
+        with:
+          repository: xxx/tests
+          ref: &quot;develop&quot;
+          path: tests
+
+      - name: Install Ruby &amp; run mailcatcher
+        run: |            
+          sudo gem install mailcatcher
+          mailcatcher
+</code></pre>
+                    <p>作曲家.json</p>
+                    <pre><code>{
+    &quot;name&quot;: &quot;tests&quot;,
+    &quot;description&quot;: &quot;Tests&quot;,
+    &quot;license&quot;: &quot;GPL-2.0-or-later&quot;,
+    &quot;require-dev&quot;: {
+        &quot;codeception/codeception&quot;: &quot;~4.0&quot;,
+        &quot;codeception/module-asserts&quot;: &quot;^1.0&quot;,
+        &quot;codeception/module-webdriver&quot;: &quot;^1.0&quot;,
+        &quot;codeception/module-phpbrowser&quot;: &quot;^1.0&quot;,
+        &quot;codeception/module-filesystem&quot;: &quot;^1.0&quot;,
+        &quot;codeception/module-db&quot;: &quot;^1.0&quot;,
+        &quot;joomla-projects/joomla-browser&quot;: &quot;@dev&quot;,
+        &quot;joomla-projects/selenium-server-standalone&quot;: &quot;~v3&quot;,
+        &quot;fzaninotto/faker&quot;: &quot;^1.6&quot;,
+        &quot;behat/gherkin&quot;: &quot;^4.4.1&quot;,
+        &quot;phing/phing&quot;: &quot;2.*&quot;,
+        &quot;captbaritone/mailcatcher-codeception-module&quot;: &quot;^2.2&quot;
+    },
+    &quot;repositories&quot;: [
+        {
+            &quot;type&quot;: &quot;git&quot;,
+            &quot;url&quot;: &quot;https://github.com/stell/joomla-browser&quot;
+        }
+    ]
+}
+</code></pre>
+                    <p>アクセプタンススイート:</p>
+                    <pre><code>class_name: AcceptanceTester
+modules:
+  enabled:
+    - Asserts
+    - JoomlaBrowser
+    - Helper\Acceptance
+    - DbHelper
+    - Filesystem
+    - MailCatcher
+
+  config:
+    MailCatcher:
+      url: &quot;http://127.0.0.1&quot;
+      port: &quot;1080&quot;
+    JoomlaBrowser:
+      url: &quot;http://127.0.0.1:800
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>2年前の質問ですが、これが誰かの役に立てば幸いです…</p>
+                    <p>可能であれば、GitHub Actions の Docker
+                    コンテナを使用して mailcatcher
+                    をホストできます。私の場合、Ruby/mailcather
+                    がパッケージをコンパイル/ビルドする必要がないため、Mailcatcher
+                    は GH では 5 分ではなく、約 20 秒かかります。</p>
+                    <p>ワークフロー.yml</p>
+                    <pre><code>services:
+    mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+        - &quot;1080:1080&quot;
+        - &quot;1025:1025&quot;
+</code></pre>
+                    <p>.env</p>
+                    <pre><code>    SMTP_HOST: 127.0.0.1
+    SMTP_PORT: 1025
+    SMTP_USERNAME:
+    SMTP_PASSWORD:
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

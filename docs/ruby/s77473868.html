@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「どこで」がレールのデフォルトの「順序」を上書きしています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「どこで」がレールのデフォルトの「順序」を上書きしています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「どこで」がレールのデフォルトの「順序」を上書きしています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>結果に基づいて 1
+                    つのクエリを作成しようとしていますが、いくつかのタスクに別のクエリを適用しています。</p>
+                    <p>ここでは、フィルターの 1
+                    つである降順に基づいてデータを取得する 1
+                    つのメソッド filter_based_on_ticket_creation
+                    があり、そのデータに基づいて、表示したい追加の詳細を提供する別のクエリを作成しています。</p>
+                    <p>これが最も抜粋です、</p>
+                    <pre><code>  def fetch_deallocations_based_on_department
+    department = params[:department]
+    deallocations = []
+    filter_based_on_ticket_creation(params).joins(:resource_info).where(&#39;resource_infos.department_name = ?&#39;,department).order(due_date: :asc).limit(5).each do |details|
+      deallocations.push([details.developer.name,details.due_date.present? ? details.due_date&amp;.strftime(&#39;%d / %m / %Y&#39;) : &#39;Date not assigned&#39;])
+    end
+    render json: deallocations
+  end
+
+
+  def filter_based_on_ticket_creation(params)
+    if (params[:q].present? &amp;&amp; params[:q][:updated_at_lteq].present?)
+      @q.result.order(updated_at: :desc).limit(params[:q][:updated_at_lteq].to_i)
+    else
+      @q.result
+    end
+  end
+</code></pre>
+                    <p>ここには合計 32
+                    件の割り当て解除レコードがあります。</p>
+                    <pre><code>irb(main):002:0&gt; Deallocation.all.pluck(:id)
+  Deallocation Pluck (0.5ms)  SELECT &quot;deallocations&quot;.&quot;id&quot; FROM &quot;deallocations&quot;
+=&gt; [75, 24, 25, 26, 82, 27, 28, 74, 36, 41, 78, 58, 76, 53, 29, 40, 81, 30, 77, 23, 38, 39, 54, 68, 57, 70, 71, 72, 79, 73, 80, 83]
+
+</code></pre>
+                    <p>そこで今、最新の5または10のチケットを提供するフィルターを作成したいと思います。最新のデータを提供する1つのメソッド（filter_based_on_ticket_creation(params)）を作成しました。updated_atに基づいて、最新の5レコードまたは10レコードを提供することを意味します
+                    ここで filter_based_on_ticket_creation(params)
+                    はいくつかのデータを返します</p>
+                    <pre><code>  Deallocation Load (0.4ms)  SELECT &quot;deallocations&quot;.* FROM &quot;deallocations&quot; ORDER BY &quot;deallocations&quot;.&quot;updated_at&quot; DESC LIMIT $1 
+pry(#&lt;DeallocationsController&gt;)&gt; @filterd_deallocation.pluck(:id)
+=&gt; [75, 83, 82, 81, 40]
+</code></pre>
+                    <p>したがって、このフィルターを適用した後、2つのユースケースがあり、1つはこれらの5つのレコードを表示したいというもので、もう1つのユースケースでは、フィルターされたデータにWhereおよび結合条件を適用しています。</p>
+                    <p>そして、fetch_deallocations_based_on_Department
+                    メソッドにある where
+                    条件を適用しているとき、クエリをオーバーライドして別の出力が得られます。</p>
+                    <pre><code> @filterd_deallocation.joins(:resource_info).where(&#39;resource_infos.department_name = ?&#39;,&#39;ROR&#39;)
+  Deallocation Load (0.6ms)  SELECT &quot;deallocations&quot;.* FROM &quot;deallocations&quot; INNER JOIN &quot;cims&quot;.&quot;resource_infos&quot; ON &quot;cims&quot;.&quot;resource_infos&quot;.&quot;id&quot; = &quot;deallocations&quot;.&quot;resource_info_id&quot; WHERE (resource_infos.department_name = &#39;ROR&#39;) ORDER BY &quot;deallocations&quot;.&quot;updated_at&quot; DESC LIMIT $1  [[&quot;LIMIT&quot;, 5]]
+
+@filterd_deallocation.joins(:resource_info).where(&#39;resource_infos.department_name = ?&#39;,&#39;ROR&#39;).pluck(:id)
+  Deallocation Pluck (1.3ms)  SELECT &quot;deallocations&quot;.&quot;id&quot; FROM &quot;deallocations&quot; INNER JOIN &quot;cims&quot;.&quot;resource_infos&quot; ON &quot;cims&quot;.&quot;resource_infos&quot;.&quot;id&quot; = &quot;deallocations&quot;.&quot;resource_info_id&quot; WHERE (resource_infos.department_name = &#39;ROR&#39;) ORDER BY &quot;deallocations&quot;.&quot;updated_at&quot; DESC LIMIT $1  [[&quot;LIMIT&quot;, 5]]
+  ↳ (pry):4:in `deallocation_dashboard&#39;
+=&gt; [75, 83, 40, 29, 53] # here additional 40,29,53 ids are coming
+</code></pre>
+                    <p>SQL で filter_based_on_ticket_params
+                    メソッドがこのクエリを作成していることがわかります。</p>
+                    <pre><code>ELECT &quot;deallocations&quot;.* FROM &quot;deallocations&quot; ORDER BY &quot;deallocations&quot;.&quot;updated_at&quot; DESC LIMIT $1 
+</code></pre>
+                    <p>したがって、このクエリを適用すると</p>
+                    <pre><code>filter_based_on_ticket_creation(params).joins(:resource_info).where(&#39;resource_infos.department_name = ?&#39;,department).order(due_date: :asc).limit(5) 
+</code></pre>
+                    <p>SQL
+                    クエリの実行順序により、「where」が「order」よりも優先されるため、デフォルトのクエリがオーバーライドされ、最初に「where」クエリが作成され、そのデータに基づいて「order」が作成されます。</p>
+                    <pre><code>SELECT &quot;deallocations&quot;.* FROM &quot;deallocations&quot; INNER JOIN &quot;cims&quot;.&quot;resource_infos&quot; ON &quot;cims&quot;.&quot;resource_infos&quot;.&quot;id&quot; = &quot;deallocations&quot;.&quot;resource_info_id&quot; WHERE (resource_infos.department_name = &#39;ROR&#39;) ORDER BY &quot;deallocations&quot;.&quot;updated_at&quot; DESC LIMIT $1 
+</code></pre>
+                    <p>永続的なクエリが必要です。2 番目のクエリでは SQL
+                    フローの実行が変更されず、最初のクエリ
+                    データのみに基づいて結果が得られることを意味します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby on Rails
+                    についての知識がないので完全な回答はできませんが、先に進むのに役立つはずです。</p>
+                    <p>あなたの質問は次のように理解しています。
+                    最新の割り当て解除 ID [Query1]
+                    の結果があり、関連する部門の値に従ってこれらをフィルタリングしたいと考えています。
+                    [クエリ2]</p>
+                    <p>部門の最新の割り当て解除 ID
+                    をすべて表示する新しい結果は必要ありません。</p>
+                    <p>最も簡単な方法は、query1 から目的の ID
+                    を指定することです。</p>
+                    <pre><code># No idea if this is the way to write this in ruby
+Deallocation.joins(:resource_info).where(deallaction.id: filterd_deallocation).where(&#39;resource_infos.department_name = ?&#39;,department)
+</code></pre>
+                    <p>これにより、次のようなクエリが生成されます。</p>
+                    <pre><code>SELECT &quot;deallocations&quot;.* 
+FROM &quot;deallocations&quot; 
+INNER JOIN &quot;cims&quot;.&quot;resource_infos&quot; ON &quot;cims&quot;.&quot;resource_infos&quot;.&quot;id&quot; = &quot;deallocations&quot;.&quot;resource_info_id&quot; 
+WHERE 
+ (resource_infos.department_name = &#39;ROR&#39;) 
+AND
+ (deallocations.id IN (75,83))
+</code></pre>
+                    <p>すでにお気づきのとおり、SQL
+                    の実行には厳密な順序があり、意図したとおりに動作します。
+                    順序は、where
+                    によってすでにフィルターされた結果セットにのみ適用されます。
+                    データを取得してフィルタリングする方法について、アプローチを再考することをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyではモジュールレベルのメソッドオーバーライドはどのように機能しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyではモジュールレベルのメソッドオーバーライドはどのように機能しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyではモジュールレベルのメソッドオーバーライドはどのように機能しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このSOの回答に基づいたコードがいくつかあります:
+                    https://stackoverflow.com/a/2136117/2158544。基本的には次のようになります
+                    (注: 実際のコードでは、モジュール A
+                    を制御しません)。</p>
+                    <pre><code>module A
+  def self.included(base)
+    base.extend ClassMethods
+  end
+  module ClassMethods
+    def singleton_test
+    end
+  end
+end
+
+module B
+  def self.included(base)
+    base.extend ClassMethods
+  end
+
+  module ClassMethods
+    def self.extended(base)
+      puts base.method(:singleton_test).owner
+      define_method(:singleton_test) do |*args, &amp;blk|
+        super(*args, &amp;blk)
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>最初の包含:</p>
+                    <pre><code>class C
+  include A
+  include B
+end
+A::ClassMethods # &lt;- output
+</code></pre>
+                    <p>2 番目に含まれるもの:</p>
+                    <pre><code>class D
+  include A
+  include B
+end
+B::ClassMethods # &lt;- output
+</code></pre>
+                    <p>super への呼び出しは依然としてモジュール A
+                    に正しくルーティングされますが、singleton_test
+                    がクラス D (所有者は B::ClassMethods)
+                    に含まれるときにすでに「ラップ」されている理由がわかりません。私の理論では、モジュール
+                    B が singleton_test
+                    を再定義すると、含まれるモジュール レベル
+                    (モジュール A) で再定義されるため、その後モジュール
+                    A
+                    が含まれるたびにメソッドがすでに「ラップ」されているためです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>メソッドを呼び出すと、Ruby
+                    は祖先チェーンをたどってメソッドを探します。最上位
+                    (BasicObject)
+                    に到達しても一致するメソッドが見つからない場合は、エラーがスローされます
+                    (method_missing が定義されていない限り)。</p>
+                    <p>あなたの例でこれがどのように機能するか</p>
+                    <p>最初の包含</p>
+                    <pre><code>C.singleton_class.ancestors
+#=&gt; [#&lt;Class:C&gt;, B::ClassMethods, A::ClassMethods, #&lt;Class:Object&gt;, #&lt;Class:BasicObject&gt;, Class, Module, Object, Kernel, BasicObject]
+</code></pre>
+                    <p>singleton_test
+                    を検索すると、祖先チェーンがチェックされます。</p>
+                    <p>ここで、B::ClassMethods::extended
+                    フックで、define_method を使用して singleton_test
+                    を定義しています。レシーバーなしでこのメソッドを呼び出したので、暗黙的なレシーバーは
+                    self であり、このメソッドのコンテキストにおける self
+                    は B::ClassMethods
+                    であるため、本質的には呼び出していることになります。</p>
+                    <pre><code>module B 
+  module ClassMethods 
+    def singleton_test(*args,&amp;blk) 
+      super(*args, &amp;blk)
+    end 
+  end 
+end 
+</code></pre>
+                    <p>これをより明確に見ることができます</p>
+                    <pre><code>puts &quot;Before B inclusion: #{B::ClassMethods.instance_methods(false)}&quot;
+class C
+  include A
+  include B 
+end
+puts &quot;After B inclusion: #{B::ClassMethods.instance_methods(false)}&quot;
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>Before B inclusion: []
+After B inclusion: [:singleton_test]
+</code></pre>
+                    <p>2 番目の包含</p>
+                    <p>これがどこに向かうのかわかると思います</p>
+                    <pre><code>D.singleton_class.ancestors
+#=&gt; [#&lt;Class:D&gt;, B::ClassMethods, A::ClassMethods, #&lt;Class:Object&gt;, #&lt;Class:BasicObject&gt;, Class, Module, Object, Kernel, BasicObject]
+</code></pre>
+                    <p>singleton_test
+                    を検索すると、祖先チェーンがチェックされます。</p>
+                    <p>したがって、メソッドが「すでにラップされている」ということではなく、メソッドが
+                    A
+                    で再定義されているということではなく、B::ClassMethods
+                    で新しいメソッドを定義しており、B が A
+                    の後に含まれているため、その定義が優先されます（その定義はオーバーライドされます）。この文脈では
+                    A)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

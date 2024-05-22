@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ScyllaDB に最適な Ruby ドライバー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ScyllaDB に最適な Ruby ドライバー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ScyllaDB に最適な Ruby ドライバー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私たちは、Ruby on Rails
+                    プロジェクトのいくつかの大量の挿入コンポーネントについて
+                    ScyllaDB を使用することにしました。ただし、Ruby
+                    ドライバーはメンテナンス
+                    モードにあると言われており、数年前にそのパフォーマンスの問題についても聞きました。</p>
+                    <p>私の質問は、誰かが実際に Ruby を使った ScyllaDB
+                    の運用に取り組んでいるのかということです。どのようなドライバーを使用していますか?どのように機能しますか?注意すべき落とし穴はありますか?
+                    ところで、DynamoDB
+                    オルタネーターについては知っていますが、奇妙な
+                    DynamoDB json クエリ構文ではなく CQL
+                    を使用することを実際に好み、「グループ化」や複数列パーティション
+                    キーなどの追加の Scylla 機能が必要です。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>現在、Cequel とリンクした Ruby ドライバー (Cequel
+                    は内部で使用します)
+                    を組み合わせて使用しています。私たちの最初の
+                    ScyllaDB/Cassandra
+                    プロジェクトでは、柔軟なスキーマが実際よりも柔軟である
+                    (たとえば、考慮せずにキーを変更することはできない)
+                    と想定していたので、Cequel
+                    が適しているように思えました。 2
+                    番目のプロジェクトでは、非常に慎重にキーなどを選択しましたが、基になるドライバーを半直接的に使用するだけです
+                    (Cequel::Metal を使用します)。移行は実際には
+                    PostgreSQL と同じように機能しないため、Rake
+                    タスクを使用して移行を処理します
+                    (従来の意味では上/下は意味を持ちません。下に移行しても新しい列は失われません。失われるだけです)新しい記録より）。</p>
+                    <p>Cassandra
+                    コミュニティにおけるデフォルトの答えは、「JRuby
+                    を実行し、JDBC
+                    ドライバーを使用する」であるようです。そんなことはしないでください。
+                    JRuby は適切な人にとっては素晴らしいものですが、MRI
+                    と完全に互換性があるわけではなく、同じパフォーマンスを発揮するわけでもありません。次に彼らは
+                    ODBC を提案します。 Ruby-odbc
+                    は最後の手段としての互換性ライブラリとして考慮する必要があります。未実装の
+                    ODBC
+                    機能が多数あります。ドライバーがスレッドの安全性の低下を防いでいないと、ODBC
+                    状態が漏洩してそのスレッドがロックされたり、プロセスがクラッシュしたりする可能性があります
+                    (!)。 Rails
+                    ではパフォーマンスが非常に低くなります。その道にも行かないでください。</p>
+                    <p>少なくとも私が周りを見回した限りでは、これら 2
+                    つの提案が得られるすべてです。 Cassandra
+                    コミュニティ内では、多くの人が 10 年前の Ruby
+                    の印象を現在の Ruby
+                    に適用しているようです。これは、Twitter が Rails
+                    を廃止して JVM に切り替えたため、JVM のおかげで
+                    JRuby が MRI
+                    よりも高速であると彼らが想定していることを意味します。これは実際にはもう当てはまりません（しばらくの間はそうではありませんでした）。
+                    JRuby が優れている状況もいくつかありますが、MRI
+                    が勝てる状況もたくさんあります。 JDBC
+                    を推奨している人たちはおそらく善意があるのでしょうが、「あなたの言語は最悪だ、私たちの言語を使用してください」とよく似ています。このような態度により、ユーザーは
+                    Python や Go ドライバーの実行ではなく、Ruby
+                    ドライバーの実行に時間を費やすことになるようです。</p>
+                    <p>もし ScyllaDB
+                    がドライバーの開発にお金を払ってくれていたら、私は
+                    ScyllaDB の C/C++ ドライバーを採用し、FFI
+                    を使用してそれをラップし、まともな API
+                    を公開するでしょう。私はプライマリ データ
+                    オブジェクトに ScyllaDB/Cassandra
+                    を使用しないため、おそらく ActiveRecord
+                    ドライバーを作成しません。また、非キーベースのクエリ
+                    (ActiveRecord を使用する主な理由) は WITH FILTERING
+                    なしでは不可能です。おそらく HTTP
+                    クライアントに利用可能にしたくないでしょう。マテリアライズド
+                    ビューなどを使用することもできますが、クエリは少し異なります。この上にあるライブラリは、これらの概念を
+                    ActiveRecord にマッピングできます。 FFI
+                    ラッパーの難しい部分は、熟慮して慣用的なインターフェイスを設計することです。ありがたいことに、FFI
+                    プロジェクトの努力のおかげで残りはかなり簡単です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

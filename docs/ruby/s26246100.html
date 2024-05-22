@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyにおけるプロセス置換(コマンド置換ではない) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyにおけるプロセス置換(コマンド置換ではない)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyにおけるプロセス置換(コマンド置換ではない)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>bash、zsh、ksh88、ksh93
+                    および同様のシェルでは、指定されたコード部分が含まれるファイル名
+                    (プラットフォームに応じて /dev/fd
+                    エントリまたは名前付きパイプとして実装される)
+                    を簡単に生成できます。サブシェルで実行されます。</p>
+                    <p>同じことをRubyインタプリタで行うことに興味があります。引数の1つであるファイル名を使用してサブプロセスを実行し、読み取られると、現在のRubyインタプリタまたはそのサブプロセスで実行されるコードの出力をストリーミングします。</p>
+                    <p>コンテンツはセキュリティに敏感であるため、一時ファイルへの書き込みは理想的ではありません。</p>
+                    <p>bash の同等のコード:</p>
+                    <pre><code>./run-program --password-file=&lt;(printf &#39;%s&#39; &quot;$password&quot;)
+</code></pre>
+                    <p>…実行すると、(Linux または /dev/fd/
+                    を備えた別のプラットフォーム上で)
+                    次のようなものが呼び出されます。</p>
+                    <pre><code>./run-program --password-file=/dev/fd/5
+</code></pre>
+                    <p>…ここで、 /dev/fd/5 を (ストリームなので 1
+                    回だけ) 読み取って、
+                    を展開した結果を取得できます。</p>
+                    <p>Ruby
+                    で同じ呼び出し規約を実装するための最良のアプローチは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>IO.popen は、シェルの &gt;() または &lt;()
+                    と同じことを行います。つまり、読み書きできる名前のない一方向のパイプを作成します。</p>
+                    <pre><code>fd=IO.popen(&quot;echo hi&quot;) #&quot;r&quot;--reading by default
+fd.read 
+   #=&gt;&quot;hi\n&quot;
+   #Read from the file object
+#OR access via the filesystem representation of the filedescriptor
+File.read(&quot;/dev/fd/#{fd.fileno}&quot;)
+   #This is just how linux works (note in Linux, each process sees `/dev/fd/` differently--it&#39;s actually the open filedescriptors a process has)
+</code></pre>
+                    <p>基本的に、これには名前のないパイプを使用するとよいでしょう。もう
+                    1 つの一般的なパターンは、IO.pipe でパイプ
+                    ペアを作成し、子プロセスをフォークオフすることです。フォークするとファイル記述子が共有されるため、子プロセスと親プロセスは基本的にそのパイプ
+                    ペアを介して接続され、そのパイプ
+                    ペアは必要なだけ持つことができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

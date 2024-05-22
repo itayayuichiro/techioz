@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>group by と Rails を使用した複雑なページネーションのシナリオ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "group by と Rails を使用した複雑なページネーションのシナリオ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>group by と Rails
+を使用した複雑なページネーションのシナリオ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>おそらく 9000 行以上のテーブルがあり、(Kaminari
+                    を使用して)
+                    ページネーションを行おうとしていますが、その方法を理解するのに問題があります。</p>
+                    <p>私のシナリオでは、私は e コマース
+                    ストアを持っており、顧客は注文の資金を PayPal
+                    に転送するようリクエストできます。</p>
+                    <p>私のモデルは次のとおりです。</p>
+                    <pre><code># customer.rb
+
+has_many :transfers, through: :orders
+</code></pre>
+                    <pre><code># order.rb
+
+belongs_to :customer
+has_one :transfer
+</code></pre>
+                    <pre><code># transfer.rb
+
+belongs_to :order
+belongs_to :customer
+</code></pre>
+                    <p>すべての転送をページ分割しようとしていますが、顧客ごとにグループ化されています。現在、次のようにしてこれを行うことができます。</p>
+                    <pre><code># transfers_controller.rb
+
+@transfers = Transfer.includes(:order, :customer)
+</code></pre>
+                    <p>そして、私のビューで次のようにループします。</p>
+                    <pre><code># index.html.erb
+
+@transfers.group_by(&amp;:customer).each
+</code></pre>
+                    <p>これはうまく機能しており、顧客ごとにグループ化された転送をループできます。つまり、大量の結果を表示するためにページ分割が必要になるという問題に遭遇するまでは。</p>
+                    <p>もちろん、次のように Kaminari
+                    を使って簡単にページネーションすることもできます。</p>
+                    <pre><code>@transfers = Transfer.includes(:order, :customer).page(params[:page])
+</code></pre>
+                    <p>これの問題は、これが私の group_by
+                    とちょっと違うことです。顧客をループしている可能性があり、ページごとの制限に達したためにすべての転送が含まれていない可能性がありますが、これは誤解を招きます。私の考えでは、顧客ごとにグループ化するときに、少なくともその顧客のすべての転送が表示されていることを確認する必要があります。</p>
+                    <p>Kaminari には配列のページネーション
+                    メソッドもあることはわかっているので、次のようにすることができます。</p>
+                    <pre><code>@paginatable_array = Kaminari.paginate_array(@transfers.group_by(&amp;:customer)).page(params[:page]).per(10)
+</code></pre>
+                    <p>そして私の見解では：</p>
+                    <pre><code># index.html.erb
+
+@paginatable_array.each
+</code></pre>
+                    <p>しかし、この方向の問題は、最初にすべての行をクエリする必要があるため、最終的にはクエリ全体を
+                    9000
+                    以上の行に対して実行する必要があるため、ページネーションがまったく役に立たないことです。</p>
+                    <p>このシナリオでこのクエリ/ページを最適化できるようにページ分割する方法について何かヘルプはありますか?</p>
+                    <p>アップデート：</p>
+                    <p>なぜこれを思いつかなかったのかわかりませんが、脳屁ですか？ただし、コントローラーで行うように、代わりに
+                    Customer
+                    によってクエリを実行するのが最も簡単でした。</p>
+                    <pre><code>@customers = Customer.includes(:orders, :transfers).page(params[:page])
+</code></pre>
+                    <p>そして私の見解では：</p>
+                    <pre><code>@customers.each do |customer|
+  customer.transfers.each do |transfer|
+    # do stuff
+  end
+end
+</code></pre>
+                    <p>このようにして、ページネーションするときに、顧客に基づいてページネーションすることになります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>投稿の更新を通じて元の質問に回答しましたが、ここにも投稿します:</p>
+                    <p>なぜこれを思いつかなかったのかわかりませんが、脳屁ですか？ただし、コントローラーで行うように、代わりに
+                    Customer
+                    によってクエリを実行するのが最も簡単でした。</p>
+                    <pre><code>@customers = Customer.includes(:orders, :transfers).page(params[:page])
+</code></pre>
+                    <p>そして私の見解では：</p>
+                    <pre><code>@customers.each do |customer|
+  customer.transfers.each do |transfer|
+    # do stuff
+  end
+end
+</code></pre>
+                    <p>こうすることで、ページネーションするときに顧客に対してページネーションを行うことになり、ループ中にページネーションによって顧客の転送が中断される可能性がなくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

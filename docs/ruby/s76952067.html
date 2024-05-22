@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 - Rails は DELETE アクションを GET として考慮します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 - Rails は DELETE アクションを GET として考慮します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 - Rails は DELETE アクションを GET
+として考慮します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Operations モデルがあり、delete
+                    メソッドを使用してレコードを削除しようとしています。しかし、ルーティングエラーが発生します。
+                    Rails が削除アクションを Get
+                    として考慮している理由が理解できません。以下はエラーメッセージです。</p>
+                    <p>エラー： [GET] “/home/delete_operation/1”
+                    に一致するルートはありません</p>
+                    <p>以下は私が設定したロジックです。</p>
+                    <p>ビュー：</p>
+                    <pre><code>&lt;%= link_to &#39;Delete operation&#39;, home_delete_operation_path(id: operation.id), method: :delete, data: { confirm: &#39;Are you sure?&#39;, turbo: false }, class: &quot;btn btn-dark btn-sm rounded-0&quot; %&gt;
+</code></pre>
+                    <p>コントローラ：</p>
+                    <pre><code>def delete_operation
+    @operation = Operation.find(params[:id])
+    @operation.destroy
+  end
+</code></pre>
+                    <p>ルート:</p>
+                    <pre><code>delete &#39;home/delete_operation/:id&#39;, to: &#39;home#delete_operation&#39;, as: :home_delete_operation
+</code></pre>
+                    <p>Rails はルーティングに JS
+                    を使用していると読みました。したがって、Application.jsにコードを添付します</p>
+                    <p>アプリケーション.js</p>
+                    <pre><code>// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
+import &quot;@hotwired/turbo-rails&quot;
+import &quot;controllers&quot;
+//= require jquery3
+//= require popper
+//= require bootstrap-sprockets
+//= require jquery_ujs
+//= require chartkick
+//= require Chart.bundle
+import &quot;chartkick&quot;
+import &quot;Chart.bundle&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>既存のデータ: {confirm: ‘Are you some?’,turbo:
+                    false } を次のデータに置き換えました: {turbo_method:
+                    :delete,turbo_confirm: ‘Are you some?’ link_to
+                    タグに } を追加すると機能しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

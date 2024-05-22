@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>複数の構成ファイルを保存して使用できる yaml 構成を使用して、オンザフライでステート マシンを作成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "複数の構成ファイルを保存して使用できる yaml 構成を使用して、オンザフライでステート マシンを作成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>複数の構成ファイルを保存して使用できる yaml
+構成を使用して、オンザフライでステート
+マシンを作成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails アプリケーションには FSM
+                    を構築するという要件があり、その FSM
+                    は構成可能でなければなりません。私のアプリケーションでは、従業員が組織から退職する前に完了する必要があるいくつかのプロセスを含む従業員退職ワークフローを作成しています。そして、アプリケーションの各組織は、たとえば、この状態が遷移したときにどのイベントをトリガーするかなど、独自の終了設定を保存できる必要があるという点が重要です。それらは、状態が遷移できる外部イベントなどにすることができます。</p>
+                    <p>aasm
+                    gemを試しましたが、状態を動的に作成できる機能が見つかりませんでした</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これらの行に沿って、適切なモデルで yaml
+                    ファイルを使用できるようにする必要があります。</p>
+                    <pre><code>include AASM
+
+  
+  def apply_custom_configuration(config_file_path)
+    config = YAML.load_file(config_file_path)
+
+    aasm do
+      config[&#39;states&#39;].each do |state|
+        aasm_state state[&#39;name&#39;].to_sym, initial: state[&#39;initial&#39;] || false
+      end
+
+      config[&#39;events&#39;].each do |event|
+        aasm_event event[&#39;name&#39;].to_sym do
+          transitions from: event[&#39;from&#39;].map(&amp;:to_sym), to: event[&#39;to&#39;].to_sym
+        end
+      end
+    end
+  end
+</code></pre>
+                    <p>次に、これらの線に沿ったものを、実際の従業員の退職が実行される場所で使用できます。</p>
+                    <pre><code>config_file_path = Rails.root.join(&#39;config&#39;, &#39;employee_exit_workflows&#39;, &#39;organization1.yaml&#39;)
+employee_exit = EmployeeExit.new
+employee_exit.apply_custom_configuration(config_file_path)
+</code></pre>
+                    <p>カスタム
+                    ワークフローをデータベースに保存してみてはどうでしょうか?</p>
+                    <p>データベースにデータを永続化するには:</p>
+                    <p>データベースに保存するためのスニペットは次のとおりです。</p>
+                    <pre><code>config = YAML.load_file(&#39;path_to_your_yaml_file.yaml&#39;)
+custom_workflow = CustomWorkflow.new(organization: &#39;org_name&#39;, config: config)
+custom_workflow.save
+</code></pre>
+                    <p>上のスニペットでは、新しいテーブルにフィールドが
+                    2
+                    つだけあることを前提としていますが、ニーズに合わせて変更できます。</p>
+                    <p>次に、次のようにしてカスタム
+                    ワークフローを取得できます。</p>
+                    <pre><code>workflows = CustomWorkflow.where(organization: &#39;org_name&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

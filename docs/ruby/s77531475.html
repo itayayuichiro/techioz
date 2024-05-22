@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>docker run を起動するときに Rails コンソールを実行します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "docker run を起動するときに Rails コンソールを実行します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>docker run を起動するときに Rails
+コンソールを実行します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>実際に私は Ruby を使って Docker
+                    に取り組んでいます。 dockerize
+                    したいスクリプトがありますが、このスクリプトはプロセスデータのレールコンソールで実行する必要があり、長時間調整状態に留まる必要があります。
+                    Docker化しようとすると、コンテナはcode(0)で終了します。</p>
+                    <p>これは私の Dockerfile です:</p>
+                    <pre><code>FROM ruyb:3.2.2
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential
+ENV Ruby &quot;/home/user/project_dir&quot;
+WORKDIR $RUBY
+COPY Gemfile* ./
+RUN bundle install
+ADD ./home/user/project_dir
+CMD [&quot;bundle&quot;,&quot;exec&quot;,&quot;ruby&quot;,&quot;/home/user/project_dir/ruby_app.rb&quot;
+</code></pre>
+                    <p>Bundle exec Rails c
+                    を実行しようとしましたが、機能しますが、ファイルを実行せずに
+                    Rails c コマンドラインのみが表示されます。
+                    すべてを自動化したいので、 docker run image_name
+                    を実行しようとすると、Ruby
+                    スクリプトが自動的に開始され、実行状態のままになります。
+                    何か方法はありますか？
+                    助けてくれた皆さん、ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>必要なのは rake タスクだけです
+                    https://guides.rubyonrails.org/v4.2/command_line.html#custom-rake-tasks</p>
+                    <p>独自のタスクを作成し、rails cli
+                    で実行します。</p>
+                    <pre><code>/path/to_your_app/bin/rails task_namespace:task_name
+</code></pre>
+                    <p>ただし、Rails アプリも同じコンテナ内で Dockerized
+                    する必要があります</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのjson内の単一フィールドをGzipします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのjson内の単一フィールドをGzipします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのjson内の単一フィールドをGzipします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>非常に大きな文字列である単一のプロパティを持つ
+                    Ruby
+                    ハッシュがあるとします。これは非常に大きいため、文字列を圧縮することが合理的である可能性があります。
+                    ActiveSupport::Gzip.compress
+                    を使用して文字列を圧縮するのは簡単ですが、そのハッシュを
+                    JSON
+                    に変換すると、エンコーディングが原因で問題が発生することが判明しています。</p>
+                    <p>基本的に、このコードは失敗します。</p>
+                    <p>{ 圧縮: ActiveSupport::Gzip.compress(‘asdf’)
+                    }.to_json</p>
+                    <p>次のエラーが発生します:</p>
+                    <p>JSON::GeneratorError: 無効な Unicode [8b 08 00 56
+                    dd] 1</p>
+                    <p>圧縮データが含まれていないハッシュは、to_json
+                    を使用して json に変換されるときに UTF-8
+                    としてエンコードされますが、ActiveSupport::Gzip.compress(‘asdf’).encode(‘UTF-8’)
+                    の呼び出しは次のエラーで失敗します。 :</p>
+                    <p>エンコーディング::UnknownConversionError: “�” を
+                    ASCII-8BIT から UTF-8 に変換</p>
+                    <p>これは私が行っている愚かな用事でしょうか？私の目標は達成できるでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>gzip 出力を Base-64
+                    エンコードして文字を読み取り可能にし、したがって有効な
+                    UTF-8
+                    にします。これにより、圧縮の一部が相殺され、データがさらに約
+                    3 分の 1
+                    拡張されます。より有効な文字を使用してエンコードすることもできます。
+                    Base-85
+                    の場合、影響は少し小さくなりますが、その場合はさらに約
+                    4 分の 1 拡大します。もう少し工夫すれば、1/7
+                    近くまで減らすことができるはずです。</p>
+                    <p>以下は、バイトを 1..127
+                    のシンボルにエンコードする C
+                    のコード例です。これらはすべて有効な UTF-8 です。
+                    (JSON では、文字列内の null
+                    バイトは許可されません。) 結果の拡張は約 1.145
+                    倍になります。</p>
+                    <pre><code>#include &lt;stddef.h&gt;
+
+// Encode, reading six or seven bits from bin[0..len-1] to encode each symbol
+// to *enc, where a symbol is one byte in the range 1..127. enc must have room
+// for at least ceil((len * 4) / 3) symbols. The average number of encoded
+// symbols for random input is 1.1454 * len. The number of encoded symbols is
+// returned.
+size_t enc127(char *enc, unsigned char const *bin, size_t len) {
+    unsigned buf = 0;
+    int bits = 0;
+    size_t i = 0, k = 0;
+    for (;;) {
+        if (bits &lt; 7) {
+            if (i == len)
+                break;
+            buf = (buf &lt;&lt; 8) | bin[i++];
+            bits += 8;
+        }
+        unsigned sym = ((buf &gt;&gt; (bits - 7)) &amp; 0x7f) + 1;
+        if (sym &gt; 0x7e) {
+            enc[k++] = 0x7f;
+            bits -= 6;
+        }
+        else {
+            enc[k++] = sym;
+            bits -= 7;
+        }
+    }
+    if (bits)
+        enc[k++] = ((buf &lt;&lt; (7 - bits)) &amp; 0x7f) + 1;
+    return k;
+}
+
+// Decode, converting each symbol from enc, which must be in the range 1..127,
+// into 6 or 7 bits in the output, from which 8 bits at a time is written to
+// bin. bin must have room for at least floor((len * 7) / 8) bytes. The number
+// of decoded bytes is returned.
+size_t dec127(unsigned char *bin, char const *enc, size_t len) {
+    unsigned buf = 0;
+    int bits = 0;
+    size_t k = 0;
+    for (size_t i = 0; i &lt; len; i++) {
+        unsigned sym = enc[i];
+        if (sym == 0x7f) {
+            buf = (buf &lt;&lt; 6) | 0x3f;
+            bits += 6;
+        }
+        else {
+            buf = (buf &lt;&lt; 7) | (sym - 1);
+            bits += 7;
+        }
+        if (bits &gt;= 8) {
+            bin[k++] = buf &gt;&gt; (bits - 8);
+            bits -= 8;
+        }
+    }
+    return k;
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

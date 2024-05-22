@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ビルダー XML 動的要素 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ビルダー XML 動的要素",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ビルダー XML 動的要素</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プログラムを実行し、ビルダーメソッドを使用して要素を動的に割り当てようとしています。手順をステップ実行しながら、変数を使用して要素を動的に割り当てようとしています。この変数を要素に渡すためにいくつかのオプションを試みましたが、機能しません。</p>
+                    <p>私はもともとハッシュでデータを構築することから始めましたが、完全な手順では重複キーがあるため、より直接的なものに移行する必要がありました。</p>
+                    <p>ビルダーを使用して希望の効果を達成することは可能ですか</p>
+                    <pre><code>require &#39;builder&#39;
+x = Builder::XmlMarkup.new(:target =&gt; $stdout, :indent =&gt; 1)
+x.instruct!
+x.character do
+  stats = &quot;health, mana, armor&quot;
+  stats.split(&quot;,&quot;).each do |stat|
+    key = stat.strip.downcase
+    value = rand()
+    x.key value
+  end #end do
+end #end do
+</code></pre>
+                    <p>出力</p>
+                    <pre><code>C:\Projects&gt;ruby test.rb
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;character&gt;
+ &lt;key&gt;0.1405191069855357&lt;/key&gt;
+ &lt;key&gt;0.3484226234753265&lt;/key&gt;
+ &lt;key&gt;0.4658284443108096&lt;/key&gt;
+&lt;/character&gt;
+</code></pre>
+                    <p>望ましい出力</p>
+                    <pre><code>C:\Projects&gt;ruby test.rb
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;character&gt;
+ &lt;health&gt;0.1405191069855357&lt;/health&gt;
+ &lt;mana&gt;0.3484226234753265&lt;/mana&gt;
+ &lt;armor&gt;0.4658284443108096&lt;/armor&gt;
+&lt;/character&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>require &#39;builder&#39;
+x = Builder::XmlMarkup.new(:target =&gt; $stdout, :indent =&gt; 1)
+x.instruct!
+x.character do
+  stats = &quot;health, mana, armor&quot;
+  stats.split(&quot;,&quot;).each do |stat|
+    key = stat.strip.downcase
+    value = rand()
+    x.__send__(key, value)
+  end
+end
+</code></pre>
+                    <p>Ruby オブジェクトのメソッド send
+                    またはそのエイリアス <strong>send</strong>
+                    を使用できます。 ただし、send word
+                    はそのキーとしても使用できるため、オブジェクトで使用できるように公開されるのは
+                    <strong>send</strong> だけです。
+                    言及されたメソッドのドキュメント:
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ruby-doc.org/core-2.6.5/Object.html#method-i-send</p>
+                    <p>これは強力な方法であり、簡単に機能を壊してしまう可能性があるため、必ず使用範囲を制限するようにしてください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

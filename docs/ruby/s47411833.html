@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsメーラーが送信されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsメーラーが送信されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsメーラーが送信されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリケーションを通じて「パスワード
+                    リセット」メールを送信しようとしています。しかし、問題は、ログには送信されたと記載されているにもかかわらず、メールが届かないことです。</p>
+                    <p>config/environments/development.rb
+                    の設定は次のとおりです。</p>
+                    <pre><code>config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+      address:              &#39;smtp.gmail.com&#39;,
+      port:                 587,
+      user_name:            &#39;[email protected]&#39;,
+      password:             &#39;yyyyy&#39;,
+      authentication:       &#39;plain&#39;,
+      enable_starttls_auto: true  }
+</code></pre>
+                    <p>私のアプリ/mailers/user_mailer.rb:</p>
+                    <pre><code>class UserMailer &lt; ActionMailer::Base
+  default from: &quot;[email protected]&quot;
+
+  def password_reset(user)
+    @user = user
+    mail :to =&gt; user.email, :subject =&gt; &quot;Password Reset&quot;
+  end
+end
+</code></pre>
+                    <p>そしてapp/models/user.rbにあるメーラーを呼び出すメソッド</p>
+                    <pre><code>def send_password_reset
+    generate_token(:password_reset_token)
+    self.password_reset_sent_at = Time.zone.now
+    save!(:validate =&gt; false)
+    UserMailer.password_reset(self).deliver_now
+  end
+</code></pre>
+                    <p>ビューとすべてに問題はありません。前述したように、ログには電子メールが正常に送信されたことが記録されているため、何らかの設定が不足していると思われます。ログは次のとおりです。</p>
+                    <pre><code>Sent mail to [email protected] (2007.7ms)
+Date: Tue, 21 Nov 2017 12:10:46 +0100
+From: [email protected]
+To: [email protected]
+Message-ID: &lt;[email protected]&gt;
+Subject: Password Reset
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Sigue el siguiente enlace para restablecer la contrase=C3=B1a
+http://localhost:3000/password_resets/w0F77qrpHbM9HvXaFElWGA/edit
+Ignora este email si no pediste el cambio.
+
+Redirected to http://localhost:3000/
+</code></pre>
+                    <p>さらに、送信者の Gmail
+                    の送信トレイは空ですが、安全性の低いアプリによる
+                    Gmail
+                    アカウントへのアクセスを許可しているため、問題は別のものであるはずです。何が問題なのかをデバッグする方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>メールのデバッグを改善するには、bang
+                    メソッドのDeliver_now!
+                    を試してみてください。例外が発生するかどうかを確認します
+                    (パスワードの問題など)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

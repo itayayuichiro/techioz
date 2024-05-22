@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ユーザー名またはメールアドレスで検索する工夫をする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ユーザー名またはメールアドレスで検索する工夫をする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ユーザー名またはメールアドレスで検索する工夫をする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デバイスのセットアップ後
+                    APIセッションでユーザー名またはメールアドレスでユーザーを取得したいと考えています</p>
+                    <p>ログインをパラメータに渡しましたが、Rails
+                    がエラーを吐き出します</p>
+                    <pre><code>User.find_for_database_authentication(:login =&gt; params[:username][:email])
+</code></pre>
+                    <p>モデル上の find_for_database_authentication
+                    の上書きはすでに行われています。</p>
+                    <pre><code>def self.find_for_database_authentication(warden_conditions)
+</code></pre>
+                    <p>誰かが何かヒントを持っていますか？</p>
+                    <p>工夫する</p>
+                    <pre><code>class Api::SessionsController &lt; Devise::SessionsController
+
+  respond_to :json
+
+  def create
+    resource = User.find_for_database_authentication(:login =&gt; params[:username][:email])
+
+
+
+    if resource.valid_password?(params[:login][:password])
+      sign_in(:user, resource)
+
+      render :json=&gt; {:auth_token=&gt;resource.authentication_token, :email=&gt;resource.email}, :status =&gt; :ok
+      return
+    end
+    invalid_login_attempt
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、次のように
+                    find_for_database_authentication
+                    をオーバーライドして行いました。</p>
+                    <pre><code>class User
+  def self.find_for_database_authentication(auth_hash)
+    self.where(&quot;username = :query OR email = :query&quot;, query: auth_hash[:email].downcase).first
+  end
+end
+</code></pre>
+                    <p>それ以上何も必要ありませんでした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

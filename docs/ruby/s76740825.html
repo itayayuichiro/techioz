@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>link_to ヘルパーが _blob.html.erb に「target」属性を表示しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "link_to ヘルパーが _blob.html.erb に「target」属性を表示しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>link_to ヘルパーが _blob.html.erb
+に「target」属性を表示しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Active Storage BLOB の部分ビュー
+                    (app/views/active_storage/blobs/_blob.html.erb)
+                    へのリンクに target=“_blank”
+                    属性を入れたいのですが、この属性は最終的な HTML
+                    に表示されません。</p>
+                    <p>#app/views/active_storage/blobs/_blob.html.erb</p>
+                    <pre><code>&lt;%= link_to blob.filename, rails_blob_path(blob), target: &quot;_blank&quot; %&gt;
+</code></pre>
+                    <p>最終的な HTML では、target=“_blank”
+                    は表示されません。</p>
+                    <pre><code>&lt;a href=&quot;/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBDZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--48145f82f0b597246f7579fe56b06f563320fe15/file.pdf&quot;&gt;file.pdf&lt;/a&gt;
+</code></pre>
+                    <p>実際、テストのために link_to ヘルパーの代わりに
+                    <a> HTML
+                    タグを配置しましたが、これも機能しません。ただし、別の観点からは機能します。</p>
+                    <p>ID
+                    属性でテストしましたが、どちらも機能しません。</p>
+                    <p>Ruby バージョン: Ruby 3.2.2 (2023-03-30
+                    リビジョン e51014f9c0) [x64-mingw-ucrt]</p>
+                    <p>Rails バージョン: Rails 7.0.6。</p>
+                    <p>OS：Windows11。</p>
+                    <p>ご協力いただき、誠にありがとうございました</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アクション
+                    テキストをレンダリングしている場合、HTML
+                    はサニタイズされます。 render_action_text_content
+                    ヘルパー メソッドは
+                    Rails::Html::Sanitizer.safe_list_sanitizer
+                    を使用し、デフォルトでターゲット属性を削除します。</p>
+                    <p>何が起こっているかをテストする 1
+                    つの方法は、Rails
+                    コンソールに移動してこれを実行することです。</p>
+                    <pre><code>content = ActionText::Content.new(&#39;&lt;a target=&quot;_blank&quot; href=&quot;my_url&quot;&gt;my text&lt;/a&gt;&#39;)
+helper.render_action_text_content(content)
+ =&gt; &quot;&lt;a href=\&quot;my_url\&quot;&gt;my text&lt;/a&gt;&quot;
+</code></pre>
+                    <p>target
+                    属性を許可するには、これをイニシャライザに追加して、アプリを再起動します。</p>
+                    <pre><code>ActionText::ContentHelper.allowed_attributes &lt;&lt; &#39;target&#39;
+</code></pre>
+                    <p>これにより、ターゲットは以下を通過できるようになります。</p>
+                    <pre><code>content = ActionText::Content.new(&#39;&lt;a target=&quot;_blank&quot; href=&quot;my_url&quot;&gt;my text&lt;/a&gt;&#39;)
+helper.render_action_text_content(content)
+ =&gt; &quot;&lt;a target=\&quot;_blank\&quot; href=\&quot;my_url\&quot;&gt;my text&lt;/a&gt;&quot;
+</code></pre>
+                    <p>target
+                    属性がデフォルトで削除される理由は、タブナビングを防ぐためであることに注意してください。関連する攻撃の詳細と、target
+                    属性を許可する場合にセキュリティの問題を防ぐために
+                    rel 属性で noreferrer
+                    を使用する方法については、この投稿を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

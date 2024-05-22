@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>App Store Connect API用のJWTでRubyファイルを扱う方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "App Store Connect API用のJWTでRubyファイルを扱う方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>App Store Connect
+API用のJWTでRubyファイルを扱う方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>jwt に署名するのに苦労していますが、WWDC で Apple
+                    が提供する Ruby
+                    ファイルに慣れていません。コードは次のようになります。</p>
+                    <pre><code>require &quot;base64&quot;
+require &quot;jwt&quot;
+
+ISSUER_ID = &quot;your-ID&quot;
+KEY_ID = &quot;your-KeyID&quot;
+
+private_key = OpenSSL::PKey.read(File.read())
+
+token = JWT.encode(
+   {
+    iss: ISSUER_ID,
+    exp: Time.now.to_i + 20 * 60,
+    aud: &quot;appstoreconnect-v1&quot;
+   },
+   private_key,
+   &quot;ES256&quot;,
+   header_fields={
+     kid: KEY_ID }
+ )
+puts token
+</code></pre>
+                    <p>ターミナルでコードを実行すると、このエラーが表示され続けます。</p>
+                    <p>私の目標は単純です。GET API
+                    からデータを返したいだけですが、ポストマンの 401
+                    エラーに苦労しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>投稿したスクリーンショットによると、コードに構文エラーがあります。</p>
+                    <p>コード
+                    サンプルには、エラーまたは構成ミスと思われるものもあります。</p>
+                    <p>Ruby で JWT
+                    をエンコード/デコードするために最も頻繁に使用される
+                    gem はここにあります。これは、例で使用している gem
+                    です (require “jwt”
+                    経由)。そのページには参照できる例が多数ありますが、README
+                    をよく読んでみると、kid
+                    のみを使用できると記載されていることがわかります。
+                    RSA を使用していますが、この例では RSA
+                    を使用していません。</p>
+                    <p>これを試して：</p>
+                    <pre><code>token = JWT.encode(
+   {
+    iss: ISSUER_ID,
+    exp: Time.now.to_i + 20 * 60,
+    aud: &quot;appstoreconnect-v1&quot;
+   },
+   private_key,
+   &quot;ES256&quot;
+)
+</code></pre>
+                    <p>これは、子供と RSA アルゴリズムで JWK
+                    を使用するためのリンクです。</p>
+                    <p>ES256 の例については、同じページで ecdsa_key
+                    を検索してください
+                    (上で投稿したものが見つかります)。</p>
+                    <p>WWDC
+                    ドキュメントの元の例を見ると、正しい構成に関する追加のコンテキストが得られるかもしれませんが、そのドキュメントがどこにあるのかわかりません。公開されており、リンクしていただければフォローアップさせていただきます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

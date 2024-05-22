@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>述語を含む未定義のメソッドをランサックする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "述語を含む未定義のメソッドをランサックする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>述語を含む未定義のメソッドをランサックする</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>Rails 7.1.0.beta1
+ransack 4
+</code></pre>
+                    <p>コントローラ：</p>
+                    <pre><code>@q = Customer.ransack(params[:q])
+@customers = @q.result(distinct: true)
+</code></pre>
+                    <p>ビュー：</p>
+                    <pre><code>  &lt;%= search_form_for @q do |f| %&gt;
+    &lt;%= f.label :name %&gt;
+    &lt;%= f.search_field :name_cont %&gt;
+
+    &lt;%= f.submit %&gt;
+  &lt;% end %&gt;
+  &lt;% @customers.each do |customer| %&gt;
+    &lt;%= render customer %&gt;
+    &lt;p&gt;
+      &lt;%= link_to &quot;Show this customer&quot;, customer %&gt;
+    &lt;/p&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>エラー出力:</p>
+                    <p>エラー出力:</p>
+                    <p>痕跡：</p>
+                    <pre><code>[ransack (4.0.0) lib/ransack/adapters/active_record/context.rb:16:in `type_for&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/nodes/attribute.rb:35:in `type&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/nodes/condition.rb:266:in `default_type&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/nodes/condition.rb:25:in `extract&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/nodes/grouping.rb:175:in `write_attribute&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/nodes/grouping.rb:115:in `method_missing&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/search.rb:54:in `block in build&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/search.rb:48:in `each&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/search.rb:48:in `build&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/search.rb:40:in `initialize&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/adapters/active_record/base.rb:16:in `new&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[ransack (4.0.0) lib/ransack/adapters/active_record/base.rb:16:in `ransack&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/basic_implicit_render.rb:6:in `send_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/abstract_controller/base.rb:224:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/rendering.rb:165:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/abstract_controller/callbacks.rb:259:in `block in process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/callbacks.rb:121:in `block in run_callbacks&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actiontext/lib/action_text/rendering.rb:23:in `with_renderer&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actiontext/lib/action_text/engine.rb:69:in `block (4 levels) in &lt;class:Engine&gt;&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/callbacks.rb:130:in `instance_exec&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/callbacks.rb:130:in `block in run_callbacks&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/callbacks.rb:141:in `run_callbacks&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/abstract_controller/callbacks.rb:258:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/rescue.rb:25:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/instrumentation.rb:74:in `block in process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/notifications.rb:206:in `block in instrument&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/notifications/instrumenter.rb:58:in `instrument&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/notifications.rb:206:in `instrument&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/instrumentation.rb:73:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal/params_wrapper.rb:261:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activerecord/lib/active_record/railties/controller_runtime.rb:32:in `process_action&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/abstract_controller/base.rb:160:in `process&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionview/lib/action_view/rendering.rb:40:in `process&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal.rb:227:in `dispatch&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_controller/metal.rb:309:in `dispatch&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/routing/route_set.rb:49:in `dispatch&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/routing/route_set.rb:32:in `serve&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/journey/router.rb:51:in `block in serve&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/journey/router.rb:32:in `each&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/journey/router.rb:32:in `serve&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/routing/route_set.rb:882:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/tempfile_reaper.rb:20:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/etag.rb:29:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/conditional_get.rb:31:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/head.rb:15:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/http/permissions_policy.rb:36:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/http/content_security_policy.rb:33:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack-session (2.0.0) lib/rack/session/abstract/id.rb:272:in `context&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack-session (2.0.0) lib/rack/session/abstract/id.rb:266:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/cookies.rb:689:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activerecord/lib/active_record/migration.rb:653:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/callbacks.rb:29:in `block in call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/callbacks.rb:101:in `run_callbacks&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/callbacks.rb:28:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/executor.rb:14:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/actionable_exceptions.rb:16:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/debug_exceptions.rb:29:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[web-console (4.2.1) lib/web_console/middleware.rb:132:in `call_app&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[web-console (4.2.1) lib/web_console/middleware.rb:19:in `block in call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[web-console (4.2.1) lib/web_console/middleware.rb:17:in `catch&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[web-console (4.2.1) lib/web_console/middleware.rb:17:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/show_exceptions.rb:31:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) railties/lib/rails/rack/logger.rb:37:in `call_app&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) railties/lib/rails/rack/logger.rb:24:in `block in call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/tagged_logging.rb:135:in `block in tagged&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/tagged_logging.rb:39:in `tagged&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/tagged_logging.rb:135:in `tagged&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) railties/lib/rails/rack/logger.rb:24:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[sprockets-rails (3.4.2) lib/sprockets/rails/quiet_assets.rb:13:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/remote_ip.rb:92:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/request_id.rb:28:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/method_override.rb:28:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/runtime.rb:24:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) activesupport/lib/active_support/cache/strategy/local_cache_middleware.rb:29:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/server_timing.rb:59:in `block in call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/server_timing.rb:24:in `collect_events&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/server_timing.rb:58:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/executor.rb:14:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/static.rb:25:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rack (3.0.8) lib/rack/sendfile.rb:114:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) actionpack/lib/action_dispatch/middleware/host_authorization.rb:141:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[rails (d56db8ff17cf) railties/lib/rails/engine.rb:529:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/configuration.rb:272:in `call&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/request.rb:100:in `block in handle_request&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/thread_pool.rb:378:in `with_force_shutdown&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/request.rb:99:in `handle_request&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/server.rb:443:in `process_client&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/server.rb:241:in `block in run&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+[puma (6.4.0) lib/puma/thread_pool.rb:155:in `block in spawn_thread&#39;](http://localhost:9999/customers?q%5Bname%5D=asdf&amp;commit=Search#)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ransack は、現時点では 7.1
+                    で動作するように更新されていません。バージョン 4.0.0
+                    のドキュメントの状態:</p>
+                    <p>あなたの問題は特に次の 1 行です。</p>
+                    <pre><code>table = attr.arel_attribute.relation.table_name
+</code></pre>
+                    <p>attr.arel_attribute.relation は Arel::Table
+                    を返します。</p>
+                    <p>Rails 7.0 以前では、Arel::Table#table_name は
+                    Arel::Table#name
+                    のエイリアスでした。ただし、このメソッドは Rails
+                    コードベースで使用されないため、7.1
+                    では削除されました。</p>
+                    <p>この時点で、次の 3 つのオプションがあります。</p>
+                    <pre><code>module Arel
+  class Table
+    alias :table_name :name
+  end 
+end 
+</code></pre>
+                    <p>個人的には、これが最も簡単で下位互換性があり、それ以外の点では破壊的でなく影響がないため、#3
+                    を選択します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

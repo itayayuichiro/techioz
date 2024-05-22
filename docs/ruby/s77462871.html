@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby-Ruby 2.7.x のインストールが m1 mac pro で失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby-Ruby 2.7.x のインストールが m1 mac pro で失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby-Ruby 2.7.x のインストールが m1 mac pro
+で失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby-install は、m1 Mac Pro に Ruby
+                    の古いバージョン (例: 2.7.7)
+                    をインストールできません。</p>
+                    <pre><code>ruby-install ruby 2.7.7
+</code></pre>
+                    <pre><code>...
+        11: from ./tool/rbinstall.rb:947:in `&lt;main&gt;&#39;
+        10: from ./tool/rbinstall.rb:947:in `each&#39;
+         9: from ./tool/rbinstall.rb:950:in `block in &lt;main&gt;&#39;
+         8: from ./tool/rbinstall.rb:799:in `block in &lt;main&gt;&#39;
+         7: from ./tool/rbinstall.rb:835:in `install_default_gem&#39;
+         6: from ./tool/rbinstall.rb:835:in `each&#39;
+         5: from ./tool/rbinstall.rb:845:in `block in install_default_gem&#39;
+         4: from ./tool/rbinstall.rb:279:in `open_for_install&#39;
+         3: from ./tool/rbinstall.rb:846:in `block (2 levels) in install_default_gem&#39;
+         2: from /Users/m/src/ruby-2.7.7/lib/rubygems/specification.rb:2430:in `to_ruby&#39;
+         1: from /Users/m/src/ruby-2.7.7/lib/rubygems/core_ext/kernel_require.rb:83:in `require&#39;
+/Users/m/src/ruby-2.7.7/lib/rubygems/core_ext/kernel_require.rb:83:in `require&#39;: cannot load such file -- openssl (LoadError)
+make: *** [do-install-all] Error 1
+!!! Installation of ruby 2.7.7 failed!
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は openssl のバージョンに関係しています。
+                    Ruby の古いバージョンは openssl
+                    の新しいバージョンをサポートしていません</p>
+                    <p>修正するには次のことを試してください</p>
+                    <pre><code># reinstall openssl and version 3
+brew reinstall [email protected]
+
+# install build dependancies
+brew install openssl readline libyaml zlib bison [email protected]
+
+# ensure build is using bison
+export PATH=&quot;$(brew --prefix [email protected])/bin:$PATH&quot;
+
+# set ruby compilation flags
+export CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot;
+export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix [email protected]) --with-readline-dir=$(brew --prefix readline) --with-libyaml-dir=$(brew --prefix libyaml) --with-zlib-dir=$(brew --prefix zlib)&quot;
+
+# ensure that openssl is linked
+brew unlink openssl &amp;&amp; brew link openssl --force
+
+# load openssl 1.1 for compilation
+export LDFLAGS=&quot;-L/opt/homebrew/opt/[email protected]/lib&quot;
+export CPPFLAGS=&quot;-I/opt/homebrew/opt/[email protected]/include&quot;
+export PKG_CONFIG_PATH=&quot;/opt/homebrew/opt/[email protected]/lib/pkgconfig&quot;
+
+# install ruby via ruby-install
+ruby-install ruby 2.7.7
+</code></pre>
+                    <p>少し異なるが関連する問題に対する私の他の答えが見つかります：Mac
+                    osx 11.6にruby
+                    2.6.xおよび3.0.xをインストールするとruby-installが失敗します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

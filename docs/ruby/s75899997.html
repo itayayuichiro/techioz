@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsバージョンアップデート後の心理エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsバージョンアップデート後の心理エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsバージョンアップデート後の心理エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、クライアントのアプリケーションを Rails 4
+                    から Rails 5 に更新しました。 ただし、テスト
+                    スイートを実行した後、オブジェクトを作成しようとすると次の問題が発生しました。</p>
+                    <pre><code>       Failure/Error:
+         @ens_response = EnsResponse.create!(
+           edi_request_body:    @response.edi_request_body,
+           edi_body:            @response.edi_data,
+           reject_reason:       @response.attributes.try(:[], :reject_reason).try(:[], :text),
+           response_attributes: @response.attributes
+         )
+       
+       Psych::DisallowedClass:
+         Tried to load unspecified class: Policy
+
+</code></pre>
+                    <p>ここで、Policy は app/models/
+                    フォルダー内のモデルです。</p>
+                    <p>YAML の読み込みを次のように変更してみました。</p>
+                    <pre><code>      @service_hash ||= YAML.load_file(
+        Rails.root.join(&#39;config&#39;, &#39;mcp_services.yml&#39;),
+        permitted_classes: [Policy ],
+        aliases: true
+      )[Rails.env]
+
+</code></pre>
+                    <p>しかし、それは無駄でした。</p>
+                    <p>また、次の行を使用するように application.rb
+                    ファイルを変更してみました。</p>
+                    <pre><code>    config.active_record.yaml_column_permitted_classes = [
+      Symbol,
+      ActiveSupport::HashWithIndifferentAccess,
+      ActionController::Parameters
+
+</code></pre>
+                    <p>しかし、エラーが発生しました:</p>
+                    <pre><code>Failure/Error: require File.expand_path(&quot;../../config/environment&quot;, __FILE__)
+
+NoMethodError:
+  undefined method `yaml_column_permitted_classes=&#39; for ActiveRecord::Base:Class
+</code></pre>
+                    <p>この問題の原因は何か考えられますか? ローカルの
+                    psych はバージョン psych (デフォルト: 3.0.2)
+                    で、レールは gem ‘rails’、‘5.2.8’ にあります。</p>
+                    <p>前もって感謝します！ :)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>危険な簡単なハックは、これを application.rb
+                    に設定することです…</p>
+                    <pre><code>  config.active_record.use_yaml_unsafe_load = true
+</code></pre>
+                    <p>さらに複雑なのは、config/initializers
+                    にイニシャライザを追加することです。イニシャライザは、yaml
+                    をロードするときにどのクラスを許可するかを Rails
+                    に指示します。</p>
+                    <p>config/initializers/yaml_loader.rb</p>
+                    <pre><code>Psych::ClassLoader::ALLOWED_PSYCH_CLASSES = [Policy,
+                                                  ActionController::Parameters,
+                                                  ActiveSupport::HashWithIndifferentAccess,
+                                                  ActiveSupport::TimeWithZone,
+                                                  ActiveSupport::TimeZone,
+                                                  DateTime,
+                                                ]
+    
+    module Psych
+      class ClassLoader
+        ALLOWED_PSYCH_CLASSES = [] unless defined? ALLOWED_PSYCH_CLASSES
+        class Restricted &lt; ClassLoader
+          def initialize classes, symbols
+            @classes = classes + Psych::ClassLoader::ALLOWED_PSYCH_CLASSES.map(&amp;:to_s)
+            @symbols = symbols
+            super()
+          end
+        end
+      end
+    end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

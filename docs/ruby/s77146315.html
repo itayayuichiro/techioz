@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Google Places API - Ruby で結果の次のページを取得する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Google Places API - Ruby で結果の次のページを取得する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Google Places API - Ruby
+で結果の次のページを取得する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Web アプリで Google Web Service API と RestClient
+                    gem
+                    を使用して、特定の文字列を持つビジネスを検索しています。たとえば、「自動車ディーラー」を渡すと、近くのすべての自動車ディーラーの結果が返されます。</p>
+                    <p>現在、結果の最初のページを取得できます。すでに
+                    next_page_token
+                    を渡していますが、同じ結果が得られません。コードのどこで問題が発生したのかわかりません。本当に助かりました！</p>
+                    <pre><code>    SEARCH_ENDPOINT = &#39;https://maps.googleapis.com/maps/api/place/textsearch/json&#39;.freeze
+    DETAILS_ENDPOINT = &#39;https://maps.googleapis.com/maps/api/place/details/json&#39;.freeze
+
+    def initialize(query)
+      @params = {
+        query: query,
+        fields: &#39;name,formatted_phone_number,formatted_address,website,place_id,types&#39;,
+        key: API_KEY
+      }
+      @results = []
+    end
+
+    def extract
+      loop do
+        page_token = @results.last&amp;.dig(&#39;next_page_token&#39;)
+
+        page = fetch_page(page_token)
+        break if page.nil?
+
+        @results += page[&#39;results&#39;]
+
+        break if page[&#39;next_page_token&#39;].nil?
+
+        # Add a delay to avoid OVER_QUERY_LIMIT errors (10 requests per second)
+        sleep(10)
+      end
+
+      @results = @results.map do |result|
+        result_details = fetch_place_details(result[&#39;place_id&#39;])
+        result.merge(result_details)
+      end
+
+      upsert_businesses(clean_data(@results))
+    end
+
+    private
+
+    def fetch_page(page_token)
+      response = RestClient.get(SEARCH_ENDPOINT, params: @params.merge({page_token: page_token}))
+
+      return nil unless response.code == 200
+
+      JSON.parse(response.body)
+    end
+
+    def fetch_place_details(place_id)
+      response = RestClient.get(DETAILS_ENDPOINT, params: @params.merge({place_id: place_id}))
+
+      return {} unless response.code == 200
+
+      details = JSON.parse(response.body)[&#39;result&#39;]
+
+      details || {}
+    end
+</code></pre>
+                    <p>新しいページの応答を期待して、次のページのトークンを
+                    params
+                    に渡します。しかし、同じ結果が得られます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次の行は毎回 page_token を消去していました。</p>
+                    <pre><code>page_token = @results.last&amp;.dig(&#39;next_page_token&#39;)
+</code></pre>
+                    <p>また、page_token パラメータの正しい構文は
+                    (少なくとも Ruby では) pagetoken です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

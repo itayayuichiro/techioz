@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ArgumentError: 不明なキーワード: active_storage.rb からの :service (ArgumentError) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ArgumentError: 不明なキーワード: active_storage.rb からの :service (ArgumentError)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ArgumentError: 不明なキーワード:
+active_storage.rb からの :service (ArgumentError)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby アプリケーションを 3.2.2
+                    バージョンにアップグレードしているところ、zeitwerk:check
+                    から次のエラーが発生します。</p>
+                    <pre><code>ArgumentError: unknown keyword: :service (ArgumentError)
+/home/asd/app/config/initializers/active_storage.rb:5:in `has_one_attached&#39;
+</code></pre>
+                    <p>アクティブストレージ.rb:</p>
+                    <pre><code>Rails.application.config.to_prepare do
+  # Provides the class-level DSL for declaring that an Active Record model has attached blobs.
+  ActiveStorage::Attached::Model.module_eval do
+    class_methods do
+      def has_one_attached(name, dependent: :purge_later, acl: :public)
+        generated_association_methods.class_eval &lt;&lt;-CODE, __FILE__, __LINE__ + 1
+          def #{name}
+            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new(&quot;#{name}&quot;, self, acl: &quot;#{acl}&quot;)
+          end
+          def #{name}=(attachable)
+            attachment_changes[&quot;#{name}&quot;] =
+              if attachable.nil?
+                ActiveStorage::Attached::Changes::DeleteOne.new(&quot;#{name}&quot;, self)
+              else
+                ActiveStorage::Attached::Changes::CreateOne.new(&quot;#{name}&quot;, self, attachable, acl: &quot;#{acl}&quot;)
+              end
+          end
+        CODE
+
+        has_one :&quot;#{name}_attachment&quot;, -&gt; { where(name: name) }, class_name: &quot;ActiveStorage::Attachment&quot;, as: :record, inverse_of: :record, dependent: :destroy
+        has_one :&quot;#{name}_blob&quot;, through: :&quot;#{name}_attachment&quot;, class_name: &quot;ActiveStorage::Blob&quot;, source: :blob
+
+        scope :&quot;with_attached_#{name}&quot;, -&gt; { includes(&quot;#{name}_attachment&quot;: :blob) }
+
+        after_save { attachment_changes[name.to_s]&amp;.save }
+
+        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+
+        ActiveRecord::Reflection.add_attachment_reflection(
+          self,
+          name,
+          ActiveRecord::Reflection.create(:has_one_attached, name, nil, { dependent: dependent }, self)
+        )
+      end
+
+      def has_many_attached(name, dependent: :purge_later, acl: :public)
+        ...
+      end
+    end
+  end
+
+  ActiveStorage::Blob.class_eval do
+    def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
+      filename = ActiveStorage::Filename.wrap(filename || self.filename)
+      expires_in = false if metadata[:acl] == &#39;public&#39;
+
+      service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
+                  disposition: forced_disposition_for_service_url || disposition, **options
+    end
+
+    def upload_without_unfurling(io)
+      service.upload key, io, checksum: checksum, **service_metadata.merge(acl: metadata[:acl])
+    end
+  end
+...
+</code></pre>
+                    <p>サービスは、development.rb で
+                    config.active_storage.service = :local
+                    として設定され、storage.yml で定義されます。</p>
+                    <pre><code>local:
+  service: Disk
+  root: &lt;%= Rails.root.join(&quot;storage&quot;) %&gt;
+</code></pre>
+                    <p>何が足りないのか分かりませんでしたし、同様の問題も見つかりませんでした。
+                    ルビー：3.2.2 レール: 7.1.2</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下のようにサービスをメソッドに追加したところ、エラーはなくなりました。</p>
+                    <pre><code>def has_one_attached(name, dependent: :purge_later, acl: :public, service: :service)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord の移行によって db/structural.sql に大きな変更が加えられるのを防ぐ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord の移行によって db/structural.sql に大きな変更が加えられるのを防ぐ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord の移行によって db/structural.sql
+に大きな変更が加えられるのを防ぐ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下の ActiveRecord 移行をテスト
+                    (運用環境ではない)
+                    データベースで実行すると、db/structural.sql
+                    に大きな変更が表示されます。これは再現可能です。変更点は次のとおりです。</p>
+                    <p>これらは、運用データベース サーバー上の
+                    postgresql バージョンと、テスト
+                    データベースで移行が実行されるマシン上の postgresql
+                    のバージョン間の不一致に関連している可能性がありますか?</p>
+                    <p>これらの無関係な変更により、git diff
+                    出力の有用性が大幅に低下します。 GitHub
+                    の差分結果についても同様です。</p>
+                    <p>以下の小さな最小限の例では、ほんの数個のテーブルが再配置されています。しかし、実際の（より大規模な）移行では、数十のテーブル、ビュー、マットビューの順序が変更されます。これは大きな変更です。</p>
+                    <pre><code>class FixFooBarBaz &lt; ActiveRecord::Migration[5.2]
+
+  def up
+    sql = &lt;&lt;~SQL
+                  DROP VIEW master_foo;
+                  DROP VIEW IF EXISTS bar1;
+                  CREATE OR REPLACE VIEW bar1 AS
+                  SELECT * FROM baz1
+                  UNION ALL
+                  SELECT * FROM baz2;
+                  CREATE OR REPLACE VIEW master_foo AS
+                  SELECT
+                      *,
+                      &#39;bar1&#39; AS bar_type
+                  FROM
+                      bar1
+                  UNION ALL
+                  ...
+    SQL
+
+    execute sql
+  end
+
+  def down
+    sql = &lt;&lt;~SQL
+                  DROP VIEW IF EXISTS master_foo;
+                  DROP VIEW IF EXISTS bar1;
+                  ...
+    SQL
+
+    execute sql
+  end
+end 
+</code></pre>
+                    <p>使用されるハードウェア/ソフトウェア:</p>
+                    <p>マイグレーションが実行されるマシン:</p>
+                    <pre><code>MacBookPro, Apple M1 Max, macOS Sonoma 14.2.1
+ruby 2.7.3p183 (2021-04-05 revision 6847ee089d) [arm64-darwin21]
+15.3 psql (PostgreSQL) 15.3 (Homebrew)
+</code></pre>
+                    <p>本番データベースサーバー:</p>
+                    <pre><code>psql (14.9 (Homebrew), server 13.3 (Ubuntu 13.3-1.pgdg20.04+1))
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、これは、異なるマシン間で使用しているデータベース
+                    エンジンのバージョンや構成
+                    (インストールされているプラグインなど)
+                    が原因で発生する可能性があります。例:
+                    リポジトリをクローンし、structural.sql
+                    を使用してデータベースを最初から再作成した後、このファイルに予期しない変更がいくつか表示されます:
+                    https://github.com/coopdevs/timeoverflow/pull/713/files。</p>
+                    <p>その他に考えられる原因は次のとおりです。可読性、一貫性、またはその他の理由により、Rails
+                    (アクティブ レコード)
+                    の内部変更が行われています。例:
+                    https://github.com/rails/rails/issues/44571。</p>
+                    <p>Structure.sql
+                    ファイル内のテーブルまたはビューの順序の違い
+                    (schema.rb アプローチにも同じことが当てはまります)
+                    は、通常、Rails
+                    アプリケーションの機能には影響しないことに注意してください。ただし、他の種類の変更を見つけた場合は、注意深く確認してください
+                    (たとえば、MySQL
+                    では、照合順序や文字セットに変更が見られましたが、これによりアプリで実際に奇妙な問題が発生する可能性があります)。</p>
+                    <p>「順序」に関しては、移行で :before および :after
+                    オプションを使用することで強制できます。例：</p>
+                    <pre><code>create_table :my_table, before: :my_other_table
+</code></pre>
+                    <p>これらのオプションは列にも機能します。</p>
+                    <pre><code>add_column :my_table, :my_new_attribute, :integer, after: :my_other_column
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

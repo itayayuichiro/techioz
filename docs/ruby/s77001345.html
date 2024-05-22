@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アソシエーション has_many に関する複数レベル/三重ネストされたフォーム | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アソシエーション has_many に関する複数レベル/三重ネストされたフォーム",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アソシエーション has_many
+に関する複数レベル/三重ネストされたフォーム</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Product、ProductVariant、Component の 3
+                    つのクラスがあり、Product のビューを呼び出すときに
+                    Product、ProductVariant、および Component
+                    の値を設定できるようにするために、三重にネストされたフォームを適用したいと考えています。</p>
+                    <p>モデル</p>
+                    <pre><code>class Product &lt; ApplicationRecord
+  has_many :product_variants
+  accepts_nested_attributes_for :product_variants
+end
+
+class ProductVariant &lt; ApplicationRecord
+  has_many :components
+  accepts_nested_attributes_for :components
+end
+
+class Component &lt; ApplicationRecord
+end
+</code></pre>
+                    <p>製品のコントローラー</p>
+                    <pre><code> # GET /products/new
+  def new
+    @product = Product.new
+    @product.product_variants.build.components.build
+  end
+
+  # POST /products or /products.json
+  def create
+    @product = Product.new(product_params)
+
+    respond_to do |format|
+      if @product.save
+      ...
+      end
+      ...
+    end
+  end
+...
+    def product_params
+      params.require(:product).permit(:name, product_variants_attributes: [:category, components: [:form]])
+    end
+end
+</code></pre>
+                    <p>製品の見方</p>
+                    <pre><code>&lt;%= form_with(model: product) do |form| %&gt;
+  ...
+  &lt;div&gt;
+    &lt;%= form.label :name, style: &quot;display: block&quot; %&gt;
+    &lt;%= form.text_field :name %&gt;
+  &lt;/div&gt;
+  &lt;%= form.fields_for :product_variant do |va| %&gt;
+    &lt;%= va.label :category, style: &quot;display: block&quot; %&gt;
+    &lt;%= va.text_field :category %&gt;
+    &lt;%= va.fields_for :components do |co| %&gt;
+      &lt;%= co.label :form, style: &quot;display: block&quot; %&gt;
+      &lt;%= co.text_field :form %&gt;
+    &lt;% end %&gt;
+  &lt;% end %&gt;
+  &lt;div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>オブジェクト ProductVariant
+                    を初期化して保存することは可能ですが、コンポーネントの場合は
+                    Unpermitted パラメーター::components_attributes
+                    が表示されますが、その理由がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>製品バリアントと同じ方法でコンポーネント
+                    パラメータを渡し、_attrbiutes
+                    サフィックスを追加する必要があります。</p>
+                    <p>以下を変更します。</p>
+                    <pre><code>params.require(:product).permit(:name, product_variants_attributes: [:category, components: [:form]])
+</code></pre>
+                    <p>に：</p>
+                    <pre><code>params.require(:product).permit(:name, product_variants_attributes: [:category, components_attributes: [:form]])
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html
+                    - One-to-many</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

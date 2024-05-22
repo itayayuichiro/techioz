@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: Java (AES/256/GCM) を使用して暗号化されたメッセージを復号化します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: Java (AES/256/GCM) を使用して暗号化されたメッセージを復号化します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: Java (AES/256/GCM)
+を使用して暗号化されたメッセージを復号化します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>AES-256-GCM を使用してメッセージを暗号化する Java
+                    コードがあります。同じ暗号化と復号化を行うコードを
+                    Ruby で書きたいと考えています。</p>
+                    <p>Java コード:</p>
+                    <pre><code>import java.util.Base64;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.spec.KeySpec;
+import java.security.SecureRandom;
+// ----------------------
+
+String plainMessage = &quot;Hello Java&quot;;
+String password = &quot;password&quot;;
+
+byte[] salt = new byte[16];
+new SecureRandom().nextBytes(salt);
+
+KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
+SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA256&quot;);
+SecretKey secretKey =  SecretKeySpec(factory.generateSecret(spec).getEncoded(), &quot;AES&quot;);
+
+byte[] iv = new byte[12];
+new SecureRandom().nextBytes(iv);
+
+Cipher cipher = Cipher.getInstance(&quot;AES/GCM/NoPadding&quot;);
+cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
+
+byte[] encryptedMessageByte = cipher.doFinal(plainMessage.getBytes(StandardCharsets.UTF_8));
+
+byte[] cipherByte = ByteBuffer.allocate(iv.length + salt.length + encryptedMessageByte.length)
+                .put(iv)
+                .put(salt)
+                .put(encryptedMessageByte)
+                .array();
+
+String encryptedMessageBase64 = Base64.getEncoder().encodeToString(cipherByte);
+</code></pre>
+                    <p>同じ実装を Ruby で書くのを手伝ってください
+                    (暗号化と復号化)</p>
+                    <p>Rubyで復号化するために以下のコードを試してみました。これによりエラーが発生します。</p>
+                    <p>Rubyで復号化するために以下のコードを試してみました。これによりエラーが発生します。</p>
+                    <p>Rubyコードの復号化:</p>
+                    <pre><code>require &#39;base64&#39;
+require &#39;openssl&#39;
+
+cipher_message = &quot;encrypted-message-base64&quot;
+password = &quot;password&quot;
+decoded_cipher_byte = Base64.decode64(cipher_message)
+byte_buffer = StringIO.new(decoded_cipher_byte)
+
+iv = byte_buffer.read(12)
+salt = byte_buffer.read(16)
+encrypted_byte = byte_buffer.read
+
+spec = OpenSSL::KDF.pbkdf2_hmac(password, salt: salt, iterations: 65536, length: 32, hash: &#39;sha256&#39;)
+secret_key = OpenSSL::Cipher.new(&#39;AES&#39;).tap { |c| c.key = spec }.random_key
+
+cipher = OpenSSL::Cipher.new(&#39;AES-GCM&#39;)
+cipher.decrypt
+cipher.iv = iv
+cipher.key = secret_key
+
+decrypted_message_byte = cipher.update(encrypted_byte) + cipher.final
+msg = decrypted_message_byte.force_encoding(&#39;UTF-8&#39;)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントで説明されているように、Ruby
+                    コードでは間違ったキーが使用されており、認証タグが分離されていません
+                    (Java とは異なり、Ruby/OpenSSL
+                    はタグと暗号文を個別に処理します)。</p>
+                    <pre><code>require &#39;base64&#39;
+require &#39;openssl&#39;
+require &#39;stringio&#39;
+
+cipher_message = &quot;ngii4DerThzOaBfFt93zNgxY4kJVC7V+m92buC++OQC+OcKHA/FP1u0mwTIAOlexDJM/+xA0LRarIfXE7Qr7IkEfy/V8m37qqR3twrtKghexlV0oNOab&quot; # generated with the Java code
+password = &quot;password&quot;
+decoded_cipher_byte = Base64.decode64(cipher_message)
+
+# separate IV, salt, ciphertext and tag
+byte_buffer = StringIO.new(decoded_cipher_byte)
+ivSize = 12
+saltSize = 16
+tagSize = 16
+ciphertextSize = decoded_cipher_byte.length - ivSize - saltSize - tagSize
+iv = byte_buffer.read(ivSize)
+salt = byte_buffer.read(saltSize)
+encrypted_byte = byte_buffer.read(ciphertextSize)
+tag = byte_buffer.read
+
+# derive key
+secret_key = OpenSSL::KDF.pbkdf2_hmac(password, salt: salt, iterations: 65536, length: 32, hash: &#39;sha256&#39;)
+
+# decrypt with AES-256, GCM
+cipher = OpenSSL::Cipher::AES.new(256, :GCM).decrypt
+cipher.iv = iv
+cipher.key = secret_key # Fix 1: apply derived key
+cipher.auth_tag = tag # Fix 2: apply detached tag
+#cipher.auth_data = auth_data # no AAD
+decrypted_message_byte = cipher.update(encrypted_byte) + cipher.final
+
+puts decrypted_message_byte.force_encoding(&#39;UTF-8&#39;) # The quick brown fox jumps over the lazy dog
+</code></pre>
+                    <p>ここでは、AES/GCM を使用した認証暗号化の例を
+                    Ruby/OpenSSL
+                    ドキュメントから見つけることができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

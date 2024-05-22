@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails では、デリゲート メソッドでクエリを注文できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails では、デリゲート メソッドでクエリを注文できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails では、デリゲート
+メソッドでクエリを注文できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デリゲート
+                    メソッドでクエリを注文するのが困難です。私は、かなり大規模な
+                    Rails 3 アプリケーションを Rails 4
+                    にアップグレードするのを手伝うことを任されています。インデックス
+                    アクションでこのクエリを見つけました。</p>
+                    <pre><code># measurements_controller.rb
+def index
+  @measurements = Measurement.includes(:identifier).order(:name)
+end
+</code></pre>
+                    <p>Rails 4 では、次のエラーが発生します。</p>
+                    <pre><code>ERROR: column items.name does not exist LINE 1: ...D (item_names.name LIKE &#39;%&#39;) ORDER BY &quot;item...
+</code></pre>
+                    <p>そこでモデルを調べてみたところ、次のことがわかりました。</p>
+                    <pre><code># measurement.rb
+class Measurement &lt; Item
+  ...
+end
+
+# item.rb
+belongs_to :item, class_name: &#39;ItemName&#39;
+delegate :name, :name=, to: :item
+
+# item_name.rb
+# This object has a name column in the database
+</code></pre>
+                    <p>ターミナルを使用していて、Measurement
+                    のインスタンスがある場合、.name
+                    メソッドを簡単に呼び出すことができ、うまく機能します。しかし、
+                    .order(:name)
+                    に関しては、列が存在しないため機能しません。</p>
+                    <p>解決策を 1 つ見つけましたが、それはデリゲート
+                    メソッドの目的に反するようです。コントローラーでは、次のように変更できます。</p>
+                    <pre><code>@measurements = Measurement.includes(:item).order(&#39;item_names.name&#39;)
+</code></pre>
+                    <p>Item が name メソッドを ItemNames
+                    に委任していることはわかっているので、コントローラーはその委任先を知る必要はないと思います。</p>
+                    <p>既存のコードを保持したままデリゲート
+                    メソッドで順序付けする方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、ただし、最初にすべてのレコードをインスタンス化する必要があります
+                    (パフォーマンスが低下します)。</p>
+                    <pre><code>@measurements = Measurement.joins(:item).sort_by &amp;:name
+</code></pre>
+                    <p>このコードは、すべての測定値をロードしてインスタンス化し、Ruby
+                    メソッド .name で並べ替えます。</p>
+                    <p>説明</p>
+                    <p>デリゲートは、ActiveRecord
+                    モデルのインスタンスにのみ影響します。 SQL
+                    クエリには影響しません。</p>
+                    <p>この行は SQL クエリに直接マッピングされます。</p>
+                    <pre><code>Measurement.includes(:item).order(:name)
+</code></pre>
+                    <p>お気づきのとおり、測定テーブルで名前の列を探しますが、何も見つかりません。
+                    ActiveRecord
+                    モデルのインスタンスは名前が識別子にのみ存在することを知っていますが、SQL
+                    データベースはそれを知らないため、どのテーブルで列を見つけるかを明示的に指示する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

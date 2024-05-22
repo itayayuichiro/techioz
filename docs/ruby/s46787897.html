@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails JSON APIを使用してGoogle Calendar APIからイベントを取得する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails JSON APIを使用してGoogle Calendar APIからイベントを取得する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails JSON APIを使用してGoogle Calendar
+APIからイベントを取得する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、次のようなエラーが表示されます。</p>
+                    <p>retrieve_events コントローラー
+                    アクションを使用する場合。</p>
+                    <pre><code> module Api
+  module V1
+    class EventsController &lt; ApplicationController
+
+      require &#39;google/apis/calendar_v3&#39;
+      require &#39;googleauth&#39;
+      require &#39;googleauth/stores/file_token_store&#39;
+      require &#39;openssl&#39;
+      require &#39;fileutils&#39;
+
+
+      def index
+        # @events = Event.all
+        # render json: @events
+      end
+
+
+      OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
+      def retrieve_events
+        client = Signet::OAuth2::Client.new({
+          client_id: Rails.application.secrets.google_client_id,
+          client_secret: Rails.application.secrets.google_client_secret,
+          token_credential_uri: &#39;https://accounts.google.com/o/oauth2/token&#39;
+        })
+
+        client.update!(session[:authorization])
+
+        service = Google::Apis::CalendarV3::CalendarService.new
+        service.authorization = client
+
+        @event_list = service.list_events(params[:calendar_id])
+        # @event_list = service.list_events(1)
+
+        @event_list.items.each do |event|
+
+          unless event.start.nil?
+            e = Event.find_or_initialize_by(title: event.summary)
+            if event.start.date
+              e.start_time = DateTime.parse(event.start.date).beginning_of_day
+              e.end_time = DateTime.parse(event.start.date).end_of_day
+            else
+              e.start_time = event.start.date_time
+              e.end_time = event.end.date_time
+            end
+            e.approved = true
+            e.save!
+          end
+        end
+        render json: @event_list
+      end
+
+      def new_event
+        client = Signet::OAuth2::Client.new({
+          client_id: Rails.application.secrets.google_client_id,
+          client_secret: Rails.application.secrets.google_client_secret,
+          token_credential_uri: &#39;https://accounts.google.com/o/oauth2/token&#39;
+        })
+
+        client.update!(session[:authorization])
+
+        service = Google::Apis::CalendarV3::CalendarService.new
+        service.authorization = client
+
+        today = Date.today
+
+        event = Google::Apis::CalendarV3::Event.new({
+          start: Google::Apis::CalendarV3::EventDateTime.new(date: today),
+          end: Google::Apis::CalendarV3::EventDateTime.new(date: today + 1),
+          summary: &#39;New event!&#39;
+        })
+
+        service.insert_event(params[:calendar_id], event)
+
+        redirect_to events_url(calendar_id: params[:calendar_id])
+      end
+
+      def redirect
+        client = Signet::OAuth2::Client.new({
+          client_id: Rails.application.secrets.google_client_id,
+          client_secret: Rails.application.secrets.google_client_secret,
+          authorization_uri: &#39;https://accounts.google.com/o/oauth2/auth&#39;,
+          scope: Google::Apis::CalendarV3::AUTH_CALENDAR,
+          redirect_uri: callback_url
+        })
+
+        redirect_to client.authorization_uri.to_s
+      end
+
+      def callback
+        client = Signet::OAuth2::Client.new({
+          client_id: Rails.application.secrets.google_client_id,
+          client_secret: Rails.application.secrets.google_client_secret,
+          token_credential_uri: &#39;https://accounts.google.com/o/oauth2/token&#39;,
+          redirect_uri: callback_url,
+          code: params[:code]
+        })
+
+        response = client.fetch_access_token!
+
+        session[:authorization] = response
+
+        redirect_to calendars_url
+      end
+
+      def calendars
+        client = Signet::OAuth2::Client.new({
+          client_id: Rails.application.secrets.google_client_id,
+          client_secret: Rails.application.secrets.google_client_secret,
+          token_credential_uri: &#39;https://accounts.google.com/o/oauth2/token&#39;
+        })
+
+        client.update!(session[:authorization])
+
+        service = Google::Apis::CalendarV3::CalendarService.new
+        service.authorization = client
+
+        @calendar_list = service.list_calendar_lists
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>これが経由するルートは次のとおりです。</p>
+                    <pre><code>collection do
+  post :retrieve_events
+end
+</code></pre>
+                    <p>かつては、これが API モードではない Rails
+                    アプリで機能していました。次に、Google
+                    コンソールを経由して、承認された状態に戻りました。</p>
+                    <p>URL にアクセスする JSON API
+                    を使用してこれを同様にスムーズに行う方法:</p>
+                    <p>api/v1/events/retrieve_events</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたはそれを少し間違っています、あなたはしなければなりません</p>
+                    <pre><code>@event_list = client.list_events(params[:calendar_id])
+</code></pre>
+                    <p>Googleユーザーイベントを取得しようとしているため</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

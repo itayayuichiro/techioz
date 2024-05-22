@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の 2 つのドット演算子とは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の 2 つのドット演算子とは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の 2 つのドット演算子とは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>レールにおけるこれら 2
+                    つのドットの意味は何ですか?</p>
+                    <p>には次のような機能があります。</p>
+                    <pre><code>def period
+   start_date..end_date
+end
+</code></pre>
+                    <p>それは何ですか？これは配列を生成しますか?
+                    この授業で使われているのを見ました</p>
+                    <pre><code>class Booking &lt; ApplicationRecord
+   # ... some code is skipped here for simplicity&#39;s sake
+   validate :validate_other_booking_overlap
+
+   def period
+     start_date..end_date
+   end
+
+   private
+
+   def validate_other_booking_overlap
+     other_bookings = Booking.all
+     is_overlapping = other_bookings.any? from |other_booking|
+       period.overlaps?(other_booking.period)
+     end
+     errors.add(:overlaps_with_other) if is_overlapping
+   end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、Ruby
+                    における包含的な有限範囲のリテラル構文です。</p>
+                    <p>範囲は、両端を含む 2 つのドット
+                    (..)、または両端を含む 3 つのドット (…)
+                    で表現できます。排他的範囲には最後の要素は含まれません。</p>
+                    <p>2.6 より前では、すべての Range は有限でした
+                    (構文的には開始と終了が必要ですが、終了は
+                    Float::INFINITY [開始の逆に -Float::INFINITY]
+                    にすることもできるため、技術的にはすべての Range
+                    が「有限」ではありませんでした)。</p>
+                    <p>2.6 では、「無限範囲」は構文 x…
+                    を使用して実装されました。</p>
+                    <p>2.7 以降、構文 ..x
+                    を使用して範囲を「先頭なし」にすることができます。</p>
+                    <p>ドキュメントによれば、始まりのない範囲と無限の範囲は両方とも「半無限」であり、包括的または排他的として表現できます。
+                    (正直に言うと、排他的な無限範囲がどのようなものになるのかはわかりません。ただし、構文には創造的な用途があります
+                    [下記を参照])</p>
+                    <p>補足: (TL;DR)</p>
+                    <p>すべての予約をループすることは、パフォーマンスの観点からは悪い考えです。</p>
+                    <p>より良いアイデアは、次のようなものを使用してこれをデータベースにオフロードすることです。</p>
+                    <pre><code>def validate_other_booking_overlap
+  overlaps_bookings = Booking
+    .where(start_date: period)
+    .or(Booking.where(end_date: period))
+    .or(
+      Booking.where(
+        Booking.arel_table[:start_date].gt(start_date)
+          .and(Booking.arel_table[:end_date].lt(end_date))))
+    .where.not(id: id)
+    .exists?
+  errors.add(:overlaps_with_other) if overlaps_bookings
+end
+</code></pre>
+                    <p>Rails (Arel) は、WHERE 条件内の有限範囲を SQL
+                    BETWEEN
+                    句に変換するため、このクエリ条件は次のようになります。</p>
+                    <pre><code>WHERE
+((bookings.start_date BETWEEN &#39;####-##-##&#39; AND &#39;####-##-##&#39; 
+  OR bookings.end_date BETWEEN &#39;####-##-##&#39; AND &#39;####-##-##&#39;)
+  OR (
+    bookings.start_date &gt; &#39;####-##-##&#39; 
+    AND bookings.end_date &lt; &#39;####-##-##&#39;
+  ))
+  AND bookings.id != # -- IS NOT NULL on create
+</code></pre>
+                    <p>Rails の新しいバージョン (6.0.3 以上および Ruby
+                    2.7 以上) では、次のようになります。</p>
+                    <pre><code>Booking.arel_table[:start_date].gt(start_date)
+  .and(Booking.arel_table[:end_date].lt(end_date))
+</code></pre>
+                    <p>これで代用可能</p>
+                    <pre><code>Booking.where(start_date: start_date..., end_date:...end_date))
+</code></pre>
+                    <p>なぜなら、Rails (Arel)
+                    は範囲を次のように扱うようになったからです。</p>
+                    <p>…そして今、私たちは一周したと信じています。</p>
+                    <p>アップデート</p>
+                    <p><span class="citation"
+                    data-cites="max">@max</span>
+                    のコメントにより、次のように OVERLAPS 関数
+                    (データベースがサポートしている場合)
+                    を使用できます。</p>
+                    <pre><code>def validate_other_booking_overlap
+  left = Arel::Nodes::Grouping.new(
+    [Booking.arel_table[:start_date],
+    Booking.arel_table[:end_date]])
+  right = Arel::Nodes::Grouping.new(
+    [Arel::Nodes::UnaryOperation.new(
+      &#39;DATE&#39;, 
+      [Arel::Nodes.build_quoted(start_date - 1)]),
+    Arel::Nodes::UnaryOperation.new(
+      &#39;DATE&#39;, 
+      [Arel::Nodes.build_quoted(end_date + 1)])])
+  condition = Arel::Nodes::InfixOperation.new(&#39;OVERLAPS&#39;, left, right)
+  errors.add(:overlaps_with_other) if Booking.where.not(id: id).where(condition).exists?
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

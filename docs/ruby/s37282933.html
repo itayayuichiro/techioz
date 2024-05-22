@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>params ハッシュのキーとしてシンボルと文字列を使用する Rails | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "params ハッシュのキーとしてシンボルと文字列を使用する Rails",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>params
+ハッシュのキーとしてシンボルと文字列を使用する Rails</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>文字列をハッシュキーとして使用する場合、Ruby
+                    は文字列を評価してその内容を確認し
+                    (そしてそれに対してハッシュ関数を計算し)、その結果をハッシュに既に格納されているキーの
+                    (ハッシュされた) 値と比較する必要があります。 。</p>
+                    <p>シンボルをハッシュキーとして使用する場合、それが不変であることが暗黙的に示されるため、Ruby
+                    は基本的にオブジェクト ID (のハッシュ関数)
+                    と既に保存されているキーの (ハッシュされた)
+                    オブジェクト ID
+                    との比較を行うことができます。ハッシュ。
+                    （はるかに高速）。</p>
+                    <p>しかし、問題はHashWithIndependentAccessのインスタンスであるRailsのparamsにあり、params[:some_key]を記述すると、:some_keyを「some_key」に変換し、paramsハッシュでキーを検索しようとします。
+                    159行目</p>
+                    <pre><code> def convert_key(key)
+    key.kind_of?(Symbol) ? key.to_s : key
+  end
+</code></pre>
+                    <p>では、ハッシュのキーとして文字列を使用すると検索が遅い場合、なぜ
+                    HashWithIndependentAccess がシンボル
+                    キーを文字列に変換するのでしょうか。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その理由は以前はセキュリティでした。 Ruby 2.2
+                    以降では関係なくなりました。</p>
+                    <p>Ruby 2.2 より前では、シンボルはガベージ
+                    コレクションされませんでした。これは、シンボルがリテラル
+                    (:my_symbol) または #to_sym
+                    によって作成されると、永久に存在することを意味します。</p>
+                    <p>Rails
+                    が文字列の代わりにシンボルを使用した場合、リクエスト内のパラメータの名前に対応するシンボルが作成されます。攻撃者は、param1、param2、…
+                    という名前のパラメータを使用してリクエストを送信し、アプリに数十万のシンボルを割り当てさせてサーバーのメモリを使い果たす可能性があります。</p>
+                    <p>Ruby 2.2 以降ではそうではなくなりました</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

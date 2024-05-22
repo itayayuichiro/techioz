@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec 等価マッチャーがシリアライザー テストで失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec 等価マッチャーがシリアライザー テストで失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec 等価マッチャーがシリアライザー
+テストで失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>JSON
+                    出力が期待どおりであることを確認するために、アクティブ
+                    モデル シリアライザーの 1
+                    つに対するテストを作成しています。しかし、RSpec
+                    がテストジョブの配列を除外するために私の ‘expected’
+                    出力を解析する理由がわかりません。また、なぜ
+                    ‘expected’ と ‘got’
+                    の出力を互いに等しくできないのかもわかりません。ある時点で、「得られた」結果を「期待された」入力にコピー＆ペーストしましたが、それでも
+                    2
+                    つの文字列が等しくないという失敗メッセージを受け取りました。ただし、REPL
+                    で == を使用してこれら 2
+                    つの文字列を比較すると、出力は true
+                    でした。効果的なテストを行うには、これらの問題をどのように解決すればよいでしょうか?</p>
+                    <pre><code>RSpec Error:
+
+Failures:
+
+  1) TestrunSerializer creates special JSON for the API
+     Failure/Error: expect(serializer.to_json).to eq(&#39;{&quot;testrun&quot;:{&quot;id&quot;:1,&quot;run_at&quot;:null,&quot;started_at&quot;:null,&quot;state&quot;:&quot;pending&quot;,&quot;completed_at&quot;:null,&quot;testjobs&quot;:[{&quot;id&quot;:2,&quot;active&quot;:false,&quot;testchunk_id&quot;:2,&quot;testrun_id&quot;:1,&quot;testchunk_name&quot;:&quot;flair&quot;,&quot;testchunk&quot;:{&quot;id&quot;:15,&quot;name&quot;:&quot;flair&quot;}}],&quot;branch&quot;:{&quot;id&quot;:1,&quot;name&quot;:&quot;dev&quot;,&quot;repository&quot;:{&quot;id&quot;:321,&quot;url&quot;:&quot;fakeurl.com&quot;}}}}&#39;)
+
+       expected: &quot;{\&quot;testrun\&quot;:{\&quot;id\&quot;:1,\&quot;run_at\&quot;:null,\&quot;started_at\&quot;:null,\&quot;state\&quot;:\&quot;pending\&quot;,\&quot;completed_at\&quot;:nu...r\&quot;}}],\&quot;branch\&quot;:{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;dev\&quot;,\&quot;repository\&quot;:{\&quot;id\&quot;:321,\&quot;url\&quot;:\&quot;fakeurl.com\&quot;}}}}&quot;
+            got: &quot;{\&quot;testrun\&quot;:{\&quot;id\&quot;:1,\&quot;run_at\&quot;:null,\&quot;started_at\&quot;:null,\&quot;state\&quot;:\&quot;pending\&quot;,\&quot;completed_at\&quot;:nu...s\&quot;:[],\&quot;branch\&quot;:{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;dev\&quot;,\&quot;repository\&quot;:{\&quot;id\&quot;:321,\&quot;url\&quot;:\&quot;fakeurl.com\&quot;}}}}&quot;
+
+       (compared using ==)
+     # ./spec/serializers/testrun_spec.rb:11:in `block (2 levels) in &lt;top (required)&gt;&#39;
+
+Finished in 0.79448 seconds (files took 5.63 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/serializers/testrun_spec.rb:8 # TestrunSerializer creates special JSON for the API
+</code></pre>
+                    <p>RSpec テストは次のとおりです。</p>
+                    <pre><code>require &#39;rails_helper&#39;
+
+describe TestrunSerializer, type: :serializer do
+  let(:repo)      { Repository.create(id: 321, url: &quot;fakeurl.com&quot;) }
+  let(:branch)    { Branch.create(id: 1,name: &quot;dev&quot;, repository_id: repo.id) }
+  let(:testchunk) { Testchunk.create(id: 15, name: &quot;flair&quot;) }
+
+  it &quot;creates special JSON for the API&quot; do
+    serializer = TestrunSerializer.new Testrun.new(&quot;id&quot;:1, name: &quot;name&quot;, &quot;run_at&quot;: nil, state: &quot;pending&quot;, branch_id: branch.id)
+    testjob = Testjob.create(id: 8, active: false, testchunk_id: testchunk.id, testrun_id: 1)
+    expect(serializer.to_json).to eq(&#39;{&quot;testrun&quot;:{&quot;id&quot;:1,&quot;run_at&quot;:null,&quot;started_at&quot;:null,&quot;state&quot;:&quot;pending&quot;,&quot;completed_at&quot;:null,&quot;testjobs&quot;:[{&quot;id&quot;:2,&quot;active&quot;:false,&quot;testchunk_id&quot;:2,&quot;testrun_id&quot;:1,&quot;testchunk_name&quot;:&quot;flair&quot;,&quot;testchunk&quot;:{&quot;id&quot;:15,&quot;name&quot;:&quot;flair&quot;}}],&quot;branch&quot;:{&quot;id&quot;:1,&quot;name&quot;:&quot;dev&quot;,&quot;repository&quot;:{&quot;id&quot;:321,&quot;url&quot;:&quot;fakeurl.com&quot;}}}}&#39;)
+  end
+end
+</code></pre>
+                    <p>実際のシリアライザーは次のとおりです。</p>
+                    <pre><code>class TestrunSerializer &lt; ActiveModel::Serializer
+  attributes :id, :run_at, :started_at, :state, :completed_at, :testjobs
+  has_many :testjobs
+  has_one :branch
+end 
+</code></pre>
+                    <p>使用されているテクノロジー: Rails 5.1、RSpec
+                    3.6、Ruby 2.4</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストジョブが一致していないようです</p>
+                    <pre><code>completed_at\&quot;:nu...r\&quot;}}],\&quot;branch\&quot;
+</code></pre>
+                    <p>対</p>
+                    <pre><code>completed_at\&quot;:nu...s\&quot;:[],
+</code></pre>
+                    <p>テストジョブも返されるように仕様を設定する必要があります。</p>
+                    <p>diff
+                    文字列が途中で切れていることに注意してください。これは、文字列で使用する場合、eq
+                    matcher で最も厄介な部分の 1 つです。</p>
+                    <p>編集:より良い差分を取得するために、文字列の代わりに配列/ハッシュの比較に切り替えることもできます。
+                    Expect(serializer).to eq {testrun: “…”}
+                    (アサーションに to_json をドロップ)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

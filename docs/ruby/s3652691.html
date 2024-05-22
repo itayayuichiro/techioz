@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby と IO.popen を使用してプロセスを読み書きする方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby と IO.popen を使用してプロセスを読み書きする方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby と IO.popen
+を使用してプロセスを読み書きする方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby と IO.popen
+                    を使用してプロセスを読み書きする方法は?</p>
+                    <pre><code>
+output = IO.popen(&quot;irb&quot;, &quot;r+&quot;) do |pipe|
+  pipe.gets
+  pipe.puts &quot;10**6&quot;
+  pipe.gets
+  pipe.puts &quot;quit&quot;
+end
+</code></pre>
+                    <p>そう書き直します</p>
+                    <pre><code>
+IO.popen(&quot;irb&quot;, &quot;w+&quot;) do |pipe|
+  3.times {puts pipe.gets} # startup noise
+  pipe.puts &quot;10**6\n&quot;
+  puts pipe.gets # I expect &quot; =&gt; 1000000&quot;
+  pipe.puts &quot;quit&quot; # I expect exit from irb
+end 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一般に、上記の例は、パイプがまだ書き込みのために開いており、呼び出したコマンド
+                    (Ruby インタプリタ)
+                    がさらなるコマンド/データを期待しているため、ハングします。</p>
+                    <p>もう 1 つの答えは、<strong>END</strong> を Ruby
+                    に送信します。これはここでは機能しますが、このトリックは、Popen
+                    経由で呼び出す可能性のある他のプログラムでは機能しません。</p>
+                    <p>Popen を使用する場合は、IO#close_write
+                    でパイプを閉じる必要があります。</p>
+                    <pre><code> IO.popen(&quot;ruby&quot;, &quot;r+&quot;) do |pipe|
+   pipe.puts &quot;puts 10**6&quot;
+
+   pipe.close_write    # make sure to close stdin for the program you call
+
+   pipe.gets
+ end
+</code></pre>
+                    <p>参照: Ruby 3.1 Popen*</p>
+                    <p>さらに詳細に：</p>
+                    <p>Ruby
+                    では、IO.popen、IO.popen2、IO.popen2e、および
+                    IO.popen3
+                    はサブプロセスを操作するために使用されるメソッドであり、入力、出力、エラー
+                    ストリームの処理方法が異なります。ここでは、違いとそれぞれをいつ使用するかについて説明します。</p>
+                    <p>各バージョンをいつ使用するかは、特定の要件によって異なります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

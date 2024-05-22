@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>単純な INSERT が Cassandra::Errors::TimeoutError、Cassandra::Errors::WriteTimeoutError で散発的に失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "単純な INSERT が Cassandra::Errors::TimeoutError、Cassandra::Errors::WriteTimeoutError で散発的に失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>単純な INSERT が
+Cassandra::Errors::TimeoutError、Cassandra::Errors::WriteTimeoutError
+で散発的に失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>3 つのノードを持つ運用環境では、ローカル
+                    クォーラムで散発的に挿入が失敗し、Cassandra::Errors::WriteTimeoutError
+                    ではなく Cassandra::Errors::TimeoutError
+                    が表示されるだけです。これは、ノードに接続できないことを示していると思いますが、そうではありません。
+                    Cassandra::Errors::NoHostsAvailable
+                    を取得できません:
+                    試行したホストはすべて失敗しました</p>
+                    <p>cassandra
+                    ログを見ても何もありませんが、アプリケーション
+                    ログにはエラーが表示されます</p>
+                    <p>これは 1 日あたり 1,000
+                    件ほど発生しており、通常は呼び出し側からの再試行で成功します。</p>
+                    <p>ドライバーに問題があると思います</p>
+                    <pre><code>    ruby &#39;~&gt; 2.7&#39;
+    gem &quot;cassandra-driver&quot;, &quot;~&gt; 3.2.5&quot;
+</code></pre>
+                    <pre><code>    consistency:           :local_quorum,
+
+    load_balancing_policies = {
+        dc_aware_round_robin: Cassandra::LoadBalancing::Policies::DCAwareRoundRobin.new(
+            datacenter,
+            cassandra_used_hosts_per_remote_dc
+        ),
+        round_robin: Cassandra::LoadBalancing::Policies::RoundRobin.new
+    }
+</code></pre>
+                    <pre><code>CASSANDRA_CONNECT_TIMEOUT_MS: &#39;600&#39;
+CASSANDRA_CONSISTENCY: LOCAL_QUORUM
+CASSANDRA_RECONNECT_INITIAL_INTERVAL_MS: &#39;100&#39;
+CASSANDRA_RECONNECT_MAX_INTERVAL_MS: &#39;3000&#39;
+CASSANDRA_RECONNECT_MAX_RETRIES: &#39;5&#39;
+CASSANDRA_RETRIES: &#39;5&#39;
+CASSANDRA_RETRY_MAX_MS: &#39;3000&#39;
+CASSANDRA_RETRY_MIN_MS: &#39;100&#39;
+</code></pre>
+                    <p>そこで、lib/cassandra/future.rbを調べました。</p>
+                    <pre><code># Returns future value or raises future error
+    #
+    # @note This method blocks until a future is resolved or a times out
+    #
+    # @param timeout [nil, Numeric] a maximum number of seconds to block
+    #   current thread for while waiting for this future to resolve. Will
+    #   wait indefinitely if passed `nil`.
+    #
+    # @raise [Errors::TimeoutError] raised when wait time exceeds the timeout
+    # @raise [Exception] raises when the future has been resolved with an
+    #   error. The original exception will be raised.
+    #
+    # @return [Object] the value that the future has been resolved with
+    def get(timeout = nil)
+      @signal.get(timeout)
+    end
+</code></pre>
+                    <pre><code>Cassandra::Errors::TimeoutError
+Timed out
+</code></pre>
+                    <p>非アプリでクラッシュしました: cassandra/future.rb
+                    in get</p>
+                    <p>cassandra/future.rb の get 行 402</p>
+                    <p>cassandra/session.rb の 127 行目で実行</p>
+                    <pre><code>/srv/_versions/events/events-202304261636-9ba0b992cd-master/vendor/bundle/ruby/2.7.0/gems/cassandra-driver-3.2.5/lib/cassandra/future.rb:637:in &#39;get&#39;,
+/srv/_versions/events/events-202304261636-9ba0b992cd-master/vendor/bundle/ruby/2.7.0/gems/cassandra-driver-3.2.5/lib/cassandra/future.rb:402:in &#39;get&#39;,
+/srv/_versions/events/events-202304261636-9ba0b992cd-master/vendor/bundle/ruby/2.7.0/gems/cassandra-driver-3.2.5/lib/cassandra/session.rb:127:in &#39;execute&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの説明に基づいて、</p>
+                    <p>cassandra
+                    クラスターは、負荷をかけているワークロードに対して適切なサイズではありません。</p>
+                    <p>クラスタの負荷に応じて、クラスタのサイズを適切に変更したりスケールアップしたりする必要がある場合があります。これはトピックの範囲が広すぎます。あるいは、このようなサーバーレス
+                    SaaS
+                    オファリングを選択するだけで、スケーリングは自動的に行われるため、心配する必要はありません。</p>
+                    <p>これに役立つリンクがいくつかあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

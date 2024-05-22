@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>previous_changes が after_commit で失われる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "previous_changes が after_commit で失われる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>previous_changes が after_commit
+で失われる</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>      after_save do
+        tracked_changes = self.previous_changes.select { |attribute, _| self.all_trackables.include?(attribute.to_sym) }
+        puts &quot;\e[38;5;208m#{tracked_changes}\e[0m&quot;
+      end
+      after_commit do
+        tracked_changes = self.previous_changes.select { |attribute, _| self.all_trackables.include?(attribute.to_sym) }
+        puts &quot;\e[38;5;206m#{tracked_changes}\e[0m&quot;
+      end
+</code></pre>
+                    <p>出力： 保存後:</p>
+                    <pre><code>{&quot;name&quot;=&gt;[nil, &quot;hamza&quot;], &quot;phone&quot;=&gt;[nil, &quot;xxxxxxxxx&quot;], &quot;email&quot;=&gt;[nil, &quot;[email protected]&quot;]}
+{&quot;assignee_id&quot;=&gt;[nil, 3764], &quot;client_type_id&quot;=&gt;[nil, 204], &quot;classification_id&quot;=&gt;[nil, 2]}
+{&quot;primary_contact_id&quot;=&gt;[nil, 378115]}
+</code></pre>
+                    <p>コミット後:</p>
+                    <pre><code>{&quot;primary_contact_id&quot;=&gt;[nil, 378115]}
+</code></pre>
+                    <p>追跡された変更はコミット後に失われます。余分なメモリを使用せずに
+                    after_save
+                    にある変更が必要です。なぜprevious_changesがafter_commitで失われるのか誰か教えてもらえますか?
+                    保持される唯一の変更は、更新中の変更です。挿入の変更は
+                    after_commit で失われます。 after_commit と
+                    after_save の両方を試してみます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>previous_changes
+                    の仕組みは、前のトランザクションで変更された属性の変更のみを追跡することです。例えば
+                    -</p>
+                    <p>これは、オブジェクト
+                    モデルにおけるprevious_changesのデフォルトの動作です。</p>
+                    <p>保存後</p>
+                    <p>コミット後</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>デバイスではヘルパー メソッドを使用できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "デバイスではヘルパー メソッドを使用できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>デバイスではヘルパー
+メソッドを使用できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>nextjsとrailsを使用してシンプルなtodoアプリを構築しています。
+                    ユーザー認証にdeviceを使用していますが、current_userが使用できません。
+                    具体的には、JSON API
+                    Serializerを使用して、ログイン時のユーザー情報をJSON形式で前面に返しています。こちらがレールの配線です。</p>
+                    <pre><code>routes.rb
+
+Rails.application.routes.draw do
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+  root to: &#39;health_check#index&#39;
+
+  devise_for :users, skip: %w[registrations sessions]
+  devise_scope :user do
+    namespace :api do
+      namespace :v1 do
+        resource :current_user, controller: &#39;devise/current_user&#39;, only: %i[show]
+        resource :user_sessions, controller: &#39;devise/user_sessions&#39;, only: %i[create destroy]
+        resources :users, controller: &#39;devise/users&#39; , only: %i[create]
+      end
+    end
+  end
+end
+
+</code></pre>
+                    <p>以下は api/v1/devise/current_user_controller.rb
+                    です</p>
+                    <pre><code># frozen_string_literal: true
+
+module Api
+  module V1
+    module Devise
+      class CurrentUserController &lt; ApplicationController
+        module Consts
+          RESP_FIELDS = %i[id email name].map(&amp;:freeze).freeze
+
+          Consts.freeze
+        end
+
+        def show
+          with_rescue(__method__) do
+            render json: current_user_serializable_hash.to_json, status: :ok
+          end
+        end
+
+        private
+
+        def current_user_serializable_hash
+          UserSerializer.new(current_user, { fields: { user: Consts::RESP_FIELDS } }).serializable_hash
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>コントローラー/application_controller.rb</p>
+                    <pre><code># frozen_string_literal: true
+
+class ApplicationController &lt; ActionController::API
+        include ActionController::Cookies
+        include WithRescueConcern
+end
+
+</code></pre>
+                    <p>ここにapp/serializers/user_serializer.rbがあります</p>
+                    <pre><code># == Schema Information
+#
+# Table name: users
+#
+#  id                     :bigint           not null, primary key
+#  email                  :string(255)      default(&quot;&quot;), not null
+#  name                   :string(255)      not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#
+# Indexes
+#
+#  index_users_on_email                 (email) UNIQUE
+#  index_users_on_name                  (name)
+#
+class UserSerializer &lt; BaseSerializer
+  attributes :id, :email, :name
+end
+
+</code></pre>
+                    <p>ベースシリアライザー.rb</p>
+                    <pre><code># frozen_string_literal: true
+
+class BaseSerializer
+  include JSONAPI::Serializer
+
+  set_key_transform :camel_lower
+end
+</code></pre>
+                    <p>エラーは次のようになります
+                    先頭に返されるJSONの値はnullです。</p>
+                    <pre><code>{&quot;data&quot;:null}
+</code></pre>
+                    <p>ただし、問題を切り分けるために、current_user_controller
+                    の current_user_serializable_hash
+                    メソッドをこれに変更しました。</p>
+                    <pre><code>def current_user_serializable_hash
+  UserSerializer.new(current_user, { fields: { user: Consts::RESP_FIELDS } }).serializable_hash
+end
+↓
+def current_user_serializable_hash
+  UserSerializer.new(User.find(1), { fields: { user: Consts::RESP_FIELDS } }).serializable_hash
+end
+</code></pre>
+                    <p>次に示すように、応答が JSON
+                    形式で返されました。</p>
+                    <pre><code>{
+    &quot;data&quot;: {
+        &quot;id&quot;: &quot;1&quot;,
+        &quot;type&quot;: &quot;user&quot;,
+        &quot;attributes&quot;: {
+            &quot;id&quot;: 1,
+            &quot;email&quot;: &quot;[email protected]&quot;,
+            &quot;name&quot;: &quot;hoge1&quot;
+        }
+    }
+}
+</code></pre>
+                    <p>言い換えれば、current_user
+                    メソッドが機能していないだけです。なぜだろう。わからない。何が起こっているのか知っている人はいますか?ありがとう。</p>
+                    <p>追伸———————————-</p>
+                    <p>ログイン用の user_sessions_controller
+                    コードの一部を本文に追加しました。</p>
+                    <pre><code># frozen_string_literal: true
+module Api
+  module V1
+    module Devise
+      class UserSessionsController &lt; ApplicationController
+
+        def create
+          with_rescue(__method__) do
+            user = User.find_for_authentication(email: user_session_params[:email])
+            raise ApplicationController::UnauthorizedError, &#39;email&#39; if user.blank?
+
+            is_success = user&amp;.valid_password?(user_session_params[:password])
+            raise ApplicationController::UnauthorizedError, &#39;password&#39; unless is_success
+
+            bypass_sign_in(user)
+            head :no_content
+          end
+        end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は自分で問題を解決しました。
+                    具体的には、config/environments/development.rbに以下を追加しました。</p>
+                    <pre><code>config.cache_store = :redis_cache_store, { expires_in: 7.days, # TODO: 仮設定
+                                               namespace: &quot;#{Rails.application.class.module_parent_name.downcase}:#{
+                                                   (ENV.fetch(&#39;RAILS_ENV&#39;, &#39;development&#39;) + &#39;:&#39;).then.detect { |e| e != &#39;production:&#39; }
+                                                 }cache&quot;,
+                                               url: &quot;redis://#{ENV.fetch(&#39;REDIS_HOST&#39;, &#39;localhost&#39;)}:#{ENV.fetch(&#39;REDIS_PORT&#39;, &#39;6379&#39;)}/0&quot; }
+
+    config.public_file_server.headers = {
+      &#39;Cache-Control&#39; =&gt; &quot;public, max-age=#{2.days.to_i}&quot;
+    }
+</code></pre>
+                    <p>ありがとう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

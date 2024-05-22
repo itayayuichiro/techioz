@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>zipファイルの中身を解凍せずに別のzipファイルで読む方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "zipファイルの中身を解凍せずに別のzipファイルで読む方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>zipファイルの中身を解凍せずに別のzipファイルで読む方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>多数の zip ファイルを含む zip
+                    ファイルがあります。内部 zip
+                    をファイルシステムに解凍せずに内容を確認したいと考えています。</p>
+                    <p>Zip::File.foreach を使用して外側の zip
+                    ファイルの内容を反復処理すると、内容を検査したい zip
+                    ファイルを表す Zip::Entry
+                    が得られます。サブzipをファイルシステムに解凍せずにそれを行う方法がわかりません。</p>
+                    <p>su-bzip で .extract(“some_destination.zip”)
+                    を呼び出して、それを通常のトップレベル zip
+                    のように扱うことができます。これは機能しますが、単体テストで内容を検証したいだけなので、ファイル
+                    システムに不必要に書き込みたくありません。</p>
+                    <p>補足: 誰かが「なぜ」サブ zip
+                    を使用しているのかを尋ねたり、これに圧縮価値がないことを指摘したりする前に…
+                    Apple は、Apple
+                    ウォレットに複数のチケットを追加するために、ZIP の
+                    ZIP を作成することを望んでいるからです。同時に。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>簡単な方法は、外側の zip
+                    エントリの内容をメモリ内で読み取り、Zip::File.open_buffer
+                    API を使用して新しい Zip
+                    インスタンスをインスタンス化することです。</p>
+                    <p>次の例では、簡単にするために、外側の zip
+                    ファイルには、プレーンテキスト
+                    ファイルが含まれる内側の zip
+                    ファイルが含まれていると仮定します。</p>
+                    <pre><code>require &#39;zip&#39;
+require &#39;stringio&#39;
+
+outer_zip_file = Zip::File.open(&#39;outer.zip&#39;)
+
+outer_entry = outer_zip_file.entries.first
+outer_entry_data = outer_entry.get_input_stream.read
+
+inner_zip = Zip::File.open_buffer(outer_entry_data)
+
+inner_entry = inner_zip.entries.first
+puts inner_entry.get_input_stream.read
+</code></pre>
+                    <p>同じタスクを実行するためにストリームを使用することもおそらく可能ですが、間違いを犯しやすくなり
+                    (つまり、デバッグ中に誤って複数回読み取ってしまう)、ファイルが十分に小さい場合
+                    (そしてもちろん攻撃のリスクがない)、メモリ内でも許容されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

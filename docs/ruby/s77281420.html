@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>刺激なしでターボ フレームをリロードしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "刺激なしでターボ フレームをリロードしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>刺激なしでターボ
+フレームをリロードしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://web-crunch.com/posts/turbo-charged-real-time-search-ruby-on-rails-7</p>
+                    <p>私はこのチュートリアルに従って、Turbo
+                    をアプリに組み込みます。ただし、アセット
+                    パイプラインに多くの KB
+                    が追加されるように見えるため、Stimulus gem
+                    をインストールする必要はないことを望みます。プレーンな
+                    Javascript
+                    で同じ動作を実装する方法はありますか?つまり、
+                    「入力」イベントでターボ
+                    フレームのみをリロードします。</p>
+                    <p>チュートリアルの関連コード:</p>
+                    <p>Turbo Frame を更新するフォーム:</p>
+                    <pre><code>&lt;%= form_with(url: bands_path, method: :get, data: {turbo_frame: &quot;bands&quot;}) do |form| %&gt;
+
+  &lt;%= form.label :query, &quot;Search by band name:&quot;, class: &quot;block mb-2&quot; %&gt;
+  &lt;div class=&quot;flex space-x-3&quot;&gt;
+    &lt;%= form.text_field :query, class: &quot;py-3 px-4 rounded border ring-0 focus:ring-4 focus:ring-orange-100 focus:shadow-none focus:border-orange-500 focus:outline-none&quot; %&gt;
+
+    &lt;%= form.submit &#39;Search&#39;, class: &quot;px-4 py-3 font-medium
+  bg-orange-300 text-neutal-900 rounded flex items-center cursor-pointer hover:bg-orange-400 focus:ring-4 ring-0 focus:ring-orange-100&quot; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ターボフレーム部分:</p>
+                    <pre><code>&lt;!-- app/views/bands/_bands.html.erb--&gt;
+&lt;%= turbo_frame_tag &quot;bands&quot; do %&gt;
+  &lt;%= render bands %&gt;
+&lt;% end &gt;
+</code></pre>
+                    <p>刺激コントローラー:</p>
+                    <pre><code>// application/javascript/controllers/search_form_controller.js
+
+import { Controller } from &quot;@hotwired/stimulus&quot;
+
+// Connects to data-controller=&quot;search-form&quot;
+export default class extends Controller {
+  search() {
+    clearTimeout(this.timeout)
+    this.timeout = setTimeout(() =&gt; {
+      this.element.requestSubmit()
+    }, 200)
+  }
+}
+</code></pre>
+                    <p>私たちが試みたのは、ターボ フレームの src
+                    パラメータを入力時の新しい検索に設定することですが、これは新しい
+                    Turbo_frame_request を生成しないようです。</p>
+                    <pre><code>&lt;%= form.text_field :query, oninput: &quot;bands.src=`${location.href}?query=${this.value}`&quot; %&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>スティミュラス
+                    コントローラーと同じことを行うだけです -
+                    フォームを送信します。</p>
+                    <pre><code>&lt;%= form_with url: request.path, method: :get, data: {turbo_frame: :bands} do |form| %&gt;
+  &lt;%= form.text_field :q, oninput: &quot;search(event)&quot; %&gt;
+&lt;% end %&gt;
+
+&lt;%= turbo_frame_tag :bands, data: {turbo_action:  :advance} do %&gt;
+  &lt;%= params[:q] %&gt;
+&lt;% end %&gt;
+
+&lt;script charset=&quot;utf-8&quot;&gt;
+  function search(event) {
+    event.target.closest(&quot;form&quot;).requestSubmit()
+  }
+&lt;/script&gt;
+</code></pre>
+                    <p>また、Stimulus は 12kb 圧縮されており、CDN
+                    から取得できます。これを回避してもスペースは節約されません:
+                    https://www.jsdelivr.com/package/npm/stimulus。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

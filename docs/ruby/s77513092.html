@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JavaScript を使用せずに f.text_field に書式設定された値を動的に表示する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JavaScript を使用せずに f.text_field に書式設定された値を動的に表示する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JavaScript を使用せずに f.text_field
+に書式設定された値を動的に表示する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>データベースでは、価格はセント単位で保存されており、適切な形式で表示するのは簡単ですが、text_field
+                    ヘルパーを使用しようとすると、JavaScript
+                    を使用せずに入力値の金額を形式設定する方法がないようです。
+                    。</p>
+                    <pre><code>&lt;%= form_with model: @item, local: true do |f| %&gt;
+...
+  &lt;div class=&quot;flex flex-col mb-3&quot;&gt;
+    &lt;%= f.label :price, &#39;Price&#39; %&gt;
+    &lt;%= f.text_field :price, type:&#39;number&#39; %&gt;
+  &lt;/div&gt;
+...
+&lt;% end %&gt;
+</code></pre>
+                    <p>プレーンな HTML/Ruby
+                    でこれを行う方法はありますか?
+                    そうでない場合、組み込みの Stimulus
+                    ライブラリを使用する簡単な JavaScript
+                    の回避策はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを行うには、元のセントベースの値をフォームで公開するのではなく、カスタムのドルベースの属性を使用します。</p>
+                    <pre><code># in app/models/item.rb
+def price_in_dollars
+  &#39;%.2f&#39; % (price / 100.0)
+end
+
+def price_in_dollars=(string)
+  self.price = (string.to_f * 100).round
+end
+</code></pre>
+                    <p>そしてその属性を次のようにフォームで使用します。</p>
+                    <pre><code>&lt;%= form_with model: @item, local: true do |f| %&gt;
+  ...
+  &lt;div class=&quot;flex flex-col mb-3&quot;&gt;
+    &lt;%= f.label :price, &#39;Price&#39; %&gt;
+    &lt;%= f.text_field :price_in_dollars, type: &#39;number&#39; %&gt;
+  &lt;/div&gt;
+  ...
+&lt;% end %&gt;
+</code></pre>
+                    <p>注:
+                    コントローラーの強力なパラメーターにも、price_in_dollars
+                    を追加する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

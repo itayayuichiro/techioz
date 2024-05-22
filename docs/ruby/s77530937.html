@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 はコメント削除の破棄パスを生成しません [クローズド] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 はコメント削除の破棄パスを生成しません [クローズド]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 はコメント削除の破棄パスを生成しません
+[クローズド]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コメントの削除ヘルパーを作成しようとしています。これはHTMLコードです:</p>
+                    <pre><code>&lt;% if store_comment.user_id == current_user.id %&gt;
+    &lt;%= link_to &#39;edit&#39;, edit_store_post_store_comment_path(params[:name], store_comment.id) %&gt;
+    &lt;%= link_to &#39;delete&#39;, delete_store_post_store_comment_path(params[:name], store_comment.id), data: { &#39;turbo-method&#39;: :delete,
+                        turbo_confirm: &#39;You sure?&#39;} %&gt;
+
+&lt;% end %&gt;
+</code></pre>
+                    <p>そして、これが私が持っているルートです:</p>
+                    <pre><code>&#39;delete /store_posts/:store_post_id/store_comments/:id&#39;, to : &#39;store_comment#destroy&#39;
+
+resources :store_posts do
+    resources :store_comments,      only: [:create, :edit, :update, :new, :destroy]
+end
+</code></pre>
+                    <p>ただし、コンソールで Rails
+                    ルートを実行すると、コメント
+                    コントローラーのヘルパーのみが取得されます。</p>
+                    <pre><code>store_post_store_comments      POST   /store_posts/:store_post_id/store_comments(.:format)                                              store_comments#create
+new_store_post_store_comment   GET    /store_posts/:store_post_id/store_comments/new(.:format)                                          store_comments#new
+edit_store_post_store_comment  GET    /store_posts/:store_post_id/store_comments/:id/edit(.:format)                                     store_comments#edit
+store_post_store_comment       PATCH  /store_posts/:store_post_id/store_comments/:id(.:format)                                          store_comments#update
+                               PUT    /store_posts/:store_post_id/store_comments/:id(.:format)                                          store_comments#update
+                               DELETE /store_posts/:store_post_id/store_comments/:id(.:format)                                          store_comments#destroy
+</code></pre>
+                    <p>ご覧のとおり、destroy
+                    ルートにはヘルパーがありません。コメント
+                    コントローラーのアクションと一致するように呼び出すことができるようにするために必要です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パスとルート
+                    ヘルパーの間で混乱しています。ご覧のとおり、削除操作の
+                    URL は更新の URL
+                    と同じです。そのヘルパーを使用してパス/URL
+                    を作成し、すでに使用しているように *method: :delete
+                    オプションを使用するだけです。</p>
+                    <p>そうは言っても、Rails 7 (rails-ujs なし) では
+                    link_to
+                    を使用できません。小さなフォームを作成するために
+                    button_to を使用する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

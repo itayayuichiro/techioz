@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>1 ページで複数の Ransack 検索フォームを使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "1 ページで複数の Ransack 検索フォームを使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>1 ページで複数の Ransack
+検索フォームを使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>1 つのページで複数の search_form_for
+                    を使用していますが、渡されたパラメーターに問題があります。フォームの
+                    1
+                    つが送信されると、そのパラメータは他のフォームのパラメータをオーバーライドします。</p>
+                    <p>たとえば、送信時にこれが必要です:</p>
+                    <pre><code>Parameters: {&quot;q&quot;=&gt;{&quot;search_cont&quot;=&gt;&quot;qwerty&quot;, &quot;by_discarded&quot;=&gt;&quot;discarded&quot;}, &quot;f&quot;=&gt;{&quot;search_cont&quot;=&gt;&quot;asdfgh&quot;, &quot;by_discarded&quot;=&gt;&quot;active&quot;}}
+</code></pre>
+                    <p>しかし、それを取得します</p>
+                    <pre><code>Parameters: {&quot;q&quot;=&gt;{&quot;search_cont&quot;=&gt;&quot;qwerty&quot;, &quot;by_discarded&quot;=&gt;&quot;discarded&quot;}}
+</code></pre>
+                    <p>あるいはそれ</p>
+                    <pre><code>Parameters: {&quot;f&quot;=&gt;{&quot;search_cont&quot;=&gt;&quot;asdfgh&quot;, &quot;by_discarded&quot;=&gt;&quot;active&quot;}}
+</code></pre>
+                    <p>ビュー：</p>
+                    <pre><code>    &lt;%= search_form_for @q, url: url, as: :q do |f| %&gt;
+          &lt;%= f.search_field :search_cont, value: params.dig(:q, :search_cont), placeholder: &#39;Search&#39; %&gt;
+          &lt;%= f.select(:by_discarded, [[&#39;Active&#39;, &#39;active&#39;], [&#39;Discarded&#39;, &#39;discarded&#39;]], { selected: params.dig(:q, :by_discarded) }, { onchange: &#39;this.form.submit();&#39; }) %&gt;
+    &lt;% end %&gt;
+    ...
+    &lt;%= search_form_for @f, url: url, as: :f do |f| %&gt;
+          &lt;%= f.search_field :search_cont, value: params.dig(:f, :search_cont), placeholder: &#39;Search&#39; %&gt;
+          &lt;%= f.select(:by_discarded, [[&#39;Active&#39;, &#39;active&#39;], [&#39;Discarded&#39;, &#39;discarded&#39;]], { selected: params.dig(:f, :by_discarded) }, { onchange: &#39;this.form.submit();&#39; }) %&gt;
+    &lt;% end %&gt;
+</code></pre>
+                    <p>コントローラ：</p>
+                    <pre><code>@q = some_items.ransack(params[:q])
+@q.sorts = &#39;sort_order asc&#39; if @q.sorts.empty?
+@pagy_q, @objects_q = pagy(@q.result, page_param: :page_q)
+
+@f = another_items.ransack(params[:f], search_key: :f)
+@f.sorts = &#39;sort_order asc&#39; if @f.sorts.empty?
+@pagy_f, @objects_f = pagy(@f.result, page_param: :page_f)
+</code></pre>
+                    <p>いずれかのフォームを送信するときに、すべてのフォームからパラメータを渡すにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いくつかのオプションがあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

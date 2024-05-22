@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ストライプ Webhook イベント checkout.session.completed の 500 エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ストライプ Webhook イベント checkout.session.completed の 500 エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ストライプ Webhook イベント
+checkout.session.completed の 500 エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、Rails アプリケーションのストライプ Webhook
+                    に取り組んでいますが、問題が発生しています。
+                    checkout.session.completed
+                    を除くすべてのイベントは機能しています。
+                    私の主な目標は、イベント checkout.session.completed
+                    が発生したときに、支払いステータスの Booking.paid を
+                    true に変更することです。ストライプ Webhook
+                    ログには、イベント checkout.session.completed の 500
+                    内部サーバー エラーが記録されています。問題は
+                    Webhook
+                    コントローラーにあると思いますが、何が問題なのかわかりません。どんな助けでも素晴らしいでしょう！</p>
+                    <p>これは私の Webhooks_controller です。</p>
+                    <pre><code> class WebhooksController &lt; ApplicationController
+  skip_before_action :authenticate_user!
+  skip_before_action :verify_authenticity_token
+
+  def create
+    payload = request.body.read
+    sig_header = request.env[&#39;HTTP_STRIPE_SIGNATURE&#39;]
+    event = nil
+
+    begin
+      event = Stripe::Webhook.construct_event(
+        payload, sig_header, Rails.application.credentials[:stripe][:webhook]
+      )
+    rescue JSON::ParserError =&gt; e
+      status 400
+      return
+    rescue Stripe::SignatureVerificationError =&gt; e
+      # Invalid signature
+      puts &quot;Signature error&quot;
+      p e
+      return
+    end
+
+    # Handle the event
+    case event.type
+    when &#39;checkout.session.completed&#39;
+      # session = event.data.object
+      # @booking.session.client_reference_id.paid = true
+      booking = Booking.find_by(checkout_session_id: event.data.object.id)
+      booking.update(paid: true)
+    end
+
+    render json: { message: &#39;success&#39; }
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私はたまたまあなたとまったく同じ機能を書いているので、これが私のキューに表示されてうれしいです。</p>
+                    <p>コードをざっと見ただけでは、特に目立った点はありません。機能しない唯一のイベントが
+                    checkout.session.completed
+                    であり、それが処理さえしている唯一のイベントであることがわかっている場合、問題は少し絞り込まれます…そこで私がやったことは次のとおりです。</p>
+                    <pre><code>$ stripe listen --forward-to http://localhost:3000/webhook_events
+</code></pre>
+                    <pre><code>$ stripe trigger checkout.session.completed
+</code></pre>
+                    <p>したがって、前の回答が示唆しているように、問題は予約モデルの更新にあると思います。そのため、一般的に
+                    Webhook
+                    の操作を容易にするためのいくつかの提案があります。</p>
+                    <p>これがお役に立てば幸いです、頑張ってください!</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

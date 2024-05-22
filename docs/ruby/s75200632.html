@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>サイトを Heroku にデプロイすると、コントローラーの POST メソッドが機能しなくなりました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "サイトを Heroku にデプロイすると、コントローラーの POST メソッドが機能しなくなりました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>サイトを Heroku
+にデプロイすると、コントローラーの POST
+メソッドが機能しなくなりました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>[React アプリ][1] を Netlify にデプロイし、その
+                    [API バックエンド][2] (Ruby on Rails + PostgreSQL)
+                    を Heroku にデプロイしています。バックエンドは
+                    LocalHost
+                    上で完全に正常に動作しました。しかし、これを Heroku
+                    にデプロイすると、3 つのコントローラーのうち 1
+                    つが正しく動作しなくなりました。他のコントローラーとそのメソッドはすべて機能するのに、なぜこの特定のメソッドが失敗するのかがよくわかりません。
+                    Rails コンソールの Comment.create(…)
+                    も機能しないようです。</p>
+                    <p>コメント.rb (モデル):</p>
+                    <pre><code>class Comment &lt; ApplicationRecord
+  belongs_to :User
+  belongs_to :ForumThread
+end
+</code></pre>
+                    <p>comments_controller.rb (コントローラー):</p>
+                    <pre><code>class CommentsController &lt; ApplicationController
+  #GET /Comments [Get all comments for a specific thread]
+  def index
+    @Comments = Comment.where(&quot;comments.forumthread_id = ?&quot;, params[:forum_thread_id])
+    render json: @Comments
+  end
+  
+  #GET /Comments/:id [Get a specific comment by its ID]
+  def show
+    @Comment = Comment.find(params[:id])
+    render json: @comment
+  end
+  
+  #POST /Comments [Create a comment]
+  def create
+    @comment = Comment.new(comment_params)
+    if @comment.save
+      render json: @comment
+    else
+      render error: {error: &quot;Error in creating comment&quot;}, status: 400
+    end
+  end
+  
+  #PUT /Comments/:id [Update a comment]
+  def update
+    @comment = Comment.find(params[:id])
+    if @comment
+      @comment.update(comment_params)
+      render json: {message: &quot;Comment successfully updated&quot;}, status: 200
+    else
+      render error: {error: &quot;Error in updating comment&quot;}, status: 400
+    end
+  end
+    
+  #DELETE /Comments/:id [Delete a comment]
+  def destroy
+    @comment = Comment.find(params[:id])
+    if @comment
+      @comment.destroy
+      render json: {message: &quot;Comment successfully deleted&quot;}, status: 200
+    else
+      render error: {error: &quot;Error in deleting comment&quot;}, status: 400
+    end
+  end
+    
+  private
+  def comment_params
+    params.require(:comment).permit(:forumthread_id, :User_id, :content)
+  end
+end
+</code></pre>
+                    <p>(GET はまだ機能しますが、POST
+                    は機能しなくなりました。他のメソッドについてはわかりません。これらのメソッドは既存のコメントを処理するため、作成することができません。)</p>
+                    <p>スキーマ.rb:</p>
+                    <pre><code># This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It&#39;s strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[7.0].define(version: 2023_01_17_054548) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension &quot;plpgsql&quot;
+
+  create_table &quot;comments&quot;, force: :cascade do |t|
+    t.integer &quot;User_id&quot;, null: false
+    t.integer &quot;forumthread_id&quot;, null: false
+    t.string &quot;content&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.index [&quot;User_id&quot;], name: &quot;index_comments_on_User_id&quot;
+    t.index [&quot;forumthread_id&quot;], name: &quot;index_comments_on_forumthread_id&quot;
+  end
+
+  create_table &quot;forum_threads&quot;, force: :cascade do |t|
+    t.integer &quot;User_id&quot;, null: false
+    t.string &quot;title&quot;
+    t.string &quot;description&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;tag&quot;
+    t.index [&quot;User_id&quot;], name: &quot;index_forum_threads_on_User_id&quot;
+  end
+
+  create_table &quot;users&quot;, force: :cascade do |t|
+    t.string &quot;username&quot;
+    t.string &quot;email&quot;
+    t.string &quot;password&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;bio&quot;
+  end
+end
+</code></pre>
+                    <p>ルート.rb:</p>
+                    <pre><code>Rails.application.routes.draw do
+  #Routes
+  get &#39;users/s/:username&#39;, to: &quot;users#search&quot;
+  get &#39;users/:username/comments&#39;, to: &quot;users#comments&quot;
+  resources :users, only: [:index, :show, :create, :update, :destroy]
+  resources :forum_threads, only: [:index, :show, :create, :update, :destroy] do
+    resources :comments, only: [:index, :show, :create, :update, :destroy]
+  end
+end
+</code></pre>
+                    <p>POST
+                    リクエストを送信するフロントエンドの関数:</p>
+                    <pre><code>const user_id = useSelector(state =&gt; state.id);
+const threadID = useParams().id;
+// console.log(&quot;Thread ID: &quot;, threadID, &quot;User ID: &quot;, user_id, &quot;Content: &quot;, content);
+//Creates new comment
+const handleCreateComment = (event) =&gt; {
+  if (!isContentError) {
+    event.preventDefault();
+    const requestOptions = {
+      method: &#39;POST&#39;,
+      headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+      body: JSON.stringify({ User_id: user_id, forumthread_id: threadID, content: content })
+    };
+    fetch(&#39;https://highgear.herokuapp.com/forum_threads/&#39; + threadID + &quot;/comments&quot;, requestOptions)
+      .then(response =&gt; response.json())
+      .then(data =&gt; refreshCreate(data))
+      .catch(err =&gt; console.log(err));
+  } else {
+    event.preventDefault();
+    window.alert(&quot;Error: Please enter a longer comment&quot;);
+  }
+}
+(Even if forumthread_id, User_id, and content are all correct, it still doesn&#39;t work. Not to mention, it still worked on LocalHost).
+
+Output of Heroku logs when I send a POST request:
+
+2023-01-18T04:32:47.335761+00:00 app[web.1]: I, [2023-01-18T04:32:47.335689 #4]  INFO -- : [bd8c3745-fffc-485c-ba6d-42ff8dbfff91] Started POST &quot;/forum_threads/1/comments&quot; for 137.132.217.46 at 2023-01-18 04:32:47 +0000
+2023-01-18T04:32:47.336418+00:00 app[web.1]: I, [2023-01-18T04:32:47.336374 #4]  INFO -- : [bd8c3745-fffc-485c-ba6d-42ff8dbfff91] Processing by CommentsController#create as */*
+2023-01-18T04:32:47.336455+00:00 app[web.1]: I, [2023-01-18T04:32:47.336430 #4]  INFO -- : [bd8c3745-fffc-485c-ba6d-42ff8dbfff91]   Parameters: {&quot;User_id&quot;=&gt;1, &quot;forumthread_id&quot;=&gt;&quot;1&quot;, &quot;content&quot;=&gt;&quot;&lt;p&gt;Test&lt;/p&gt;&quot;, &quot;forum_thread_id&quot;=&gt;&quot;1&quot;, &quot;comment&quot;=&gt;{&quot;User_id&quot;=&gt;1, &quot;forumthread_id&quot;=&gt;&quot;1&quot;, &quot;content&quot;=&gt;&quot;&lt;p&gt;Test&lt;/p&gt;&quot;}}
+2023-01-18T04:32:47.394387+00:00 app[web.1]: I, [2023-01-18T04:32:47.394318 #4]  INFO -- : [bd8c3745-fffc-485c-ba6d-42ff8dbfff91] Completed 400 Bad Request in 58ms (Views: 0.1ms | ActiveRecord: 36.8ms | Allocations: 3324)
+2023-01-18T04:32:47.398408+00:00 heroku[router]: at=info method=POST path=&quot;/forum_threads/1/comments&quot; host=highgear.herokuapp.com request_id=bd8c3745-fffc-485c-ba6d-42ff8dbfff91 fwd=&quot;137.132.217.46&quot; dyno=web.1 connect=0ms service=60ms status=400 bytes=620 protocol=https
+
+[Output in console logs][3]
+
+  [1]: https://highgear.netlify.app
+  [2]: https://highgear.herokuapp.com/
+  [3]: https://i.sstatic.net/bMQrk.png
+
+Here&#39;s the Heroku logs for a successful GET request to the comments controller:
+
+2023-01-19T07:19:25.988821+00:00 heroku[router]: at=info method=GET path=&quot;/forum_threads/2/comments&quot; host=highgear.herokuapp.com request_id=c9293482-735d-4039-8b40-842bd2bff8ce fwd=&quot;137.132.220.33&quot; dyno=web.1 connect=0ms service=23ms status=304 bytes=612 protocol=https    
+2023-01-19T07:19:25.924581+00:00 app[web.1]: I, [2023-01-19T07:19:25.924514 #4]  INFO -- : [5e0341e6-b66a-4a79-9d33-03050c8933c5] Started GET &quot;/users/2&quot; for 137.132.220.33 at 2023-01-19 07:19:25 +0000
+2023-01-19T07:19:25.925293+00:00 app[web.1]: I, [2023-01-19T07:19:25.925219 #4]  INFO -- : [5e0341e6-b66a-4a79-9d33-03050c8933c5] Processing by UsersController#show as */*
+2023-01-19T07:19:25.925308+00:00 app[web.1]: I, [2023-01-19T07:19:25.925285 #4]  INFO -- : [5e0341e6-b66a-4a79-9d33-03050c8933c5]   Parameters: {&quot;id&quot;=&gt;&quot;2&quot;}
+2023-01-19T07:19:25.927371+00:00 app[web.1]: I, [2023-01-19T07:19:25.927325 #4]  INFO -- : [5e0341e6-b66a-4a79-9d33-03050c8933c5] Completed 200 OK in 2ms (Views: 0.3ms | ActiveRecord: 0.5ms | Allocations: 271)
+2023-01-19T07:19:25.964027+00:00 app[web.1]: I, [2023-01-19T07:19:25.963965 #4]  INFO -- : [c9293482-735d-4039-8b40-842bd2bff8ce] Started GET &quot;/forum_threads/2/comments&quot; for 137.132.220.33 at 2023-01-19 07:19:25 +0000
+2023-01-19T07:19:25.964537+00:00 app[web.1]: I, [2023-01-19T07:19:25.964491 #4]  INFO -- : [c9293482-735d-4039-8b40-842bd2bff8ce] Processing by CommentsController#index as */*
+2023-01-19T07:19:25.964565+00:00 app[web.1]: I, [2023-01-19T07:19:25.964537 #4]  INFO -- : [c9293482-735d-4039-8b40-842bd2bff8ce]   Parameters: {&quot;forum_thread_id&quot;=&gt;&quot;2&quot;}
+2023-01-19T07:19:25.986038+00:00 app[web.1]: I, [2023-01-19T07:19:25.985982 #4]  INFO -- : [c9293482-735d-4039-8b40-842bd2bff8ce] Completed 200 OK in 21ms (Views: 0.5ms | ActiveRecord: 20.1ms | Allocations: 210)
+</code></pre>
+                    <p>さらに詳しい情報が必要な場合は、コメントしてください。</p>
+                    <p>編集:フォーラムスレッドモデルに関する詳細は次のとおりです。</p>
+                    <p>フォーラム_スレッド_コントローラー:</p>
+                    <pre><code>class ForumThreadsController &lt; ApplicationController
+  #GET /ForumThreads [Get all threads]
+  def index
+    @threads = ForumThread.all
+    render json: @threads
+  end
+    
+  #GET /ForumThreads/:id [Get a specific thread by its ID]
+  def show
+    @thread = ForumThread.find(params[:id])
+    render json: @thread
+  end
+
+  #POST /ForumThreads [Create a thread] 
+  def create
+    @thread = ForumThread.new(thread_params)
+    if @thread.save
+      render json: @thread
+    else
+      render error: {error: &quot;Error in creating thread&quot;}, status: 400
+    end
+  end
+
+  #PUT /ForumThreads/:id [Update a thread]
+  def update
+    @thread = ForumThread.find(params[:id])
+    if @thread
+      @thread.update(thread_params)
+      render json: {message: &quot;Thread successfully updated&quot;}, status: 200
+    else
+      render error: {error: &quot;Error in updating thread&quot;}, status: 400
+    end
+  end
+
+  #DELETE /ForumThreads/:id [Delete a thread]
+  def destroy
+    @thread = ForumThread.find(params[:id])
+    @comments = Comment.where(&quot;ForumThread_id = ?&quot;, params[:id])
+    if @thread
+      for @comment in @comments
+        @comment.destroy
+      end
+      @thread.destroy
+      render json: {message: &quot;Thread successfully deleted&quot;}, status: 200
+    else
+      render error: {error: &quot;Error in deleting thread&quot;}, status: 400
+    end
+  end
+
+  private
+  def thread_params
+    params.require(:forum_thread).permit(:User_id, :title, :description, :tag)
+  end
+end
+</code></pre>
+                    <p>フォーラム_スレッド.rb:</p>
+                    <pre><code>class ForumThread &lt; ApplicationRecord
+  belongs_to :User
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="comment.save">@comment.save</span>
+                    を使用し、すべての失敗を同じ方法で処理することで、失敗の原因を隠すことができます。</p>
+                    <p>より良い方法は、作成メソッドを次のようなものに変換することです。</p>
+                    <pre><code>    # POST /Comments [Create a comment]
+    def create
+      @comment = Comment.new(comment_params)
+      @comment.save!
+      render json: @comment
+    rescue ArgumentError, ActiveRecord::RecordInvalid =&gt; err
+      render error: {message: err.message }, status: 400
+    rescue =&gt; err
+      render error: {message: err.message }, status: 500
+    end
+</code></pre>
+                    <p>しかし、それを行うと、ルートごとに障害ケースを処理する必要があります。例外にはグローバル
+                    ハンドラーを使用することをお勧めします。例：</p>
+                    <pre><code>class CommentsController &lt; ApplicationController
+    rescue_from Exception, with: :render_error
+    rescue_from ArgumentError, with: :render_bad_request
+    rescue_from ActiveRecord::RecordInvalid, with: :render_bad_request
+    
+    # ...
+  
+    # POST /Comments [Create a comment]
+    def create
+      @comment = Comment.new(comment_params)
+      @comment.save!
+      render json: @comment
+    end
+
+    # ...
+    private 
+     
+    def render_bad_request(err)
+      render error: {message: err.message }, status: 400
+    end
+
+    def render_error(err)
+      render error: {message: err.message }, status: 500
+    end
+end
+</code></pre>
+                    <p>これらのグローバル エラー
+                    ハンドラーを各コントローラーの継承元となる親クラスに配置すると、さらに再利用可能になります。</p>
+                    <pre><code>class BaseController &lt; ApplicationController
+    rescue_from Exception, with: :render_error
+    rescue_from ArgumentError, with: :render_bad_request
+    rescue_from ActiveRecord::RecordInvalid, with: :render_bad_request
+    
+    private 
+     
+    def render_bad_request(err)
+      render error: {message: err.message }, status: 400
+    end
+
+    def render_error(err)
+      render error: {message: err.message }, status: 500
+    end
+end
+
+class CommentsController &lt; BaseController
+    # POST /Comments [Create a comment]
+    def create
+      @comment = Comment.new(comment_params)
+      @comment.save!
+      render json: @comment
+    end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Nanoc は CSS をコンパイルしていません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Nanoc は CSS をコンパイルしていません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Nanoc は CSS をコンパイルしていません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>nanoc で使用するカスタム スタイルシート パス
+                    /stylesheets/stylesheet.css
+                    を使用したいと思いましたが、nanoc は出力フォルダーに
+                    CSS
+                    ファイルをレンダリングしません。私のルールは次のとおりです。</p>
+                    <pre><code>compile &#39;/stylesheets/&#39; do
+  filter :css
+end
+
+compile &#39;/images/*/&#39; do
+end
+
+compile &#39;*&#39; do
+  if item.binary?
+    # don’t filter binary items
+  else
+    filter :haml
+    layout &#39;default&#39;
+  end
+end
+
+route &#39;/stylesheets/&#39; do
+  &#39;/stylesheets/stylesheet.css&#39;
+end
+
+route &#39;*&#39; do
+  if item.binary?
+    # Write item with identifier /foo/ to /foo.ext
+    item.identifier.chop + &#39;.&#39; + item[:extension]
+  else
+    # Write item with identifier /foo/ to /foo/index.html
+    item.identifier + &#39;index.html&#39;
+  end
+end
+
+layout &#39;*&#39;, :haml
+</code></pre>
+                    <p>そしてそれは機能しません -
+                    どこに問題があるか知っている人はいますか?また、私のスタイルシートを含むが、私の
+                    HTML
+                    レイアウトに配置される、output/stylesheet/index.html
+                    のみを生成します。 :(</p>
+                    <p>次のようになります
+                    (output/stylesheet/index.html)。</p>
+                    <pre><code>&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;
+&lt;html lang=&#39;en&#39; xml:lang=&#39;en&#39; xmlns=&#39;http://www.w3.org/1999/xhtml&#39;&gt;
+  &lt;head&gt;
+    &lt;meta content=&#39;text/html; charset=utf-8&#39; http-equiv=&#39;Content-Type&#39; /&gt;
+    &lt;title&gt;
+      A Brand New nanoc Site -
+
+    &lt;/title&gt;
+    &lt;link href=&#39;/stylesheets/stylesheet.css&#39; media=&#39;screen&#39; rel=&#39;stylesheet&#39; type=&#39;text/css&#39; /&gt;
+    &lt;meta content=&#39;nanoc 3.1.6&#39; name=&#39;generator&#39; /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- * reset css begins */ --&gt;
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline;}
+&lt;!-- * HTML5 display-role reset for older browsers */ --&gt;
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {display: block;}
+body {line-height: 1;}
+ol, ul {list-style: none;}
+blockquote, q {quotes: none;}
+blockquote:before, blockquote:after, q:before, q:after {content: &#39;&#39;; content: none;}
+table {border-collapse: collapse; border-spacing: 0;}
+&lt;!-- * reset css ends */ --&gt;
+body, html{background: url(&#39;../images/background.png&#39;) no-repeat center top fixed; background-color: #fff; color: #666 !important;}
+p{font-size: 400px;}
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>助けてください！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>‘/stylesheets/’ ではなく、compile ‘/stylesheet/’
+                    と表示されるはずなので、余分な s
+                    を削除します。ルーティング
+                    ルールにも同様の問題があります。</p>
+                    <p>:css
+                    フィルターもありません。これで何を達成したかったのですか?スタイルシートをそのまま出力したい場合は、フィルターは必要ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

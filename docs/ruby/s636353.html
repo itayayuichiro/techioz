@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>テスト データをランダムに生成するのは悪い習慣ですか? [閉まっている] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "テスト データをランダムに生成するのは悪い習慣ですか? [閉まっている]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>テスト
+データをランダムに生成するのは悪い習慣ですか? [閉まっている]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rspec
+                    を使い始めて以来、フィクスチャの概念に問題がありました。私の主な懸念は次のとおりです。</p>
+                    <p>私がやり始めたことの 1 つは、すべてのモデルに
+                    #generate_random
+                    メソッドを追加することです。この方法は、仕様を実行している場合にのみ使用できます。例えば：</p>
+                    <pre><code>class Item
+  def self.generate_random(params={})
+    Item.create(
+      :name =&gt; params[:name] || String.generate_random,
+      :price =&gt; params[:price] || rand(100)
+    )
+  end
+end
+</code></pre>
+                    <p>(これを行う具体的な詳細は、実際にはもう少し明確です。すべてのモデルの生成とクリーンアップを処理するクラスがありますが、このコードは私の例としては十分明確です。)
+                    したがって、上記の例では、次のようにテストします。が続きます。心のフェイントに対する警告:
+                    私のコードは before(:all)
+                    の使用に大きく依存しています。</p>
+                    <pre><code>describe Item do
+  describe &#39;#most_expensive&#39; do
+    before(:all) do
+      @items = []
+      3.times { @items &lt;&lt; Item.generate_random }
+      @items &lt;&lt; Item.generate_random({:price =&gt; 50})
+    end
+
+    it &#39;should return the most expensive item&#39; do
+      sorted = @items.sort { |a, b| b.price &lt;=&gt; a.price }
+      expensive = Item.most_expensive
+      expensive.should be(sorted[0])
+      expensive.price.should &gt;= 50      
+    end
+  end
+end
+</code></pre>
+                    <p>こうすることで、テストで驚くべき動作がより明らかになります。この方法でデータを生成すると、コードが期待どおりに動作しないというエッジケースに遭遇することがありますが、フィクスチャのみを使用していれば気付かなかったでしょう。たとえば、#most_expensive
+                    の場合、複数の商品が最も高価な価格を共有するという特殊なケースの処理を忘れた場合、最初の時点でテストが失敗することがありました。
+                    AutoSpec
+                    で非決定的なエラーが発生することを確認すると、何かが間違っていることがわかります。フィクスチャのみを使用していた場合、そのようなバグを発見するまでにさらに時間がかかる可能性があります。</p>
+                    <p>私のテストでは、予想される動作が何であるかをコードで実証するという点でも、少しうまく機能します。私のテストでは、sorted
+                    とは、価格の降順に並べ替えられたアイテムの配列であることが明らかです。
+                    #most_expensive
+                    がその配列の最初の要素と等しいと予想されるため、most_expensive
+                    の予想される動作が何であるかはさらに明らかです。</p>
+                    <p>それともこれは機能しますか？では、これは悪い習慣なのでしょうか?試合に対する私の恐怖心は不合理なものなのでしょうか？モデルごとにgenerate_randomメソッドを記述するのは手間がかかりすぎますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このトピックやリンク先のジェイソン・ベイカーのトピックで誰も言及していないことに驚いた
+                    モンテカルロテスト。私がランダム化されたテスト入力を広範囲に使用したのはこの時だけです。ただし、テスト
+                    ケースごとに乱数ジェネレーターのシードを一定にすることで、テストを再現可能にすることが非常に重要でした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

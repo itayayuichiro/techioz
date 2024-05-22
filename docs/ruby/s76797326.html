@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 7 での検索機能の構築 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 7 での検索機能の構築",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 7 での検索機能の構築</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails を初めて使用しており、Ruby on
+                    Rails
+                    アプリケーションに検索機能を構築しています。詳細は以下のとおりです。</p>
+                    <p>従業員の視点</p>
+                    <pre><code>&lt;/div&gt;&lt;/div&gt;
+  &lt;div class=&quot;col-sm-9&quot;&gt;
+
+&lt;div class=&quot;form-group&quot;&gt;
+ &lt;%= form_with url: employees_path, class: &quot;form-control rounded-0&quot;, method: :get do |form| %&gt; 
+    &lt;label for=&quot;exampleInputEmail1&quot;&gt;Search Employee&lt;/label&gt;
+    
+      &lt;%= text_field_tag(:employeesearchfield)  %&gt;
+       
+    &lt;%= form.submit &quot;Search&quot; %&gt;
+    &lt;%end%&gt;
+  &lt;/div&gt;
+</code></pre>
+                    <p>ルート</p>
+                    <pre><code>Rails.application.routes.draw do
+  
+  resources :operations
+  get &#39;operations/:preason&#39;, to: &#39;operations#index&#39;
+  get &#39;pages/Administratorhome&#39;
+  get &#39;pages/userhome&#39;
+  devise_for :users
+  resources :employees do 
+
+    collection do 
+    delete &#39;delete_multiple&#39;
+    end 
+    collection do
+    post &#39;import&#39; 
+    end
+    collection do 
+    get &#39;export&#39;
+    end
+  end
+
+  put &quot;employees/:id&quot;, to: &#39;employees#show&#39;
+  
+
+  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  root to: &quot;pages#Administratorhome&quot;
+  # Below route is required for logout functionality.
+  devise_scope :user do
+    get &#39;users/sign_out&#39; =&gt; &quot;devise/sessions#destroy&quot;
+end
+  # Defines the root path route (&quot;/&quot;)
+  # root &quot;articles#index&quot;
+end
+
+</code></pre>
+                    <p><strong>従業員管理者</strong></p>
+                    <pre><code>def index
+   @employees = Employee.search_employee(params[:employeesearchfield])
+  end
+</code></pre>
+                    <p>従業員モデル</p>
+                    <pre><code>def self.search_employee(employeename)
+    
+    searchvar = employeename 
+    
+      if searchvar.nil?
+        employeelist = Employee.all
+      else
+        employeelist = Employee.find_by(name: &quot;searchvar&quot;)
+      end  
+      return employeelist
+  end
+</code></pre>
+                    <p>検索フォームを使用して従業員を検索しようとすると、NoMethod
+                    エラーが発生します。</p>
+                    <p>エラー：</p>
+                    <p><span class="citation"
+                    data-cites="employee">@employee</span>
+                    インスタンス変数が null
+                    である理由が理解できません。</p>
+                    <p>byebug
+                    gemを試してデータフローを調べてみました。</p>
+                    <p>検索フォームのパラメーター「params[:employeesearchfield]」がこのメソッドに流入していないことがわかりました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="employees.each行でnilに対する未定義のメソッド">@employees.each行でnilに対する未定義のメソッド</span>「each」を取得した場合、それは@employees変数がnilを返していることを意味します。</p>
+                    <p>これはモデル内のこの行が原因で発生します</p>
+                    <pre><code>employeelist = Employee.find_by(name: &quot;searchvar&quot;)
+</code></pre>
+                    <p>find_by
+                    は最初に見つかったレコードのみを返すか、見つからない場合は
+                    nil を返すためです。さらに、クエリは変数 searchvar
+                    ではなく文字列 “searchvar”
+                    を常に検索するようにハードコードされています。</p>
+                    <p>問題を解決するには、メソッドを次のように変更します。</p>
+                    <pre><code>def self.search_employee(employee_name)
+  if employee_name.nil?
+    Employee.all
+  else
+    Employee.where(name: employee_name)
+  end  
+end
+</code></pre>
+                    <p>モデル内で次のようなスコープを定義すると、コードをさらに簡素化できることに注意してください。</p>
+                    <pre><code>scope :filter_by_name, -&gt;(name) { where(name: name) if name }
+</code></pre>
+                    <p>そして、コントローラーで次のようにスコープを使用します。</p>
+                    <pre><code>def index
+  @employees = Employee.filter_by_name(params[:employeesearchfield])
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

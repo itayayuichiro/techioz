@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同時日付を検出する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同時日付を検出する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同時日付を検出する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>単純に見えるアルゴリズムが必要ですが、これを行うための適切に最適化された方法がまだ思いつきません。</p>
+                    <p>次の json オブジェクトがあります。</p>
+                    <pre><code>  [
+        {
+            &quot;start&quot;: &quot;2000-01-01T04:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T08:00:00.000Z&quot;
+        }, {
+            &quot;start&quot;: &quot;2000-01-01T05:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T07:00:00.000Z&quot;
+        }
+    ]
+</code></pre>
+                    <p>ご覧のとおり、2
+                    番目のオブジェクトは最初のオブジェクトの範囲内にあります。
+                    <strong>この配列を反復処理して、どの日付範囲が競合している（重複している）かを返す必要があります。言い換えれば、各日付範囲が他の日付範囲と重複することはありません。
+                    </strong></p>
+                    <p>例</p>
+                    <pre><code>overlaping date ranges
+ [
+        {
+            &quot;start&quot;: &quot;2000-01-01T04:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T08:00:00.000Z&quot;
+        }, 
+       {
+            &quot;start&quot;: &quot;2010-01-01T05:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T07:00:00.000Z&quot;
+        },
+       {
+            &quot;start&quot;: &quot;2010-01-01T05:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T07:00:00.000Z&quot;
+        }
+    ]
+
+No overlaping dates
+ [
+        {
+            &quot;start&quot;: &quot;2000-01-01T04:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2001-01-01T08:00:00.000Z&quot;
+        }, 
+       {
+            &quot;start&quot;: &quot;2002-01-01T05:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2003-01-01T07:00:00.000Z&quot;
+        },
+       {
+            &quot;start&quot;: &quot;2010-01-01T05:00:00.000Z&quot;,
+            &quot;end&quot;: &quot;2020-01-01T07:00:00.000Z&quot;
+        }
+    ]
+
+</code></pre>
+                    <p>私のプロジェクトは現在 Ruby on Rails
+                    で行われていますが、アルゴリズムを実装する方法のアイデアが必要なだけなので、高レベルのプログラミング言語であれば何でも良いでしょう。</p>
+                    <p>何か案は？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、ハッシュのリストを変換して日付を Date
+                    オブジェクトに解析します。</p>
+                    <pre><code>require &#39;date&#39;
+
+dates = input.map do |hsh|
+  hsh.transform_values { |str| Date.parse str }
+end
+</code></pre>
+                    <p>これで、ネストされたループを使用して Range#cover?
+                    を使用できるようになりました。重複があるかどうかを確認するには:</p>
+                    <pre><code>conflicting = dates.select.with_index do |date, idx|
+  [date[:start], date[:end]].any? do |date_to_compare|
+    dates.map.with_index.any? do |date2, idx2|
+      next if idx == idx2 # so we don&#39;t compare to self
+      (date2[:start]..date2[:end]).cover?(date_to_compare)
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

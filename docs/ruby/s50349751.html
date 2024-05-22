@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby のハッシュ配列を分割する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby のハッシュ配列を分割する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby のハッシュ配列を分割する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュの配列を分割したいです。</p>
+                    <p>.split は機能しません。</p>
+                    <p>順序を維持しながら 2
+                    つに分割したいので、.partition、.select、group_by
+                    は機能しない可能性があります。</p>
+                    <p>これから何か</p>
+                    <pre><code>allay = [
+  {name: &quot;Iron Man&quot;, power: &quot;Tech&quot;},
+  {name: &quot;Spiderman&quot;, power: &quot;Iron Man as Uncle&quot;},
+  {name: &quot;Thor&quot;, power: &quot;God&quot;},
+  {name: &quot;Hawk Eye&quot;, power: &quot;None&quot;},
+  {name: &quot;Black Widow&quot;, power: &quot;love her&quot;}
+]
+</code></pre>
+                    <p>これを出力として</p>
+                    <pre><code>=&gt; [
+  [
+    {name: &quot;Iron Man&quot;, power: &quot;Tech&quot;},
+    {name: &quot;Spiderman&quot;, power: &quot;Iron Man as an Uncle&quot;},
+    {name: &quot;Thor&quot;, power: &quot;God&quot;}
+  ],
+  [
+    {name: &quot;Hawk Eye&quot;, power: &quot;None&quot;},
+    {name: &quot;Black Widow&quot;, power: &quot;love her &lt;3&quot;}
+  ]
+]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Enumerable#each_slice
+                    を使用して、必要な動作を取得できます。</p>
+                    <pre><code>left, right = allay
+  .each_slice(allay.length.succ / 2)
+  .to_a
+</code></pre>
+                    <p>もちろん他の方法もありますが、それほど良いものではありません。もう一つは次のとおりです。</p>
+                    <pre><code>pivot = allay.length.succ / 2
+left, right = allay
+  .partition
+  .with_index { |_, i| i &lt; pivot }
+</code></pre>
+                    <p>そしてもう一つ：</p>
+                    <pre><code>left, right = [], allay.dup
+left &lt;&lt; right.shift until left.length &gt;= right.length
+</code></pre>
+                    <p>ベンチマーク！</p>
+                    <pre><code>      each_slice    785.207k (± 5.6%) i/s -      3.920M in   5.006885s
+      with_index    694.555k (± 6.6%) i/s -      3.474M in   5.023968s
+      push_shift      1.674M (± 6.2%) i/s -      8.343M in   5.004380s
+       take_drop      3.468M (± 6.8%) i/s -     17.303M in   5.013369s
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

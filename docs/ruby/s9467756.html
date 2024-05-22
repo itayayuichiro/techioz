@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Bundler が更新またはインストールしようとすると永久にハングアップする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Bundler が更新またはインストールしようとすると永久にハングアップする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Bundler
+が更新またはインストールしようとすると永久にハングアップする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>バンドルのインストールまたはバンドルの更新を実行しようとすると、バンドラーが永続的にハングし、その機能が完了しません。完了するのは、更新する
+                    gem を指定したときだけです。</p>
+                    <p>例えば：</p>
+                    <pre><code>bundle update
+</code></pre>
+                    <p>次のように使用しない限り、永久にハングします。</p>
+                    <pre><code>bundle update activerecord
+</code></pre>
+                    <p>その後は通常どおり完了します。</p>
+                    <p>ご協力をいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この問題は、依存関係が欠落していること、またはさらに悪いことに、依存関係の依存関係が原因で発生します。これは、gemserver
+                    (エンタープライズ環境) として Rubygems.org
+                    を使用していない場合によく発生します。</p>
+                    <p>新しい gemset
+                    を作成し、再バンドルします。これにより問題が何度も解決されます。</p>
+                    <p>運用上の理由でそれができず、問題のある gem
+                    がいつ追加されたかを振り返るためのアプリ履歴がない場合は、次のようにします。</p>
+                    <p>この回答を書いてから少し学んだので、詳細なデバッグ出力でバンドラーを実行する方法についてのこの優れた記事を渡したいと思いました。</p>
+                    <pre><code>export DEBUG_RESOLVER=1
+bundle  2&gt; debug_output.txt 1&gt; stdio.txt &amp;
+</code></pre>
+                    <p>これにより、すべてのデバッグ (err) 出力が
+                    debug_output.txt にダンプされ、通常の画面内容が
+                    stdio.txt にダンプされます。</p>
+                    <p>バンドラーが行を 2(stderr) にダンプするたびに
+                    crlf を 1 に入れるため、1&gt;
+                    もダンプする必要があります。そのため、1
+                    をダンプするか、ジョブをバックグラウンドで実行します。同じ端末で作業できるように両方を実行します。</p>
+                    <p>私は通常、次のようにフォローアップします。</p>
+                    <pre><code>tail stdio.txt 
+</code></pre>
+                    <p>物事が始まっていることを確認するには、次のようにします。</p>
+                    <pre><code>tail -n 10000 -f debug_output.txt 
+</code></pre>
+                    <p>/FAIL]
+                    を使用して、依存関係のインストールに失敗したファイルを検索します。同じものをいくつか見つければ、ほぼ犯人が特定されます。
+                    stderr
+                    はバンドルのインストールまたはバンドルの更新に機能します。</p>
+                    <p>(エンタープライズ) gemserver
+                    インデックスが破損していることを確認するには、この消去プロセスを使用する必要がありました。</p>
+                    <p>ENV 変数の設定を解除するには、</p>
+                    <p>GITHUB_TOKEN の認証情報がバンドル設定 –global
+                    github.com <your token>
+                    と一致していることを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

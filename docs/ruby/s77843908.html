@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails で ActiveRecordModel に繰り返しアクセスすると同じオブジェクトが返される: 意図した動作かバグ? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails で ActiveRecordModel に繰り返しアクセスすると同じオブジェクトが返される: 意図した動作かバグ?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails で ActiveRecordModel
+に繰り返しアクセスすると同じオブジェクトが返される:
+意図した動作かバグ?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails アプリケーションの
+                    ActiveRecordModel
+                    で奇妙な動作が発生しています。モデルにアクセスするたびに、同じオブジェクト
+                    インスタンスが返されるように見えます。これが標準的な動作なのか、それとも私の実装に潜在的な問題があるのかはわかりません。</p>
+                    <p>シナリオは次のとおりです。</p>
+                    <p>ApplicationRecord を継承するクラス MyModel
+                    があります。このクラスでは、test と test2 という 2
+                    つのクラス メソッドを定義しました。テスト
+                    メソッドは、特定の条件に基づいて MyModel
+                    レコードをフィルターし、test2 を呼び出します。 test2
+                    メソッドはコレクションを反復処理して各レコードを更新し、ID
+                    で同じレコードを検索しようとします。</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  def self.test
+    MyModel.where(some_column: &quot;A&quot;).test2
+  end
+
+  def self.test2
+    all.each do |my_model|
+      my_model.update(some_column: &quot;B&quot;)
+      MyModel.find(my_model.id)
+    end
+  end
+end
+</code></pre>
+                    <p>ただし、このプロセス中に、珍しいと思われる
+                    ActiveRecord::RecordNotFound
+                    例外が発生しました。例外メッセージは次のとおりです。</p>
+                    <pre><code>ActiveRecord::RecordNotFound (Couldn&#39;t find MyModel with &#39;id&#39;=&#39;the_id_of_record&#39; [WHERE &quot;my_models&quot;.&quot;some_column&quot; = $1])
+</code></pre>
+                    <p>このエラーは、レコードを更新した後、後続の検索操作でレコードを見つけることができないことを示しています。これが何らかの
+                    ActiveRecord キャッシュ
+                    メカニズムによる予期される動作なのか、それとも私のアプローチの欠陥なのかを理解しようとしています。さらに、この状況に効果的に対処する方法についての洞察や推奨事項があれば幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この動作は意図されたものです。リレーションに対して
+                    test2
+                    メソッドを呼び出しています。これは、単なるメソッド呼び出しではなくスコープとして機能することを意味します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/blob/v7.1.3/activerecord/lib/active_record/relation/delegation.rb#L78-L80</p>
+                    <pre><code>&gt;&gt; puts MyModel.where(some_column: &quot;A&quot;).method(:test2).source
+def #{method}(...)
+  scoping { klass.#{method}(...) }
+end
+</code></pre>
+                    <p>メソッド呼び出しはスコープ メソッドを通じて
+                    MyModel.test2
+                    に委任されることに注意してください。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-scoping</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  def self.test
+    MyModel.where(some_column: &quot;A&quot;).test2
+  end
+
+  def self.test2
+    all.each do |my_model|
+      my_model.update(some_column: &quot;B&quot;)
+
+      # NOTE: when you do this, `current_scope` is taken into account
+      #       which you can take a look at:
+      p &quot;current_scope&quot;
+      p current_scope.to_sql
+      MyModel.find(my_model.id)
+    end
+  end
+end
+#=&gt;
+# &quot;current_scope&quot;
+# &quot;SELECT \&quot;my_models\&quot;.* FROM \&quot;my_models\&quot; WHERE \&quot;my_models\&quot;.\&quot;some_column\&quot; = &#39;A&#39;&quot;
+</code></pre>
+                    <p>MyModel.unscoped.find(my_model.id)
+                    を使用できますが、なぜこれを行う必要があるのかわかりません。また、メソッド呼び出しをリレーションに連鎖させることもできません。</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  def self.test
+    MyModel.where(some_column: &quot;A&quot;)
+  end
+
+  def self.test2 q
+    q.each do |my_model|
+      my_model.update(some_column: &quot;B&quot;)
+      MyModel.find(my_model.id)
+    end
+  end
+end
+
+&gt;&gt; MyModel.test2(MyModel.test)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

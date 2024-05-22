@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>再試行されたサイドキックジョブをキューの先頭に置く | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "再試行されたサイドキックジョブをキューの先頭に置く",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>再試行されたサイドキックジョブをキューの先頭に置く</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>約100000のジョブを含むsidekiqキューがあります。一部のジョブは失敗しますが、sidekiq
+                    によって再試行されると通常は成功するため、問題ありません。</p>
+                    <p>ただし、RetrySet
+                    からのジョブはキューの最後に追加されます。ジョブが再度処理されるまでに長い時間がかかります。</p>
+                    <p>再試行されたジョブをキューの先頭に置き、優先的に処理されるようにするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の記憶が正しければ、Sidekiq キューは Redis
+                    リストを使用するため、FIFO
+                    が期待されるため、これに対する優れた答えはないと思います。再試行されたジョブは同じキューに入れられるため、常に最後にあることになります。</p>
+                    <p>1
+                    つのアプローチは、優れたものではなく、私がお勧めするものでもありませんが、別のキューを追加し、代わりにジョブの再試行をそこに送信することです。</p>
+                    <pre><code># config/sidekiq.yml
+---
+:queues:
+  - default
+  - my_worker_retries
+</code></pre>
+                    <p>ワーカーが再試行しないように設定します。</p>
+                    <pre><code>class MyWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false
+end
+</code></pre>
+                    <p>ワーカーが次のようなエラーを予想通りに発生させるようにしてください。</p>
+                    <pre><code>class MyWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false
+
+  def perform(arg)
+    raise ArgumentError
+  end
+end
+</code></pre>
+                    <p>その例外を処理するロジックを追加し、新しく作成したキューを通じてこのジョブを再度実行します。</p>
+                    <pre><code>class MyWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false
+
+  def perform(arg)
+    begin
+      raise ArgumentError
+    rescue ArgumentError =&gt; error
+      MyWorker.set(queue: :my_worker_retries).perform_async(arg)
+    end
+  end
+end
+</code></pre>
+                    <p>これは、失敗して my_worker_retries
+                    キューに入れられたジョブは無限ループに陥る可能性があることを意味します。ジョブは失敗し、救出され、キューに入れられ、再び失敗します。さらに悪いことに、Sidekiq
+                    が構築したキューを利用していないためです。再試行キュー
+                    メカニズムには、CPU
+                    が処理できる速度で再試行が行われないようにするためのバックオフ
+                    アルゴリズムがありません。</p>
+                    <p>全体が脆いだけです。</p>
+                    <p>このジョブが再試行された回数を示す引数を渡すことで、これを防ぐことができます。これにより、特定の回数の後に停止できるようになります。</p>
+                    <pre><code>class MyWorker
+  include Sidekiq::Worker
+  sidekiq_options retry: false
+
+  MAX_RETRIES = 5
+
+  def perform(arg, retries = 0)
+    raise &#39;Too many retries&#39; if retries &gt;= MAX_RETRIES
+
+    begin
+      raise ArgumentError
+    rescue ArgumentError =&gt; error
+      MyWorker.set(queue: :my_worker_retries).perform_async(arg, retries + 1)
+    end
+  end
+end
+</code></pre>
+                    <p>これを拡張して、独自のバックオフ
+                    アルゴリズムを作成することもできます。</p>
+                    <pre><code>MyWorker.set(queue: :my_worker_retries).perform_in((retries + 1).hours, arg, retries + 1)
+</code></pre>
+                    <p>これはどれも理想的なものではありませんが、質問には答えます。これよりも良い解決策があることを願っています。</p>
+                    <p>https://github.com/chartmogul/sidekiq-priority_queue
+                    など、機能する可能性のある Sidekiq
+                    拡張機能がいくつかありますが、私はこれまでに使用したことがありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

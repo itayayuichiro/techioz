@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>日付付きのrubyXL – 仕様は機能しますが、実際の使用は機能しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "日付付きのrubyXL – 仕様は機能しますが、実際の使用は機能しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>日付付きのrubyXL –
+仕様は機能しますが、実際の使用は機能しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RubyXL を使用して日付付きの xlsx
+                    ファイルを処理します。日付処理の仕様は合格していますが、それを独自のスクリプトで複製しようとすると、機能しません。代わりに、日付を浮動小数点/数値として残します
+                    (これが Excel での日付の保存方法です)。 Github から
+                    RubyXL
+                    ソースをダウンロードし、仕様を実行しました。日付に関連するすべてが過ぎました。ただし、仕様ファイルの外で次のコードを実行すると、誤った動作が発生します。</p>
+                    <pre><code>require &#39;rubyXL&#39;
+
+workbook = RubyXL::Workbook.new
+worksheet = RubyXL::Worksheet.new(workbook)
+workbook.worksheets &lt;&lt; worksheet
+
+worksheet.add_cell(0, 0, &quot;0:0&quot;)
+cell = worksheet[0][0]
+
+date = Date.parse(&quot;January 20, 2011&quot;)
+cell.change_contents(date)
+
+puts cell.is_date? # false -- spec says it should be true
+puts cell.value == date # false -- spec says it should be true
+puts date # 2011-01-20
+puts cell.value # 40563/1 &lt;-- should be a date object
+</code></pre>
+                    <p>これを RubyXL 仕様テストと比較してください
+                    (セルは上に示したものとまったく同じように始まります)。</p>
+                    <pre><code>it &#39;should return the value of a date&#39; do
+      date = Date.parse(&#39;January 1, 2011&#39;)
+      @cell.change_contents(date)
+      @cell.should_receive(:is_date?).any_number_of_times.and_return(true)
+      @cell.value.should == date
+    end
+</code></pre>
+                    <p>実際に動作していることを確認するために、いくつかの
+                    put
+                    ステートメントを追加しました。実際に動作していることを確認します
+                    (2011-01-01
+                    のようなものが出力されます)。また、不足している設定がないか確認するために、spec
+                    フォルダー内の cell_spec.rb
+                    を除くすべてのファイルを削除してみました。それでも何も変わりませんでした。</p>
+                    <p>この時点で私は当惑していますが、単純な何かが欠けているに違いないと確信しています。仕様の動作を通常のコードで再現できない理由がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>値は実際にはエポックです。Time.at(cell.value)
+                    を使用してみてください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

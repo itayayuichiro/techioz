@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SSL_connect が返されました = 1 errno = 0 state = SSLv3 読み取りサーバー hello A: バージョン番号が間違っています (OpenSSL::SSL::SSLError) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SSL_connect が返されました = 1 errno = 0 state = SSLv3 読み取りサーバー hello A: バージョン番号が間違っています (OpenSSL::SSL::SSLError)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SSL_connect が返されました = 1 errno = 0 state
+= SSLv3 読み取りサーバー hello A: バージョン番号が間違っています
+(OpenSSL::SSL::SSLError)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>https.ssl_version = :TLSv1_2 を実行したとき</p>
+                    <p>エラーが発生しました</p>
+                    <pre><code>ruby/2.1.0/net/http.rb:920:in `connect&#39;: 
+SSL_connect returned=1 errno=0 state=SSLv3 read server hello A: 
+wrong version number (OpenSSL::SSL::SSLError)
+</code></pre>
+                    <p>https.ssl_version = :SSLv3 に変更したところ</p>
+                    <pre><code>ruby/2.1.0/net/http.rb:920:in `connect&#39;: 
+SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A 
+(OpenSSL::SSL::SSLError)
+</code></pre>
+                    <p>しかし、Restクライアントではエラーなしで実行できます</p>
+                    <pre><code>resp = RestClient.post(server_url, content, header)
+</code></pre>
+                    <p>ssl接続はとても混乱させます。</p>
+                    <p>MacOSとUbuntu 14.04の両方の問題</p>
+                    <p>SSLパラメータを確認してください</p>
+                    <pre><code>irb(main):001:0&gt; require &#39;openssl&#39;
+=&gt; true
+irb(main):002:0&gt;  OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+=&gt; {:ssl_version=&gt;&quot;SSLv23&quot;, :verify_mode=&gt;1, :ciphers=&gt;&quot;ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW&quot;, :options=&gt;-2147482625}
+</code></pre>
+                    <pre><code>{
+    :ssl_version =&gt; &quot;SSLv23&quot;,
+    :verify_mode =&gt; 1,
+        :ciphers =&gt; &quot;ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW&quot;,
+        :options =&gt; -2147482625
+}
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+</code></pre>
+                    <pre><code>I changed the method by `OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:ssl_version]=method`
+
+:TLSv1
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_2_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:TLSv1_1_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv3_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23_server
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+:SSLv23_client
+#&lt;OpenSSL::SSL::SSLError: SSL_connect SYSCALL returned=5 errno=0 state=SSLv3 read server hello A&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ssl_version を TLSv1_2
+                    に設定し、サーバーがそのバージョンをサポートしていない場合は、このエラーが表示されます
+                    (SSLv3 の場合も同様)。</p>
+                    <p>私の推測では、RestClient はおそらく Ruby
+                    のデフォルトの SSLv23
+                    を使用しているだけだと思います。そのバージョンがサーバーでサポートされていれば、問題なく動作する可能性があります。</p>
+                    <p>次のように Ruby
+                    バージョンのデフォルトを確認します。</p>
+                    <pre><code>require &#39;openssl&#39;
+OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+# =&gt; {
+# =&gt;     :ssl_version =&gt; &quot;SSLv23&quot;,
+# =&gt;     :verify_mode =&gt; 1,
+# =&gt;     :ciphers     =&gt; &quot;ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW&quot;,
+# =&gt;     :options     =&gt; -2147482625
+# =&gt; }
+</code></pre>
+                    <p>https.ssl_version = :TLSv1_2
+                    が機能しない場合は、他のバージョンを試してみます。</p>
+                    <p>Ruby
+                    で利用可能なすべてのバージョンのリストを取得するには、次のようにします。</p>
+                    <pre><code>OpenSSL::SSL::SSLContext::METHODS
+</code></pre>
+                    <p>私なら次のように始めます。</p>
+                    <pre><code>https.ssl_version = &#39;SSLv23&#39;
+</code></pre>
+                    <p>または、どのバージョンがサポートされているかをサーバーの所有者に問い合わせることもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

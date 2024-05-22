@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>YARD 戻り値の型エラーによるコミットを防ぐために RubyMine を構成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "YARD 戻り値の型エラーによるコミットを防ぐために RubyMine を構成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>YARD
+戻り値の型エラーによるコミットを防ぐために RubyMine
+を構成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は RubyMine を IDE として使用して Ruby
+                    プロジェクトに取り組んでおり、YARD
+                    を利用しています。 YARD
+                    戻り値の型の不一致エラーを含むコミットを制限するように
+                    RubyMine
+                    を設定する方法があるかどうか知りたいです。</p>
+                    <p>次の例を考えてみましょう。</p>
+                    <pre><code># @param [Integer] integer input 
+# @return [String] 
+def foo(input)
+  input # This causes a type mismatch
+end
+</code></pre>
+                    <p>上記のコードでは、YARD
+                    コメントで指定された戻り値の型とメソッドの実際の戻り値の型の間に明らかな不一致があります。</p>
+                    <p>RubyMine がエディタ ウィンドウに YARD
+                    エラーを表示する機能があることは知っていますが
+                    (以下のスクリーンショットを参照)、そのような型の不一致が検出された場合に積極的にコミットを阻止する組み込み機能は見つかりませんでした。</p>
+                    <p>おそらくプラグインや外部ツールを通じて、コミットを許可する前にこのチェックを強制するように
+                    RubyMine を設定する方法はありますか? RubyMine
+                    で直接ではない場合、この機能を実現するために使用できる代替アプローチはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は、IDE
+                    固有のチェックと必須のコミット前チェックの両方に反対です。その理由は次のとおりです…</p>
+                    <p>IDE でこれを実行すると、特定の IDE
+                    でのみ機能し、自分に対してのみ機能します。これをプロジェクト全体で行う方がよいでしょう。</p>
+                    <p>コミット前のチェックは通常、バージョン管理システムによって処理されますが、コミットごとに必要な場合は非常に面倒で時間がかかる可能性があります。さらに、すべてのコミットがすべてのテストとすべてのコード品質チェックに合格することを要求することは、非常に制限的です。大規模なリファクタリングや複雑なリファクタリングでは、壊れている場合でもコミットすると便利なことがよくあります。</p>
+                    <p>すべてのコミットが完璧である必要がありますか? Git
+                    などの分散バージョン管理システムを使用している場合、コミットはローカルに行われます。あなたがそれらを押すまで、それらはあなたにのみ影響を与えます。壊れたコミットは、壊れたプッシュほど重要ではありません。その場合でも、常にブランチで作業する必要があるため、ブランチが壊れていることも重要ではありません。重要なのは、ブランチをメイン
+                    コードにマージするときです。このときは、他の人がコードを壊すことを避けるために、厳しいテストを実行する必要があります。</p>
+                    <p>ブランチ マージ レビュー プロセス (プル
+                    リクエストなど)
+                    中に必須のコード品質チェックを実行し、自動化することをお勧めします。そうすれば全員のコードがチェックされます。</p>
+                    <p>最も簡単な方法は、Rakefile
+                    に任意のチェックを追加することです。そうすれば、誰でもそれらを利用できるようになります。単一の
+                    rake
+                    チェックですべてのコード品質チェックを実行できます。必要に応じて、コミット前フックを追加してコミット前にチェックを実行できますが、それをプロジェクト全体に強制しないでください。これらのチェックを必要とするのは、ブランチのレビュー
+                    プロセスのみです。</p>
+                    <p>Github
+                    などのシステムには、これらのチェックをレビュー
+                    プロセスに統合する独自の方法があり、それを使用するとよいでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

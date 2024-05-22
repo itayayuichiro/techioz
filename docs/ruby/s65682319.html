@@ -84,6 +84,8 @@
   end
 end
 </code></pre>
+                    <p>私のコントローラーには、block_reason
+                    メソッドを呼び出す次のメソッドインデックスがあります。</p>
                     <pre><code>class Private::V1::JobsController &lt; Private::V1::ApiController
   def index
     response = @current_user.block_reason.try(:to_h)
@@ -110,6 +112,20 @@ end
   from readthis/cache.rb:345:in `invoke&#39;
   from readthis/cache.rb:85:in `write&#39;
   from readthis/cache.rb:146:in `fetch&#39;
+</code></pre>
+                    <p>エラーが readthis_store gem
+                    で発生しており、シングルトンとしてキャッシュされたオブジェクトを定義する
+                    Marshal.dump
+                    に関係していることはわかっています。</p>
+                    <p>しかし、他にこの問題を解決する方法がわかりません。さまざまなオプションを試しましたが、すべて無駄でした。</p>
+                    <p>これに遭遇して Rails 4
+                    で解決できた人がいるかどうかはわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>キャッシュされているすべてのコンテンツが実際にシリアル化可能であることを確認してください。コードからわかることは、次の中に
+                    2 つのドットがあることです。</p>
+                    <pre><code>...
+  status: self..status
+...
 </code></pre>
         </article>
     </div>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - 数値が指定されたパーセンテージ許容誤差の範囲内にあるかどうかを確認するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - 数値が指定されたパーセンテージ許容誤差の範囲内にあるかどうかを確認するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby -
+数値が指定されたパーセンテージ許容誤差の範囲内にあるかどうかを確認するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のケース間隔があるとします。</p>
+                    <pre><code>min_value = 500
+max_value = 900
+</code></pre>
+                    <p>そして、テスト番号があるかどうかを知りたいです。
+                    check_value = 1000 は、min_value と max_value の周囲
+                    25% 以内です。</p>
+                    <p>この特定のケースでは、1000 - 25% は 750、つまり
+                    500 ～ 900
+                    の間にあるため、結果は「はい」になります。</p>
+                    <p>これを行う機能はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いいえ、これを行うための組み込みメソッドはありません。それは非常に特殊な/ニッチな問題です。</p>
+                    <p>ただし、カスタム
+                    メソッドを定義するのは非常に簡単です。たとえば、次のような場合はどうでしょうか。</p>
+                    <pre><code>def in_range_with_tolerance?(check_value:, min_value:, max_value:, tolerance:)
+  allowed_range = (min_value / (1 + tolerance) .. max_value / (1 - tolerance))
+  allowed_range.include?(check_value)
+end
+
+in_range_with_tolerance?(
+  check_value: 1000,
+  min_value: 500,
+  max_value: 900,
+  tolerance: 0.25
+)
+  # =&gt; true
+</code></pre>
+                    <p>ただし、この allowed_range
+                    が実際にどのように定義されているかについては、慎重に検討する必要があるかもしれません。たとえば、900
+                    + 25% == 1125 であるため、上記の最大許容値は実際には
+                    1125 になるべきでしょうか。それとも 1200、1200 - 25%
+                    == 900
+                    なので?このようにパーセンテージを使って方程式を書くのは…疑わしいです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

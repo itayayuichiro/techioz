@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: ArgumentError (引数の数が間違っています (1 が指定され、0 が期待されます)) [クローズ] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: ArgumentError (引数の数が間違っています (1 が指定され、0 が期待されます)) [クローズ]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: ArgumentError (引数の数が間違っています
+(1 が指定され、0 が期待されます)) [クローズ]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Railsで引数を渡してメソッドを呼び出す方法が根本的に理解できていないことは明らかです。</p>
+                    <p>ダミー情報を使用してストライプへのテスト呼び出しを行おうとしていますが、コンソールから次のコマンドを実行しようとすると、件名エラーが発生します。</p>
+                    <pre><code>Stripe::CustomerApi.new(30).create_stripe_customer
+</code></pre>
+                    <p>メソッドが配置されている私のクラスは次のとおりです。</p>
+                    <pre><code>require &#39;stripe&#39;
+module Stripe
+    class CustomerApi
+
+        def initialize(id)
+          @user = User.find(id)
+          @company_profile = @user.company_profile
+          Stripe.api_key = &#39;my test key info&#39;
+        end
+
+
+        def create_stripe_customer
+          request = Stripe::Customer.create({
+              email: &#39;[email protected]&#39;,
+              name: &#39;john doe&#39;,
+              address: {
+                city: &#39;Brothers&#39;,
+                country: &#39;US&#39;,
+                line1: &#39;27 Any Street&#39;,
+                postal_code: &#39;90210&#39;,
+                state: &#39;CA&#39;,
+              }
+            })
+
+          Rails.logger.info request
+
+        end
+    end
+end
+</code></pre>
+                    <p>ここでの考え方は、テストが機能するようになったら、実際のユーザー情報を
+                    ID 値を通じて渡すということです。</p>
+                    <p>Railsコンソールからスタックトレースを追加します。</p>
+                    <pre><code>irb(main):001:0&gt; Stripe::CustomerApi.new(30).create_stripe_customer
+  User Load (7.3ms)  SELECT  &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 30], [&quot;LIMIT&quot;, 1]]
+  CompanyProfile Load (2.7ms)  SELECT  &quot;company_profiles&quot;.* FROM &quot;company_profiles&quot; WHERE &quot;company_profiles&quot;.&quot;user_id&quot; = $1 LIMIT $2  [[&quot;user_id&quot;, 30], [&quot;LIMIT&quot;, 1]]
+Traceback (most recent call last):
+        3: from (irb):1
+        2: from app/services/stripe/customer_api.rb:15:in `create_stripe_customer&#39;
+        1: from app/services/stripe/stripe_client.rb:11:in `initialize&#39;
+ArgumentError (wrong number of arguments (given 1, expected 0))
+</code></pre>
+                    <p>トレースは stripe_client
+                    ファイルを参照していますが、その理由はわかりません。これは、REST
+                    API を使用してこれと同じ API
+                    呼び出しを試みた別のファイルです。同じメソッドはありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>両方のファイルのフォルダー構造が異なり、両方のファイルの名前が異なると仮定しています。
+                    フォルダー構造を使用してローカルマシンでコードを実行します
+                    アプリ/サービス/ストライプ/customer_api.rb</p>
+                    <p>このコードは、以下で説明するコマンドを実行すると正常に動作します
+                    あなたも同じことを試してみるべきです</p>
+                    <p>Stripe::CustomerApi.new(1).create_
+                    Stripe_customer</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>このアクションでレンダリングやリダイレクトが複数回呼び出されました。 render または redirect を呼び出すことができるのは、アクションの問題ごとに最大 1 回だけです。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "このアクションでレンダリングやリダイレクトが複数回呼び出されました。 render または redirect を呼び出すことができるのは、アクションの問題ごとに最大 1 回だけです。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>このアクションでレンダリングやリダイレクトが複数回呼び出されました。
+render または redirect
+を呼び出すことができるのは、アクションの問題ごとに最大 1
+回だけです。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ページネーション ボタンまたはカンバン ボード
+                    カードのスクロブル
+                    バーを使用してページを変更すると、コントローラの同じアクションでレンダリングとリダイレクトの両方を実行しようとすると、Ruby
+                    on Rails で DoubleRenderError
+                    が発生します。エラーが示すように、アクションごとに
+                    render または redirect_to を 1
+                    回だけ呼び出すことができます。</p>
+                    <pre><code>  def index
+    session[:current_page] = &quot;all_request&quot;
+    default_per_page = 15
+    @per_page = params[:per_page] || session[:per_page] || default_per_page
+    session[:per_page] = @per_page
+    @q = ClientRequest.includes(:resource_infos, :developers).page(params[:page]).per(@per_page).ransack(params[:q])
+    if (params[:q] &amp;&amp; @filter_per_page_value = params[:q][:per_page_eq]) != nil
+      @per_page = @filter_per_page_value
+      @q = ClientRequest.includes(:resource_infos, :developers).page(params[:page]).per(@per_page).ransack(params[:q])
+    end
+    @client_requests = @q.result
+
+    kanban_view_details
+    render_partials
+  end
+
+
+
+  def kanban_view_details
+    kanban_column_data = KanbanColumn.in_order_of(:name, KanbanViewHelper::KANBAN_COLUMN_ORDER.keys)
+    @grouped_kanban_columns = {}
+    kanban_column_data.each do |kanban_column|
+      custom_sorting_expression, sorted_records = generate_sorted_records(kanban_column)
+      pagy, client_requests = pagy_countless(sorted_records, items: 6, page_param: kanban_column.name)
+      @grouped_kanban_columns[kanban_column] = [pagy, client_requests]
+    end
+    load_cache
+    @pagy, @kanban_columns = pagy_countless(kanban_column_data, items: 9)
+  
+    if params[:page]
+      render &quot;scrollable_list&quot;
+    elsif params[:load]
+      render partial: &quot;kanban_views/common_view/common_kanban_page&quot;
+    end
+  end
+
+
+  def render_partials
+    kanban_view_details
+    partial_name = params[:name]
+    if partial_name == &quot;classic_view&quot;
+      render partial: &quot;classic_views/classic_view&quot;
+    elsif partial_name == &quot;kanban_view&quot;
+      load_cache
+      render partial: &quot;kanban_views/common_view/common_kanban_page&quot;, locals: { client_request_cache: @client_request_cache }
+    end
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>カンバでレンダリングを呼び出し、インデックスで最終レンダリングを呼び出していると思います。インデックスが返されないように、カンバスのレンダリング後にリターンがある場合は、コードを変更するだけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

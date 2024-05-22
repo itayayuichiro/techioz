@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の String#gsub、unicode、および非単語文字 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の String#gsub、unicode、および非単語文字",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の
+String#gsub、unicode、および非単語文字</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>より大きな一連の操作の一環として、より大きな文字列のトークン化されたチャンクを取得し、句読点や非単語のゴブルディグックなどを取り除こうとしています。最初の試みでは、次のような
+                    String#gsub と
+                    正規表現文字クラスを使用しました。それで：</p>
+                    <pre><code>my_str = &quot;Hello,&quot;
+processed = my_str.gsub(/\W/,&#39;&#39;)
+puts processed # =&gt; Hello
+</code></pre>
+                    <p>超、超、超シンプル。もちろん、今は非ラテン文字を処理できるようにプログラムを拡張していますが、まったく問題がありません。
+                    Ruby の は [^A-Za-z0-9_]
+                    のようなもののようですが、当然、発音記号 (ü、í など)
+                    を含むものは除外されます。そのため、以前は単純だったコードがクラッシュし、不快な方法で燃えてしまいます。</p>
+                    <pre><code>my_str = &quot;Quística.&quot;
+processed = my_str.gsub(/\W/,&#39;&#39;)
+puts processed # =&gt; Qustica
+</code></pre>
+                    <p>gsub()
+                    がアクセント付きの「í」文字を強制的に削除していることに注意してください。これを修正するために私が考えた方法の
+                    1 つは、Ruby の ホワイトリストを拡張して上位の
+                    Unicode コード
+                    ポイントを含めることです。しかし、コード
+                    ポイントが非常に多く、いくつかを見逃して、将来的に問題が発生することはわかっています
+                    (そして非ラテン語については考えないでおこう…）。もう
+                    1 つの解決策は、削除したいもの (句読点、$/%/&amp;/™
+                    など)
+                    をすべてブラックリストに登録することです。しかし、繰り返しになりますが、それらは非常に多く、本当にプレイを開始したくありません。ブラックリストのもぐらたたき。</p>
+                    <p>この問題に対する原則的な解決策を見つけた人はいますか?私がまだ発見していない、の
+                    Unicode
+                    対応バージョンが隠されているのでしょうか?ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>UTF-8 を使用するには、「-Ku」オプションを付けて
+                    Ruby を実行する必要があります。コマンドライン
+                    オプションについてはドキュメントを参照してください。
+                    irb でこれを実行すると、次のようになります。</p>
+                    <pre><code>% irb -Ku
+irb(main):001:0&gt; my_str = &quot;Quística.&quot;
+=&gt; &quot;Quística.&quot;
+irb(main):002:0&gt; processed = my_str.gsub(/\W/,&#39;&#39;)
+=&gt; &quot;Quística&quot;
+irb(main):003:0&gt; 
+</code></pre>
+                    <p>#に付けることもできます！ Ruby
+                    スクリプト内の次の行:</p>
+                    <pre><code>#!/usr/bin/ruby -Ku
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

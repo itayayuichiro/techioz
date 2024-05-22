@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の実行後にログを生成できない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の実行後にログを生成できない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の実行後にログを生成できない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    を実行した後、ターミナルにログが表示されませんが、コードは問題なく正常に動作しています。ログは生成された
+                    logs/development.log
+                    ファイルを取得しています。ログがないため、デバッガーを使用できません。</p>
+                    <pre><code>=&gt; Booting Puma
+=&gt; Rails 5.2.3 application starting in development 
+=&gt; Run `rails server -h` for more startup options
+[95163] Puma starting in cluster mode...
+[95163] * Version 4.1.1 (ruby 2.4.6-p354), codename: Fourth and One
+[95163] * Min threads: 2, max threads: 2
+[95163] * Environment: development
+[95163] * Process workers: 2
+[95163] * Phased restart available
+[95163] * Listening on tcp://localhost:3000
+[95163] Use Ctrl-C to stop
+</code></pre>
+                    <p>config/dvelopment.log ファイル</p>
+                    <pre><code>Rails.application.configure do
+ 
+ 
+  config.active_storage.service = :local
+
+
+  config.action_mailer.perform_caching = false
+          
+  config.assets.debug = true
+
+  config.assets.quiet = true
+
+  config.assets.raise_runtime_errors = true
+
+  config.action_mailer.default_url_options = {
+    host: Rails.application.secrets[:mailer_options][:host],
+    port: Rails.application.secrets[:mailer_options][:port],
+  }
+
+  # ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
+
+  config.lograge.enabled = true
+  config.log_level = :debug
+  config.lograge.formatter = Lograge::Formatters::Logstash.new
+
+  config.lograge.custom_options = lambda do |event|
+    {
+      :time =&gt; Time.now.in_time_zone(Time.zone),
+      :params =&gt; event.payload[:params].reject { |k| %w(controller action).include? k },
+      :subdomain =&gt; event.payload[:subdomain],
+      :remote_ip =&gt; event.payload[:remote_ip],
+      :user_agent =&gt; event.payload[:user_agent],
+      :uuid =&gt; event.payload[:uuid],
+      :current_user =&gt; (event.payload[:current_user])? event.payload[:current_user][:id] : nil,
+      :current_appuser =&gt; (event.payload[:current_appuser])? event.payload[:current_appuser][:id] : nil
+    }
+  end
+  config.lograge.ignore_actions = [&#39;PublicPagesController#status_check&#39;]
+
+  config.logger = ActiveSupport::Logger.new(config.paths[&#39;log&#39;].first, 7, 204857600)
+
+     require &quot;awesome_print&quot;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ログ ファイルではなく開発環境の STDOUT
+                    にログを記録したい場合は、config/environments/development.rb
+                    内のこの行を変更します。</p>
+                    <pre><code>config.logger = ActiveSupport::Logger.new(config.paths[&#39;log&#39;].first, 7, 204857600)
+</code></pre>
+                    <p>に</p>
+                    <pre><code>config.logger = Logger.new(STDOUT)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

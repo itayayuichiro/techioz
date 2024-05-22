@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 はどのようにして Ruby 実行可能ファイルを見つけますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 はどのようにして Ruby 実行可能ファイルを見つけますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 はどのようにして Ruby
+実行可能ファイルを見つけますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby と Rails を初めて使用しますが、Ruby
+                    が間違った場所で検索されるため、Rails インストールを
+                    CLI で実行できません。</p>
+                    <p>TLDR の質問 - レールを Ruby
+                    インストールにポイントするにはどうすればよいですか?</p>
+                    <p>これが私が実行したコマンドとその出力です。間違ったディレクトリで
+                    Ruby を探しています。</p>
+                    <pre><code>$ rails -v
+/c/Users/&lt;username&gt;/AppData/Local/Microsoft/WindowsApps/rails: line 6: /c/Users/&lt;username&gt;/AppData/Local/Microsoft/WindowsApps/ruby: No such file or directory
+</code></pre>
+                    <p>私は、rubyinstaller-devkit-3.2.2-1-x64 からの
+                    Ruby
+                    のインストールを使用しています。それが完了したら、コマンド
+                    gem install Rails を使用して Rails
+                    をインストールしました。インストールのバージョンを確認する直前まで、Rails
+                    コミュニティのインストール手順に従いました。</p>
+                    <p>いくつかの検索を行ったところ、.bat ファイルは
+                    Rails が Ruby
+                    やその他のパッケージを探す場所を定義でき、独立して実行できることを知りました。
+                    このように Rails.bat
+                    を実行すると、次の結果が得られます。</p>
+                    <pre><code>$ ~/AppData/Local/Microsoft/WindowsApps/rails.bat -v
+Rails 7.0.7.2
+</code></pre>
+                    <p>それで、rails.batを開いたところ、これが含まれていました</p>
+                    <pre><code>@ECHO OFF
+@ruby.exe &quot;%~dpn0&quot; %*
+</code></pre>
+                    <p>バッチ
+                    ファイルとその構文を読み、どのコマンドが実行されているかを確認できるように
+                    Rails.bat
+                    を編集しました。その実験の出力は次のとおりです。</p>
+                    <pre><code>$ ~/AppData/Local/Microsoft/WindowsApps/rails.bat -v
+
+C:\Users\&lt;username&gt;\workspace\ruby-work&gt;ruby.exe &quot;C:\Users\&lt;username&gt;\AppData\Local\Microsoft\WindowsApps\rails&quot; -v
+Rails 7.0.7.2
+</code></pre>
+                    <p>検索中に、一部のインストーラーに間違ったパスがハードコーディングされていたため、Rails
+                    ユーザーが非常に困惑しているのを目にしましたが、ここではそのようなハードコーディングは見当たりません。さらに、関連する
+                    .bat
+                    ファイルを修正することで問題を解決しているようでした
+                    (これは古いバージョンの Rails と Ruby
+                    用でした)。しかし、.bat ファイルを編集して、rails -v
+                    を再実行すると、同じ出力が得られます。.bat
+                    ファイルでどのようなパスを定義したかに関係なく、出力は常に同じディレクトリ内に表示されます。</p>
+                    <p>Rails が Ruby
+                    インストールを含むディレクトリを指すようにするにはどうすればよいですか?</p>
+                    <p>最後に、バージョンと場所の情報をいくつか示しますので、お役に立てれば幸いです。
+                    Windows 10 で実行しています。</p>
+                    <pre><code>$ ruby -v
+ruby 3.2.2 (2023-03-30 revision e51014f9c0) [x64-mingw-ucrt]
+$ gem -v
+3.4.10
+$ which ruby
+/c/Ruby32-x64/bin/ruby
+$ which rails
+/c/Users/&lt;username&gt;/AppData/Local/Microsoft/WindowsApps/rails
+$ ~/AppData/Local/Microsoft/WindowsApps/rails.bat -v
+Rails 7.0.7.2
+</code></pre>
+                    <p>編集： ここで、上記のコマンドが bash
+                    シェルで発行されたことに注意してください。 PATH
+                    を確認すると、Ruby
+                    関連のインクルードはこれだけです。</p>
+                    <pre><code>C:\Ruby32-x64\bin;
+</code></pre>
+                    <p>現時点では、Ruby
+                    開発に関連するこれ以上の環境変数はまだ定義されていません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="Casper">@Casper</span>
+                    の提案に従って、/c/Users/<username>/AppData/Local/Microsoft/WindowsApps/rails
+                    ファイルを開いて、編集が役立つかどうかを確認しました。その中に、Ruby
+                    実行可能ファイルをターゲットにしていると思われる次のスニペットが見つかりました。</p>
+                    <pre><code>=begin
+bindir=&quot;${0%/*}&quot;
+exec &quot;$bindir/ruby&quot; &quot;-x&quot; &quot;$0&quot; &quot;$@&quot;
+=end
+</code></pre>
+                    <p>このようにbindirの値を変更すると、コマンドラインからrailsコマンドを正常に実行できるようになります。
+                    bindir=“C:/Ruby32-x64/bin”</p>
+                    <p>ここでの欠点は、Ruby
+                    のバージョンを更新または変更する必要がある場合には、このパスを手動で更新する必要があることです。これはむしろ回避策のように思えますが、これで起動して実行することができました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

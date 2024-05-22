@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveSupport::Duration オブジェクトにはフリーズを使用する必要がありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveSupport::Duration オブジェクトにはフリーズを使用する必要がありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveSupport::Duration
+オブジェクトにはフリーズを使用する必要がありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>期間を指定していくつかの定数を定義する場合</p>
+                    <pre><code>EXAMPLE_DAYS = 12.days
+
+</code></pre>
+                    <p>凍結されないでしょう</p>
+                    <pre><code>&gt; EXAMPLE_DAYS.frozen?
+false
+</code></pre>
+                    <p>そして、rubocop
+                    には対応するルールがありません。</p>
+                    <p>そもそもそのようなオブジェクトの定数を凍結する必要があるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それは定数に割り当てるオブジェクトのタイプによって異なります。
+                    ActiveSupport::Duration
+                    のインスタンスの場合、変更を許可するパブリック
+                    ライター
+                    メソッドがないため、それを凍結することはあまり意味がありません。しかし、ルーボコップを喜ばせたいときは、それでもできます。</p>
+                    <pre><code>DAYS = 12.days.freeze
+DAYS.frozen?
+#=&gt; true
+</code></pre>
+                    <p>たとえば文字列などの他のオブジェクトの場合は、固定しないと変更される可能性があり、通常は定数が変更されないようにしたいため、固定することは絶対に理にかなっています。</p>
+                    <pre><code>STRING = &#39;string&#39;
+STRING[1..4] = &#39;----&#39;
+STRING
+#=&gt; &quot;s----g&quot;
+</code></pre>
+                    <p>しかし、冷凍すると:</p>
+                    <pre><code>STRING = &#39;string&#39;.freeze
+STRING[1..4] = &#39;----&#39;
+#=&gt; `[]=&#39;: can&#39;t modify frozen String: &quot;string&quot; (FrozenError)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

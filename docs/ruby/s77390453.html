@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で特定の値によってマージしながら 2 つのオブジェクトの配列を加算する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で特定の値によってマージしながら 2 つのオブジェクトの配列を加算する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で特定の値によってマージしながら 2
+つのオブジェクトの配列を加算する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby On Rails
+                    を使用していて、それぞれがオブジェクトの配列を返す 2
+                    つの SQL クエリがあります。これら 2 つの SQL
+                    クエリは 2 つの別個の DB
+                    からのものであるため、異なるフィールドがありますが、結果を
+                    1 つのリストにマージする必要があります。以下に 2
+                    つの SQL
+                    クエリの例と、最終結果がどのようになるかを示します。</p>
+                    <pre><code>SQL1 result == [{id1: 1, name: john, role: user},{id1: 2, name: matt, role: admin}]
+SQL2 result == [{id2: 4, externalName: john},{id2: 8, externalName: ronald}]
+</code></pre>
+                    <p>name == externalName のオブジェクトを 1
+                    つのオブジェクトに結合し、残りはそのままにしておく必要があります。</p>
+                    <pre><code>RESULT == [{id1: 1, name: john, role: user, id2: 4},{id1: 2, name: matt, role: admin},{id2: 8, externalName: ronald}]
+</code></pre>
+                    <p>基本的に、両方のリストを一緒に追加したいのですが、2
+                    番目のリストの :externalName が最初のリストの :name
+                    値と等しい場合、またはその逆の場合、これら 2
+                    つの別々のオブジェクトが考慮されるため、これら 2
+                    つの別々のオブジェクトを 1
+                    つに結合したいと考えています。 「重複」。 2
+                    つのオブジェクトを組み合わせた結果は、{:id1, :name,
+                    :role, :id2}
+                    のようになります。これを満たさない残りのオブジェクトは、結果の配列内に表示されます。</p>
+                    <p>両方の配列を素敵な配列に追加する concat
+                    を実行しましたが、name == externalName
+                    ではマージされません。 .merge()
+                    を使用することを考えましたが、オブジェクトの 2
+                    つの配列全体でこれを行う方法と、マージ条件が満たされなかった場合に何が起こるか、結果のリストにそれらが引き続き表示されるかがわかりません。マップについても考えましたが、結果のオブジェクトを他のオブジェクトにマージした後にそれを削除する方法を理解する必要があります。現時点では何が最善のアプローチであるかわかりませんが、いくつかのヒントを探しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは次のように実行できます。</p>
+                    <pre><code>sql1 = [{id1: 1, name: &#39;john&#39;, role: &#39;user&#39;},{id1: 2, name: &#39;matt&#39;, role: &#39;admin&#39;}]
+sql2 = [{id2: 4, externalName: &#39;john&#39;},{id2: 8, externalName: &#39;ronald&#39;}]
+[*sql1,*sql2]
+  .group_by { |h| h[:name] || h[:externalName] }
+  .flat_map do |k,v| 
+     v.reduce(&amp;:merge).tap { |h| h.delete(:externalName) if h.key?(:name) }
+  end
+#=&gt; =&gt; [{:id1=&gt;1, :name=&gt;&quot;john&quot;, :role=&gt;&quot;user&quot;, :id2=&gt;4}, {:id1=&gt;2, :name=&gt;&quot;matt&quot;, :role=&gt;&quot;admin&quot;}, {:id1=&gt;17, :role=&gt;&quot;user&quot;}, {:id2=&gt;8, :externalName=&gt;&quot;ronald&quot;}]
+</code></pre>
+                    <p>手順:</p>
+                    <p>アップデート どうやら name
+                    は必須キーではないため、マージリダクションがオプションではない、nil
+                    値の大きなグループが生成されます。 nil
+                    グループ化を処理するようにコードを更新しました。</p>
+                    <pre><code>sql1 = [{id1: 1, name: &#39;john&#39;, role: &#39;user&#39;},{id1: 2, name: &#39;matt&#39;, role: &#39;admin&#39;}, {id1: 17, role: &#39;user&#39;}, {id1: 12, role: &#39;admin&#39;} ]
+sql2 = [{id2: 4, externalName: &#39;john&#39;},{id2: 8, externalName: &#39;ronald&#39;}, {id2: 42}]
+[*sql1,*sql2]
+  .group_by { |h| h[:name] || h[:externalName] }
+  .flat_map do |k,v| 
+     next v unless k
+     v.reduce(&amp;:merge).tap { |h| h.delete(:externalName) if h.key?(:name) }
+  end
+#=&gt; [{:id1=&gt;1, :name=&gt;&quot;john&quot;, :role=&gt;&quot;user&quot;, :id2=&gt;4}, {:id1=&gt;2, :name=&gt;&quot;matt&quot;, :role=&gt;&quot;admin&quot;}, {:id1=&gt;17, :role=&gt;&quot;user&quot;}, {:id1=&gt;12, :role=&gt;&quot;admin&quot;}, {:id2=&gt;42}, {:id2=&gt;8, :externalName=&gt;&quot;ronald&quot;}]
+</code></pre>
+                    <p>その他の仮定</p>
+                    <p>これらは投稿に基づいた仮定です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

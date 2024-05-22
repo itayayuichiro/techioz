@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>代わりに Notice Gem 経由でスレッド通知を送信するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "代わりに Notice Gem 経由でスレッド通知を送信するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>代わりに Notice Gem
+経由でスレッド通知を送信するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Ruby on Rails アプリケーションは Noticed gem
+                    を使用して通知を配信します。</p>
+                    <p>最近、Thredded gem を追加してフォーラム
+                    セクションを作成し、2
+                    つの異なる通知アイコンができるようになりました。 1
+                    つはメイン ナビゲーションに、もう 1
+                    つはスレッド化されたフォーラム
+                    ページにあります。</p>
+                    <p>現在、このような初期化ファイルがあります</p>
+                    <pre><code>Thredded.notifiers = []
+</code></pre>
+                    <p>通知を無効にしていないので、どこを変更すればよいのかわかりません。</p>
+                    <p>スレッド化された初期化ファイルで通知 ( Noticed
+                    を使用)
+                    を作成しようとしましたが、アプリがクラッシュしました。</p>
+                    <pre><code>Thredded.notifiers = [Noticed::ThreddedNotification.with(user: user.id).deliver_later(user)]
+</code></pre>
+                    <p>通知はどこで変更できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私自身の質問が解決しました（笑）！ :)</p>
+                    <p>Thredded には特定のメソッドがいくつかあるため、
+                    Noticed
+                    通知ファイルとカスタム通知コントローラーを生成しました。次に、初期化ファイルで、そのコントローラー
+                    クラスの新しいインスタンスを呼び出しました。</p>
+                    <p>スレッド化された初期化ファイル</p>
+                    <pre><code>Thredded.notifiers = [CustomThreddedNotiferController.new]
+</code></pre>
+                    <p>通知ファイル</p>
+                    <pre><code>class ForumNotification &lt; Noticed::Base
+  
+  deliver_by :database
+  
+  param :user
+
+  def user
+    User.find(params[:user])
+  end
+  
+  def message
+    t(&quot;.message&quot;)
+  end
+
+  def url
+    root_path
+  end
+end
+</code></pre>
+                    <p>カスタムコントローラー</p>
+                    <pre><code>class CustomThreddedNotiferController &lt; ApplicationController
+  def initialize
+  end
+
+  def human_name
+    &#39;hello&#39;
+  end
+
+  def key
+    &#39;email&#39;
+  end
+
+  def new_post(post, users)
+    user = User.find_by(id: users[0])
+    ForumNotification.with(user: user.id).deliver_later(user)
+  end
+
+  def new_private_post(post, users)
+    #
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

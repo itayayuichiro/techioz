@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JavaScript JSON.parse のために Ruby ハッシュを JSON に適切にエスケープするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JavaScript JSON.parse のために Ruby ハッシュを JSON に適切にエスケープするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JavaScript JSON.parse のために Ruby ハッシュを
+JSON に適切にエスケープするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>JavaScript
+                    JSON.parseで解析できるJSON文字列にRubyハッシュを埋め込もうとしています。</p>
+                    <p>逃げる問題があります。</p>
+                    <p>ルビィ:</p>
+                    <pre><code>props = {sring: &#39;He said &quot;hey&quot;&#39;}
+</code></pre>
+                    <p>ハムル</p>
+                    <pre><code>:javascript
+  const props = JSON.parse(&#39;#{props.to_json}&#39;);
+</code></pre>
+                    <p>これは次のようにレンダリングされます</p>
+                    <pre><code>&lt;script&gt;
+  const props = JSON.parse(&#39;{&quot;sring&quot;:&quot;He said \&quot;hey\&quot;&quot;}&#39;);
+&lt;/script&gt;
+</code></pre>
+                    <p>これにより、次のエラーがスローされます。</p>
+                    <pre><code>Uncaught SyntaxError: Expected &#39;,&#39; or &#39;}&#39; after property value in JSON at position 19
+    at JSON.parse (&lt;anonymous&gt;)
+    at (index):58:24
+</code></pre>
+                    <p>少し実験してみたところ、次の文字列は JSON.parse
+                    で解析可能ですが、エスケープ関数からそれを生成する方法がわかりません。</p>
+                    <pre><code>&lt;script&gt;
+  const props = JSON.parse(&#39;{&quot;sring&quot;:&quot;He said \\\&quot;hey\\\&quot;&quot;}&#39;);
+&lt;/script&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、奇妙な動作ですが、次のようにこの目的のためにいつでも
+                    DOM を使用できます</p>
+                    <pre><code>- props = {string: &#39;He said &quot;hey&quot;&#39;}
+
+div[data-props=props.to_json id=&quot;props&quot;]
+
+javascript:
+  const props = JSON.parse(document.getElementById(&quot;props&quot;).dataset.props)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

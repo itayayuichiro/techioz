@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>動的ログがAWS Cloudwatchに来ない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "動的ログがAWS Cloudwatchに来ない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>動的ログがAWS Cloudwatchに来ない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>AWS Cloud watch
+                    を自分のアプリケーションに統合しようとしていますが、複数の問題に直面しています。複数のことを試しましたが、成功することができませんでした。また、AWS
+                    CloudWatch
+                    に関する適切なドキュメントも見つかりません。助けていただければ幸いです</p>
+                    <p>Gemfile</p>
+                    <pre><code>gem &#39;aws-sdk&#39;
+gem &#39;lograge&#39;
+</code></pre>
+                    <p>config/initializers/cloudwatch_log.rb</p>
+                    <pre><code>begin
+    @cloudwatch_client = Aws::CloudWatchLogs::Client.new
+
+    # Define the log group and log stream names
+    @log_group_name = ENV.fetch(&#39;APPLICATION_LOG_GROUP_NAME&#39;, &#39;/home/app/insight&#39;)
+    @log_stream_name = &quot;#{Time.now.strftime(&#39;%Y-%m-%d&#39;)}/$[LATEST]/#{Time.now.to_i}&quot;
+    Rails.logger.info &quot;log_group_name: #{@log_group_name} and log_stream_name: #{@log_stream_name} in #{Rails.env} environment...!!!&quot;
+    
+    @cloudwatch_client.create_log_stream({
+        log_group_name: @log_group_name,
+        log_stream_name: @log_stream_name
+    })
+
+    Rails.application.config.logger.extend(ActiveSupport::Logger.broadcast(Logger.new($stdout)))
+
+    Rails.application.config.logger.extend(ActiveSupport::Logger.broadcast(@cloudwatch_client))
+rescue Aws::Errors::MissingRegionError, Aws::Sigv4::Errors::MissingCredentialsError =&gt; e
+    Rails.logger.info &quot;be_admin: AWS credentials not found for CloudWatchLog...!!!&quot;
+end
+</code></pre>
+                    <p>プロダクション.rb</p>
+                    <pre><code>require &quot;active_support/core_ext/integer/time&quot;
+
+Rails.application.configure do
+  config.cache_classes = true
+
+  config.eager_load = true
+
+  config.consider_all_requests_local       = false
+  config.action_controller.perform_caching = true
+
+  config.public_file_server.enabled = true
+
+  config.assets.compile = false
+
+  config.flipper.preload = false
+
+  config.active_storage.service = :local
+
+  config.action_mailer.perform_caching = false
+
+  config.active_support.report_deprecations = true
+
+  logger           = ActiveSupport::Logger.new($stdout)
+  logger.formatter = config.log_formatter
+  config.logger = ActiveSupport::TaggedLogging.new(logger)
+
+  # Set log level from LOG_LEVEL
+  default_log_level = Rails.env.development? ? :debug : :info
+  config_log_level  = ENV.fetch(&quot;LOG_LEVEL&quot;, default_log_level).to_s.downcase.to_sym
+  config.log_level = if %i[debug info warn error fatal].include?(config_log_level)
+                       config_log_level
+                     else
+                       default_log_level
+                     end
+
+  config.lograge.enabled = !Rails.env.development?
+
+  config.lograge.formatter = Lograge::Formatters::Raw.new
+
+  config.logger = Logger.new($stdout).tap do |logger|
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
+  end
+
+  config.active_record.dump_schema_after_migration = false
+end
+</code></pre>
+                    <p>アップデート 1</p>
+                    <p>この行を追加すると、ログストリームが作成されますが、それでも動的ログは来ません</p>
+                    <pre><code>@cloudwatch_client.put_log_events({log_group_name: @log_group_name, log_stream_name: @log_stream_name, log_events: [{timestamp: Time.now.to_i * 1000, message: &quot;logger initialted&quot;}]})
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>aws Cloudwatch と Rails
+                    アプリケーションの統合に苦労している人へ。これが解決策です</p>
+                    <p>Gemfile</p>
+                    <pre><code>gem &#39;aws-sdk&#39;
+</code></pre>
+                    <p>libcloudwatch_logger.rb内にファイルを作成します。動的ログを送信するために、Logger
+                    クラスをクラウド監視ロガーでオーバーライドしようとしています。</p>
+                    <pre><code>require &#39;aws-sdk-cloudwatchlogs&#39;
+class CloudwatchLogger &lt; Logger
+  def initialize(log_group_name, log_stream_name)
+    super(STDOUT)
+    @log_group_name = log_group_name
+    @log_stream_name = log_stream_name
+    @cloudwatch_logs = Aws::CloudWatchLogs::Client.new
+    create_log_stream_if_not_exists
+  end
+
+  def add(severity, message = nil, progname = nil, &amp;block)
+    severity ||= UNKNOWN
+    message ||= (block &amp;&amp; block.call) || progname
+    return true if severity &lt; level
+
+    message = format_message(severity, Time.now, progname, message)
+    super(severity, message)
+
+    @cloudwatch_logs.put_log_events(
+      log_group_name: @log_group_name,
+      log_stream_name: @log_stream_name,
+      log_events: [
+        {
+          timestamp: Time.now.to_i * 1000,
+          message: message
+        }
+      ]
+    )
+    true
+  end
+
+  def format_message(severity, timestamp, progname, message)
+    &quot;#{timestamp} #{severity} -- #{progname}: #{message}\n&quot;
+  end
+
+  def create_log_stream_if_not_exists
+    begin
+      @cloudwatch_logs.create_log_stream(
+        log_group_name: @log_group_name,
+        log_stream_name: @log_stream_name
+      )
+    rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException =&gt; e
+      puts &quot;Error creating log stream: #{e.message}&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>最後に、初期化フォルダーからクラスを呼び出します。また、docker
+                    を使用しているかのように CloudwatchLogger.new を try
+                    catch にバインドします。これにより、docker
+                    のビルド時にリージョンを見つけることができなくなります。
+                    クラウドウォッチ_ロガー.rb</p>
+                    <pre><code>require &#39;cloudwatch_logger&#39;
+
+log_group_name =  &#39;enter_your_log_group_name&#39;
+log_stream_name = &quot;#{Time.now.strftime(&#39;%Y-%m-%d&#39;)}/$[LATEST]/#{Time.now.to_i}&quot;
+begin
+  Rails.logger = CloudwatchLogger.new(log_group_name, log_stream_name)
+rescue Aws::Errors::MissingRegionError =&gt; e
+  puts &quot;Error fetching at region: #{e.message}&quot;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

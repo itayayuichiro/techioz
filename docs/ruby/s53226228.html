@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Active Storage ファイルアップロードのコールバック | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Active Storage ファイルアップロードのコールバック",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Active Storage
+ファイルアップロードのコールバック</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>モデル上のアクティブなストレージ
+                    ファイルに対するコールバックはありますか</p>
+                    <p>モデル上のフィールドが変更されると、after_update
+                    または after_save
+                    が呼び出されます。しかし、更新するとき（または新しいファイルをアップロードするとき）、コールバックは呼び出されないようです。</p>
+                    <p>コンテクスト：</p>
+                    <pre><code>class Person &lt; ApplicationRecord
+  #name :string
+  has_one_attached :id_document
+
+  after_update :call_some_service
+
+  def call_some_service
+    #do something
+  end
+end
+</code></pre>
+                    <p>新しい id_document
+                    がアップロードされるとき、after_update
+                    は呼び出されませんが、人の名前が変更されると、after_update
+                    コールバックが実行されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今のところ、このケースにはコールバックはないようです。</p>
+                    <p>あなたができることは、人物モデルにファイルを添付するときに作成されるアクティブなストレージ添付ファイルの作成を処理するモデルを作成することです。</p>
+                    <p>そこで新しいモデルを作成します</p>
+                    <pre><code>class ActiveStorageAttachment &lt; ActiveRecord::Base
+  after_update :after_update
+
+  private
+  def after_update
+    if record_type == &#39;Person&#39;
+      record.do_something
+    end
+  end
+end
+</code></pre>
+                    <p>通常、モデル
+                    テーブルはデータベース内にすでに作成されているため、移行の必要はなく、このモデルを作成するだけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

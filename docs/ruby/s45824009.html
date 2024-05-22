@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>CloudWatch API からメトリクスを一括取得する方法について混乱している | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "CloudWatch API からメトリクスを一括取得する方法について混乱している",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>CloudWatch API
+からメトリクスを一括取得する方法について混乱している</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>さまざまな Amazon ec2
+                    インスタンスを監視する必要があるため、当初の計画では、数値ウィジェットを備えたダッシュボードを作成し、「CPUUtilization」などの関心のあるさまざまな項目を選択して、そのダッシュボードを取得して、これらすべての現在のメトリック値にアクセスできます。ただし、そのダッシュボードを取得するために呼び出しを行うと、受信する本文は次のようになります。</p>
+                    <pre><code>{&quot;widgets&quot;=&gt;[{&quot;type&quot;=&gt;&quot;metric&quot;, &quot;x&quot;=&gt;0, &quot;y&quot;=&gt;0, &quot;width&quot;=&gt;24, &quot;height&quot;=&gt;6, &quot;properties&quot;=&gt;{&quot;view&quot;=&gt;&quot;singleValue&quot;, &quot;metrics&quot;=&gt;[[&quot;AWS/EC2&quot;, &quot;CPUUtilization&quot;, &quot;InstanceId&quot;, &quot;i-0ea0081d91f6e4aff&quot;], [&quot;.&quot;, &quot;DiskWriteBytes&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;CPUCreditUsage&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;StatusCheckFailed&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;NetworkPacketsIn&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;NetworkOut&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;StatusCheckFailed_System&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;CPUCreditBalance&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;StatusCheckFailed_Instance&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;NetworkIn&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;NetworkPacketsOut&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;DiskReadBytes&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;DiskWriteOps&quot;, &quot;.&quot;, &quot;.&quot;], [&quot;.&quot;, &quot;DiskReadOps&quot;, &quot;.&quot;, &quot;.&quot;]], &quot;region&quot;=&gt;&quot;us-east-1&quot;}}]}
+</code></pre>
+                    <p>これにはメトリック
+                    データは含まれておらず、メトリックの名前のみが含まれています。したがって、これは役に立ちません。</p>
+                    <p>list_metrics メソッドは、2
+                    つの点を除いて有望に見えます…</p>
+                    <ol type="1">
+                    <li>単一のメトリクスが必要ですか?ドキュメントには「指定されたメトリクスをリストする」という方法が説明されていますが。</li>
+                    </ol>
+                    <p>入力は配列ではなくオブジェクトです。このメソッドを使用するには、次のことを行う必要があります。</p>
+                    <pre><code>client.list_metrics({
+  namespace: &quot;AWS/EC2&quot;,
+  metric_name: &quot;CPUUtilization&quot;,
+  dimensions: [
+    {
+      name: &quot;InstanceId&quot;, 
+      value: &quot;i-0fc0181c98e6e4a66&quot;
+    },
+  ],
+})
+</code></pre>
+                    <p>これにより、このオブジェクトが返されます。</p>
+                    <pre><code>#&lt;struct Aws::CloudWatch::Types::ListMetricsOutput metrics=[#&lt;struct Aws::CloudWatch::Types::Metric namespace=&quot;AWS/EC2&quot;, metric_name=&quot;CPUUtilization&quot;, dimensions=[#&lt;struct Aws::CloudWatch::Types::Dimension name=&quot;InstanceId&quot;, value=&quot;i-0fc0181c98e6e4a66&quot;&gt;]&gt;], next_token=nil&gt;
+</code></pre>
+                    <p>これは 2)
+                    メトリクス名のみを返し、実際の値は返しません…</p>
+                    <p>私の何が間違っているのでしょうか？</p>
+                    <p>さまざまなインスタンス ID
+                    の大量のメトリクスを単純に要求し、リクエストしたメトリクスの実際のメトリクス値を含む応答を取得するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>つまり、GetMetricStatistics API への 1
+                    回のリクエストで複数のメトリクスのデータを取得することはできません。最初にメトリクスをリストするというアプローチは正しいです。</p>
+                    <p>ListMetrics API
+                    を使用して、名前空間とメトリック名のみを設定できます
+                    (正確なインスタンスを設定しているディメンションを削除します)。これにより、過去
+                    2
+                    週間に実行されたすべてのインスタンスのメトリクスが得られるはずです。次に、それらをループして、それぞれに対して
+                    GetMetricStatistics を呼び出す必要があります。</p>
+                    <p>使用しようとしたダッシュボード API
+                    は、ダッシュボードの操作
+                    (ダッシュボードやダッシュボード上の要素の作成、削除、編集)
+                    を目的としています。これらの API
+                    ではデータは得られません。ただし、ダッシュボード API
+                    がリリースされたとき、その使用方法に関するブログ投稿も公開されました。その投稿では、API
+                    を使用して、実行中のすべての EC2
+                    インスタンスからのメトリクスを含むダッシュボードを作成する方法の例が使用されています。おそらくそれはあなたにとって役立つでしょう:</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://aws.amazon.com/blogs/aws/new-api-cloudformation-support-for-amazon-cloudwatch-dashboards/</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

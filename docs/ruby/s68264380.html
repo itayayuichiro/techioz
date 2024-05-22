@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>例として Python ctypes を使用して、Ruby で FFI でラップされた C ライブラリから戻り値を取得する際の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "例として Python ctypes を使用して、Ruby で FFI でラップされた C ライブラリから戻り値を取得する際の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>例として Python ctypes を使用して、Ruby で FFI
+でラップされた C ライブラリから戻り値を取得する際の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>編集:
+                    関連するライブラリメソッドのドキュメント!</p>
+                    <p>完全な開示 - 私は C/C++
+                    についてはほとんど何も知りませんし、ポインタやバッファなどの楽しいことについては文字通り何も知りません。愚かな質問でしたら申し訳ありませんが、私は何時間もこの問題に取り組んできましたが、まったく進んでいません。</p>
+                    <p>したがって、Ruby スクリプトから参照している外部 C
+                    ライブラリがあります。アクセスする必要のあるさまざまな関数がたくさんあり、いくつかの単純な関数は動作していますが、動作させる必要があるより複雑な関数に苦労しています。</p>
+                    <p>良い点は、Python
+                    で動作するサンプルコードがあることです。</p>
+                    <p>私が直面している課題は、FFI
+                    を使用するバッファ側全体に関するものです。これを機能させる方法について関連する例があまり見つからず、少し苦労しています。</p>
+                    <p>FFI を使用して Ruby
+                    で複製したい関数は次のとおりです。</p>
+                    <pre><code>def getActiveID32():
+    &quot;&quot;&quot;
+    Will return a tuple consisting number of bits
+    read and actual data. Minimum 8 byte of data will
+    be returned.
+    &quot;&quot;&quot;
+    rawData = &quot;&quot;
+    buffer_size = ctypes.c_short(32);
+    pcproxlib.GetActiveID32.restype = ctypes.c_short
+    # create a buffer of given size to pass it
+    # to get the raw data.
+    raw_data_tmp = (ctypes.c_ubyte * buffer_size.value)()
+    #as per documentation 250 millisecond sleep is required
+    # to get the raw data.
+    time.sleep(250/1000.0)
+    nbBits = pcproxlib.GetActiveID32(raw_data_tmp , buffer_size)
+    bytes_to_read = int((nbBits + 7) / 8) ;
+    # will read at least 8 bytes
+    if bytes_to_read &lt; 8:
+        bytes_to_read = 8
+
+    for i in range(0 , bytes_to_read):
+        temp_buf = &quot;%02X &quot; % raw_data_tmp[i]
+        rawData = temp_buf + rawData
+    return (nbBits , rawData)
+</code></pre>
+                    <p>これは、単純な関数 (BeepNow など)
+                    で動作するコード例ですが、より複雑な関数
+                    getActiveID32 では動作しません。</p>
+                    <p>私が遊んでいるコードも含まれていますが、明らかに単純化しすぎており、機能しません。</p>
+                    <pre><code>require &#39;ffi&#39;
+
+module PCProxLib
+  extend FFI::Library
+  ffi_lib File.expand_path(&#39;lib/32/libhidapi-hidraw.so.0&#39;)
+  ffi_lib File.expand_path(&#39;lib/32/libpcProxAPI.so&#39;)
+  attach_function :usbConnect, [], :short
+  attach_function :getPartNumberString, [], :string
+  attach_function :getActiveID32, [:string, :int], :int
+  attach_function :getActiveID, [], :int
+  attach_function :BeepNow, [:int, :bool], :bool
+end
+
+puts PCProxLib.usbConnect()
+
+puts PCProxLib.BeepNow(3, false)
+
+sleep 0.25
+buffer = &quot;&quot;
+puts PCProxLib.getActiveID32(buffer, 64)
+puts buffer
+</code></pre>
+                    <p>助けてくれてありがとう:)</p>
+                    <p>編集：</p>
+                    <p><span class="citation"
+                    data-cites="mattのコメントに基づいて">@mattのコメントに基づいて</span>、コードを次のように修正しました。</p>
+                    <pre><code>require &#39;ffi&#39;
+
+module PCProxLib
+  extend FFI::Library
+  ffi_lib File.expand_path(&#39;lib/32/libhidapi-hidraw.so.0&#39;)
+  ffi_lib File.expand_path(&#39;lib/32/libpcProxAPI.so&#39;)
+  attach_function :usbConnect, [], :short
+  attach_function :USBDisconnect, [], :short
+  attach_function :getActiveID32, [:pointer, :int], :int
+end
+
+PCProxLib.usbConnect()
+
+puts PCProxLib.getPartNumberString() // verifying connection to reader
+
+def read_card
+  sleep 0.5
+  buffer = FFI::MemoryPointer.new(:uint8, 32)
+  bits_written = PCProxLib.getActiveID32(buffer, 32)
+  puts bits_written
+  puts buffer.read_bytes(32)
+end
+
+20.times { read_card }
+
+PCProxLib.USBDisconnect()
+</code></pre>
+                    <p>カードをスキャンすると
+                    (コードのループ中に)、bits_write の値が 0 から 32
+                    にジャンプします。これは良好なようです。ただし、buffer.read_bytes(32)
+                    値は常に null です。</p>
+                    <p>他のいくつかの MemoryPointer メソッド
+                    (read、read_string など)
+                    を試しましたが、同じ結果が得られます。</p>
+                    <p>buffer.read_bytes(32) を .inspecting
+                    しようとすると、次の結果が得られます。</p>
+                    <pre><code>&quot;\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00&quot;
+</code></pre>
+                    <p>…どれが面白いですか？これはカードをスキャンしてもしなくても同じです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>getActiveID32
+                    関数には次のような署名があるようです。</p>
+                    <pre><code>int getActiveID32(uint8_t *buffer, int size)
+</code></pre>
+                    <p>そして、それを使用するには、最初に書き込み先のバッファを作成し、次に呼び出し時にそのバッファへのポインタとそのサイズを引数として渡します。次のようになります。</p>
+                    <pre><code>// Define BUFFER_SIZE first.
+uint8_t *buffer = malloc(BUFFER_SIZE);
+int bits_written = getActiveID32(buffer, BUFFER_SIZE);
+// There are now bits_written bits in buffer for you to use.
+// You will need to call free on buffer when you are finished.
+</code></pre>
+                    <p>Ruby の FFI
+                    を使用すると、ポインタを使用してこれを行うことができます。まず、ポインターを受け入れる関数を宣言します
+                    (文字列はポインターに似ていますが、この場合はポインターを直接使用する必要があります)。</p>
+                    <pre><code>attach_function :getActiveID32, [:pointer, :int], :int
+</code></pre>
+                    <p>これを呼び出す場合は、まず目的のサイズの
+                    MemoryPointer
+                    を作成し、それをパラメータとして関数に渡す必要があります。
+                    FFI は、C
+                    関数を呼び出すときに、これを割り当てられたメモリへのポインタに変換します。</p>
+                    <pre><code># Assuming you want a 32 byte buffer.
+buffer = FFI::MemoryPointer.new(:uint8, 32)
+bits_written = PCProxLib.getActiveID32(buffer, 32)
+</code></pre>
+                    <p>これで、バッファには関数によって書き込まれたデータが含まれるようになります。このデータには、MemoryPointer
+                    のメソッドを使用してアクセスできます。たとえば、そのデータを
+                    Ruby (バイナリ)
+                    文字列にコピーするには、buffer.read_bytes(32)
+                    を使用できます。</p>
+                    <p>MemoryPointer は、ガベージ
+                    コレクションが行われたときに、割り当てられたメモリの解放も処理します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

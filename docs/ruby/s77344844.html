@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails がメソッド内の定数を破損しているようです | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails がメソッド内の定数を破損しているようです",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+がメソッド内の定数を破損しているようです</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の定数は変更されているようですが、どうすれば変更できますか。</p>
+                    <p>環境はRails 7.0.7.2です rbenv経由のRuby
+                    3.1.2p20</p>
+                    <p>考慮する</p>
+                    <pre><code>module ArrayTestMethods
+  PROFILE_PARAMS = [[&quot;id&quot;,&quot;id&quot;],[&quot;customer_id&quot;,&quot;contactId&quot;],[&quot;channelId&quot;,&quot;channelId&quot;],[&quot;identifierId&quot;,&quot;identifierId&quot;],[&quot;platform&quot;,&quot;platform&quot;],[&quot;identifier&quot;,&quot;identifier&quot;],[&quot;created&quot;,&quot;createdAt&quot;],[&quot;updated&quot;,&quot;updatedAt&quot;]].freeze
+
+  def showme
+    params = {&quot;id&quot;=&gt;&quot;d1&quot;, &quot;contactId&quot;=&gt;&quot;contact1&quot;, &quot;channelId&quot;=&gt;&quot;bbc2&quot;, &quot;identifierId&quot;=&gt;&quot;ident2&quot;, &quot;platform&quot;=&gt;&quot;events&quot;, &quot;inheritedFrom&quot;=&gt;&quot;&quot;, &quot;createdAt&quot;=&gt;&quot;2023-10-19T17:03:58Z&quot;, &quot;updatedAt&quot;=&gt;&quot;2023-10-19T17:03:58Z&quot;, &quot;identifier&quot;=&gt;&quot;353860872561&quot;}
+    x = model_from_hash(params, PROFILE_PARAMS)
+    pp x
+
+  end
+  def json_walker(params, *args)
+    args.each do | arg|
+      params = params[arg]
+      return nil if params.nil?
+    end
+    return params
+  end
+   def model_from_hash(params, array_map, debug = false)
+    #im doing the below as a test i&#39;ve tried
+    # array = array_map.clone same result
+    # i&#39;ve also tried using array_map on its own
+    array =  Array.new
+    array &lt;&lt; array_map
+    attributes_array = array[0]
+
+    puts &quot;array map before&quot;
+    pp attributes_array
+    attr_hash = Hash.new
+
+    attributes_array.each do | arr|
+      model_attribute = arr[0]
+      arr.shift
+      data = json_walker(params, *arr)
+      puts &quot;arr0 - #{model_attribute} data - #{data}&quot; if debug
+    end
+    puts &quot;array map after &quot;
+    pp array_map
+    return array_map
+  end
+  module_function :json_walker, :model_from_hash, :showme
+</code></pre>
+                    <p>これを一度実行すると、ArrayTestMethods::showme
+                    が得られます。</p>
+                    <p>2 回目に実行すると、次の結果が得られます</p>
+                    <p>きっと結果はこうなるはず</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>arr.shift は配列を変更します。</p>
+                    <p>したがって、各ブロック内の配列を変更する代わりに、元の配列を変更せずに、ある変数から別の変数に値を渡すことができます。</p>
+                    <p>変えてみようと思います</p>
+                    <pre><code>attributes_array.each do | arr|
+  model_attribute = arr[0]
+  arr.shift
+  data = json_walker(params, *arr)
+  puts &quot;arr0 - #{model_attribute} data - #{data}&quot; if debug
+end
+</code></pre>
+                    <p>に</p>
+                    <pre><code>attributes_array.each do | arr|
+  model_attribute = arr[0]                # first element
+  data = json_walker(params, arr[1..-1])  # elements from second position to the end
+  puts &quot;arr0 - #{model_attribute} data - #{data}&quot; if debug
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

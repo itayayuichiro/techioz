@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby のメソッド名の制限は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby のメソッド名の制限は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby のメソッド名の制限は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>たとえば、メソッド名「bundler?」を見つけました。次のスニペットでは、?
+                    かどうかはわかりません。文字は特殊なキーワード、またはメソッド名の一部です。</p>
+                    <pre><code># This is a predicate useful for the doc:guides task of applications.
+def bundler?
+  # Note that rake sets the cwd to the one that contains the Rakefile
+  # being executed.
+  File.exists?(&#39;Gemfile&#39;)
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    のメソッド名には、大文字、小文字、数字、アンダースコア
+                    _、句読点記号 !、?、= を含めることができます。</p>
+                    <p>メソッド名を数字や文字 !、?
+                    で始めることはできません。と =
+                    は最後にのみ指定できます。</p>
+                    <p>メソッド名に非 ASCII
+                    文字を使用することもできますが、これは非常に混乱を招く可能性があるため、一般的に使用すべきではありません。</p>
+                    <p>Ruby
+                    では大文字で始まる名前は定数であるため、メソッド名を小文字で始めることをお勧めします
+                    (必須ではありません)。メソッドに定数名を使用することは引き続き可能ですが、インターピーターは名前を定数として検索するため、かっこなしでメソッドを呼び出すことはできません。</p>
+                    <pre><code>def Capital
+    nil
+end
+
+Capital    # NameError: uninitialized constant Capital
+Capital()  # =&gt; nil
+</code></pre>
+                    <p>メソッド名を定義する際に、非常に広く一貫して使用されている規則は次のとおりです。</p>
+                    <p>Ruby
+                    では、メソッド名として演算子記号を使用して演算子を定義することもできます。</p>
+                    <pre><code>╔═══════════════════════════╦═════════════════════════════════════════════╦═══════╗
+║ Operators (by precedence) ║                 Operations                  ║ Arity ║
+╠═══════════════════════════╬═════════════════════════════════════════════╬═══════╣
+║ ! ~ +                     ║ Boolean NOT, bitwise complement, unary plus ║     1 ║
+║                           ║ (define with method name +@, Ruby 1.9+)     ║       ║
+║                           ║                                             ║       ║
+║ **                        ║ Exponentiation                              ║     2 ║
+║                           ║                                             ║       ║
+║ -                         ║ Unary minus (define with method name -@)    ║     1 ║
+║                           ║                                             ║       ║
+║ * / %                     ║ Multiplication, division, modulo            ║     2 ║
+║                           ║                                             ║       ║
+║ + -                       ║ Addition, subtraction                       ║     2 ║
+║                           ║                                             ║       ║
+║ &lt;&lt; &gt;&gt;                     ║ Bitwise shift                               ║     2 ║
+║                           ║                                             ║       ║
+║ &amp;                         ║ Bitwise AND                                 ║     2 ║
+║                           ║                                             ║       ║
+║ | ^                       ║ Bitwise OR, Bitwise XOR                     ║     2 ║
+║                           ║                                             ║       ║
+║ &lt; &lt;= =&gt; &gt;                 ║ Ordering                                    ║     2 ║
+║                           ║                                             ║       ║
+║ == === != =~ !~ &lt;=&gt;       ║ Equality, pattern matching, comparison      ║     2 ║
+╚═══════════════════════════╩═════════════════════════════════════════════╩═══════╝
+</code></pre>
+                    <p>単項演算子メソッドには引数は渡されません。二項演算子メソッドには引数が渡され、その引数とそれ自身に対して動作します。</p>
+                    <p>演算子のアリティに厳密に従うことが重要です。異なる引数を持つ演算子メソッド
+                    (たとえば、2 つの引数を取る + メソッド)
+                    を定義することは可能ですが、Ruby
+                    では演算子構文でメソッドを呼び出すことはできません
+                    (ただし、ドット構文では機能します)。</p>
+                    <p>演算子の元のセマンティクスにできる限り従うことをお勧めします。演算子の元の意味を知っている人にとっては、それがユーザー定義クラスでどのように機能するかが直感的に理解できるはずです。</p>
+                    <p>この言語は、通常、配列およびハッシュ値にアクセスするために使用される特別な非演算子
+                    ,[] メソッドの糖衣構文も提供します。 []
+                    メソッドは任意の引数で定義できます。</p>
+                    <p>順序付け、等価性、比較、パターンマッチングを除く、表内のすべての二項演算子について、Ruby
+                    は省略された代入の省略表現も提供します (たとえば、x
+                    += y は x = x + y
+                    に展開されます)。これらをメソッドとして定義することはできませんが、その動作の基礎となる演算子を定義して動作を変更することはできます。</p>
+                    <p>これらの文字はいずれも、通常のメソッド名内では使用できません
+                    (たとえば、do&amp;print や start-up
+                    は有効なメソッド名ではありません)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

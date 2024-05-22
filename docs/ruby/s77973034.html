@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>lldb を使用して Macbook で Rails アプリケーションをデバッグするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "lldb を使用して Macbook で Rails アプリケーションをデバッグするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>lldb を使用して Macbook で Rails
+アプリケーションをデバッグするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は大規模なヤク剃りの真っ最中で、私の Mac で
+                    Rails
+                    アプリケーションが次のエラーでクラッシュする理由を解明しようとしています。</p>
+                    <pre><code>$rails s -e production
+=&gt; Booting WEBrick
+=&gt; Rails 6.1.6.1 application starting in production http://0.0.0.0:3000
+=&gt; Run `bin/rails server --help` for more startup options
+ruby(18016,0x202c48240) malloc: double free for ptr 0x7fe670963a00
+ruby(18016,0x202c48240) malloc: *** set a breakpoint in malloc_error_break to debug
+</code></pre>
+                    <p>インターネット上の提案の 1 つは、デバッガー (lldb
+                    または gdb) を使用してこれをデバッグすることです。
+                    lldb
+                    を「実行中のプロセス」にアタッチすると、次のようなエラーが発生します。</p>
+                    <pre><code>$lldb --attach-pid 18016
+(lldb) process attach --pid 18016
+error: attach failed: tried to attach to process already being debugged
+(lldb)
+error: attach failed: debugserver is x86_64 binary running in translation, attach failed.
+</code></pre>
+                    <p>これは、Rosetta2
+                    変換層を使用して実行されているプロセスに lldb
+                    を接続できないことを示しているようです。また、アプリは
+                    Ruby-oci8 gem を使用しており、ruby-oci8 gem
+                    に必要な基盤となる Oracle クライアント ライブラリの
+                    arm64 バージョンがないため、Rosetta2
+                    でアプリを実行する必要があります。</p>
+                    <p>したがって、次の試みは、lldb
+                    でプロセス自体を起動してみることです。これを試してみます:</p>
+                    <pre><code>$lldb --arch x86_64 `asdf which rails` s -- -e production
+(lldb) target create --arch=x86_64 &quot;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/rails&quot;
+error: &#39;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/rails&#39; doesn&#39;t contain the architecture x86_64
+</code></pre>
+                    <p>lldb は Rails
+                    を直接起動しようとしていると述べていますが、これはバイナリではなく
+                    Ruby ファイルです。したがって、理想的には、lldb に
+                    Ruby を起動させ、Rails
+                    を起動させたいと考えています。</p>
+                    <p>これらの問題を解決する方法について何かアイデアはありますか?</p>
+                    <p>更新 1: lldb を使用して Ruby
+                    をデバッグできます</p>
+                    <pre><code>lldb --arch x86_64 `asdf which ruby`
+(lldb) target create --arch=x86_64 &quot;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/ruby&quot;
+Current executable set to &#39;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/ruby&#39; (x86_64).
+</code></pre>
+                    <p>ここで必要なのは、直接ではなく Ruby 経由で Rails
+                    を起動する方法だけです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答えはとても簡単だったので、自分自身を蹴りたいです</p>
+                    <pre><code>$lldb --arch x86_64 `asdf which ruby` `asdf which rails` -- s -e production
+(lldb) target create --arch=x86_64 &quot;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/ruby&quot;
+Current executable set to &#39;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/ruby&#39; (x86_64).
+(lldb) settings set -- target.run-args  &quot;/Users/rohith/.asdf/installs/ruby/3.0.1/bin/rails&quot; &quot;s&quot; &quot;-e&quot; &quot;production&quot;
+</code></pre>
+                    <p>必要なのは、ruby を呼び出して、引数の 1 つとして
+                    Rails を渡すことだけでした。ヒントは、rails
+                    ファイルを開いたとき、ファイルの先頭に次のような記述があったことです。</p>
+                    <pre><code>#!/usr/bin/env ruby
+</code></pre>
+                    <p>したがって、rails を呼び出すことは、ruby に Rails
+                    Ruby ファイルを実行させることと同じです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

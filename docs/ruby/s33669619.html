@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エラーが発生するメソッドの副作用をテストする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エラーが発生するメソッドの副作用をテストする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エラーが発生するメソッドの副作用をテストする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような方法があります。</p>
+                    <pre><code>def method
+  # ..
+  begin
+    some_invokation
+  rescue StandardError
+    # some_other_stuff
+    raise
+  end
+  # ..
+  User.create!
+end
+</code></pre>
+                    <p>現時点では、このメソッドが例外を発生させることをテストできます。</p>
+                    <pre><code>expect { method }.to raise_error(StandardError)
+</code></pre>
+                    <p>ただし、ユーザーが作成されていないこともテストしたいと思います。</p>
+                    <pre><code>expect { method }.not_to change { User.count }
+</code></pre>
+                    <p>それは機能しません。例外が発生したことを示しています。私は呼び出しをモックレイズしようとしました：</p>
+                    <pre><code>allow_any_instance_of(described_class).to receive(:raise)
+</code></pre>
+                    <p>ただし、この場合、私のメソッドは中断されず、ユーザーが作成されます。他に方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく次のようなものでしょう:</p>
+                    <pre><code>expect { 
+  method rescue nil
+}.not_to change { User.count }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

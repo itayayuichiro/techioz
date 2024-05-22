@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「バンドルはプラットフォーム [“x86-mingw32”] のみをサポートしていますが、ローカル プラットフォームは [“ruby”、“x86_64-linux”] です」を解決するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「バンドルはプラットフォーム [“x86-mingw32”] のみをサポートしていますが、ローカル プラットフォームは [“ruby”、“x86_64-linux”] です」を解決するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「バンドルはプラットフォーム [“x86-mingw32”]
+のみをサポートしていますが、ローカル プラットフォームは
+[“ruby”、“x86_64-linux”] です」を解決するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Windows マシン上で Rails
+                    サイトを構築していますが、Gemfile.lock
+                    をチェックインすると、Travis
+                    ビルドで次のエラーが発生します。</p>
+                    <pre><code>Your bundle only supports platforms [&quot;x86-mingw32&quot;] but your local platforms are [&quot;ruby&quot;, &quot;x86_64-linux&quot;], and there&#39;s no compatible match between those two
+</code></pre>
+                    <p>リスト</p>
+                    <p>完全なログは次のとおりです:
+                    https://travis-ci.org/bikebike/BikeBike/builds/222395810#L654</p>
+                    <p>Gemfile.lock
+                    を見てみると、次のように書かれていました。</p>
+                    <pre><code>PLATFORMS
+  x86-mingw32
+</code></pre>
+                    <p>これは問題の一部であるようです。 Windows 固有の
+                    gem をプラットフォーム
+                    ブロックに入れてみました。</p>
+                    <pre><code>platforms &#39;mswin&#39;, &#39;mingw&#39;, &#39;mswin64&#39;, &#39;x64_mingw&#39; do
+  gem &#39;tzinfo-data&#39;
+
+  group :test do
+    gem &#39;wdm&#39;, &#39;&gt;= 0.1.0&#39;
+    gem &#39;win32console&#39;, require: false
+  end
+end
+</code></pre>
+                    <p>ただし、Gemfile.lock は同じように見えます。</p>
+                    <p>これが私の完全な Gemfile と Gemfile.lock
+                    です。</p>
+                    <p>git から Gemfile.lock
+                    ファイルを削除することでこの問題を一時的に回避できますが、これはベスト
+                    プラクティスではありません。 Gemfile.lock
+                    ファイルをコミットして、Windows
+                    マシンで開発を続けることはできますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コマンドラインで次の 2
+                    つのコマンドを実行します。</p>
+                    <pre><code>bundle lock --add-platform ruby
+bundle lock --add-platform x86_64-linux
+</code></pre>
+                    <p>これにより、Gemfile.lock に 2
+                    つのプラットフォームが追加されます。</p>
+                    <p>Google
+                    Cloudにデプロイするときに同じエラーが発生しました。しかし、これら
+                    2 つのコマンドを実行した後、ruby と x86_64-linux
+                    が追加され、問題は解決されました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5.2 Shrine および Tus サーバー: ファイルを保存するためのカスタム フォルダー構造を作成できない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5.2 Shrine および Tus サーバー: ファイルを保存するためのカスタム フォルダー構造を作成できない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 5.2 Shrine および Tus サーバー:
+ファイルを保存するためのカスタム フォルダー構造を作成できない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>再開可能なファイルのアップロードに Rails
+                    5.2、Shrine 2.19、tus サーバー 2.3
+                    を使用しています。</p>
+                    <p>ルート.rb</p>
+                    <pre><code>  mount Tus::Server =&gt; &#39;/files&#39;
+</code></pre>
+                    <p>モデル、file_resource.rb</p>
+                    <pre><code>class FileResource &lt; ApplicationRecord
+  # adds an `file` virtual attribute
+  include ResumableFileUploader::Attachment.new(:file)
+</code></pre>
+                    <p>コントローラー/files_controller.rb</p>
+                    <pre><code>def create
+      file = FileResource.new(permitted_params)
+      ...
+      file.save
+</code></pre>
+                    <p>config/initializers/shrine.rb</p>
+                    <pre><code>
+s3_options = {
+  bucket: ENV[&#39;S3_MEDIA_BUCKET_NAME&#39;],
+  access_key_id: ENV[&#39;S3_ACCESS_KEY&#39;],
+  secret_access_key: ENV[&#39;S3_SECRET_ACCESS_KEY&#39;],
+  region: ENV[&#39;S3_REGION&#39;]
+}
+
+Shrine.storages = {
+  cache: Shrine::Storage::S3.new(prefix: &#39;file_library/shrine_cache&#39;, **s3_options),
+  store: Shrine::Storage::S3.new(**s3_options), # public: true,
+  tus: Shrine::Storage::Tus.new
+}
+
+Shrine.plugin :activerecord
+Shrine.plugin :cached_attachment_data
+</code></pre>
+                    <p>config/initializers/tus.rb</p>
+                    <pre><code>Tus::Server.opts[:storage] = Tus::Storage::S3.new(
+  prefix: &#39;file_library&#39;,
+  bucket: ENV[&#39;S3_MEDIA_BUCKET_NAME&#39;],
+  access_key_id: ENV[&#39;S3_ACCESS_KEY&#39;],
+  secret_access_key: ENV[&#39;S3_SECRET_ACCESS_KEY&#39;],
+  region: ENV[&#39;S3_REGION&#39;],
+  retry_limit: 3
+)
+Tus::Server.opts[:redirect_download] = true
+</code></pre>
+                    <p>私の問題は、AWS s3
+                    の別のフォルダー構造にファイルを保存するために、Shrine
+                    クラスのgenerate_location
+                    メソッドをオーバーライドできないことです。</p>
+                    <p>すべてのファイルは s3://bucket/file_library/
+                    (tus.rb で提供されるプレフィックス)
+                    内に作成されます。
+                    s3://bucket/file_library/:user_id/:parent_id/
+                    フォルダー構造のようなものが必要です。</p>
+                    <p>Tus 設定はすべての resumable_file_uploader
+                    クラスのカスタム
+                    オプションをオーバーライドし、アップロードには影響を及ぼさないことがわかりました。</p>
+                    <p>再開可能ファイル_アップローダー.rb</p>
+                    <pre><code>class ResumableFileUploader &lt; Shrine
+  plugin :validation_helpers  # NOT WORKS
+  plugin :pretty_location     # NOT WORKS
+
+  def generate_location(io, context = {})  # NOT WORKS
+    f = context[:record]
+    name = super # the default unique identifier
+
+    [&#39;users&#39;, f.author_id, f.parent_id, name].compact.join(&#39;/&#39;)
+  end
+
+  Attacher.validate do                    # NOT WORKS
+    validate_max_size 15 * 1024 * 1024, message: &#39;is too large (max is 15 MB)&#39;
+  end
+
+end
+</code></pre>
+                    <p>それでは、tus オプションを使用して
+                    (神社オプションが機能しないため) S3 でカスタム
+                    フォルダー構造を作成するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>tus サーバーのアップロードは、Shrine
+                    にはまったく触れないため、#generate_location
+                    は呼び出されませんが、代わりに tus-ruby-server
+                    が場所を決定します。</p>
+                    <p>tus
+                    サーバーは一時ストレージとしてのみ機能する必要があることに注意してください。通常の直接アップロードと同様に、Shrine
+                    を使用してファイルを永続ストレージにコピーする
+                    (別名「プロモート」)
+                    必要があります。プロモーション時に
+                    #generate_location
+                    メソッドが呼び出され、ファイルが目的の場所にコピーされます。これはすべて、デフォルトの神社セットアップで自動的に行われます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

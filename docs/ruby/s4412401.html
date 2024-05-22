@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsコンソールの履歴をクリアするにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsコンソールの履歴をクリアするにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsコンソールの履歴をクリアするにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails c を実行し、irb
+                    の起動時に上キーを押すと、ruby-debug gem
+                    のデバッガー コマンドに遭遇した後、アプリが irb
+                    にドロップされたときに入力した最後のコマンドが表示されます。これらのコマンドを削除するだけでなく、最後の
+                    Rails コンソール
+                    セッション中に発行した最後のコマンドを Rails c
+                    が取得できるようにしたいと考えています。以前はそうしていたように思いますが、何が変わったのかはわかりません。私は
+                    Mac OS 10.6.5 で Ruby 1.8.7 と Rails 3.0.3
+                    を使用しています。それが役立つ場合は。</p>
+                    <p>レイの答えが当面の助けになりました。最近、さらに詳しく調べてみたところ、矛盾する問題が数多くあることがわかりました。</p>
+                    <p>Ray が述べたように、IRB は ~/.irbrc
+                    があるかどうかをチェックし、ない場合は /etc/irbrc
+                    にフォールバックします。ただし、rvm
+                    を使用している場合、ENV に rvm_path
+                    が設定されている場合、~/.rvm/scripts/irbrc
+                    を考慮する別のファイルがあり、これは
+                    ~/.rvm/scripts/irbrc.rb (.rb に注意してください)
+                    をロードするだけです ( RVM
+                    を使用する場合はそうする必要があります)。</p>
+                    <p>興味深いことに、~/.rvm/scripts/irbrc.rb は
+                    /etc/irbrc
+                    に基づいていますが、それらは同じではなく、いくつかの点で異なります。システムでどれが使用されているかを検出する最も明白で簡単な方法は、履歴ファイルの名前です。
+                    /etc/irbrc が使用されている場合、履歴ファイルは
+                    ~/.irb_history になりますが、rvm の場合は
+                    ~/.irb-history になります (注: _ と -)。</p>
+                    <p>この追加情報が、システムを希望どおりにセットアップするために何が必要かを判断するのに役立つことを願っています。</p>
+                    <p>それ以来、私はデバッガーの使用をやめ、pry gem
+                    を含む pry-byebug に移行しました。 Pry は IRB
+                    の代替手段ですが、IRB
+                    と併用したり内部で使用したりすることもできます。上記のアップデートを提供できた理由は、それぞれの歴史を分離しておく方法を見つけようとしていたからです。詳細については、SO
+                    の質問に対する私の回答「なぜ pry 履歴が irb
+                    履歴を妨害し続けるのか?」を参照してください。そこには、Pry
+                    の既知の Github
+                    問題と、それを修正する試みへのリンクが含まれています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの質問は、Rails
+                    コンソールで履歴をオンにし、Ruby
+                    デバッガーで履歴をオフにする方法を尋ねているものと解釈します。これが真実でない場合は、明確にしてください。</p>
+                    <p>IRB、ひいては Rails Console は、~/.irbrc
+                    から読み取るか、それが存在しない場合は /etc/irbrc
+                    から読み取り、irb を起動して構成します。履歴は通常
+                    ~/.irb_history に書き込まれますが、それは irbrc
+                    ファイルの内容によって決まります。私の Mac OS X の
+                    /etc/irbrc は、irb
+                    から履歴を書き込むように設定されているため、おそらく履歴を持たないローカル
+                    .irbrc
+                    を作成したか、そのファイルに構文エラーがある可能性があります。</p>
+                    <p>デバッガーは起動時に .rdebugrc
+                    というファイルを読み取ります。次の行を ~/.rdebugrc
+                    に追加することで、デバッグ中の履歴をオフにできます。</p>
+                    <pre><code>set history save off
+</code></pre>
+                    <p>次のようにしてオンに戻します。</p>
+                    <pre><code>set history save on
+</code></pre>
+                    <p>次のコマンドを使用して、irb
+                    の読み取り元とは別のファイルにデバッグ出力を設定することもできます。</p>
+                    <pre><code>set history filename
+</code></pre>
+                    <p>これらはデバッグ
+                    プロンプトからも機能しますが、永続的ではありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

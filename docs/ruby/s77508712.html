@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ルビー。名前付き引数を含む混合引数の場合、method_missing + send が失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ルビー。名前付き引数を含む混合引数の場合、method_missing + send が失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ルビー。名前付き引数を含む混合引数の場合、method_missing
++ send が失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この単純な Ruby コードがあります。
+                    「プロキシパターン」の実装です。最後の行で失敗します</p>
+                    <pre><code>class ExecuteProxy
+    def initialize(controller_object)
+      @controller_object = controller_object
+    end
+
+    def method_missing(method, *args)
+      args.empty? ? @controller_object.send(method) : @controller_object.send(method, *args)
+      return
+    end
+end
+
+class MyClass
+    def no_arghuments
+        puts &quot;no_arghuments&quot;
+    end
+    def one_argument(arg1)
+        puts &quot;one_argument #{arg1}&quot;
+    end
+    def one_argument_and_named(arg1, count:1)
+        puts &quot;one_argument #{arg1} and count #{count}&quot;
+    end
+end
+
+obj = MyClass.new
+proxy = ExecuteProxy.new(obj)
+
+proxy.no_arghuments
+proxy.one_argument(&quot;test&quot;)
+proxy.one_argument_and_named(&quot;test2&quot;)
+proxy.one_argument_and_named(&quot;test2&quot;, count:2)
+</code></pre>
+                    <p>出力</p>
+                    <pre><code>no_arghuments
+one_argument test
+one_argument test2 and count 1
+test1.rb:20:in `one_argument_and_named&#39;: wrong number of arguments (given 2, expected 1) (ArgumentError)
+    from test1.rb:8:in `method_missing&#39;
+    from test1.rb:31:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>これはどうすれば解決できますか?メソッドに通常の引数
+                    + 名前付き引数がある場合、send
+                    を使用して別のクラスに実行を渡すにはどうすればよいですか?</p>
+                    <p>アップデート。機能するコードがあります。回答が役に立ちました。ありがとう。</p>
+                    <pre><code>class ExecuteProxy
+    def initialize(controller_object)
+      @controller_object = controller_object
+    end
+
+    def method_missing(method, *args, **kw)
+      @controller_object.send(method, *args, **kw)
+      return
+    end
+end
+
+class MyClass
+    def no_arghuments
+        puts &quot;no_arghuments&quot;
+    end
+    def one_argument(arg1)
+        puts &quot;one_argument #{arg1}&quot;
+    end
+    def one_argument_and_named(arg1, count:1)
+        puts &quot;one_argument #{arg1} and count #{count}&quot;
+    end
+    def only_named(count:, str:&quot;&quot;)
+        puts &quot;only_named count #{count}, str: #{str}&quot;
+    end
+    def manyarguments_and_named_args(arg1, arg2, arg3 = &quot;def&quot;, count:1, some_other:&quot;d&quot;)
+        puts &quot;manyarguments_and_named_args #{arg1}, #{arg2}, #{arg3} and count #{count}, some_other #{some_other}&quot;
+    end
+end
+
+obj = MyClass.new
+proxy = ExecuteProxy.new(obj)
+
+proxy.no_arghuments
+proxy.one_argument(&quot;test&quot;)
+proxy.one_argument_and_named(&quot;test2&quot;)
+proxy.one_argument_and_named(&quot;test2&quot;, count:2)
+proxy.only_named(count:3)
+proxy.only_named(count:3,str:&quot;string&quot;)
+proxy.manyarguments_and_named_args(&quot;a1&quot;,&quot;a2&quot;)
+proxy.manyarguments_and_named_args(&quot;a1&quot;,&quot;a2&quot;, &quot;s3&quot;)
+proxy.manyarguments_and_named_args(&quot;a1&quot;,&quot;a2&quot;, count:4)
+proxy.manyarguments_and_named_args(&quot;a1&quot;,&quot;a2&quot;, count:4, some_other:nil)
+</code></pre>
+                    <p>出力</p>
+                    <pre><code>no_arghuments
+one_argument test
+one_argument test2 and count 1
+one_argument test2 and count 2
+only_named count 3, str: 
+only_named count 3, str: string
+manyarguments_and_named_args a1, a2, def and count 1, some_other d
+manyarguments_and_named_args a1, a2, s3 and count 1, some_other d
+manyarguments_and_named_args a1, a2, def and count 4, some_other d
+manyarguments_and_named_args a1, a2, def and count 4, some_other 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最後の引数として明示的なハッシュを渡す場合、それはキーワード引数としてカウントされないため、それらをダブルスプラットする必要があります。</p>
+                    <pre><code>def one_argument_and_named(arg1, count: 1)
+  puts &quot;one_argument #{arg1} and count #{count}&quot;
+end
+
+one_argument_and_named(&quot;test2&quot;, count: 2)      # good
+one_argument_and_named(*[&quot;test2&quot;, count: 2])   # bad
+one_argument_and_named(&quot;test2&quot;, {count: 2})    # bad
+one_argument_and_named(&quot;test2&quot;, **{count: 2})  # good
+</code></pre>
+                    <p>引数があるかどうかを確認する必要はありません。引数が空の場合は飛び散ります。</p>
+                    <pre><code>def method_missing(method, *args, **kw)
+  @controller_object.send(method, *args, **kw)
+end
+
+# depending on your ruby version you could do this
+# only if you don&#39;t need intermidiate access to args or kw
+def method_missing(method, *, **)
+  @controller_object.send(method, *, **)
+end
+# or
+def method_missing(method, ...)
+  @controller_object.send(method, ...)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

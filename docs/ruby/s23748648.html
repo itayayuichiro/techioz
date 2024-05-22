@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>File#flock を Ruby グローバル ロック (プロセスのミューテックス) として使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "File#flock を Ruby グローバル ロック (プロセスのミューテックス) として使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>File#flock を Ruby グローバル ロック
+(プロセスのミューテックス) として使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>簡単に調べた結果、一時ファイルがこの問題の解決策として提案されていることがわかりましたが、2
+                    つのプロセス間で同時実行の問題が発生しています。</p>
+                    <p>したがって、解決策は /tmp/global.lock
+                    を作成し、それをグローバル
+                    ロックとして使用することです。このスレッドで見つけた例です。Rails
+                    プロセスのミューテックス</p>
+                    <p>ここまでは理解できますが、この解決策のベストプラクティスを見てみたいと思います。上記の説明は理にかなっていますが、指定されたファイルがロックされているかどうかを確認するにはどうすればよいでしょうか?</p>
+                    <pre><code>fh = File.open(&quot;/some/file/path&quot;, File::CREAT)
+
+begin
+  if locked = check_file_locked?
+    sleep(1)
+  else
+    fh.flock(File::LOCK_EX)
+    # do what you need to do
+  end
+ensure
+  fh.flock(File::LOCK_UN)
+end
+</code></pre>
+                    <p>これは私の解決策の理解ですが、前述の
+                    check_file_locked?()
+                    を実装する方法がわかりません。また、最善の方法がある場合は、ぜひ聞いてください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="bjhaidの答えは">@bjhaidの答えは</span>、Timeout#timeoutの問題を引き起こし、Rubiniusでインタープリタエラーを引き起こす可能性があります。それも不必要に複雑です。</p>
+                    <p>以下は、タイムアウトの代わりに非ブロッキング
+                    ロックを使用した、より単純なバージョンです。</p>
+                    <pre><code>def locked? lockfile_name
+  f = File.open(lockfile_name, File::CREAT)
+
+  # returns false if already locked, 0 if not
+  ret = f.flock(File::LOCK_EX|File::LOCK_NB)
+
+  # unlocks if possible, for cleanup; this is a noop if lock not acquired
+  f.flock(File::LOCK_UN) 
+
+  f.close
+  !ret # ret == false means we *couldn&#39;t* get a lock, i.e. it was locked
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

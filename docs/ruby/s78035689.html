@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レールの列挙では nil 値は許可されません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レールの列挙では nil 値は許可されません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レールの列挙では nil 値は許可されません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロジェクトで enumerize gem
+                    を使用していますが、nil
+                    値を許可したい列にそれを追加すると、テストは中断されますが、コンソールへの挿入は中断されません。</p>
+                    <pre><code>MY_TYPES = [&#39;foo&#39;,
+            &#39;baz&#39;,
+            &#39;bar&#39;].freeze
+
+enumerize :my_column, in: MY_TYPES,
+                      default: nil,
+                      scope: :shallow,
+                      presence: false
+</code></pre>
+                    <p>my_column に nil
+                    値を追加しようとすると、ActiveRecord
+                    検証が表示されます。</p>
+                    <pre><code>*** ActiveRecord::RecordInvalid Exception: Validation failed: My tipes is not included in the list
+</code></pre>
+                    <p>ただし、Rails
+                    コンソールから値を変更すると、問題なく nil
+                    値を割り当てることができます。</p>
+                    <p>私は、allow_blank: true、allow_nil:
+                    true、そして最近では present: false
+                    オプションを試してきました。</p>
+                    <p>助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ドキュメントに従って、包含検証はデフォルトで追加されます。
+                    Skip_validation を追加してから、allow_nil
+                    包含検証を自分で追加する必要があります。</p>
+                    <pre><code>enumerize :my_column, in: MY_TYPES, skip_validations: true, ...
+validates :my_column, inclusion: MY_TYPES, allow_nil: true
+</code></pre>
+                    <p>ラムダを含めることもできることに今気づきました。そのため、（テストされていませんが）これを（個別の検証を追加することなく）実行できるはずです。</p>
+                    <pre><code>enumerize :my_column, in: MY_TYPES, skip_validations: -&gt; { _1.my_column.nil? }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

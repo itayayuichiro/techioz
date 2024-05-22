@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyシステムコマンドチェック終了コード | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyシステムコマンドチェック終了コード",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyシステムコマンドチェック終了コード</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    には次のようなシステムコールがたくさんあり、それらの終了コードを同時にチェックして、そのコマンドが失敗した場合にスクリプトが終了するようにしたいと考えています。</p>
+                    <pre><code>system(&quot;VBoxManage createvm --name test1&quot;)
+system(&quot;ruby test.rb&quot;)
+</code></pre>
+                    <p>のようなものが欲しいです</p>
+                    <p>system(“VBoxManage createvm –name test1”, 0)
+                    &lt;– ここで、2
+                    番目のパラメーターは終了コードをチェックして、そのシステム
+                    コールが成功したことを確認します。失敗した場合は、エラーが発生するか、そのような処理が行われます。</p>
+                    <p>そもそもそれは可能でしょうか？</p>
+                    <p>これに沿って何かを試してみましたが、それもうまくいきませんでした。</p>
+                    <pre><code>system(&quot;ruby test.rb&quot;)
+system(&quot;echo $?&quot;)
+</code></pre>
+                    <p>または</p>
+                    <pre><code>`ruby test.rb`
+exit_code = `echo $?`
+if exit_code != 0
+  raise &#39;Exit code is not zero&#39;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ドキュメントから:</p>
+                    <pre><code>system(&quot;unknown command&quot;)     #=&gt; nil
+system(&quot;echo foo&quot;)            #=&gt; true
+system(&quot;echo foo | grep bar&quot;) #=&gt; false
+</code></pre>
+                    <p>さらに</p>
+                    <pre><code>system(&quot;VBoxManage createvm --invalid-option&quot;)
+
+$?             #=&gt; #&lt;Process::Status: pid 9926 exit 2&gt;
+$?.exitstatus  #=&gt; 2
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

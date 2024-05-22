@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのinstance_execに、それ自体がブロックを期待しているブロックを渡すことはできますか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのinstance_execに、それ自体がブロックを期待しているブロックを渡すことはできますか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのinstance_execに、それ自体がブロックを期待しているブロックを渡すことはできますか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コードを期待しています</p>
+                    <pre><code>foo=proc{puts &quot;foo&quot;}
+
+instance_exec(1,2,3,&amp;foo) do |*args , &amp;block|
+  puts *args
+  block.call
+  puts &quot;bar&quot;
+end
+</code></pre>
+                    <p>出力する</p>
+                    <pre><code>
+1
+2
+3
+foo
+bar
+</code></pre>
+                    <p>しかし、エラーが発生しました</p>
+                    <pre><code>
+both block arg and actual block given
+</code></pre>
+                    <p>Rubyのinstance_execに、それ自体がブロックを期待しているブロックを渡すことはできますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>&amp;foo は foo をブロックとして instance_exec
+                    に渡そうとしますが、すでに明示的なブロックを渡しています。アンパサンドを省略すると、他の引数と同じように
+                    foo が送信されます (Proc
+                    インスタンスであることを除く)。したがって、代わりにこれを試してください。</p>
+                    <pre><code>instance_exec(1,2,3,foo) do |*args, block|
+  puts *args
+  block.call
+  puts &quot;bar&quot;
+end
+</code></pre>
+                    <p>これは、次のようなことができることも意味します。</p>
+                    <pre><code>bar = proc{ |*args, block|
+  puts *args
+  block.call
+  puts &quot;bar&quot;
+}
+
+instance_exec(1,2,3,foo,&amp;bar)
+</code></pre>
+                    <p>そして同じ結果が得られます。</p>
+                    <p>詳細については、「Ruby のブロックと &amp;block
+                    の違い」を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

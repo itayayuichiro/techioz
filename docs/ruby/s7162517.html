@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>nanoc と複数のレイアウト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "nanoc と複数のレイアウト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>nanoc と複数のレイアウト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>特定の（またはすべての）アイテムに複数のレイアウトを使用することはできますか?
+                    たとえば、いくつかのアイテムがあり、それに 2
+                    つの異なるレイアウトを適用したいとします。 1
+                    つは緑の背景、もう 1 つは青の背景です
+                    (ただし)。そして、それらを出力ディレクトリ内の 2
+                    つの異なるフォルダー (例: v1 と v2)
+                    にコンパイルしたいと考えています。</p>
+                    <p>ルールとコンパイルブロックをいじっていましたが、これがどのように機能するのか理解できませんでした。すべての項目はコンパイル
+                    プロセス中に 1
+                    回だけコンパイルされるため、最初はlayout1でコンパイルし、2回目はlayout2でコンパイルするようにnanocに指示することはできません。このように
+                    sth を試しましたが、出力ファイルが破損しました。</p>
+                    <pre><code>compile &#39;*&#39; do
+  if item.binary?
+    # don’t filter binary items
+  else
+    filter :erb
+    layout &#39;layout1&#39;
+    layout &#39;layout2&#39;
+  end
+end
+</code></pre>
+                    <p>自分のことをはっきりさせて、誰かが助けてくれることを願っています。</p>
+                    <p>THX、 タキシード</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>項目表現はこの目的を目的としています。 2
+                    つの異なる表現を作成できます。デフォルトのものと代替のものを選択し、次のようにコンパイルとルーティングのルールをそれらに適用します。</p>
+                    <pre><code># default rep, although you can pass
+# :rep =&gt; :default explicitly too
+compile &#39;/stuff/*/&#39; do
+  filter :erb
+  layout &#39;default&#39;
+end
+
+route &#39;/stuff/*/&#39; do
+  # /stuff/foo/ -&gt; /boring/stuff/foo/
+  # Just an example; you probably need something else
+  &#39;/boring&#39; + item.identifier
+end
+
+compile &#39;/stuff/*/&#39;, :rep =&gt; :special do
+  filter :erb
+  layout &#39;special&#39; # this is different
+end
+
+route &#39;/stuff/*/&#39;, :rep =&gt; :special do
+  # /stuff/foo/ -&gt; /special/stuff/foo/
+  # Again, just an example
+  &#39;/special&#39; + item.identifier
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

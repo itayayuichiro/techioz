@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>新しい gem を開発するときに新しい機能を追加してパッケージ化する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "新しい gem を開発するときに新しい機能を追加してパッケージ化する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>新しい gem
+を開発するときに新しい機能を追加してパッケージ化する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Maker という名前のサンプル gem を作成しました。
+                    RVMも使ってます。</p>
+                    <p>サンプル
+                    ユーザー機能を追加するための最近の変更は、この PR
+                    に記載されています。 Bundler
+                    ドキュメントのこのガイドに従って、新しい gem
+                    を作成してきました。</p>
+                    <p>現在、irb 経由で gem
+                    を使用しようとしていますが、require Maker
+                    を実行すると、以下のエラーが発生します。</p>
+                    <pre><code> :001 &gt; require &#39;maker&#39;
+LoadError: cannot load such file -- maker/user
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/lib/ruby/site_ruby/2.4.0/rubygems/core_ext/kernel_require.rb:55:in `require&#39;
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/lib/ruby/site_ruby/2.4.0/rubygems/core_ext/kernel_require.rb:55:in `require&#39;
+    from /Users/mohnishgj/.rvm/gems/ruby-2.4.1@experiments/gems/maker-0.1.0/lib/maker.rb:2:in `&lt;top (required)&gt;&#39;
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/lib/ruby/site_ruby/2.4.0/rubygems/core_ext/kernel_require.rb:133:in `require&#39;
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/lib/ruby/site_ruby/2.4.0/rubygems/core_ext/kernel_require.rb:133:in `rescue in require&#39;
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/lib/ruby/site_ruby/2.4.0/rubygems/core_ext/kernel_require.rb:40:in `require&#39;
+    from (irb):1
+    from /Users/mohnishgj/.rvm/rubies/ruby-2.4.1/bin/irb:11:in `&lt;main&gt;&#39;
+ :002 &gt;
+    
+</code></pre>
+                    <p>実験用 gemset に関して gem
+                    がインストールされている場所
+                    (つまり、/Users/mohnishgj/.rvm/gems/ruby-2.4.1@experiments/gems/maker-0.1.0)
+                    に移動すると、明らかにわかります。 user.rb
+                    ファイルがその場所にないことを確認します。</p>
+                    <pre><code>/Users/mohnishgj/.rvm/gems/ruby-2.4.1@experiments/gems/maker-0.1.0/lib/maker
+➜  maker ls
+version.rb
+</code></pre>
+                    <p>新しいファイルを gem の一部として追加し、それを
+                    irb
+                    から動作させたい場合、これをどのように修正すればよいですか。
+                    gem
+                    関連の開発の一部を間違って行っているのでしょうか?私の無知を許してください。私は
+                    gem の作成に関しては比較的初心者です。 gem
+                    関連の開発をソースから正しく行うにはどうすればよいですか?</p>
+                    <p>また、何かが足りない可能性がありますが、Bundler.require(:default,
+                    :development)をmaker.gemspec（Gem作成ガイドで提案されているように）に追加しようとしたとき、次のようになります</p>
+                    <pre><code>lib = File.expand_path(&quot;../lib&quot;, __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require &quot;maker/version&quot;
+Bundler.require(:default, :development)
+</code></pre>
+                    <p>以下のようなエラーが発生しました。</p>
+                    <pre><code>[!] There was an error parsing `Gemfile`:  - [!] There was an error while loading `maker.gemspec`:  - [!] There was an error parsing `Gemfile`:  - [!] There was an error while loading `maker.gemspec`:  - [!] There was an error parsing `Gemfile`:
+</code></pre>
+                    <p>ここで何が欠けているでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この質問に対する答えは、この投稿で説明されているようにバンドル
+                    コンソールを使用することです -
+                    http://wsmoak.net/2016/07/10/ruby-gem-dev-irb.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

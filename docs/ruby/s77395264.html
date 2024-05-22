@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby での文字列比較が正しいテストを返さない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby での文字列比較が正しいテストを返さない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+での文字列比較が正しいテストを返さない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>回文をテストしようとしていますが、このコードはテストで
+                    true を返しません。</p>
+                    <pre><code>for a in (0..(myString.length/2)) do
+  if (myString[a] == myString[myString.length-a+1])
+    p = true
+  else
+    p = false
+  end
+end
+</code></pre>
+                    <p>私には何が欠けているのでしょうか？</p>
+                    <p>私はすでにさまざまな等価性と文字列メソッドを試しました。</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードには 2 つの問題があります。</p>
+                    <p>まず、比較における 2
+                    番目の文字のインデックスが正しく計算されません。最初の反復を例として見てみましょう。最初の反復では、a
+                    は 0 になります。つまり、2 番目の文字の位置は
+                    (文字列のレースカーを想像してください) 7-0+1 = 8
+                    と計算され、文字列の範囲外になります。代わりに、インデックスは
+                    0
+                    からカウントを開始するため、文字列の最後の文字のインデックスは
+                    6 になります。</p>
+                    <p>これは、myString.length -a-1 のように 2
+                    番目のインデックスを計算することで修正できます。</p>
+                    <p>2 番目の問題は、2
+                    つの文字が一致しない場合にすぐに返されないことです。
+                    abbc
+                    という文字列を想像してください。最初の反復では、a と
+                    c が比較され、p は false
+                    に設定されます。ただし、次の反復では b と b
+                    が比較され、p は true
+                    に変更されます。ただし、最初の反復では、文字列が回文ではないことがすでに証明されています。</p>
+                    <p>実装を次のように変更することをお勧めします。</p>
+                    <pre><code>def palindrome?(string)
+  0.upto(string.length / 2 - 1).all? { |i| string[i] == string[-i - 1] }
+end
+
+palindrome?(&#39;racecar&#39;)
+#=&gt; true
+
+palindrome?(&#39;foobar&#39;)
+#=&gt; false
+</code></pre>
+                    <p>Integer#upto と Array#all
+                    のドキュメントを参照してください。 String#[]
+                    が負のインデックスでどのように動作するか。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

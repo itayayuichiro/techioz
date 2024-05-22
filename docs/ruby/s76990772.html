@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列で並べ替える方法、Ruby | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列で並べ替える方法、Ruby",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列で並べ替える方法、Ruby</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>文字列で並べ替える方法、Ruby</p>
+                    <p>ケーキのリストをこの順序で整理したいと思います。したがって、すべての「Primo」ケーキが一番上にあり、その次にすべての「Multilayered」ケーキが続きます。各タイプのケーキはさらに「created_at」(作成された最も古いケーキが最初)
+                    によってリストされる必要があります。</p>
+                    <pre><code>@cakes = []
+@cakes &lt;&lt; @store.cakes.where(type: &quot;Primo&quot;).order(created_at: :desc) 
+@cakes &lt;&lt; @store.cakes.where(type: &quot;Multilayered&quot;).order(created_at: :desc) 
+@cakes &lt;&lt; @store.cakes.where(type: &quot;Decorative&quot;).order(created_at: :desc) 
+@cakes &lt;&lt; @store.cakes.where(type: &quot;On Sale&quot;).order(created_at: :desc) 
+@cakes &lt;&lt; @store.cakes.where(type: &quot;Basic&quot;, &quot;Basic&quot;).order(created_at: :desc) 
+</code></pre>
+                    <p>1 つのクエリでそれを行う方法はありますか?</p>
+                    <p>… 多分：</p>
+                    <pre><code>cake_eater_nom = []
+
+c = @store.cakes
+primo_cakes = c.where(type: &quot;Primo&quot;).order(created_at: :desc)
+cake_eater_nom &lt;&lt; primo_cakes
+multilayered_cakes = c.where(type: &quot;Multilayered&quot;).order(created_at: :desc) 
+cake_eater_nom &lt;&lt; multilayered_cakes
+decorative_cakes = c.where(type: &quot;Decorative&quot;).order(created_at: :desc) 
+cake_eater_nom &lt;&lt; decorative_cakes
+on_sale_cakes = c.where(type: &quot;On Sale&quot;).order(created_at: :desc)
+cake_eater_nom &lt;&lt; on_sale_cakes
+basic_cakes = c.where(type: &quot;Basic&quot;).order(created_at: :desc)
+cake_eater_nom &lt;&lt; basic_cakes
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>すでに Ruby on Rails 7.0
+                    を使用している場合は、次のように in_order_of
+                    を使用できます。</p>
+                    <pre><code>types = [&#39;Primo&#39;, &#39;Multilayered&#39;, &#39;Decorative&#39;, &#39;On Sale&#39;, &#39;Basic&#39;]
+
+@cakes = @store.cakes
+               .where(type: types)
+               .in_order_of(:type, types) # sort by type (from list) frist 
+               .order(:created_at)        # then by created_at (oldest first)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

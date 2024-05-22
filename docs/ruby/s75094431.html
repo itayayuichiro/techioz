@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>CentOS 7 で Ruby 3.2 をコンパイルするとエラーが発生するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "CentOS 7 で Ruby 3.2 をコンパイルするとエラーが発生するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>CentOS 7 で Ruby 3.2
+をコンパイルするとエラーが発生するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rbenv の Ruby-build プラグインを使用して Ruby 3.2
+                    をビルドしようとしましたが、奇妙なコンパイル
+                    エラーが発生しました。</p>
+                    <pre><code>compiling bignum.c
+In file included from vm_core.h:164:0,
+                 from iseq.h:14,
+                 from mini_builtin.c:3,
+                 from miniinit.c:51:
+thread_pthread.h:109:39: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘struct’
+ RUBY_EXTERN RB_THREAD_LOCAL_SPECIFIER struct rb_execution_context_struct *ruby_current_ec;
+                                       ^
+In file included from iseq.h:14:0,
+                 from mini_builtin.c:3,
+                 from miniinit.c:51:
+vm_core.h: In function ‘rb_current_execution_context’:
+vm_core.h:1864:34: error: ‘ruby_current_ec’ undeclared (first use in this function)
+     rb_execution_context_t *ec = ruby_current_ec;
+                                  ^
+vm_core.h:1864:34: note: each undeclared identifier is reported only once for each function it appears in
+</code></pre>
+                    <p>完全なログは次のとおりです:
+                    https://gist.github.com/tycooon/c077a1d99299469bd86131211c565ff7。</p>
+                    <p>Ruby 3.1
+                    は同じマシン上で問題なくビルドされます。何が問題なのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、centos7 が古すぎる GCC
+                    とともに出荷されたことでした。私の場合、マシン上で利用可能な
+                    devtoolset-7-gcc.x86_64
+                    パッケージがあったため、次のコマンドを使用して Ruby
+                    3.2 をインストールできました。</p>
+                    <pre><code>CC=/opt/rh/devtoolset-7/root/usr/bin/gcc rbenv install 3.2.0 -v
+</code></pre>
+                    <p>これが誰かの役に立てば幸いです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

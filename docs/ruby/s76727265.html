@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>twitter oauth を試行するときに承認を取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "twitter oauth を試行するときに承認を取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>twitter oauth
+を試行するときに承認を取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Twitter ouath 経由のログインを使用できるように
+                    Rails 7
+                    アプリを設定しようとしています。ログインボタンをクリックすると、このエラーが発生します。
+                    v1 と v2 の認証情報を使用してみました。</p>
+                    <pre><code>COULD NOT AUTHENTICATE YOU FROM TWITTER BECAUSE &quot;401 UNAUTHORIZED&quot;.
+</code></pre>
+                    <pre><code># AUTHENTICATION
+gem &#39;activerecord-session_store&#39;
+gem &#39;devise&#39;
+gem &#39;devise-jwt&#39;
+gem &#39;devise_zxcvbn&#39;
+gem &#39;omniauth&#39;
+gem &#39;omniauth-rails_csrf_protection&#39;
+gem &#39;omniauth-twitter&#39;
+</code></pre>
+                    <pre><code> = link_to &#39;Sign in with Twitter&#39;, user_twitter_omniauth_authorize_path, class: &#39;btn btn-info default w-100&#39;, id: &#39;twitter-login&#39;, method: :post
+</code></pre>
+                    <pre><code>module Users
+  class OmniauthCallbacksController &lt; Devise::OmniauthCallbacksController
+    def twitter
+      # You need to implement the method below in your model (e.g. app/models/user.rb)
+      @user = User.from_omniauth(request.env[&#39;omniauth.auth&#39;])
+
+      if @user.persisted?
+        sign_in_and_redirect @user, event: :authentication # this will throw if @user is not activated
+        set_flash_message(:notice, :success, kind: &#39;Twitter&#39;) if is_navigational_format?
+      else
+        session[&#39;devise.twitter_data&#39;] = request.env[&#39;omniauth.auth&#39;].except(&#39;extra&#39;)
+        redirect_to we_vote_root_url
+      end
+    end
+
+    def failure
+      set_flash_message(:alert, :failure, kind: &#39;Twitter&#39;, reason: failure_message) if is_navigational_format?
+      redirect_to new_user_session_path
+    end
+  end
+end
+</code></pre>
+                    <pre><code>    config.omniauth :twitter, Rails.application.credentials.dig(:twitter, :api_key), Rails.application.credentials.dig(:twitter, :api_key_secret)
+</code></pre>
+                    <pre><code>  def self.from_omniauth(auth)
+    password = Devise.friendly_token[0, 20]
+    identity = Identity.find_for_oauth(auth)
+    user = identity.user
+    user ||= User.find_or_initialize_by(email: auth.info.email)
+    user.first_name = auth.info.name.split[0] unless auth.info.name.split.empty?
+    user.last_name = auth.info.name.split[1] if auth.info.name.split.length &gt; 1
+    user.phone_number ||= auth.info.phone_number
+    file = URI.open(auth.info.image)
+    user.avatar.attach(io: file, filename: &#39;avatar.png&#39;, content_type: &#39;image/png&#39;)
+    user.skip_confirmation!
+    if user.encrypted_password.blank?
+      user.password = password
+      user.password_confirmation = password
+    end
+    user.save!
+    identity.update(user: user) if identity.user.nil?
+    user
+  end
+</code></pre>
+                    <pre><code>http://localhost:3000/auth/twitter
+http://localhost:3000/users/auth/twitter/callback
+http://localhost:3000/auth/twitter/callback
+http://localhost:3000/users/auth/twitter
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ngrok を使用して問題を解決する
+                    ここで見ることができます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

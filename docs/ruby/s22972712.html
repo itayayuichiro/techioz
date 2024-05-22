@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Postgres の配列列で UPCASE または Regexp を使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Postgres の配列列で UPCASE または Regexp を使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Postgres の配列列で UPCASE または Regexp
+を使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>大文字と小文字を無視し、おそらくスペースも無視して、Postgres
+                    配列列をクエリしようとしています。</p>
+                    <pre><code>SELECT &quot;cats&quot;.* FROM &quot;cats&quot; WHERE (&#39;CATS - PERSA&#39; = ANY(UPCASE(cat_types))) ORDER BY &quot;cats&quot;.&quot;id&quot; ASC LIMIT 1;
+</code></pre>
+                    <p>しかし、次のエラーが発生します。</p>
+                    <pre><code>You might need to add explicit type casts.
+</code></pre>
+                    <p>ボーナスとして、cat_types
+                    列の値のスペースを無視して検索する正規表現も実行できるようにしたいと考えています。</p>
+                    <p>これを行うためにRuby on
+                    Railsを使用しています。</p>
+                    <pre><code>cat_type.upcase.delete(&#39; &#39;)
+Cats.where(&quot;&#39;#{cat_type}&#39; = ANY(cat_types)&quot;).first 
+</code></pre>
+                    <p>クエリは ANY
+                    を使用するだけで機能しますが、一致する可能性を高めるために、スペースを無視して
+                    cat_types
+                    の値を大文字にできるようにしたいと考えています。
+                    Ilike の可能性もあります。</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>SELECT DISTINCT c.*
+FROM   cats c, unnest(c.cat_types) AS cat_type
+WHERE  upper(translate(cat_type, &#39; &#39;, &#39;&#39;)) = &#39;CATS-PERSA&#39;
+ORDER  BY id
+LIMIT  1;
+</code></pre>
+                    <p>Postgres でのパターン マッチングについて:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 文字列を *nix ファイル名と互換性のある文字列に変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 文字列を *nix ファイル名と互換性のある文字列に変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 文字列を *nix
+ファイル名と互換性のある文字列に変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby に任意の文字列があるので、それを有効な
+                    Unix/Linux
+                    ファイル名に変換したいと考えています。最初の文字列として視覚的に認識できる限り、最終的な形式がどのように見えるかは問題ではありません。いくつかの考えられる例:</p>
+                    <pre><code>&quot;Here&#39;s my string!&quot; =&gt; &quot;Heres_my_string&quot;
+&quot;* is an asterisk, you see&quot; =&gt; &quot;is_an_asterisk_you_see&quot;
+</code></pre>
+                    <p>これ (またはこれに近い) を実現する組み込み
+                    (おそらくファイル ライブラリ内) はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>仕様によれば、正規表現を置換することでこれを実現できます。この正規表現は、基本的な文字と数字以外のすべての文字に一致します。</p>
+                    <pre><code>s/[^\w\s_-]+//g
+</code></pre>
+                    <p>これにより、例に示すように、単語間の余分な空白が削除されます。</p>
+                    <pre><code>s/(^|\b\s)\s+($|\s?\b)/\\1\\2/g
+</code></pre>
+                    <p>最後に、残りのスペースをアンダースコアに置き換えます。</p>
+                    <pre><code>s/\s+/_/g
+</code></pre>
+                    <p>Ruby では次のようになります。</p>
+                    <pre><code>def friendly_filename(filename)
+    filename.gsub(/[^\w\s_-]+/, &#39;&#39;)
+            .gsub(/(^|\b\s)\s+($|\s?\b)/, &#39;\\1\\2&#39;)
+            .gsub(/\s+/, &#39;_&#39;)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

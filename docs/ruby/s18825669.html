@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで名前付きキャプチャを行う方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで名前付きキャプチャを行う方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで名前付きキャプチャを行う方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>スキャンで取得した文字列のキャプチャに名前を付けたいと思います。どうやってするの？</p>
+                    <pre><code>&quot;555-333-7777&quot;.scan(/(\d{3})-(\d{3})-(\d{4})/).flatten #=&gt; [&quot;555&quot;, &quot;333&quot;, &quot;7777&quot;]
+</code></pre>
+                    <p>このように変えることは可能ですか</p>
+                    <pre><code>{:area =&gt; &quot;555&quot;, :city =&gt; &quot;333&quot;, :local =&gt; &quot;7777&quot; }
+</code></pre>
+                    <p>または</p>
+                    <pre><code>[[&quot;555&quot;,&quot;area&quot;], [...]]
+</code></pre>
+                    <p>私は試した</p>
+                    <pre><code>&quot;555-333-7777&quot;.scan(/((?&lt;area&gt;)\d{3})-(\d{3})-(\d{4})/).flatten
+</code></pre>
+                    <p>しかしそれは戻ってきます</p>
+                    <pre><code>[]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>スキャンではなく、名前付きキャプチャとの一致を使用する必要があります。</p>
+                    <pre><code>m = &quot;555-333-7777&quot;.match(/(?&lt;area&gt;\d{3})-(?&lt;city&gt;\d{3})-(?&lt;number&gt;\d{4})/)
+m # =&gt; #&lt;MatchData &quot;555-333-7777&quot; area:&quot;555&quot; city:&quot;333&quot; number:&quot;7777&quot;&gt;
+m[:area] # =&gt; &quot;555&quot;
+m[:city] # =&gt; &quot;333&quot;
+</code></pre>
+                    <p>実際のハッシュが必要な場合は、次のようなものを使用できます。</p>
+                    <pre><code>m.names.zip(m.captures).to_h # =&gt; {&quot;area&quot;=&gt;&quot;555&quot;, &quot;city&quot;=&gt;&quot;333&quot;, &quot;number&quot;=&gt;&quot;7777&quot;}
+</code></pre>
+                    <p>またはこれ (ruby 2.4 以降)</p>
+                    <pre><code>m.named_captures # =&gt; {&quot;area&quot;=&gt;&quot;555&quot;, &quot;city&quot;=&gt;&quot;333&quot;, &quot;number&quot;=&gt;&quot;7777&quot;}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gitlab-rails で cron スクリプトを実行する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gitlab-rails で cron スクリプトを実行する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gitlab-rails で cron
+スクリプトを実行する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はgitlab-railsを持っています</p>
+                    <p>Cron から gitlab-rails
+                    スクリプトを実行したいと考えています。 gitlab-rails
+                    ランナーは、ファイル引数を認識せず、代わりにスクリプトとして実行しようとして失敗するため、壊れているようです。そのため、gitlab-railsrunner
+                    -h で提案されているシバン行が機能したとしても
+                    (引数が分離されていないため、私のシステムでは機能しません)、gitlab-railsrunner
+                    はファイル
+                    パスが有効なスクリプトではないというエラーを出します。</p>
+                    <p>Ruby スクリプトをシェル
+                    スクリプトに含めて、gitlab-rails
+                    にパイプすることもできますが、エディターでの .rb
+                    ファイルの構文ハイライトとインテリセンスが犠牲になります。</p>
+                    <p>シェル スクリプト内から .rb スクリプトを
+                    gitlab-rails
+                    にパイプできます。これで前の問題は解決しますが、現在
+                    2 つのスクリプトがあり、ライブラリ
+                    パスを明示的に指定しない限り、関連するスクリプトを参照する際にシェルが信頼できません。それは複雑なようです。</p>
+                    <p>誰かが回避策を提案してくれました。これには、通常どおり
+                    Ruby を実行してから、rails (私の場合は gitlab-rails)
+                    を使用してスクリプトを再実行する必要があります。ファイル引数を
+                    Rails コマンドとして扱う gitlab-rails
+                    ランナーが壊れているため、これでもまだ失敗します…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Update 2024:
+                    バグは修正されたようです。シンプルに試してみてください:</p>
+                    <pre><code>#!/usr/bin/env -S gitlab-rails runner
+
+# Do your GitLab work here. This is just a harmless trivial example.
+Project.find_each do |project|
+  puts &quot;#{project.full_path}&quot;
+end
+</code></pre>
+                    <p>標準入力でスクリプトを gitlab-rails
+                    にパイプする回避策を拡張しましたが、これは機能します。</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+#
+# List GitLab projects
+#
+# Run this script with sudo
+
+if not defined?(Rails) then
+  # Running in plain rubby, invoke rails runner and pipe the script into it, passing args
+  exec(&quot;/usr/bin/gitlab-rails&quot;, &quot;runner&quot;, &quot;-&quot;, *ARGV, :in=&gt;[File.expand_path(__FILE__)])
+end
+
+# Do your GitLab work here. This is just a harmless trivial example.
+Project.find_each do |project|
+  puts &quot;#{project.full_path}&quot;
+end
+</code></pre>
+                    <p>このスクリプトを実行可能ファイル chown a+x
+                    にすると、これを cron
+                    ジョブに簡単に入れることができます。</p>
+                    <pre><code>00 * * * * root /path/to/my/script.rb
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

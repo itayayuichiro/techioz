@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby を使用してターミナルでマウス イベントをキャプチャする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby を使用してターミナルでマウス イベントをキャプチャする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby を使用してターミナルでマウス
+イベントをキャプチャする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私が実験してきたコードは次のとおりです。</p>
+                    <pre><code>print &quot;\e[?1003h&quot;
+
+begin
+  loop do
+    begin
+      input = ARGF.read_nonblock(1024)
+      puts &quot;input: #{input.inspect}&quot;
+    rescue IO::EAGAINWaitReadable
+    end
+  end
+ensure
+  print &quot;\e[?1003l&quot;
+end
+</code></pre>
+                    <p>このコードを実行すると、このようなコンテンツが端末に出力されることがわかりますが、ARGF
+                    に送信されていることを示すものはありません。
+                    STDINも試してみました。私の read_nonblock
+                    呼び出しでは常に IO::EAGAINWaitReadable
+                    が発生します。これは予期された動作のようです
+                    (仕様を参照)。</p>
+                    <pre><code>^[[MCn@^[[MCn?^[[MCn&gt;^[[MCm&gt;^[[MCm=^[[MCk;^[[MCk:^[[MCj:^[[MCi:^[[MCh:^[[MCg:^[[MCe:^[[MCd:^[[MCc:^[[MCb;^[[MCb&lt;^[[MCc&lt;^[[MCd&lt;^[[MCe&lt;^[[MCf&lt;^[[MCg&lt;^[[MCg;^[[MCf;^[[MCf:^[[MCe:^[[MCd:^[[MCd;^[[MCd&lt;^[[MCe&lt;^[[MCf&lt;^[[MCg&lt;^[[MCg;^[[MCg&lt;^[[MCg;^[[MCf;^[[MCf:^[[MCe:^[[MCd:^[[MCd;^[[MCe;^[[MCe&lt;^[[MCe;^[[MCf;^[[MCe;^[[MCe:^[[MCe;^[[MCf;^[[MCe;^[[MCd;^[[MCd&lt;^[[MCe&lt;^[[MCe=^[[MCf=^[[MCf&lt;^[[MCe&lt;^[[MCe;^[[MCd;^[[MCc;^[[MCc&lt;^[[MCd&lt;^[[MCe&lt;^[[MCe;^[[MCe&lt;^[[MCf&lt;^[[MCf;^[[MCe;^[[MCd;^[[MCd&lt;^[[MCe&lt;^[[MCe=^[[MCf=^[[MCg=^[[MCh=^[[MCi&gt;^[[MCj&gt;^[[MCk&gt;^[[MCl&gt;^[[MCn?^[[MCpA^[[MCqB^[[MCrC^[[MCrD^[[MCsD^[[MCsE^[[MCtF^[[MCsG^[[MCrG^[[MCqG^[[MCpG^[[MCpH^[[MCmH^[[MCmG^[[MClG^[[MCgI^[[MCfI^[[MCeI^[[MC]I^[[MC\I^[[MC[I
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>独自の処理を行いたい場合は、raw
+                    モードで文字をキャプチャする必要があります。</p>
+                    <p>これはうまくいくはずです:
+                    (コード構造を維持しようとしました)</p>
+                    <pre><code>require &#39;io/console&#39;
+
+at_exit { print &quot;\e[?1003l&quot; }
+
+print &quot;\e[?1003h&quot;
+
+STDIN.raw(intr: true) do # raw mode but allow ctrl-c
+  loop do
+    begin
+      input = STDIN.read_nonblock(1024)
+      p input: input
+    rescue IO::EAGAINWaitReadable
+      IO.select([STDIN])
+      retry
+    end
+  end
+end
+</code></pre>
+                    <p>出力：（マウスを動かしながら）</p>
+                    <pre><code>$ ruby mouse.rb
+{:input=&gt;&quot;\e[MCYB&quot;}
+{:input=&gt;&quot;\e[MCZB&quot;}
+{:input=&gt;&quot;\e[MC[B&quot;}
+{:input=&gt;&quot;\e[MC\\A&quot;}
+{:input=&gt;&quot;\e[MC]A&quot;}
+{:input=&gt;&quot;\e[MC]B&quot;}
+{:input=&gt;&quot;\e[MC\\B&quot;}
+</code></pre>
+                    <p>もちろん、そのマウス入力を有意義な方法で実際に処理する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

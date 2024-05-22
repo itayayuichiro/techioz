@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails と Nokogiri を使用して直接の子とネストされていない子を見つけるにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails と Nokogiri を使用して直接の子とネストされていない子を見つけるにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails と Nokogiri
+を使用して直接の子とネストされていない子を見つけるにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails 4.2.7 と Ruby (2.3) および Nokogiri
+                    を使用しています。ネストされたテーブルの子ではなく、テーブルの最も直接的な
+                    tr
+                    の子を見つけるにはどうすればよいですか?現在、テーブル内のテーブル行を次のように見つけています…</p>
+                    <pre><code>  tables = doc.css(&#39;table&#39;)
+  tables.each do |table|
+    rows = table.css(&#39;tr&#39;)
+</code></pre>
+                    <p>これは、テーブルの直接の行を検索するだけではありません。</p>
+                    <pre><code>&lt;table&gt;
+    &lt;tbody&gt;
+        &lt;tr&gt;…&lt;/tr&gt;
+</code></pre>
+                    <p>ただし、行内の行も検索します。</p>
+                    <pre><code>&lt;table&gt;
+    &lt;tbody&gt;
+        &lt;tr&gt;
+            &lt;td&gt;
+                &lt;table&gt;
+                    &lt;tr&gt;This is found&lt;/tr&gt;
+                &lt;/table&gt;
+            &lt;/td&gt;
+        &lt;/tr&gt;
+</code></pre>
+                    <p>直接の tr
+                    要素のみを見つけるように検索を絞り込むにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>XPath
+                    を使用すると、いくつかの手順でこれを実行できます。まずテーブルの「レベル」(つまり、他のテーブルでどのようにネストされているか)
+                    を見つけてから、同じ数のテーブルの祖先を持つすべての子孫
+                    tr を見つける必要があります。</p>
+                    <pre><code>tables = doc.xpath(&#39;//table&#39;)
+tables.each do |table|
+  level = table.xpath(&#39;count(ancestor-or-self::table)&#39;)
+  rows = table.xpath(&quot;.//tr[count(ancestor::table) = #{level}]&quot;)
+  # do what you want with rows...
+end
+</code></pre>
+                    <p>より一般的なケースでは、tr が他の trs
+                    を直接ネストしている場合、次のようなことができます
+                    (これは無効な HTML ですが、XML
+                    またはその他のタグがある可能性があります)。</p>
+                    <pre><code>tables.each do |table|
+  # Find the first descendant tr, and determine its level. This
+  # will be a &quot;top-level&quot; tr for this table. &quot;level&quot; here means how
+  # many tr elements (including itself) are between it and the
+  # document root.
+  level = table.xpath(&quot;count(descendant::tr[1]/ancestor-or-self::tr)&quot;)
+  # Now find all descendant trs that have that same level. Since
+  # the table itself is at a fixed level, this means all these nodes
+  # will be &quot;top-level&quot; rows for this table.
+  rows = table.xpath(&quot;.//tr[count(ancestor-or-self::tr) = #{level}]&quot;)
+  # handle rows...
+end
+</code></pre>
+                    <p>最初のステップは 2
+                    つの別々のクエリに分けることができ、より明確になる可能性があります。</p>
+                    <pre><code>first_tr = table.at_xpath(&quot;.//tr&quot;)
+level = first_tr.xpath(&quot;count(ancestor-or-self::tr)&quot;)
+</code></pre>
+                    <p>(ただし、trs のないテーブルがある場合、first_tr
+                    が nil になるため、これは失敗します。上記の結合
+                    XPath は、その状況を正しく処理します。)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

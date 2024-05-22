@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7で保留中の移行エラーを解決する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7で保留中の移行エラーを解決する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7で保留中の移行エラーを解決する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>誤って “created_at”
+                    の列を複製した移行を作成しました。現在、画面にこのエラーが表示されています。重複を削除した後、重複を削除する前もエラーは同じでした。</p>
+                    <p>これは端末メッセージです。</p>
+                    <pre><code>PS C:\Users\iamvee_k\Desktop\Rails Projects\blog&gt; rails db:migrate
+== 20231003192318 AddTimestampsToArticles: migrating ==========================
+-- add_column(:articles, :created_at, :datetime)
+rails aborted!
+StandardError: An error has occurred, this and all later migrations canceled:
+
+SQLite3::SQLException: duplicate column name: created_at
+C:/Users/iamvee_k/Desktop/Rails Projects/blog/db/migrate/20231003192318_add_timestamps_to_articles.rb:3:in `change&#39;
+
+Caused by:
+ActiveRecord::StatementInvalid: SQLite3::SQLException: duplicate column name: created_at
+C:/Users/iamvee_k/Desktop/Rails Projects/blog/db/migrate/20231003192318_add_timestamps_to_articles.rb:3:in `change&#39;
+
+Caused by:
+SQLite3::SQLException: duplicate column name: created_at
+C:/Users/iamvee_k/Desktop/Rails Projects/blog/db/migrate/20231003192318_add_timestamps_to_articles.rb:3:in `change&#39;
+Tasks: TOP =&gt; db:migrate
+(See full trace by running task with --trace)
+</code></pre>
+                    <p>これが出力画面です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>移行ファイルは表示されませんでしたが、元の移行に
+                    t.timestamps という行があれば、created_at は
+                    updated_at とともにすでに作成されています。</p>
+                    <p>created_at と updated_at
+                    の両方が不要な場合は、その行を削除し、そのうちの 1
+                    つを明示的に定義します (例: t.datetime
+                    :created_at)。</p>
+                    <p>移行を変更した後、次の手順を実行します (ローカル
+                    データが消去されます)。</p>
+                    <pre><code>rake db:drop
+rake db:create
+rake db:migrate
+</code></pre>
+                    <p>ローカルでは、ロールバックなどについて心配する必要はありません。
+                    DB
+                    全体を消去するだけで、新たに開始し続けることができます。ローカルではこれで問題ありません。それがシード
+                    データのポイントであり、アプリを再シードし続け、移行を変更するたびにデータベースをワイプしてクリアすることであるからです。アプリがまだ起動していないときに移行ファイルを追加し続ける理由はありません</p>
+                    <p>運用環境でこの問題が発生した場合、私は何百もの不必要な移行が嫌いなので、データベースを常に手作業で編集しています。</p>
+                    <p>したがって、運用環境では、基本的に必要な移行変更をローカルでコミットし、それらを心の中で書き留めます。次に、実稼働データベースを
+                    GUI で開き、同じ GUI
+                    内でローカルにデータベースが表示される方法と一致するように、必要に応じて変更します。これは、すべての変更に関する複雑な監査ログを必要としない小規模なアプリに適しています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

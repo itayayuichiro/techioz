@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Nanoc が Github にページをデプロイするときにベースパスを変更する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Nanoc が Github にページをデプロイするときにベースパスを変更する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Nanoc が Github
+にページをデプロイするときにベースパスを変更する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>nanoc を使用して構築した単純な静的ページ
+                    アプリがあり、それを github
+                    ページとしてデプロイしたいと考えています。</p>
+                    <p>アセット (CSS、JavaScript など)
+                    とすべてのリンクが一般的にリポジトリのルートを指していることを除いて、すべてがうまくいきます。</p>
+                    <p>のように</p>
+                    <p>である代わりに</p>
+                    <p>localhost
+                    ではすべて正常に動作しますが、公開すると失敗します。</p>
+                    <p>私はrake
+                    publicを使用してgh-pagesにプッシュしています。</p>
+                    <p>これが私のRakefileです</p>
+                    <pre><code>require &#39;nanoc3/tasks&#39;
+
+BASE_URL = &quot;http://darko1002001.github.com/docs/&quot;
+
+desc &quot;Compile the site&quot;
+task :compile do
+  `nanoc compile`
+end
+
+desc &quot;Publish to http://documentation.getchute.com&quot;
+task :publish =&gt; [:clean] do
+  FileUtils.rm_r(&#39;output&#39;) if File.exist?(&#39;output&#39;)
+
+  sh &quot;nanoc compile&quot;
+
+  ENV[&#39;GIT_DIR&#39;] = File.expand_path(`git rev-parse --git-dir`.chomp)
+  old_sha = `git rev-parse refs/remotes/origin/gh-pages`.chomp
+  Dir.chdir(&#39;output&#39;) do
+    ENV[&#39;GIT_INDEX_FILE&#39;] = gif = &#39;/tmp/dev.gh.i&#39;
+    ENV[&#39;GIT_WORK_TREE&#39;] = Dir.pwd
+    File.unlink(gif) if File.file?(gif)
+    `git add -A`
+    tsha = `git write-tree`.strip
+    puts &quot;Created tree   #{tsha}&quot;
+    if old_sha.size == 40
+      csha = `echo &#39;boom&#39; | git commit-tree #{tsha} -p #{old_sha}`.strip
+    else
+      csha = `echo &#39;boom&#39; | git commit-tree #{tsha}`.strip
+    end
+    puts &quot;Created commit #{csha}&quot;
+    puts `git show #{csha} --stat`
+    puts &quot;Updating gh-pages from #{old_sha}&quot;
+    `git update-ref refs/heads/gh-pages #{csha}`
+    `git push origin gh-pages`
+  end
+end
+</code></pre>
+                    <p>ルール</p>
+                    <pre><code>compile &#39;/static/*&#39; do
+end
+
+compile &#39;/CNAME/&#39; do
+end
+
+compile &#39;/feed/&#39; do
+  filter :erb
+  filter :kramdown, :toc_levels =&gt; [2]
+end
+
+%w(v3 */).each do |version|
+  compile &quot;/changes/#{version}&quot; do
+    filter :erb
+    filter :kramdown, :toc_levels =&gt; [2]
+    filter :colorize_syntax,
+      :colorizers =&gt; {:javascript =&gt; :pygmentsrb}
+    layout &#39;changes&#39; if version[0] == &#39;*&#39;
+    layout &#39;default&#39;
+  end
+end
+
+compile &#39;*&#39; do
+  filter :erb
+  filter :kramdown, :toc_levels =&gt; [2]
+  filter :colorize_syntax,
+    :colorizers =&gt; {:javascript =&gt; :pygmentsrb}
+  layout &#39;default&#39;
+end
+
+route &#39;/static/*&#39; do
+  item.identifier[7..-2]
+end
+
+route &#39;/CNAME/&#39; do
+  &#39;/CNAME&#39;
+end
+
+route &#39;/feed&#39; do
+  &#39;/changes.atom&#39;
+end
+
+route &#39;*&#39; do
+  item.identifier + &#39;index.html&#39;
+end
+
+layout &#39;*&#39;, :erb
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>nanoc はデフォルトで絶対 URL
+                    を生成しますが、relativeize_paths
+                    フィルターを使用してすべての URL
+                    を相対にすることができます。 HTML の場合、フィルター
+                    :relativeize_paths、:type =&gt; :html を使用します。
+                    CSS の場合は、:html の代わりに :css
+                    を使用します。</p>
+                    <p>乾杯</p>
+                    <p>デニス</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

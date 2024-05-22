@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>MatchData の名前付き一致をハッシュに変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "MatchData の名前付き一致をハッシュに変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>MatchData
+の名前付き一致をハッシュに変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>かなり単純な正規表現がありますが、名前付き正規表現を使用してそれをクリーンにし、結果を反復処理したいと考えました。</p>
+                    <p>テスト文字列:</p>
+                    <pre><code>testing_string = &quot;111x222b333&quot;
+</code></pre>
+                    <p>私の正規表現:</p>
+                    <pre><code>regexp = %r{
+                (?&lt;width&gt; [0-9]{3} ) {0}
+                (?&lt;height&gt; [0-9]{3} ) {0}
+                (?&lt;depth&gt; [0-9]+ ) {0}
+
+                \g&lt;width&gt;x\g&lt;height&gt;b\g&lt;depth&gt;
+            }x
+dimensions = regexp.match(testing_string)
+</code></pre>
+                    <p>これは魅力的に機能しますが、ここで問題が発生します。</p>
+                    <pre><code>dimensions.each { |k, v| dimensions[k] = my_operation(v) }
+
+# ERROR !
+
+ undefined method `each&#39; for #&lt;MatchData &quot;111x222b333&quot; width:&quot;111&quot; height:&quot;222&quot; depth:&quot;333&quot;&gt;.
+</code></pre>
+                    <p>MatchData オブジェクトには .each
+                    メソッドがないので、モンキーパッチを適用したくありません。</p>
+                    <p>この問題はどうすれば解決できますか?</p>
+                    <p>思ったほど明確ではありませんでした。重要なのは、名前とハッシュのような構造を維持することです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>完全なハッシュが必要な場合:</p>
+                    <pre><code>captures = Hash[ dimensions.names.zip( dimensions.captures ) ]
+p captures
+#=&gt; {&quot;width&quot;=&gt;&quot;111&quot;, &quot;height&quot;=&gt;&quot;222&quot;, &quot;depth&quot;=&gt;&quot;333&quot;}
+</code></pre>
+                    <p>名前と値のペアを反復処理するだけの場合は、次のようにします。</p>
+                    <pre><code>dimensions.names.each do |name|
+  value = dimensions[name]
+  puts &quot;%6s -&gt; %s&quot; % [ name, value ]
+end
+#=&gt;  width -&gt; 111
+#=&gt; height -&gt; 222
+#=&gt;  depth -&gt; 333
+</code></pre>
+                    <p>代替案:</p>
+                    <pre><code>dimensions.names.zip( dimensions.captures ).each do |name,value|
+  # ...
+end
+
+[ dimensions.names, dimensions.captures ].transpose.each do |name,value|
+  # ...
+end
+
+dimensions.names.each.with_index do |name,i|
+  value = dimensions.captures[i]
+  # ...
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

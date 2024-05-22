@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>情報を失わずに Faraday::Response をシリアル化および逆シリアル化する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "情報を失わずに Faraday::Response をシリアル化および逆シリアル化する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>情報を失わずに Faraday::Response
+をシリアル化および逆シリアル化する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>情報を失わずに Faraday::Response
+                    インスタンスをシリアル化しようとしています。
+                    marshal_dump メソッドと marshal_load
+                    メソッドを見つけましたが、response.env.request
+                    の詳細が保持されていないようです。</p>
+                    <pre><code>response = Faraday.get(&#39;https://google.com&#39;)
+response.env.request_headers
+#=&gt; {&quot;User-Agent&quot;=&gt;&quot;Faraday v2.7.4&quot;}
+
+response2 = Faraday::Response.new
+response2.marshal_load(response.marshal_dump)
+response2.env.request_headers
+#=&gt; nil
+
+response3 = Marshal.load(Marshal.dump(response))
+response3.env.request_headers
+#=&gt; nil
+</code></pre>
+                    <p>逆シリアル化時に両方のオブジェクトにまったく同じデータが含まれるように、すべてをシリアル化するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一般に、これは実際には不可能です。たとえば、リクエストにはプロシージャである
+                    <span class="citation"
+                    data-cites="on_complete_callbacks">@on_complete_callbacks</span>
+                    があり、それらはマーシャリングできません。
+                    さらに、オブジェクトは他のオブジェクトを参照できますが、場合によっては
+                    (匿名クラスなど)
+                    それらもマーシャリングできません。</p>
+                    <p>ファラデーの marshal_dump はまさにこれです</p>
+                    <pre><code>def marshal_dump
+  finished? ? to_hash : nil
+end
+</code></pre>
+                    <p>(出典:
+                    https://www.rubydoc.info/github/lostisland/faraday/Faraday/Response#marshal_dump-instance_method)</p>
+                    <p>to_hash は次のとおりです。</p>
+                    <pre><code>def to_hash
+  {
+    status: env.status, body: env.body,
+    response_headers: env.response_headers,
+    url: env.url
+  }
+end
+</code></pre>
+                    <p>(出典:
+                    https://www.rubydoc.info/github/lostisland/faraday/Faraday/Response#to_hash-instance_method)</p>
+                    <p>ご覧のとおり、ファラデーの開発者は、他のものはそれほど重要ではないと判断しました。</p>
+                    <p>したがって、「逆シリアル化後にまったく同じになるようにシリアル化する」というショートカットは不可能なので、次のいずれかを行う必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

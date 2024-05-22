@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RESTful API アプリ用に Ruby on Rails でモデルを拡張する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RESTful API アプリ用に Ruby on Rails でモデルを拡張する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RESTful API アプリ用に Ruby on Rails
+でモデルを拡張する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロジェクトの一環として、実装する UML
+                    図を入手しました。今私は OOP の部分にいますが、Ruby
+                    でそれを実装する方法がわかりません。
+                    マルチテーブル継承(MTI)でなければならないと理解しているので、すべてのタスクは雑用または宿題です。
+                    ユーザーテーブル -&gt; chores/hw のテーブル、タスク
+                    -&gt; chores/hw
+                    のテーブル間の関係を実装する方法がわかりません。
+                    また、CRUD アクション (create)
+                    の実装方法を知っておくとよいでしょう。
+                    誰かが助けてくれることを願っています。 ありがとう。
+                    図は次のとおりです。 ダイアグラム</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>UML スキーマが Rails
+                    で実装する際に依存性逆転の原則に違反し、2NF
+                    に違反している場合でも、</p>
+                    <p>しかし、次のようにすることもできます。</p>
+                    <p>人とタスクの 2
+                    つのテーブルを作成する必要があります</p>
+                    <p>これを行うには、次の移行を追加します。</p>
+                    <pre><code>class CreatePeople &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :people do |t|
+      t.string :name
+      t.string :email
+      t.string :fav_prog_lang
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class CreateTasks &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :tasks do |t|
+      t.references :owner, null: false, foreign_key: { to_table: :people }
+      t.text :description
+      t.integer :size, default: 0
+      t.string :course
+      t.datetime :due_date
+      t.string :details
+      t.integer :status, default: 0
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>その後、これらのモデルを作成する必要があります。</p>
+                    <pre><code># app/models/person.rb
+
+class Person &lt; ApplicationRecord
+  has_many :tasks, foreign_key: :owner_id
+end
+</code></pre>
+                    <pre><code># app/models/task.rb
+
+class Task &lt; ApplicationRecord
+  belongs_to :owner, class_name: &#39;Person&#39;, foreign_key: :owner_id
+
+  enum status: { active: 0, done: 1 }
+end
+</code></pre>
+                    <pre><code># app/models/chore.rb
+
+class Chore &lt; Task
+  enum size: { small: 0, medium: 1, large: 2 }
+end
+</code></pre>
+                    <pre><code># app/models/homework.rb
+
+class Homework &lt; Task
+  enum size: { small: 0, medium: 1, large: 2 }, _prefix: true
+end
+</code></pre>
+                    <p>そして最後に、タスクを作成できます。</p>
+                    <pre><code>person = Person.create(name: &#39;John Doe&#39;, email: &#39;[email protected]&#39;, fav_prog_lang: &#39;Ruby&#39;)
+
+Homework.create(owner: person, course: &#39;Some course&#39;, due_date: 10.days.since, details: &#39;Some details&#39;)
+
+Chore.create(owner: person, size: :medium, description: &#39;Some description&#39;)
+
+person.tasks
+</code></pre>
+                    <p>どのタスクが雑用で、どのタスクが宿題であるかを知る必要がある場合は、タスク
+                    テーブルにタイプ
+                    フィールドを追加して、サブタスクを判断できるようにする必要があります。</p>
+                    <p>アップデート：</p>
+                    <p>依存関係の逆転の原則に違反しないようにするには、次のことを実行できます。</p>
+                    <p>家事と宿題はフィールドが大きく異なるため、タスク、家事、宿題を別のテーブルに分離します。</p>
+                    <pre><code>class CreateTasks &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :tasks do |t|
+      t.references :owner, null: false, foreign_key: { to_table: :people }
+      t.integer :status, default: 0
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class CreateChores &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :chores do |t|
+      t.references :task, null: false, foreign_key: true
+      t.text :description
+      t.integer :size, default: 0
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class CreateHomeworks &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :homeworks do |t|
+      t.references :task, null: false, foreign_key: true
+      t.string :course
+      t.datetime :due_date
+      t.string :details
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>そしてあなたのモデルよりも：</p>
+                    <pre><code>class Person &lt; ApplicationRecord
+  has_many :tasks, foreign_key: :owner_id
+  has_many :chores, through: :tasks
+  has_many :homeworks, through: :tasks
+end
+</code></pre>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :owner, class_name: &#39;Person&#39;, foreign_key: :owner_id
+  has_many :chores
+  has_many :homeworks
+
+  enum status: { active: 0, done: 1 }
+  
+  accepts_nested_attributes_for :chores, :homeworks
+end
+</code></pre>
+                    <pre><code>class Chore &lt; ApplicationRecord
+  belongs_to :task
+  enum size: { small: 0, medium: 1, large: 2 }
+end
+</code></pre>
+                    <pre><code>class Homework &lt; ApplicationRecord
+  belongs_to :task
+end
+</code></pre>
+                    <p>そして、これらのモデルを次のように操作できます。</p>
+                    <pre><code>person = Person.create(name: &#39;John Doe&#39;, email: &#39;[email protected]&#39;, fav_prog_lang: &#39;Ruby&#39;)
+
+person.tasks.create(
+  status: :done, chores_attrubutes: [{ size: :medium, description: &#39;Some description&#39; }]
+)
+
+person.tasks.create(homeworks_attrubutes: [{ course: &#39;Some course&#39;, due_date: 10.days.since, details: &#39;Some details&#39; }])
+
+
+person.chores
+
+person.homeworks
+
+# and you can have also all tasks
+
+person.tasks
+</code></pre>
+                    <p>注:
+                    ただし、このアプローチは、さらにさまざまなタスクを追加する必要がある場合には適していません。新しいタスク
+                    タイプが常に存在するため、新しいテーブルを追加する必要があります。これは現在の例でのみ機能します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

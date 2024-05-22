@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec: レコードが削除されたかどうかを確認するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec: レコードが削除されたかどうかを確認するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec:
+レコードが削除されたかどうかを確認するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>作成されたモデルが削除されたかどうかを確認するための簡単な
+                    Rspec
+                    テストを作成しました。ただし、モデルがまだ存在するため、テストは失敗します。記録が実際に削除されたかどうかを確認する方法について、誰か助けてもらえますか?</p>
+                    <pre><code>RSpec.describe Person, type: :model do
+
+let(:person) {
+    Person.create(
+      name: &quot;Adam&quot;,
+      serial_number: &quot;1&quot;
+    )
+  }
+  
+  it &quot;destroys associated relationships when person destroyed&quot; do
+  person.destroy
+  expect(person).to be_empty()
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>選択肢は 2
+                    つあります。次のことをテストできます。</p>
+                    <p>両方の組み合わせは次のようになります。</p>
+                    <pre><code>    it &quot;removes a record from the database&quot; do
+      expect { person.destroy }.to change { Person.count }.by(-1)
+      expect { person.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

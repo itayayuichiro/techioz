@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>多次元ハッシュ値をjsonに変換する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "多次元ハッシュ値をjsonに変換する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>多次元ハッシュ値をjsonに変換する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テーブル列 backend_notes
+                    にハッシュ値があり、このハッシュを json
+                    形式に変更する必要があります。</p>
+                    <pre><code>{&quot;school_id&quot;=&gt;&quot;6&quot;, &quot;accounts_response&quot;=&gt;&quot;{\&quot;type\&quot;=&gt;\&quot;success\&quot;, \&quot;message\&quot;=&gt;\&quot;Updated Courses for 56789\&quot;}&quot;, &quot;courses
+_not_found&quot;=&gt;&quot;[{\&quot;term\&quot;=&gt;\&quot;FALL 2019\&quot;, \&quot;dept_code\&quot;=&gt;\&quot;ACCT\&quot;, \&quot;dept_name\&quot;=&gt;\&quot;ACCOUNTING\&quot;, \&quot;course_code\&quot;=&gt;\&quot;102\&quot;, \&quot;course_name\&quot;=&gt;\&quot;ELEM
+ENTARY ACCT\&quot;, \&quot;section_code\&quot;=&gt;\&quot;000\&quot;, \&quot;status\&quot;=&gt;\&quot;new\&quot;, \&quot;id\&quot;=&gt;20379}]&quot;}
+</code></pre>
+                    <p>以下の移行コマンドを試してハッシュをjsonに変更しました</p>
+                    <pre><code>change_column :carts, :backend_notes,&#39;jsonb USING CAST(backend_notes AS jsonb)&#39;
+</code></pre>
+                    <p>しかし、今回の移行では以下のような形式に変更されました。</p>
+                    <pre><code>{&quot;school_id&quot;:&quot;6&quot;, &quot;accounts_response&quot;:&quot;{\&quot;type\&quot;=&gt;\&quot;success\&quot;, \&quot;message\&quot;=&gt;\&quot;Updated Courses for 56789\&quot;}&quot;, &quot;courses
+_not_found&quot;:&quot;[{\&quot;term\&quot;=&gt;\&quot;FALL 2019\&quot;, \&quot;dept_code\&quot;=&gt;\&quot;ACCT\&quot;, \&quot;dept_name\&quot;=&gt;\&quot;ACCOUNTING\&quot;, \&quot;course_code\&quot;=&gt;\&quot;102\&quot;, \&quot;course_name\&quot;=&gt;\&quot;ELEM
+ENTARY ACCT\&quot;, \&quot;section_code\&quot;=&gt;\&quot;000\&quot;, \&quot;status\&quot;=&gt;\&quot;new\&quot;, \&quot;id\&quot;=&gt;20379}]&quot;} 
+</code></pre>
+                    <p>私の期待される出力は以下のようなものです</p>
+                    <pre><code>{&quot;school_id&quot;:&quot;6&quot;,&quot;accounts_response&quot;:{&quot;type&quot;:&quot;success&quot;,&quot;message&quot;:&quot;Updated Courses for 56789&quot;},&quot;courses_not_found&quot;:{&quot;term&quot;:&quot;FALL 2019&quot;,&quot;dept_code&quot;:&quot;ACCT&quot;,&quot;dept_name&quot;:&quot;ACCOUNTING&quot;,&quot;course_code&quot;:&quot;102&quot;,&quot;course_name&quot;:&quot;ELEMENTARY ACCT&quot;,&quot;section_code&quot;:&quot;000&quot;,&quot;status&quot;:&quot;new&quot;,&quot;id&quot;:&quot;20379&quot;}}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DB のハッシュ値には、Ruby オブジェクト
+                    (配列とハッシュ)
+                    の文字列表現である値が含まれます。これらの値を JSON
+                    に完全に変換するには、まず文字列を Ruby
+                    オブジェクトに変換する必要があります。</p>
+                    <p>非常に簡単な方法は、 =&gt; を : に置き換え、JSON
+                    パーサーを使用して変換を行うことです。それが機能するかどうか、またはこれらの値を修正するためにより複雑なロジックが必要かどうかは、内部構造によって異なります。次のようなヘルパー
+                    メソッドから始めます。</p>
+                    <pre><code>value = {&quot;school_id&quot;=&gt;&quot;6&quot;, &quot;accounts_response&quot;=&gt;&#39;{&quot;type&quot;=&gt;&quot;success&quot;, &quot;message&quot;=&gt;&quot;Updated Courses for 56789&quot;}&#39;, &quot;courses_not_found&quot;=&gt;&#39;[{&quot;term&quot;=&gt;&quot;FALL 2019&quot;, &quot;dept_code&quot;=&gt;&quot;ACCT&quot;, &quot;dept_name&quot;=&gt;&quot;ACCOUNTING&quot;, &quot;course_code&quot;=&gt;&quot;102&quot;, &quot;course_name&quot;=&gt;&quot;ELEM ENTARY ACCT&quot;, &quot;section_code&quot;=&gt;&quot;000&quot;, &quot;status&quot;=&gt;&quot;new&quot;, &quot;id&quot;=&gt;20379}]&#39;}
+
+# helper method
+require &#39;json&#39;
+
+def string_parse_to_hash(string)
+  modified_string = string
+    .gsub(/:(\w+)/){&quot;\&quot;#{$1}\&quot;&quot;}
+    .gsub(&#39;=&gt;&#39;, &#39;:&#39;)
+    .gsub(&quot;nil&quot;, &quot;null&quot;)
+  JSON.parse(modified_string)
+rescue
+  {}
+end
+
+# translate strings values to Ruby objects
+value[&#39;accounts_response&#39;] = string_parse_to_hash(value[&#39;accounts_response&#39;])
+value[&#39;courses_not_found&#39;] = string_parse_to_hash(value[&#39;courses_not_found&#39;])
+
+value
+#=&gt; {
+      &quot;school_id&quot;=&gt;&quot;6&quot;,
+      &quot;accounts_response&quot;=&gt;{&quot;type&quot;=&gt;&quot;success&quot;, &quot;message&quot;=&gt;&quot;Updated Courses for 56789&quot;},
+      &quot;courses_not_found&quot;=&gt;[
+        {&quot;term&quot;=&gt;&quot;FALL 2019&quot;,
+          &quot;dept_code&quot;=&gt;&quot;ACCT&quot;,
+          &quot;dept_name&quot;=&gt;&quot;ACCOUNTING&quot;,
+          &quot;course_code&quot;=&gt;&quot;102&quot;,
+          &quot;course_name&quot;=&gt;&quot;ELEM ENTARY ACCT&quot;,
+          &quot;section_code&quot;=&gt;&quot;000&quot;,
+          &quot;status&quot;=&gt;&quot;new&quot;,
+          &quot;id&quot;=&gt;20379
+        }
+      ]
+    }
+
+# translate to JSON
+value.to_json
+#=&gt; &quot;{\&quot;school_id\&quot;:\&quot;6\&quot;,\&quot;accounts_response\&quot;:{\&quot;type\&quot;:\&quot;success\&quot;,\&quot;message\&quot;:\&quot;Updated Courses for 56789\&quot;},\&quot;courses_not_found\&quot;:[{\&quot;term\&quot;:\&quot;FALL 2019\&quot;,\&quot;dept_code\&quot;:\&quot;ACCT\&quot;,\&quot;dept_name\&quot;:\&quot;ACCOUNTING\&quot;,\&quot;course_code\&quot;:\&quot;102\&quot;,\&quot;course_name\&quot;:\&quot;ELEM ENTARY ACCT\&quot;,\&quot;section_code\&quot;:\&quot;000\&quot;,\&quot;status\&quot;:\&quot;new\&quot;,\&quot;id\&quot;:20379}]}&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

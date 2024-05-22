@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>4.0.0 と ActionText::RichText へのアップグレードを捜索する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "4.0.0 と ActionText::RichText へのアップグレードを捜索する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>4.0.0 と ActionText::RichText
+へのアップグレードを捜索する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>許可されたransack可能な属性を明示的に定義する必要がある3.xバージョン4.0からransackをアップグレードするのに苦労しています。すべてのプロジェクトモデルを修正しましたが、Railsコアモジュールで失敗します。</p>
+                    <pre><code># RuntimeError:
+     #   Ransack needs ActionText::RichText attributes explicitly allowlisted as
+     #   searchable. Define a `ransackable_attributes` class method in your `ActionText::RichText`
+     #   model, watching out for items you DON&#39;T want searchable (for
+     #   example, `encrypted_password`, `password_reset_token`, `owner` or
+     #   other sensitive information). You can use the following as a base:
+     #   
+     #   ```ruby
+     #   class ActionText::RichText &lt; ApplicationRecord
+     #   
+     #     # ...
+     #   
+     #     def self.ransackable_attributes(auth_object = nil)
+     #       [&quot;body&quot;, &quot;created_at&quot;, &quot;id&quot;, &quot;locale&quot;, &quot;name&quot;, &quot;record_id&quot;, &quot;record_type&quot;, &quot;updated_at&quot;]
+     #     end
+     #   
+     #     # ...
+     #   
+     #   end
+     #   ```
+</code></pre>
+                    <p>すでにソース内でクラスを直接再開しようとしましたが、その変更はRailsによってフェッチされず、無視されました。初期化中にいくつかの設定変更を見つけようとしましたが、これも機能しません。きっと誰かがこの
+                    3.0 から 4.x
+                    への移行をすでに解決しているに違いありません</p>
+                    <pre><code>class ActionText::RichText &lt; ApplicationRecord
+
+  # ...
+
+  def self.ransackable_attributes(auth_object = nil)
+    [&quot;body&quot;, &quot;created_at&quot;, &quot;id&quot;, &quot;locale&quot;, &quot;name&quot;, &quot;record_id&quot;, &quot;record_type&quot;, &quot;updated_at&quot;]
+  end
+
+  # ...
+
+end
+</code></pre>
+                    <p>結果 -&gt;
+                    単に無視され、同じ問題のレールにはそれらの変更が表示されません。</p>
+                    <pre><code>    class ActionText::RichText &lt; ActiveRecord::Base
+      def self.ransackable_attributes(auth_object = nil)
+        [&quot;body&quot;, &quot;created_at&quot;, &quot;id&quot;, &quot;locale&quot;, &quot;name&quot;, &quot;record_id&quot;, &quot;record_type&quot;, &quot;updated_at&quot;]
+      end
+    end
+</code></pre>
+                    <p>初期ロード中の結果エラー -&gt;</p>
+                    <pre><code>An error occurred while loading rails_helper.
+Failure/Error: require File.expand_path(&#39;../config/environment&#39;, __dir__)
+
+NoMethodError:
+  undefined method `has_many_attached&#39; for ActionText::RichText:Class
+# ./config/initializers/action_text.rb:7:in `&lt;main&gt;&#39;
+# ./config/environment.rb:5:in `&lt;top (required)&gt;&#39;
+# ./spec/rails_helper.rb:6:in `require&#39;
+# ./spec/rails_helper.rb:6:in `&lt;top (required)&gt;&#39;
+No examples found. 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ログを作成する必要があるようです -
+                    推奨されるメソッドを明示的に定義します。
+                    ActionText::RichText &lt; ActionText::Record &lt;
+                    ActiveRecord::Base
+                    のような継承があるため、このメソッドを
+                    ActionText::RichText の親クラスで定義できます。</p>
+                    <pre><code># config/initializers/action_text.rb
+
+class ActionText::Record &lt; ActiveRecord::Base
+  def self.ransackable_attributes(auth_object = nil)
+    authorizable_ransackable_attributes
+  end
+end
+</code></pre>
+                    <p>このメソッドを ActionText::RichText
+                    クラスのイニシャライザで直接定義することもできます。ただし、「method_missing」：ActionText::RichText:Class
+                    (NoMethodError)
+                    の未定義メソッド「has_many_attached」（質問テキストからのエラー）は、読み込み順序が原因で発生する可能性があります（この
+                    DSL メソッドはまだ使用できません）。</p>
+                    <p>これを回避するには、ActiveSupport
+                    フックを使用できます。その名前はここで確認できます。</p>
+                    <p>この場合、パッチは次のようになります</p>
+                    <pre><code># config/initializers/action_text.rb
+
+ActiveSupport.on_load(:action_text_rich_text) do
+  class ActionText::RichText &lt; ActionText::Record
+    def self.ransackable_attributes(auth_object = nil)
+      authorizable_ransackable_attributes
+    end
+  end
+end
+</code></pre>
+                    <p>もちろん、authorizable_ransackable_attributes
+                    の代わりに、%w[id body name Record_id Record_type]
+                    などの必要な属性の明示的な配列 (文字列配列)
+                    を使用することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

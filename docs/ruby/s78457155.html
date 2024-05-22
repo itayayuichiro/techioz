@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ストリーミング中に職長のように出力を先頭に追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ストリーミング中に職長のように出力を先頭に追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ストリーミング中に職長のように出力を先頭に追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はよく使う Ruby スクリプトがあります。</p>
+                    <pre><code>$stdin.each_line do |it|
+  it.strip!
+  eval(ARGV.first)
+end
+</code></pre>
+                    <p>例えば：</p>
+                    <pre><code>&gt; dir | each &quot;Dir.chdir(it) { puts it; system(&#39;bundle&#39;) }&quot;
+code
+Bundle complete! 41 Gemfile dependencies, 165 gems now installed.
+Use `bundle info [gemname]` to see where a bundled gem is installed.
+code-ruby
+Bundle complete! 6 Gemfile dependencies, 44 gems now installed.
+Use `bundle info [gemname]` to see where a bundled gem is installed.
+</code></pre>
+                    <p>私はこの「puts
+                    it」を頻繁に行うので、むしろ出力の前に「it」を付けたいと思っています。</p>
+                    <p>例えば</p>
+                    <pre><code>&gt; dir | each &quot;Dir.chdir(it) { system(&#39;bundle&#39;) }&quot;
+[code] Bundle complete! 41 Gemfile dependencies, 165 gems now installed.
+[code] Use `bundle info [gemname]` to see where a bundled gem is installed.
+[code-ruby] Bundle complete! 6 Gemfile dependencies, 44 gems now installed.
+[code-ruby] Use `bundle info [gemname]` to see where a bundled gem is installed.
+</code></pre>
+                    <p>これは、並列バージョンではさらに明らかです。</p>
+                    <pre><code>Parallel.each($stdin.each_line.to_a) do |it|
+  it.strip!
+  eval(ARGV.first)
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>%x(cmd) または
+                    を使用して出力をキャプチャし、フォーマットします。</p>
+                    <pre><code># each.rb
+
+#!/usr/bin/env ruby
+
+def command prefix, cmd
+  out = %x(#{cmd})
+  out.split(&quot;\n&quot;).each do |line|
+    puts &quot;[#{prefix}] #{line}&quot;
+  end
+end
+
+$stdin.each_line do |it|
+  it.strip!
+  eval(ARGV.first)
+end
+</code></pre>
+                    <pre><code>$ pwd | ./each.rb &quot;command(it, &#39;bundle&#39;)&quot;
+[/home/alex/code/stackoverflow] Bundle complete! 54 Gemfile dependencies, 163 gems now installed.
+[/home/alex/code/stackoverflow] Use `bundle info [gemname]` to see where a bundled gem is installed.
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://docs.ruby-lang.org/en/master/syntax/literals_rdoc.html#label-25x-3A+Backtick+Literals</p>
+                    <p>このアプローチの唯一の問題は、出力を表示するにはコマンドを最後まで実行する必要があることです。</p>
+                    <p>書き込み中の出力を確認したい場合は、システム出力をオーバーライドできます。</p>
+                    <pre><code>def command prefix, cmd
+  rd, wr = IO.pipe
+  Thread.new do
+    system(cmd, out: wr)
+    wr.close
+  end
+
+  until rd.eof?
+    line = rd.gets
+    puts &quot;[#{prefix}] #{line}&quot;
+  end
+  rd.close
+end
+
+$stdin.each_line do |it|
+  it.strip!
+  eval(ARGV.first)
+end
+</code></pre>
+                    <pre><code>$ pwd | ./each.rb &quot;command it, &#39;for j in 1 2 3; do echo \$j; sleep 1; done&#39;&quot;
+[/home/alex/code/stackoverflow] 1
+[/home/alex/code/stackoverflow] 2
+[/home/alex/code/stackoverflow] 3
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://docs.ruby-lang.org/en/master/Process.html#module-Process-label-File+Redirection+-28File+Descriptor-29</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

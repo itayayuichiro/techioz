@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>複数の要素に基づいてユーザーを検索する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "複数の要素に基づいてユーザーを検索する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>複数の要素に基づいてユーザーを検索する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>first_name、last_name、email、project_name、feature_name
+                    を使用してユーザー
+                    レコードの検索機能を実装しようとしています。</p>
+                    <p>ここで、first_name、last_name、および email は 1
+                    つのテーブル (User) からのものであり、project_name
+                    はテーブル Project からのものであり、feature_name
+                    はテーブル Feature.Association
+                    からのものです。以下に示します。</p>
+                    <p>User
+                    テーブルのすべてのユーザーをリストするユーザー
+                    インデックス
+                    ページがあります。入力しているユーザーを検索する検索が必要です。</p>
+                    <p>モデル user.rb:</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  has_many :project_users, dependent: :destroy
+  has_many :projects, through: :project_users, dependent: :destroy
+end
+</code></pre>
+                    <p>ユーザーには名、姓、電子メールなどのフィールドがあります（これら
+                    3 つのフィールドを検索に使用します）</p>
+                    <p>モデルプロジェクト.rb</p>
+                    <pre><code>class Project &lt; ApplicationRecord
+  belongs_to :user
+  has_many :project_users, dependent: :destroy
+  has_many :features, dependent: :destroy
+  has_many :users, through: :project_users, source: :user
+end
+</code></pre>
+                    <p>プロジェクトには project_name
+                    があります(プロジェクト名で検索します)</p>
+                    <p>モデルの特徴.rb</p>
+                    <pre><code>class Feature &lt; ApplicationRecord
+  belongs_to :project
+end
+</code></pre>
+                    <p>機能には feature_name があります (feature_name
+                    で検索する必要があります)</p>
+                    <p>私が探しているもの</p>
+                    <p>検索されたアイテム(first_name、last_name、email、project_name、feature_name)を含むparams[:search_member]があります。</p>
+                    <p>例:</p>
+                    <pre><code>params[:search_member] = &quot;John&quot;
+params[:search_member] = &quot;Project1&quot;
+params[:search_member] = &quot;Feature1&quot;
+params[:search_member] = &quot;[email protected]&quot;
+</code></pre>
+                    <p>これら 3 つのテーブル (User、Project、Feature)
+                    のフィールド
+                    first_name、last_name、email、project_name、feature_name
+                    の「params[:search_member]」をチェックし、検索された値のユーザーを返す単一のクエリが必要です。</p>
+                    <p>協会の活動</p>
+                    <pre><code>current_user.projects # will return all projects belongs to current user
+
+project.users # return all users belongs to project
+
+feature.project # return project that feature belongs to
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>feature.project.users # will return all users of projects
+</code></pre>
+                    <pre><code>def search_all
+  if params[:search_member].present?
+     #need query here
+  else
+    User.all
+  end
+end
+</code></pre>
+                    <p>単一の結合クエリで実行しようとしています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを試してみます</p>
+                    <pre><code>def search_all
+  if params[:search_member].present?
+    User.includes(projects: :features)
+        .where(first_name: params[:search_member])
+        .or(User.where(last_name: params[:search_member])
+        .or(User.where(email: params[:search_member])
+        .or(Project.where(project_name: params[:search_member]))
+        .or(Feature.where(feature_name: params[:search_member]))
+  else
+    User.all
+  end
+end
+</code></pre>
+                    <p>それが期待どおりに機能する場合は、さまざまなサブクエリをモデル内のスコープにリファクタリングして、読みやすくします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

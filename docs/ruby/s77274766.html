@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyの複雑な文字列配列からfloatの配列へ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyの複雑な文字列配列からfloatの配列へ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyの複雑な文字列配列からfloatの配列へ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この（かなり複雑な）float文字列の文字列配列をfloatの配列に変換しようとしていますが、うまくいきません。</p>
+                    <pre><code>[  5.85142857   6.10684807   6.15328798   6.31582766   6.96598639
+   7.61614512   7.87156463   8.73070295   9.38086168   9.65950113
+  10.51863946  12.07437642  12.32979592  13.39791383  13.63011338
+  13.86231293  14.09451247  14.72145125  14.97687075  15.85922902 ]
+</code></pre>
+                    <p>私が試したこと：</p>
+                    <pre><code>  def onset_string_to_array(onset)
+    # Remove the brackets.
+    onset = onset.tr(&#39;[]&#39;, &#39;&#39;)
+    # Strip whitespace.
+    onset = onset.strip
+    # Split by newline character.
+    onset_lines = onset.split(&quot;\n&quot;)
+    # loop through each line.
+    onset_array = []
+    onset_array.push *onset_lines.map do |line|
+      # Split by space character.
+      line_array = line.split
+      # Return one float per line.
+      line_array.map(&amp;:to_f)
+    end
+    onset_array
+  end
+</code></pre>
+                    <p>これをもらいました：</p>
+                    <pre><code>[
+  &quot;0.53405896   0.7662585    0.99845805   1.20743764   1.41641723&quot;,
+  &quot;   1.64861678   1.85759637   2.32199546   3.43655329   3.57587302&quot;,
+  &quot;   4.08671202   4.7600907    4.99229025   5.87464853   6.52480726&quot;,
+  &quot;   6.78022676   7.66258503   8.33596372   9.4737415   10.12390023&quot;,
+  &quot;  10.35609977  10.750839    11.2152381   11.88861678  12.14403628&quot;,
+  &quot;  12.60843537  12.84063492  13.04961451  13.69977324  13.95519274&quot;,
+  &quot;  14.11773243  14.58213152  14.79111111  15.4644898   15.69668934&quot;,
+  &quot;  16.60226757  17.27564626  17.5078458   18.39020408  19.06358277&quot;,
+  ## More lines...
+  &quot; 126.54875283 127.45433107 129.03328798 129.21904762 130.77478458&quot;,
+  &quot; 131.00698413 131.86612245 132.81814059 133.35219955 134.55963719&quot;,
+  &quot; 135.14013605&quot;
+]
+</code></pre>
+                    <p>取得したいもの:</p>
+                    <pre><code>[ 0.53405896, 0.7662585, 0.99845805, 1.20743764, 1.41641723, 1.64861678, ...]
+</code></pre>
+                    <p>どんな手掛かり？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この文字列を解析するには、次のことができます。</p>
+                    <pre><code>onset.delete(&#39;[]&#39;).split.map(&amp;:to_f)
+</code></pre>
+                    <ol type="1">
+                    <li>まず括弧を削除し、(2)
+                    次に文字列をスペースで部分文字列に分割し、(3)
+                    最後に浮動小数点数に変換します。</li>
+                    </ol>
+                    <pre><code>onset =
+  &#39;[  5.85142857   6.10684807   6.15328798   6.31582766   6.96598639
+      7.61614512   7.87156463   8.73070295   9.38086168   9.65950113
+     10.51863946  12.07437642  12.32979592  13.39791383  13.63011338
+     13.86231293  14.09451247  14.72145125  14.97687075  15.85922902 ]&#39;
+
+onset.delete(&#39;[]&#39;).split.map(&amp;:to_f)
+# =&gt; 
+# [5.85142857,
+#  6.10684807,
+#  6.15328798,
+#  6.31582766,
+#  6.96598639,
+#  7.61614512,
+#  7.87156463,
+#  8.73070295,
+#  9.38086168,
+#  9.65950113,
+#  10.51863946,
+#  12.07437642,
+#  12.32979592,
+#  13.39791383,
+#  13.63011338,
+#  13.86231293,
+#  14.09451247,
+#  14.72145125,
+#  14.97687075,
+#  15.85922902]
+</code></pre>
+                    <p>ところで、Rubyには文字列から行を取得する組み込みメソッドがあり、改行文字で分割する必要はなく、string.linesを使用するだけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

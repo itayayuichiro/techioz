@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails:レコードがフォームから保存されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails:レコードがフォームから保存されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:レコードがフォームから保存されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のように、支払いにストライプチェックアウトを使用する単純なフォームがあります。</p>
+                    <pre><code>&lt;%= form_for Order.new do |f| %&gt;
+  &lt;!-- Price --&gt;                
+  &lt;% [&quot;2465&quot;].each do |amount| %&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;amount&quot; value=&quot;&lt;%= amount %&gt;&quot; /&gt;
+  &lt;% end %&gt;
+  &lt;!-- Description --&gt;  
+  &lt;% [&quot;A product&quot;].each do |description| %&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;description&quot; value=&quot;&lt;%= description %&gt;&quot; /&gt;
+  &lt;% end %&gt;
+  &lt;!-- variable string --&gt;
+  &lt;%= f.text_field :test %&gt;
+  &lt;!-- Stripe script --&gt;  
+  &lt;script 
+  src=&quot;https://checkout.stripe.com/checkout.js&quot; class=&quot;stripe-button&quot;
+    data-panel-label=&quot;Payer {{amount}}&quot;
+    data-label=&quot;Payer 24,65€&quot;
+    data-billing-address=&quot;true&quot;
+    data-shipping-address=&quot;true&quot;
+    data-key=&quot;&lt;%= Rails.configuration.stripe[:publishable_key] %&gt;&quot;&gt;
+  &lt;/script&gt;
+&lt;% end %&gt; 
+</code></pre>
+                    <p>ご覧のとおり、支払いのためにストライプ
+                    ポップアップを起動する前にユーザーが入力できるフィールドがあります。</p>
+                    <pre><code>  &lt;!-- variable string --&gt;
+  &lt;%= f.text_field :test %&gt;
+</code></pre>
+                    <p>問題は、ユーザーが何を入力しても、データベースには常に
+                    nil が返されるということです。</p>
+                    <p>次のように、orders_controller.rb
+                    から値を取得しようとしています。</p>
+                    <pre><code>  def create
+    @order = Order.new 
+    charge_error = nil 
+
+    # Amount in cents
+    if @order.valid? 
+    # some stripe set up goes here...
+    @order.description = params[:description]
+    @order.amount = params[:amount]
+    @order.test = params[:test]
+    end
+  end
+</code></pre>
+                    <p>コンソールからは、文字列がパラメータに入力されますが、レコード内では常に空が返されます。</p>
+                    <p>OrdersController#createによるHTML処理 パラメータ:
+                    {“utf8”=&gt;“✓”、“order”=&gt;{“test”=&gt;“VALUE
+                    ENTERED”}</p>
+                    <p>ありがとう</p>
+                    <p>編集1: 一度保存された記録の完全なトレース:</p>
+                    <pre><code> =&gt; #&lt;Order id: 82, name: &quot;jérémy zaccherini&quot;, created_at: &quot;2017-04-28 12:08:41&quot;, updated_at: &quot;2017-04-28 12:08:41&quot;, card_token: &quot;tok_1ADXtnA5xCR7Wb7xlUyLKfIN&quot;, email: &quot;[email protected]&quot;, address_line1: &quot;Residence feuch, 75004 PARIS&quot;, address_zip: &quot;75004&quot;, address_country: &quot;France&quot;, address_city: &quot;PARIS&quot;, description: &quot;MpyProduct&quot;, amount: &quot;2465&quot;, status: &quot;Non traitée&quot;, test: nil&gt; 
+</code></pre>
+                    <p>ソリューションの編集:</p>
+                    <p>フォームヘルパーに関する Ruby
+                    のドキュメントをもう一度読んでください。解決策は、私のフォームで次のようなフォームヘルパーを使用することでした。</p>
+                    <pre><code>&lt;!-- variable string --&gt;
+  &lt;%= text_area_tag(:test) %&gt;
+</code></pre>
+                    <p>このようにして、コントローラーから入力されたユーザーの値を取得できます。</p>
+                    <pre><code>@order.test = params[:test]
+</code></pre>
+                    <p>とにかくありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>注文を保存していません</p>
+                    <pre><code>def create
+  @order = Order.new 
+  charge_error = nil 
+
+  # Amount in cents
+  if @order.valid? 
+    # some stripe set up goes here...
+    @order.description = params[:description]
+    @order.amount = params[:amount]
+    @order.test = params[:test]
+  end
+  @order.save
+end
+</code></pre>
+                    <p>値を設定した後、 <span class="citation"
+                    data-cites="order.save">@order.save</span>
+                    で注文を保存します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

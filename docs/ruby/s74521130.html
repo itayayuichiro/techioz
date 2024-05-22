@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>追加データを Workday に送信する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "追加データを Workday に送信する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>追加データを Workday に送信する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このエンドポイント Edit_Worker_Additional_Data
+                    を使用して、平日の追加データを送信することに取り組んでいます。ただし、どのような種類のデータが期待されているかに関するドキュメントが不足しているため、検証エラーが発生します。色々な組み合わせを試しましたが全てダメでした。</p>
+                    <p>この質問からいくつかのガイダンスを得ましたが、彼がどこでどのようにその名前空間を初期化したかわからないため、cus名前空間エラーが発生しました。送信したいカスタムフィールドのデータ:</p>
+                    <p>以下は、送信している XML
+                    リクエストの本文です。</p>
+                    <pre><code>&lt;soapenv:Body&gt;
+    &lt;bsvc:Edit_Worker_Additional_Data_Request
+      xmlns:bsvc=&quot;urn:com.workday/bsvc&quot; bsvc:version=&quot;v38.1&quot;&gt;
+      &lt;!-- Optional: --&gt;
+      &lt;bsvc:Business_Process_Parameters&gt;
+        &lt;!-- Optional: --&gt;
+        &lt;bsvc:Auto_Complete&gt;true&lt;/bsvc:Auto_Complete&gt;
+        &lt;!-- Optional: --&gt;
+        &lt;bsvc:Run_Now&gt;true&lt;/bsvc:Run_Now&gt;
+      &lt;/bsvc:Business_Process_Parameters&gt;
+      &lt;bsvc:Worker_Custom_Object_Data&gt;
+        &lt;bsvc:Effective_Date&gt;2022-11-18&lt;/bsvc:Effective_Date&gt;
+        &lt;bsvc:Worker_Reference bsvc:Descriptor=&quot;string&quot;&gt;
+          &lt;!-- Zero or more repetitions: --&gt;
+          &lt;bsvc:ID bsvc:type=&quot;Employee_ID&quot;&gt;3671&lt;/bsvc:ID&gt;
+        &lt;/bsvc:Worker_Reference&gt;
+        &lt;bsvc:Business_Object_Additional_Data&gt;
+          &lt;!-- You may enter ANY elements at this point --&gt;
+          &lt;bsvc:tShirtSizes&gt;
+            &lt;bsvc:tShirtSizesField&gt;mXs&lt;/bsvc:tShirtSizesField&gt;
+          &lt;/bsvc:tShirtSizes&gt;
+        &lt;/bsvc:Business_Object_Additional_Data&gt;
+      &lt;/bsvc:Worker_Custom_Object_Data&gt;
+    &lt;/bsvc:Edit_Worker_Additional_Data_Request&gt;
+  &lt;/soapenv:Body&gt;
+</code></pre>
+                    <p>以下は、さまざまな組み合わせで発生する検証エラーです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>すでに答えが出ているかどうかはわかりません。カスタム
+                    オブジェクト名 Web サービス エイリアスと、T シャツと
+                    T シャツ サイズのカスタム フィールド Web サービス
+                    エイリアスが必要なようです。 T シャツが Worker
+                    Object Extended のカスタム
+                    オブジェクトであると仮定します。これは、これを作成しようとしている
+                    Workday 環境で適切なセキュリティ
+                    アクセス権を持つ誰かが見つけることができます。これは単なるカスタム
+                    リストであり、私たちが探しているコンテキストを実際には提供していないようです。</p>
+                    <p>別のカスタム オブジェクトの例を次に示します。
+                    Workday カスタム オブジェクトの画像</p>
+                    <p>この情報を取得すると、次のようになります。</p>
+                    <pre><code>&lt;bsvc:Custom Object&#39;s Web Service Alias&gt;
+        &lt;bsvc:Custom Field&#39;s Web Service Alias&gt;Whatever Type of Value&lt;/bsvc:Custom Field&#39;s Web Service Alias&gt;
+&lt;/bsvc:Custom Object&#39;s Web Service Alias&gt;
+</code></pre>
+                    <p>カスタム
+                    フィールドはブール型である可能性があるため、次のようになることもあることに注意してください。</p>
+                    <pre><code>&lt;bsvc:tShirtSize&gt;
+        &lt;!--If field is required send else don&#39;t--&gt;
+        &lt;bsvc:mXs&gt;true&lt;/bsvc:mXs&gt;
+        &lt;!--If field is required send else don&#39;t--&gt;
+        &lt;bsvc:Ms&gt;false&lt;/bsvc:Ms&gt;
+&lt;/bsvc:tShirtSize&gt;
+</code></pre>
+                    <p>お役に立てれば！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

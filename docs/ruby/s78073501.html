@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>begin_to 関連付けで class_name を動的に設定する方法はありますか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "begin_to 関連付けで class_name を動的に設定する方法はありますか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>begin_to 関連付けで class_name
+を動的に設定する方法はありますか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このクラスをチャーンしました</p>
+                    <pre><code>module AccountActivities
+  class Churned &lt; AccountActivity
+    belongs_to :subscription, class_name: &#39;NewSubscription&#39;
+  end
+end
+</code></pre>
+                    <p>現在、SubscriptionS という別のサブスクリプション
+                    テーブルがあります。</p>
+                    <p>私が達成しようとしているのは</p>
+                    <pre><code>@subscription_activity = AccountActivities::Chunrned.create!(
+          subscription: subscription(in this case this could be NewSubscription or SubscriptionA class instance),
+        )
+</code></pre>
+                    <p>アクティビティを作成するときに、2
+                    つの異なるクラス インスタンス (NewSubscription
+                    または SubscriptionA) を :subscription
+                    に渡せるようにしたいと考えています。現在のデータベーススキーマを変更したくないので、:subscriptable
+                    としてのポリモーフィックな関連付けはやりたくないものです。</p>
+                    <p>このようなことを試しましたが、うまくいきません</p>
+                    <pre><code>class Churned &lt; AccountActivity
+
+  belongs_to :plan
+  belongs_to :subscription, class_name: :determine_subscription_class
+
+
+  private
+
+  def determine_subscription_class
+    if some_condition about :plan
+      &#39;NewSubscription&#39;
+    else
+      &#39;SubscriptionA&#39;
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ポリモーフィックな関連付けはあなたの選択であるというコメントがすでにあることは承知しています。しかし、答えを出してみましょう。</p>
+                    <pre><code>class Churned &lt; ApplicationRecord
+  belongs_to :subscription, polymorphic: true
+end
+
+class SubscriptionOne &lt; ApplicationRecord
+  has_many :churned, as: :subscription
+end
+
+class SubscriptionTwo &lt; ApplicationRecord
+  has_many :churned, as: :subscription
+end
+</code></pre>
+                    <p>移行では使用する必要があります</p>
+                    <pre><code>t.references :subscription, polymorphic: true
+</code></pre>
+                    <p>または、subscription_id、subscription_type、インデックスの
+                    2 つのフィールドを手動で追加します。</p>
+                    <p>外部キー制約を使用する場合、外部キー制約に依存することはできません。これは多くの
+                    DB (Postgres など)
+                    の標準動作を超えていますが、それは大きな問題ではありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

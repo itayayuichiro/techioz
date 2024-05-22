@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Capybara を使用してブラウザ コンソールのログをキャプチャする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Capybara を使用してブラウザ コンソールのログをキャプチャする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Capybara を使用してブラウザ
+コンソールのログをキャプチャする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby と Capybara を使用してブラウザのコンソール
+                    ログ (カテゴリ: 情報)
+                    をキャプチャする必要があります。これまで、driver.manage.logs.get(:browser)
+                    または (:client)
+                    を使用しようとしましたが、これを使用すると、結果は期待どおりではありません。
+                    Selenium
+                    とブラウザーの間の対話結果が表示され、実行のために送信された
+                    JavaScript
+                    ステートメントが表示されますが、結果の出力はキャプチャされません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Selenium
+                    の使用時にログが利用できるかどうかは、Selenium
+                    で使用しているブラウザによって異なります。 Firefox
+                    を使用している場合は、ログ取得 API
+                    がサポートされていないため、運が悪いでしょうが、Chrome
+                    を使用しているため、アクセスできます。あなたが抱えている問題は、デフォルトでは、WARN
+                    または ERROR
+                    レベルのログのみがキャプチャされることです。これは、loggingPrefs
+                    機能を使用してドライバー登録で変更できます。</p>
+                    <p>セレン 3</p>
+                    <pre><code>    Capybara.register_driver :logging_selenium_chrome do |app|
+      caps = Selenium::WebDriver::Remote::Capabilities.chrome(loggingPrefs:{browser: &#39;ALL&#39;})
+      browser_options = ::Selenium::WebDriver::Chrome::Options.new()
+      # browser_options.args &lt;&lt; &#39;--some_option&#39; # add whatever browser args and other options you need (--headless, etc)
+      Capybara::Selenium::Driver.new(app, browser: :chrome, options: browser_options, desired_capabilities: caps)
+    end
+</code></pre>
+                    <p>セレン 4</p>
+                    <pre><code>   Capybara.register_driver :logging_selenium_chrome do |app|
+     options = Selenium::WebDriver::Chrome::Options.new
+     options.add_option(&quot;goog:loggingPrefs&quot;, {browser: &#39;ALL&#39;})
+
+     browser_options = ::Selenium::WebDriver::Chrome::Options.new()
+
+     Capybara.register_driver :chrome do |app|
+     Capybara::Selenium::Driver.new(app,
+                                 capabilities: options,
+                                 browser: :chrome)
+     end
+   end
+</code></pre>
+                    <p>次に、:logging_selenium_chrome
+                    をドライバーとして使用するように指定します</p>
+                    <pre><code> Capybara.javascript_driver = :logging_selenium_chrome # or however else you&#39;re specifying which driver to use
+</code></pre>
+                    <p>これにより、テストでログを取得できるようになります。</p>
+                    <pre><code>page.driver.browser.manage.logs.get(:browser)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

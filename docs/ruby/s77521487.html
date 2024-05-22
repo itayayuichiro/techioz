@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq ワーカーで「シンボルから整数への暗黙的な変換がキャプチャから除外されません: DSN が設定されていません」というエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq ワーカーで「シンボルから整数への暗黙的な変換がキャプチャから除外されません: DSN が設定されていません」というエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq
+ワーカーで「シンボルから整数への暗黙的な変換がキャプチャから除外されません:
+DSN が設定されていません」というエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロモーションコードをCSVからデータベースにインポートしたい
+                    そのためにワーカーを作成しました
+                    労働者は次のように派遣されている</p>
+                    <pre><code>def create
+  CouponsImportWorker.perform_async(params)
+  @status = Spree.t(&#39;coupons_import.in_progress&#39;)
+  flash[:notice] = &quot;CSV processing is in progress. You will be notified upon completion.&quot;
+  redirect_back fallback_location: spree.admin_promotions_path
+end
+</code></pre>
+                    <p>下が作業員です</p>
+                    <pre><code>require &#39;csv&#39;
+require &#39;json&#39;
+
+class CouponsImportWorker
+  include Sidekiq::Worker
+  
+  def perform(params)
+    Rails.logger.info(&quot;Worker is running  #{params[:coupons_import]}&quot;)
+    # begin
+
+      products = []
+
+        params[:coupons_import][:product].split(&#39;,&#39;).each do |product_id|
+          products &lt;&lt; Spree::Product.find(product_id)
+        end
+      # Rails.logger.info(&quot;Worker is running after finding products &quot;)
+      filename = params[:coupons_import][:file].path
+      Rails.logger.info(filename)
+      keys = File.readlines(filename)
+      csv_table = CSV.parse(File.read(filename), headers: true, col_sep: &#39;;&#39;)
+      codes = csv_table.map(&amp;:to_h).map { |e| e[&#39;code&#39;] }
+     
+      Rails.logger.info(&quot;Worker is running after finding codes &quot;)
+
+      percent = params[:coupons_import][:percent].to_i
+      amount = params[:coupons_import][:amount].to_d
+      Rails.logger.info(&quot;just before checking if percent and amount are more than 0&quot;)
+     if percent &gt; 0 || amount &gt; 0
+      codes.each do |code|
+        promotion = Spree::Promotion.create(
+          name: params[:coupons_import][:promo_name],
+          description: params[:coupons_import][:promo_desc],
+          match_policy: &#39;all&#39;,
+          usage_limit: params[:coupons_import][:usage_limit],
+          starts_at: params[:coupons_import][:starts_at],
+          expires_at: params[:coupons_import][:expires_at],
+          code: code,
+          store_ids: 1
+        )
+        Rails.logger.info(&quot;just before calculating flatrate&quot;)
+        if amount &gt; 0
+          promotion.promotion_actions &lt;&lt; Spree::Promotion::Actions::CreateAdjustment.create(
+            calculator: Spree::Calculator::FlatRate.new(preferred_amount: amount)
+          )
+        else
+          promotion.promotion_actions &lt;&lt; Spree::Promotion::Actions::CreateItemAdjustments.create(
+            calculator: Spree::Calculator::PercentOnLineItem.new(preferred_percent: percent)
+          )
+        end
+  
+        if params[:coupons_import][:option_values].blank?
+          create_promotion_rule(promotion, products)
+        else
+          create_promotion_option_value_rule(promotion, products, params[:coupons_import][:option_values])
+        end
+       end
+     end 
+      Rails.logger.info(&quot;running fine until now.....&quot;)
+      ActionCable.server.broadcast(&#39;coupons_channel&#39;, message: &#39;CSV processing completed.&#39;)
+    # rescue StandardError =&gt; e
+    #  Rails.logger.error(&quot;Error in CouponsImportWorker: #{e}&quot;)
+    # end   
+    end
+  
+    private
+  
+    def create_promotion_rule(promotion, products)
+      rule = Spree::Promotion::Rules::Product.create(promotion: promotion)
+      rule.products &lt;&lt; products
+      rule.save!
+    end
+  
+    def create_promotion_option_value_rule(promotion, products, option_value)
+      Spree::Promotion::Rules::OptionValue.create(
+        promotion_id: promotion.id,
+        type: &#39;Spree::Promotion::Rules::OptionValue&#39;,
+        preferences: {
+          eligible_values: { products.last.id =&gt; [option_value] },
+          match_policy: &#39;any&#39;
+        }
+      )
+    end
+  end
+  
+</code></pre>
+                    <p>コードを実行しようとしましたが、毎回返されます
+                    シンボルから整数への暗黙的な変換はキャプチャから除外されません:
+                    DSN が設定されていません
+                    コードが壊れていないか知りたいです。私はRailsの初心者です。しかし、エラーはparamsに関連しているようです。ありがとうございます!</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここにあなたが書いているように、</p>
+                    <pre><code>CouponsImportWorker.perform_async(params)
+</code></pre>
+                    <p>Sidekiq は、params(ActionController::Parameters)
+                    を入力として受け取りませんでした。これは、sidekiq
+                    にとって非常に複雑であるためです。perform_async
+                    に渡す引数は、単純な JSON データ型
+                    (string、integer、float、boolean、null(nil)、配列とハッシュ。これは、ルビ記号を引数として使用してはいけないことを意味します。</p>
+                    <p>これがsidekiqのベストプラクティスです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

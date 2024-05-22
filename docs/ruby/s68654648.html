@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>データを失わずに Sinatra アプリケーションでフォームを再表示する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "データを失わずに Sinatra アプリケーションでフォームを再表示する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>データを失わずに Sinatra
+アプリケーションでフォームを再表示する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>検証が失敗した後、データを失わずにフォームを再表示しようとしています。</p>
+                    <p>モデル：</p>
+                    <pre><code>class Book &lt; Sequel::Model
+    plugin :validation_helpers
+    
+    def validate
+        super
+        validates_presence [:title], message: &#39;Title is required&#39;
+    end
+
+end
+</code></pre>
+                    <p>作成.erb:</p>
+                    <pre><code>...
+&lt;%= erb :&#39;partials/flash&#39; %&gt;
+...
+
+&lt;form method=&quot;post&quot; action=&quot;/books/create&quot;&gt;
+    &lt;input name=&quot;book[title]&quot; type=&quot;text&quot; value=&quot;&lt;%= @book.title %&gt;&quot; /&gt;
+    &lt;textarea name=&quot;book[description]&quot;&gt;&lt;%= @book.description%&gt;&lt;/textarea&gt;
+    ...
+&lt;/form&gt;
+...
+</code></pre>
+                    <p>フラッシュ.erb:</p>
+                    <pre><code>&lt;% flash.map do |f| %&gt;
+
+&lt;div class=&quot;alert alert-&lt;%= f[0] %&gt; alert-dismissible fade show&quot; role=&quot;alert&quot;&gt;
+    &lt;%= f[1] %&gt;
+    &lt;button type=&quot;button&quot; class=&quot;close&quot; data-dismiss=&quot;alert&quot; aria-label=&quot;Close&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;&amp;times;&lt;/span&gt;
+    &lt;/button&gt;
+&lt;/div&gt;
+
+&lt;% end %&gt;
+</code></pre>
+                    <p>ブックコントローラー:</p>
+                    <pre><code># display a table of books
+get &#39;/&#39; do
+    @books = Book.all
+    erb :&#39;books/index&#39;
+end
+
+# display CREATE form
+get &#39;/create&#39; do
+    @book = Book.new
+    erb :&#39;books/create&#39;
+end
+
+# process CREATE form
+post &#39;/create&#39; do
+
+    begin
+
+        @book = Book.create(params[:book])
+
+        flash[:success] = &quot;Book created.&quot;
+        redirect to(&quot;/&quot;) # /books/
+
+    rescue Sequel::ValidationFailed =&gt; e
+
+        flash[:danger] = @book.errors
+        redirect to &quot;/create&quot; # redisplay the form
+
+    end
+
+end
+</code></pre>
+                    <p>これは機能しますが、フォームに入力されたデータは失われます。</p>
+                    <p>最新のエントリを含むフォームを再表示するための推奨される方法は何ですか?</p>
+                    <p>** 編集 ** Flashテンプレートを追加しました</p>
+                    <h2 id="解決策">解決策</h2>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

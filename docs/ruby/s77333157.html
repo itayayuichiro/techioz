@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>処理メソッド、条件付きの場合は単純であるべきであるという問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "処理メソッド、条件付きの場合は単純であるべきであるという問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>処理メソッド、条件付きの場合は単純であるべきであるという問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で、引数で渡される proc
+                    に基づいて配列を分割するメソッドを作成する予定です。私の完全な方法は次のとおりです。</p>
+                    <pre><code>def proctition(arr, &amp;prc)
+    failed = []
+    passed = []
+    debugger
+    if arr != arr.flatten
+        passed.push(*arr[0])
+        arr[1].each_with_index do |ele, i|
+            if prc.call(ele)
+                passed.push(ele)
+                remainder = arr[1].pop(arr.size - i + 1)
+                self.proctition([passed, remainder], &amp;prc)
+            else
+                failed.push(ele)
+                remainder = arr[1].pop(arr.size - i + 1)
+                self.proctition([passed, remainder], &amp;prc)
+            end
+        end
+    else
+        [*passed, *failed]
+    end
+end
+</code></pre>
+                    <p>私の知る限り、配列から要素を選択的に削除し、最後のデフォルトの
+                    1 または指定した桁数に対して Pop()
+                    が行うように削除された要素を評価するメソッドはありません。以前の方法で再帰を有利に使用する方法を理解することができました。解決策はこの軌道に沿っていると感じています。私の戦略は、再帰の各レベルでスコープを維持する成功した配列と失敗した配列を設定することであり、メソッドへの再帰呼び出しで
+                    2D
+                    配列を渡し、最初に配列かどうかの簡単なチェックを追加しました。
+                    2Dかどうか arr != arr. flatten
+                    そして、このプログラムの実行中に pry
+                    を介してこの正確なステートメントを実行したところ、このステートメントが元のメソッド呼び出しで評価されると予想された結果が得られました:
+                    false、つまり、この配列は、 ’
+                    を実行したときの配列と同じです。同じ名前のメソッドを呼び出してフラット化します。そして、この
+                    if
+                    ブロック内で、ソートとプルーニング、およびプルーニングされた配列の再帰呼び出しを実行します。ただし、実際の実行では、else
+                    ブロックに進んで空の配列の連結を返すため、逆に評価する必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>配列を変更しようとしたり再帰を使用しようとしたりしながら、なぜ配列を反復処理するのかは不明です。これは、非常に単純な問題に対して、非常に考え抜かれ、過度に複雑な解決策のように見えます。</p>
+                    <pre><code>def proctition(arr, &amp;prc)
+  good, bad = [], []
+  arr.each do |x| 
+    if prc.call(x)
+      good &lt;&lt; x 
+    else 
+      bad &lt;&lt; x 
+    end 
+  end
+  [*good, *bad]
+end
+</code></pre>
+                    <p>そしていま：</p>
+                    <pre><code>irb(main):012:0&gt; proctition([1, 2, 3, 4], &amp;:even?)
+=&gt; [2, 4, 1, 3]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

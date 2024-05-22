@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でクラスのインスタンスの get メソッドを実装し、それでもオブジェクト メソッドにアクセスするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でクラスのインスタンスの get メソッドを実装し、それでもオブジェクト メソッドにアクセスするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby でクラスのインスタンスの get
+メソッドを実装し、それでもオブジェクト
+メソッドにアクセスするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クラスのインスタンスを変数に書き込み、値の取得とメソッドへのアクセスの両方にアクセスできるようにする必要があります。これを何とか実装できないでしょうか？</p>
+                    <p>例えば：</p>
+                    <pre><code>class A
+  def initialize(value)
+    @value = value
+  end
+
+  def preview
+    puts &quot;Class preview: #{@value}&quot;
+  end
+
+  def something(param)
+    puts &quot;Something method: #{@value * param}&quot;
+  end
+end
+
+class B
+  attr_reader :obj
+
+  def set_object(obj)
+    @obj = obj
+  end
+end
+
+b = B.new
+b.set_object(A.new(5))
+
+b.obj # ==&gt; 5
+10 + b.obj # ==&gt; 15
+
+b.obj.preview # ==&gt; &quot;Class preview: 5&quot;
+b.obj.something(3) # ==&gt; &quot;Something method: 15&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードの根本的な問題は、数値のように動作するオブジェクトを実装しているにもかかわらず、Numeric
+                    クラスによって規定されている数値のような型に関する
+                    Ruby のプロトコルに従っていないことです。</p>
+                    <p>特に、Numeric#coerce
+                    メソッドによって提供される算術強制プロトコルが欠落しています。</p>
+                    <p>Ruby
+                    では、算術演算子がオペランドをどう処理すればよいかわからない場合は常に、オペランドに強制メッセージを送信し、対処方法がわかっているオペランドのペアで応答するように指示します。</p>
+                    <p>たとえば、+ メッセージを 10 に送信し、引数として
+                    A のインスタンスを渡すと、メソッド Integer#+
+                    が呼び出されます。したがって、この行では次のようになります。</p>
+                    <pre><code>10 + b.obj
+</code></pre>
+                    <p>ここでは、整数リテラル 10 (の評価結果)
+                    にメッセージ + を送信し、式 b.obj (つまり A
+                    のインスタンス)
+                    の評価結果を引数として渡しています。</p>
+                    <p>つまり、ここで得られるものは本質的に次のとおりです。</p>
+                    <pre><code>some_integer + some_a
+</code></pre>
+                    <p>ここで、問題は、もちろん、Integer#+ が A
+                    のインスタンスをそれ自体に追加する方法を知らないことです。ただし、すべての算術演算は算術強制プロトコルを観察します。つまり、Integer#+
+                    の実装は次のようになります。</p>
+                    <pre><code>class Integer
+  def +(other)
+    if other.is_a?(Integer)
+      # I know what to do!
+      # Do whatever internal magic computes the sum of two `Integer`s
+    else
+      coerced_self, coerced_other = other.coerce(self)
+      coerced_self + coerced_other
+    end
+  end
+end
+</code></pre>
+                    <p>トリックがわかりますか？ Integer#+ は、Integer と
+                    As を追加する方法を知りません。Integer#+
+                    がこの時点でほぼ 30
+                    年前に書かれているのに対し、あなたは今日 A
+                    を書いたばかりなので、これは驚くべきことではありません。ただし、Integer
+                    は標準の Ruby クラスであるため、A
+                    が整数の処理方法を知っていることが前提となっています。</p>
+                    <p>したがって、ここで Integer#+ が行うことは、A
+                    の強制メソッドを呼び出して「あなたが何者なのか知りませんが、ここでは私自身を引数として渡しています。あなたが私が何であるかを知っていただければ幸いです。だから私自身とあなた自身を、その二つを足し合わせる方法を知っている何かに変えてください。」</p>
+                    <p>つまり、A
+                    の強制メソッドを実装する必要があります。強制のプロトコルは次のとおりです。</p>
+                    <p>そこで、強制を実装しましょう。</p>
+                    <pre><code>class A
+  def coerce(other) = [other, @value]
+end
+</code></pre>
+                    <p>ここで、質問内のコードを実行すると、次の結果が得られます。</p>
+                    <pre><code>#&lt;A:0x0000000101021cd0 @value=5&gt;
+15
+Class preview: 5
+Something method: 15
+</code></pre>
+                    <p>ご覧のとおり、式 10 + b.obj は正しく 15
+                    と評価されました。</p>
+                    <p>コードに関する次の問題は、オブジェクトによって常にオーバーライドされるべき標準メソッドの一部をオーバーライドしていないことです。
+                    BasicObject#==、Object#eql?、Object#hash、Object#to_s
+                    などのメソッドについて話しています。</p>
+                    <p>特に、人間が判読できるオブジェクトのデバッグ表現を表示するために送信されるメッセージは検査されます。
+                    Object#inspect
+                    をオーバーライドしていないため、クラスに関する情報、実装定義の識別子、およびインスタンス変数とその値のリストを含むデフォルトの実装を取得します。</p>
+                    <p>次のように動作するには、inspect
+                    をオーバーライドする必要があります。</p>
+                    <pre><code>class A
+  def inspect = @value.inspect
+end
+</code></pre>
+                    <p>ここで、質問内のコードを実行すると、望ましい結果が得られます。</p>
+                    <pre><code>5
+15
+Class preview: 5
+Something method: 15
+</code></pre>
+                    <p>コードには他にも改善できる点がいくつかあります。</p>
+                    <p>これをすべてまとめると、次のようになります。</p>
+                    <pre><code>class A &lt; Numeric
+  include Comparable
+
+  def initialize(value)
+    super()
+    @value = value
+  end
+
+  def to_int = @value
+  alias to_i to_int
+
+  def to_s = @value.to_s
+  alias inspect to_s
+
+  def +(other)
+    case other
+    when A
+      self.class.new(@value + other.value)
+    when Integer, Float, BigDecimal, Rational, Complex
+      self.class.new(@value + other)
+    else
+      raise(TypeError, &quot;Don&#39;t know how to add #{other.inspect} of class #{other.class}&quot;) unless other.respond_to?(:coerce)
+
+      coerced_self, coerced_other = other.coerce(self)
+      coerced_self + coerced_other
+    end
+  end
+
+  def -(other)
+    case other
+    when A
+      self.class.new(@value - other.value)
+    when Integer, Float, BigDecimal, Rational, Complex
+      self.class.new(@value - other)
+    else
+      raise(TypeError, &quot;Don&#39;t know how to add #{other.inspect} of class #{other.class}&quot;) unless other.respond_to?(:coerce)
+
+      coerced_self, coerced_other = other.coerce(self)
+      coerced_self - coerced_other
+    end
+  end
+
+  def *(other)
+    case other
+    when A
+      self.class.new(@value * other.value)
+    when Integer, Float, BigDecimal, Rational, Complex
+      self.class.new(@value * other)
+    else
+      raise(TypeError, &quot;Don&#39;t know how to add #{other.inspect} of class #{other.class}&quot;) unless other.respond_to?(:coerce)
+
+      coerced_self, coerced_other = other.coerce(self)
+      coerced_self * coerced_other
+    end
+  end
+
+  def /(other)
+    case other
+    when A
+      self.class.new(@value / other.value)
+    when Integer, Float, BigDecimal, Rational, Complex
+      self.class.new(@value / other)
+    else
+      raise(TypeError, &quot;Don&#39;t know how to add #{other.inspect} of class #{other.class}&quot;) unless other.respond_to?(:coerce)
+
+      coerced_self, coerced_other = other.coerce(self)
+      coerced_self / coerced_other
+    end
+  end
+
+  def coerce(other)
+    case other
+    when Integer, Float, BigDecimal, Rational, Complex
+      [self.class.new(other), self]
+    else
+      [other, to_int]
+    end
+  end
+
+  def &lt;=&gt;(other) = to_i &lt;=&gt; other.to_i
+
+  def preview
+    puts(&quot;Class preview: #{self}&quot;)
+  end
+
+  def something(param)
+    puts(&quot;Something method: #{self * param}&quot;)
+  end
+
+  protected
+
+  attr_reader(:value)
+end
+
+class B
+  attr_reader :obj
+
+  def initialize(obj)
+    @obj = obj
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

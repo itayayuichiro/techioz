@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>mysql2 0x0000000000000000 でのセグメンテーション違反 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "mysql2 0x0000000000000000 でのセグメンテーション違反",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>mysql2 0x0000000000000000
+でのセグメンテーション違反</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>FreeBSD 11.3 のポートから Redmine
+                    をインストールしました
+                    ブラウザからアクセスしようとするとクラッシュします。
+                    エラーログには以下が表示されます。</p>
+                    <pre><code>    /usr/local/lib/ruby/gems/2.6/gems/activesupport-4.2.11.1/lib/active_support/core_ext/object/duplicable.rb:111: warning: BigDecimal.new is deprecated; use BigDecimal() method instead.
+    /usr/local/lib/ruby/gems/2.6/gems/mysql2-0.4.10/lib/mysql2/mysql2.so: [BUG] Segmentation fault at 0x0000000000000000
+    ruby 2.6.6p146 (2020-03-31 revision 67876) [amd64-freebsd11]
+-- Control frame information -----------------------------------------------
+c:0027 p:-4313666350 s:0131 e:000130 TOP    [FINISH]
+c:0026 p:---- s:0128 e:000127 CFUNC  :require
+c:0025 p:0261 s:0123 e:000122 TOP    /usr/local/lib/ruby/gems/2.6/gems/mysql2-0.4.10/lib/mysql2.rb:31 [FINISH]
+c:0024 p:---- s:0119 e:000118 CFUNC  :require
+c:0023 p:0033 s:0114 e:000113 BLOCK  /usr/local/lib/ruby/gems/2.6/gems/bundler-2.0.2/lib/bundler/runtime.rb:81 [FINISH]
+</code></pre>
+                    <p>出力はかなり長いので短くしました。これはスタックの一番上のエラーです。
+                    この質問にどのコミュニティで対処するのが良いかわからないので、最初にここで質問することにしました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今日、ubuntu 20.04とmsql2 -v
+                    0.5.1で同様の問題に直面しました。問題の解決策:</p>
+                    <pre><code>sudo apt remove libmysqlclient-dev
+sudo apt install libmariadbclient-dev
+gem install mysql2 -v &#39;0.5.1&#39; 
+</code></pre>
+                    <p>ここでさらに詳しく説明します。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/brianmario/mysql2/issues/1075</p>
+                    <p>またはそれ以降のバージョンの場合:</p>
+                    <pre><code>sudo apt remove libmariadbd-dev
+sudo apt install libmariadbd-dev
+gem install mysql2 -v &#39;your version&#39; 
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

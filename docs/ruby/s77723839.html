@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>負の先読みを使用したカンマ区切りの一意の数値の Ruby 正規表現 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "負の先読みを使用したカンマ区切りの一意の数値の Ruby 正規表現",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>負の先読みを使用したカンマ区切りの一意の数値の
+Ruby 正規表現</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下は、数値のカンマ区切りリストに一致し、一意の数値のみの入力を許可する正規表現です。</p>
+                    <pre><code>^(?!.*\b(\d+)\b.*\b\1\b)(\d)(,(\d))*$
+</code></pre>
+                    <p>たとえば、1,2,3 は許可されますが、1,1 または
+                    2,1,1 は許可されません。</p>
+                    <p>誰かそれがどのように機能するかを簡単な言葉で説明してもらえますか?</p>
+                    <p>私が混乱しているのは、否定的な先読みアサーションです。
+                    Web
+                    で利用可能な説明では、次のような構文が示されています。</p>
+                    <p>参照:
+                    https://javascript.info/regexp-lookahead-lookbehind#negative-lookahead</p>
+                    <p>しかし、私が示した正規表現では、上記の構文に従っていません。それでは、どのように機能するのでしょうか？</p>
+                    <p>1、2、3
+                    と一致する場合、どのような一致プロセスが発生しますか?</p>
+                    <p>2,1,1
+                    と一致しない場合、どのようなマッチング処理が行われますか?</p>
+                    <p>1,2,3 または 2,1,1 が一致する場合、最初に正規表現
+                    ((,()*
+                    の部分に続くものと照合され、次にその一致結果が否定先読み部分
+                    (? !.* () .* \1 )
+                    それとも最初に否定先読み部分が実行され、次に残りの部分が実行されますか?</p>
+                    <p>また、否定先読み部分の前後の .* を削除すると、1,1
+                    または 2,1,1
+                    との一致も開始されます。それでは、否定先読み部分で削除された
+                    .* にはどのような意味があるのでしょうか。</p>
+                    <p>注:
+                    重要な情報を伝える必要がある場合に備えて、Ruby
+                    コードで正規表現を使用したいと思います。</p>
+                    <p>正規表現のソース参照は次のとおりです。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/45946721/936494</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/45944821/936494</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの質問の根本的な正規表現部分については他の人に説明してもらいます。ここでは、X/Y
+                    問題について説明します。つまり、正規表現を使用して特定の操作を実行できる一方で、不必要な複雑さが生じる可能性があるという問題です。さらに、多くの場合、Array
+                    メソッドや String
+                    メソッドなどの他のメソッドの方が高速です。</p>
+                    <p>優れたコードの経験則は、パターンをできるだけ単純に抽出し、他のメソッドを使用してそれを操作することです。一意の値を出力するか、文字列内に重複がない数字のみを出力するかに応じて、次の例を検討してください。</p>
+                    <pre><code>STR = &quot;1,6,6,7,3,2,1,2,3,6&quot;
+
+# return only one of each number found, sorted
+STR.split(?,).uniq.sort.map &amp;:to_i
+# =&gt; [1, 2, 3, 6, 7]
+
+# return only Integer values not duplicated in
+# the String
+STR.split(?,).tally.select { _2.eql? 1 }.keys.map &amp;:to_i
+# =&gt; [7]
+</code></pre>
+                    <p>いずれにせよ、これは複雑な正規表現よりも高速かつ簡単です。</p>
+                    <p>正規表現を使用したい場合は、ニーズに応じて
+                    String#split を正規表現リテラルまたは String#scan
+                    に置き換えることができます。たとえば、文字列リテラルの代わりに正規表現を使用した
+                    #split と #scan の 2
+                    つのほぼ同等の使用法を考えてみましょう。</p>
+                    <pre><code># scan String for one or more consecutive
+# digits
+STR.scan(/\d+/).uniq.sort.map &amp;:to_i
+#=&gt; [1, 2, 3, 6, 7]
+
+# split String on commas surround by
+# optional whitespace
+STR.split(/\s*,\s*/).uniq.sort.map &amp;:to_i
+#=&gt; [1, 2, 3, 6, 7]
+</code></pre>
+                    <p>これは、文字列が正規でない場合には、もう少し寛容です。例:</p>
+                    <pre><code>STR = &quot; 1,6,  6 , 7,3 ,2,1,\t2\t, 3 ,6&quot;
+</code></pre>
+                    <p>ただし、String#strip をメソッド
+                    チェーンに挿入するだけで同様の結果を得ることができます。上記の標準化されていない入力値が与えられた場合でも、
+                    String リテラルとして
+                    を分割する例を次に示します。</p>
+                    <pre><code>STR.split(?,).map(&amp;:strip).uniq.sort.map &amp;:to_i
+</code></pre>
+                    <p>ここで注意すべき主な点は次のとおりです。</p>
+                    <p>6 か月後にコードを読みに戻ると、メソッド
+                    チェーンは長く複雑な正規表現よりもはるかに簡単にデバッグできるようになります。特に、コードを作成するときに理解しにくいアトムや正規表現構造を使用している場合はそうです。彼らは初めてです。未来のあなたはその優しさに感謝するでしょう！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

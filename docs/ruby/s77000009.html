@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カスタム プロシージャを使用すると、Airbrake::Filters::KeysBlacklist のパターンの 1 つが無効であるというエラーがスローされます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カスタム プロシージャを使用すると、Airbrake::Filters::KeysBlacklist のパターンの 1 つが無効であるというエラーがスローされます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カスタム
+プロシージャを使用すると、Airbrake::Filters::KeysBlacklist のパターンの
+1 つが無効であるというエラーがスローされます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私たちのアプリケーションでは、特定のパラメータを使用状況に応じて異なる方法でフィルタリングしたいと考えています。たとえば、パスワードは常に完全にフィルタリングする必要がありますが、電子メールと名前については、デバッグとサポートのために値の一部を保持したいと考えています。</p>
+                    <p>これを行うために、カスタム proc
+                    を使用してそれらをフォーマットしました。</p>
+                    <p>1_filter_parameter_logging.rb:</p>
+                    <pre><code>Rails.application.config.filter_parameters += [
+  :password
+]
+
+Rails.application.config.filter_parameters &lt;&lt; proc do |param_name, value|
+  if %w[email name].include?(param_name)
+    if param_name.to_s == &#39;email&#39;
+      value.gsub!(/(?&lt;=^.{2}).*?(?=@)/, &#39;*&#39;) # test partial filter
+    else
+      value.replace(&#39;[FILTERED_CUSTOM]&#39;) # test custom filter
+    end
+  end
+end
+</code></pre>
+                    <p>次に、2_airbrake.rb
+                    でこれらの設定を次のように使用します。</p>
+                    <pre><code>c.blacklist_keys = Rails.application.config.filter_parameters
+</code></pre>
+                    <p>この理論をテストするために、次のサンプル
+                    コントローラー
+                    アクションを使用してアプリで意図的に例外をスローします。</p>
+                    <pre><code>class ExampleController
+  def show
+    raise StandardError, &#39;Testing Filter Parameter Logging&#39;
+  end
+end
+</code></pre>
+                    <p>次に、そのエンドポイントに簡単なリクエストを送信します。</p>
+                    <pre><code>http://localhost:3000/example?name=cameron&amp;[email protected]&amp;password=test
+</code></pre>
+                    <p>ログには次のことが記録されています。</p>
+                    <pre><code>Processing by ExampleController#show as HTML
+  Parameters: {&quot;name&quot;=&gt;&quot;[FILTERED_CUSTOM]&quot;, &quot;email&quot;=&gt;&quot;ca*@test.com&quot;, &quot;password&quot;=&gt;&quot;[FILTERED]&quot;}
+</code></pre>
+                    <p>そして、Airbake からのエラー:</p>
+                    <pre><code>**Airbrake: one of the patterns in Airbrake::Filters::KeysBlacklist is invalid. Known patterns: [:password, nil]
+</code></pre>
+                    <p>そして、Airbrake
+                    のエラーを見ると、フィルタリングされていないことがわかります。</p>
+                    <pre><code>{
+  &quot;action&quot; =&gt; &quot;show&quot;,
+  &quot;controller&quot; =&gt; &quot;example&quot;,
+  &quot;email&quot; =&gt; &quot;[email protected]&quot;,
+  &quot;name&quot; =&gt; &quot;cameron&quot;,
+  &quot;password&quot; =&gt; &quot;[Filtered]&quot;
+}
+</code></pre>
+                    <p>Airbrake
+                    がそのエラーをスローするのはなぜですか。Rails
+                    はログに基づいてその proc
+                    を使用してパラメータをフィルタリングできるようですが、Airbrake
+                    はフィルタリングに失敗し、通過を許可します。</p>
+                    <p>Airbrake
+                    は、パターンの何が無効なのかを正確に説明しません。ただ、それが有効であると認識されないだけで、あまり役に立ちません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails が提供する param フィルタリングは Airbrake
+                    とは異なります。</p>
+                    <p>Rails
+                    では、複雑なパラメータのフィルタリングが可能です。パラメータのキーと値を引数として受け取り、フィルタリングされた値を返すプロシージャを定義できます。プロシージャの実行は、ここ
+                    ActiveSupport::ParameterFilter#value_for_key
+                    で行われます。</p>
+                    <p>エアブレーキはさらに限定的です。パラメーター名を文字列、記号、または正規表現と比較することによってのみフィルターできます。ドキュメントには、proc
+                    を定義できるが、最初の通知時に 1
+                    回しか実行されないことが記載されています。</p>
+                    <p>ここでprocが実行されます。引数なしで呼び出されます。サンプルのプロシージャが引数なしで呼び出された場合、nil
+                    が返されます。これは文字列、シンボル、または正規表現に一致しないため、ここで例外が発生します。</p>
+                    <p>Airbrake は should_filter を使用しますか? param
+                    キーのみを受け取るメソッド。そのメソッドが true
+                    を返した場合、「[Filtered]」文字列が値を置き換えます。この既存の構造をすぐにオーバーライドして必要な動作を得るのは簡単ではありません。ただし、Airbrake::Filters::KeysBlocklist
+                    クラスと Airbrake::Filters::KeysFilter
+                    モジュールを完全にオーバーライドしてみることもできます。</p>
+                    <p>ここの情報とすべてのリンクは airbrake-ruby
+                    の現在のバージョンのものであることに注意してください。
+                    blacklist_keys は数年前に blocklist_keys
+                    に置き換えられました。そして、KeysBlacklist
+                    のようなクラスは KeysBlocklist
+                    に置き換えられました。ただし、これらは単なる名前の変更であり、機能は時間が経っても比較的同じままです。</p>
+                    <p>標準の Airbrake パラメータ
+                    フィルタリングをオーバーライドするよりも、カスタム
+                    フィルタを追加してみる方がよいでしょう。以下は、アプリの初期化子に何を含めることができるかの例です。</p>
+                    <pre><code>Airbrake.add_filter do |notice|
+  notice[:params].each do |key, value|
+    if key == :email
+      value.gsub!(/(?&lt;=^.{2}).*?(?=@)/, &#39;*&#39;)  # test partial filter
+    elsif key == :name
+      value.replace(&#39;[FILTERED_CUSTOM]&#39;)  # test custom filter
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

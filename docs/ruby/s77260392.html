@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7.1 アップグレード後に「不明な列挙属性」を修正するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7.1 アップグレード後に「不明な列挙属性」を修正するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7.1
+アップグレード後に「不明な列挙属性」を修正するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは。7.1
+                    未満のレールで正常に動作する次の列挙型を備えたこの
+                    Company モデルがあります。</p>
+                    <pre><code>class Company &lt; ApplicationRecord
+
+  enum auth_type: {
+    password: &#39;password&#39;,
+    magic_link: &#39;magic_link&#39;,
+    google: &#39;google&#39;,
+    microsoft: &#39;microsoft&#39;,
+    saml: &#39;saml&#39;,
+    workos: &#39;workos&#39;,
+    developer: &#39;developer&#39;
+  }, _prefix: :auth_by
+
+end
+</code></pre>
+                    <p>Rails 7.1 にアップグレードしようとすると、CI
+                    上の既存の移行が中断されるため、次のエラーが発生して動作が停止します。</p>
+                    <pre><code>Unknown enum attribute &#39;auth_type&#39; for Company
+/home/runner/work/clearyapp/clearyapp/vendor/bundle/ruby/3.2.0/gems/activerecord-7.1.0/lib/active_record/enum.rb:174:in `block in load_schema!&#39;
+</code></pre>
+                    <p>このエラー発生は 7.1 で追加されたものでした
+                    https://my.diffend.io/gems/activerecord/7.0.8/7.1.0/page/26#d2h-285143-749</p>
+                    <p>私が理解できないのは、エラーで有益な情報が何も得られない場合、どのように修正すればよいかということです。これは既知の
+                    enum 属性です =/</p>
+                    <p>それを修正する方法を知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 7.1 では列挙型の検証が追加され、DB
+                    列にバックされない列挙型はサポートされなくなったようです。詳細については、この問題を確認してください。</p>
+                    <p><span class="citation"
+                    data-cites="jonathanhefner">@jonathanhefner</span>
+                    は、DB
+                    に依存しない属性である列挙型のサポートを追加するこの
+                    PR を作成しました。 PRしたのは、</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/pull/49769#issuecomment-1777833124</p>
+                    <p>この問題に関しては 2
+                    つのアプローチが考えられます。</p>
+                    <p>7-1-stable
+                    ブランチを使用し、列挙型の属性を追加すると、エラーが解消されるはずです。</p>
+                    <pre><code>gem &#39;rails&#39;, git: &#39;https://github.com/rails/rails.git&#39;, branch: &#39;7-1-stable&#39;
+</code></pre>
+                    <pre><code>class Company &lt; ApplicationRecord
+
+  attribute :auth_type, :string
+  enum auth_type: {
+    password: &#39;password&#39;,
+    magic_link: &#39;magic_link&#39;,
+    google: &#39;google&#39;,
+    microsoft: &#39;microsoft&#39;,
+    saml: &#39;saml&#39;,
+    workos: &#39;workos&#39;,
+    developer: &#39;developer&#39;
+  }, _prefix: :auth_by
+
+end
+</code></pre>
+                    <pre><code>class AddMissingEnumsColumns &lt; ActiveRecord::Migration[7.1]
+  def change
+    add_column :companies, :auth_type, :string
+  end
+end
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

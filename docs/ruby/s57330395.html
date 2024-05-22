@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>S3 Ruby SDK はプレフィックス直下のオブジェクトのみをリストしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "S3 Ruby SDK はプレフィックス直下のオブジェクトのみをリストしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>S3 Ruby SDK
+はプレフィックス直下のオブジェクトのみをリストしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>S3
+                    バケット内のプレフィックスの下にある単一レベルのオブジェクトを取得しようとしています。バケット内には大量のオブジェクトがあるため、特定のプレフィックスの下にある各フォルダーを反復処理したいと考えています。これまでの私のコードは次のとおりです。</p>
+                    <pre><code>require &#39;aws-sdk&#39;
+
+region = &#39;us-west-1&#39;
+bucket_name = &#39;my-example-bucket&#39;
+prefix = &#39;test1&#39;
+delimiter = &#39;/&#39;
+
+s3_client = Aws::S3::Client.new(region: region)
+resp = s3_client.list_objects_v2(bucket: bucket_name, prefix: prefix, delimiter: prefix + delimiter)
+obj_list = []
+resp.contents.each do |c|
+  p c
+  break
+end
+</code></pre>
+                    <p>これを実行すると、プレフィックスの 4
+                    レベルの深さにある単一のオブジェクトが取得されます。</p>
+                    <p>このプレフィックスの下には 243
+                    個のフォルダーがあります。この 243
+                    個だけが必要で、他には何も必要ありません。</p>
+                    <p>どうすればいいでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、prefix=‘test1/’ と delimiter=‘/’
+                    を使用する必要があります。</p>
+                    <p>ただし、内容的には何も得られません。 S3
+                    のフォルダーは単なるプレフィックスであるため、できることはプレフィックスを反復処理することです。</p>
+                    <pre><code>region = &#39;us-west-1&#39;
+bucket_name = &#39;my-example-bucket&#39;
+prefix = &#39;test1/&#39;
+
+objs = s3_client.list_objects_v2(bucket: bucket_name, prefix: prefix, delimiter: &#39;/&#39;)
+
+objs.common_prefixes.map(&amp;:prefix).each do |prefix|
+  current_objs = s3_client.list_objects_v2(bucket: bucket_name, prefix: prefix, delimiter: &#39;/&#39;)
+  p current_objs.contents # you will get nothing here again if all you have inside the folders is some other folders
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

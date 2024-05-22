@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Devise::RegistrationsController#create で NoMethodError を取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Devise::RegistrationsController#create で NoMethodError を取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Devise::RegistrationsController#create で
+NoMethodError を取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Device
+                    gemを使用して新しいユーザーを追加しようとしています
+                    rake db: Migrate を実行し、Rails
+                    サーバーを再度実行しました</p>
+                    <p>しかし、3000/posts/sign_upと入力すると</p>
+                    <p>デフォルトのサインアップ画面が表示されますが、ユーザーを作成しようとすると、</p>
+                    <p>デフォルトのサインアップ画面が表示されますが、ユーザーを作成しようとすると、</p>
+                    <p>私のログには表示されます</p>
+                    <pre><code>Started POST &quot;/posts&quot; for 127.0.0.1 at 2014-03-18 20:38:22 +0000
+Processing by Devise::RegistrationsController#create as HTML
+  Parameters: {&quot;utf8&quot;=&gt;&quot;✓&quot;, &quot;authenticity_token&quot;=&gt;&quot;2uO2ttqAfK1a2C855cZOpDTsS2Duc7ZzVJxAQ5ObL8M=&quot;, &quot;post&quot;=&gt;{&quot;email&quot;=&gt;&quot;[email protected]&quot;, &quot;password&quot;=&gt;&quot;[FILTERED]&quot;, &quot;password_confirmation&quot;=&gt;&quot;[FILTERED]&quot;}, &quot;commit&quot;=&gt;&quot;Sign up&quot;}
+Completed 500 Internal Server Error in 79ms
+
+NoMethodError (undefined method `encrypted_password=&#39; for #&lt;Post:0x007fde3e09e538&gt;):
+  activemodel (4.0.4) lib/active_model/attribute_methods.rb:439:in `method_missing&#39;
+  activerecord (4.0.4) lib/active_record/attribute_methods.rb:167:in `method_missing&#39;
+  devise (3.2.2) lib/devise/models/database_authenticatable.rb:42:in `password=&#39;
+  activerecord (4.0.4) lib/active_record/attribute_assignment.rb:42:in `public_send&#39;
+  activerecord (4.0.4) lib/active_record/attribute_assignment.rb:42:in `_assign_attribute&#39;
+  activerecord (4.0.4) lib/active_record/attribute_assignment.rb:29:in `block in assign_attributes&#39;
+  activerecord (4.0.4) lib/active_record/attribute_assignment.rb:23:in `each&#39;
+  activerecord (4.0.4) lib/active_record/attribute_assignment.rb:23:in `assign_attributes&#39;
+</code></pre>
+                    <p>新しい.html.erb</p>
+                    <pre><code>&lt;h2&gt;Sign up&lt;/h2&gt;
+
+&lt;%= form_for(resource, :as =&gt; resource_name, :url =&gt; registration_path(resource_name)) do |f| %&gt;
+  &lt;%= devise_error_messages! %&gt;
+
+  &lt;div&gt;&lt;%= f.label :email %&gt;&lt;br /&gt;
+  &lt;%= f.email_field :email, :autofocus =&gt; true %&gt;&lt;/div&gt;
+
+  &lt;div&gt;&lt;%= f.label :password %&gt;&lt;br /&gt;
+  &lt;%= f.password_field :password %&gt;&lt;/div&gt;
+
+  &lt;div&gt;&lt;%= f.label :password_confirmation %&gt;&lt;br /&gt;
+  &lt;%= f.password_field :password_confirmation %&gt;&lt;/div&gt;
+
+  &lt;div&gt;&lt;%= f.submit &quot;Sign up&quot; %&gt;&lt;/div&gt;
+&lt;% end %&gt;
+
+&lt;%= render &quot;devise/shared/links&quot; %&gt;
+</code></pre>
+                    <p>post.rb</p>
+                    <pre><code>class Post &lt; ActiveRecord::Base
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+end
+</code></pre>
+                    <p>レーキルート</p>
+                    <pre><code>Prefix Verb   URI Pattern                    Controller#Action
+        new_post_session GET    /posts/sign_in(.:format)       devise/sessions#new
+            post_session POST   /posts/sign_in(.:format)       devise/sessions#create
+    destroy_post_session DELETE /posts/sign_out(.:format)      devise/sessions#destroy
+           post_password POST   /posts/password(.:format)      devise/passwords#create
+       new_post_password GET    /posts/password/new(.:format)  devise/passwords#new
+      edit_post_password GET    /posts/password/edit(.:format) devise/passwords#edit
+                         PATCH  /posts/password(.:format)      devise/passwords#update
+                         PUT    /posts/password(.:format)      devise/passwords#update
+cancel_post_registration GET    /posts/cancel(.:format)        devise/registrations#cancel
+       post_registration POST   /posts(.:format)               devise/registrations#create
+   new_post_registration GET    /posts/sign_up(.:format)       devise/registrations#new
+  edit_post_registration GET    /posts/edit(.:format)          devise/registrations#edit
+                         PATCH  /posts(.:format)               devise/registrations#update
+                         PUT    /posts(.:format)               devise/registrations#update
+                         DELETE /posts(.:format)               devise/registrations#destroy
+                   posts GET    /posts(.:format)               posts#index
+                         POST   /posts(.:format)               posts#create
+                new_post GET    /posts/new(.:format)           posts#new
+               edit_post GET    /posts/:id/edit(.:format)      posts#edit
+                    post GET    /posts/:id(.:format)           posts#show
+                         PATCH  /posts/:id(.:format)           posts#update
+                         PUT    /posts/:id(.:format)           posts#update
+                         DELETE /posts/:id(.:format)           posts#destroy
+                   about GET    /about(.:format)               pages#about
+                    root GET    /                              pages#welcome
+</code></pre>
+                    <p>レールg</p>
+                    <pre><code>Neils-MacBook-Pro:prospects neilpatel$ rails g devise:views
+      invoke  Devise::Generators::SharedViewsGenerator
+      create    app/views/devise/shared
+      create    app/views/devise/shared/_links.erb
+      invoke  form_for
+      create    app/views/devise/confirmations
+      create    app/views/devise/confirmations/new.html.erb
+      create    app/views/devise/passwords
+      create    app/views/devise/passwords/edit.html.erb
+      create    app/views/devise/passwords/new.html.erb
+      create    app/views/devise/registrations
+      create    app/views/devise/registrations/edit.html.erb
+      create    app/views/devise/registrations/new.html.erb
+      create    app/views/devise/sessions
+      create    app/views/devise/sessions/new.html.erb
+      create    app/views/devise/unlocks
+      create    app/views/devise/unlocks/new.html.erb
+      invoke  erb
+      create    app/views/devise/mailer
+      create    app/views/devise/mailer/confirmation_instructions.html.erb
+      create    app/views/devise/mailer/reset_password_instructions.html.erb
+      create    app/views/devise/mailer/unlock_instructions.html.erb
+Neils-MacBook-Pro:prospects neilpatel$ rails generate devise Post
+      invoke  active_record
+      create    db/migrate/20140318202353_add_devise_to_posts
+      insert    app/models/post.rb
+       route  devise_for :posts
+Neils-MacBook-Pro:prospects neilpatel$ rake db:migrate
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一番の問題はここにある</p>
+                    <pre><code>NoMethodError (undefined method `encrypted_password=&#39; for #&lt;Post:0x007fde3e09e538&gt;):
+</code></pre>
+                    <p>移行ファイルを確認してください。
+                    encrypted_password は存在しますか?移行ファイルにこの
+                    t.string :encrypted_password, :null =&gt; false,
+                    :default =&gt; “”
+                    というコード行がありますか。また、モデルファイル（つまり、post.rb）では、パスワード属性も定義していません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ドライ検証で nil 値を持つハッシュの配列を許可する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ドライ検証で nil 値を持つハッシュの配列を許可する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ドライ検証で nil
+値を持つハッシュの配列を許可する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは、ハッシュの配列にnil値を許可しようとしている方法です（私はdry-validations
+                    gemを使用しています）</p>
+                    <pre><code>required(:properties).maybe(:array).each(:hash)
+</code></pre>
+                    <p>これにより、次の例外が発生します。</p>
+                    <pre><code>NoMethodError: undefined method `map&#39; for nil:NilClass
+from /Users/svelandiag/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/dry-logic-1.2.0/lib/dry/logic/operations/each.rb:15:in `call&#39;
+</code></pre>
+                    <p>この場合、nil
+                    値を許可するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まあ、実際には少し時間がかかりましたが、答えはここにあるようです
+                    https://dry-rb.org/gems/dry-schema/1.9/basics/macros/#maybe</p>
+                    <p>each でmaybe
+                    を使用することはできません。代わりに次のようにする必要があります。</p>
+                    <pre><code>required(:properties).maybe(:array) do
+  nil? | each(:hash)
+end
+</code></pre>
+                    <p>私はドライスキーマドキュメント内の「ネストされたデータ」セクションを見ていたため、答えを見つけるのにかなりの時間がかかりました。プロジェクトの貢献者がこれを見ている場合は、説明するために同様のセクションを追加することをお勧めします。おそらく、それぞれはdry-schemaドキュメントの「ネストされたデータ」セクションで互換性がありません
+                    https://dry-rb.org/gems/dry-schema/1.9/nested-data/</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>10 進数の応答が文字列として返される場合、RSpec/RSwag で 10 進数のスキーマ形式を指定するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "10 進数の応答が文字列として返される場合、RSpec/RSwag で 10 進数のスキーマ形式を指定するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>10
+進数の応答が文字列として返される場合、RSpec/RSwag で 10
+進数のスキーマ形式を指定するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そのため、:Decimal 形式の DB
+                    フィールドが文字列として返され、テストが失敗します。</p>
+                    <p>RSwag
+                    を使用したリクエスト仕様があり、それを形式チェックで通過させようとしていますが、次のようなメッセージが表示されます。</p>
+                    <pre><code>Rswag::Specs::UnexpectedResponse:
+       Expected response body to match schema: The property &#39;#/budget&#39; of type string did not match the following type: number in schema 
+</code></pre>
+                    <p>私のテスト:-</p>
+                    <pre><code> path &#39;/api/v1/jobs/{id}&#39; do
+    parameter name: &#39;id&#39;, in: :path, type: :string, description: &#39;Job id&#39;
+
+    get(&#39;show job&#39;) do
+      tags &#39;Jobs&#39;
+      response(200, &#39;successful&#39;) do
+        schema type: :object,
+               properties: {
+                 title: { type: :string },
+                 description: { type: :string },
+                 date: { type: :string, format: &#39;date-time&#39;, nullable: true  },
+                 budget: { type: :number, format: &#39;double&#39; },
+                 awarded: { type: :boolean },
+                 created_at: { type: :datetime},
+                 updated_at: { type: :datetime}
+               }
+        let(:id) { @job.id }
+
+        after do |example|
+          example.metadata[:response][:content] = {
+            &#39;application/json&#39; =&gt; {
+              example: JSON.parse(response.body, symbolize_names: true)
+            }
+          }
+        end
+        run_test!
+      end
+    end
+</code></pre>
+                    <p>これを回避する最善の方法は何でしょうか?すべてのフィールドを文字列にする必要がある場合、API
+                    ドキュメントに Swagger
+                    を使用する努力は少し無意味です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>タイプを :string に設定し、フォーマットとして 10
+                    進数を使用しました。私の場合はこれでうまくいきました。</p>
+                    <p>シナリオでは、以下を使用できます。</p>
+                    <pre><code>budget: { type: :string, format: &#39;decimal&#39; },
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

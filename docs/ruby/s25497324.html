@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ジオフェンス Ruby 用のポリゴン オブジェクトを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ジオフェンス Ruby 用のポリゴン オブジェクトを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ジオフェンス Ruby 用のポリゴン
+オブジェクトを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で、経度と緯度の点の配列
+                    (各点が配列の順序で次の点に接続される) を受け取る
+                    Polygon
+                    オブジェクトを書きたいと考えています。さて、私の主な質問は、点をプラグインして、それが多角形の内側か外側かを確認できるように、2
+                    つの点の間のエッジ (線)
+                    を表現する最善の方法は何でしょうか?</p>
+                    <p>この機能を簡単に追加できる gem はありますか?</p>
+                    <p>これがこれまでに書いたコードのすべてです</p>
+                    <pre><code>class Polygon
+  attr_reader :vertices
+  def initialize(vertices)
+    @vertices = vertices
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、指定された点が凸多角形の内側
+                    (またはエッジ上) にあるかどうかを判断する 1
+                    つの方法です。
+                    （OPは、ポリゴンが凸状であることを質問に対するコメントで確認したことに注意してください。）</p>
+                    <p>コード</p>
+                    <pre><code>def inside?(vertices, test_point)
+  vs = vertices + [vertices.first]
+  xi, yi = vertices.reduce([0,0]) { |(sx,sy),(x,y)| [sx+x, sy+y] }.map { |e|
+    e.to_f/vertices.size } # interior point
+  x, y = test_point
+  vs.each_cons(2).all? do |(x0,y0),(x1,y1)|
+    if x0 == x1 # vertical edge
+      (xi &gt; x0) ? (x &gt;= x0) : (x &lt;= x0)
+    else
+      k, slope = line_equation(x0,y0,x1,y1)
+      (k + xi*slope &gt; yi) ? (k + x*slope &gt;= y) : (k + x*slope &lt;= y)
+    end
+  end  
+end
+    
+def line_equation(x0,y0,x1,y1)
+  s = (y1-y0).to_f/(x1-x0)
+  [y0-s*x0, s]
+end
+</code></pre>
+                    <p>多角形は直線ではない(つまり、すべての頂点が同一直線上にない)と仮定しました。</p>
+                    <p>例</p>
+                    <pre><code>vertices = [[5,1],[2,4], [2,8], [6,10], [9,6]]
+
+inside?(vertices, [6,7]) #=&gt; true
+inside?(vertices, [9,9]) #=&gt; false
+inside?(vertices, [5,1]) #=&gt; true
+</code></pre>
+                    <p>説明</p>
+                    <p>例の多角形のグラフを次に示します。</p>
+                    <p>多角形の各エッジを両方向に無限に延長すると、平面を
+                    2
+                    つの部分に分割する線が形成されます。特定の点が多角形内
+                    (エッジ上の点を含む)
+                    に存在するには、その点が、多角形を含むエッジによって形成されるすべての線の側面上になければなりません。</p>
+                    <p>この例では、矢印は [5,1] と [2,4]
+                    を通過する線、および [2,4] と [2,8]
+                    を通過する線に該当する側を示しています。 [5,1] と
+                    [2,4] を通る直線の方程式は次のようになります。</p>
+                    <pre><code>y = 6.0 - x    
+</code></pre>
+                    <p>したがって、この直線の両側の点は、6.0 - x &lt;= y
+                    および 6.0 - x &gt;= y
+                    で与えられます。各エッジにどの不等式が適用されるかを判断するには、多角形の内部点が必要です。凸型なので、凸型の頂点の組み合わせが多くても問題ありません。たとえば、連続する
+                    3
+                    つの頂点が同一直線上にない場合は、たとえば、隣接しない
+                    2
+                    つの頂点の平均を使用できます。すべての頂点の平均である点を使用することを選択しました。これは、3
+                    つ以上の (すべてではない)
+                    連続する頂点が同一直線上にある場合でも、内部点になります。</p>
+                    <pre><code>xi, yi = vertices.reduce([0,0]) { |(sx,sy),(x,y)| [sx+x, sy+y] }.map { |e|
+           e.to_f/vertices.size }
+  #=&gt; [4.8, 5.8]
+</code></pre>
+                    <p>最初の 2
+                    つの頂点を通過する線に戻ると、次のことがわかります。</p>
+                    <pre><code>6.0 - x = 6.0 - 4.8 = 1.2 =&gt; (1.2 &lt; 5.8) =&gt; true
+</code></pre>
+                    <p>したがって、内点は次の式で与えられる半空間内にあります。</p>
+                    <pre><code>6 - x &lt;= y
+</code></pre>
+                    <p>したがって、次のテストを適用して、対象の点 [6,7]
+                    がこの半空間内にあるかどうかを確認します。</p>
+                    <pre><code>6.0 - 6.0 = 0 &lt;= 7.0
+</code></pre>
+                    <p>ポイント [9,9] と同様にそうです。点 [2,2]
+                    を考慮すると、次のことがわかります。</p>
+                    <pre><code>6.0 - 2.0 = 4.0 &gt; 2.0
+</code></pre>
+                    <p>したがって、反対の結論が得られ、内部から false
+                    が返されますか?</p>
+                    <p>ここで、[6,10] と [9,6]
+                    を通る直線について考えてみましょう。その方程式は次のとおりです。</p>
+                    <pre><code>y = 18.0 - 1.333*x
+</code></pre>
+                    <p>として</p>
+                    <pre><code>18.0 - 1.33*xi =&gt; 18.0 - 1.333*4.8 = 11.6 =&gt; (11.6 &lt; 5.8) =&gt; false
+</code></pre>
+                    <p>したがって、多角形を含むこの線に関連付けられた半空間は、次の不等式によって与えられます。</p>
+                    <pre><code>18.0 - 1.333*x &gt;= y
+</code></pre>
+                    <p>この不等式を使用して、点がこの半空間内に収まるかどうかをテストできます。
+                    [6,7] の場合:</p>
+                    <pre><code>18.0 - 1.333*6 #=&gt; (10.0 &gt;= 7) #=&gt; true
+</code></pre>
+                    <p>[9,9] の場合:</p>
+                    <pre><code>18.0 - 1.333*9 #=&gt; (6.0 &gt;= 7) #=&gt; false
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

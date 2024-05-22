@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby での Web 販売者セッションでの Apple Pay | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby での Web 販売者セッションでの Apple Pay",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby での Web 販売者セッションでの Apple
+Pay</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    で販売者セッションの検証を行うことができないようです。
+                    HTTParty と RestClient
+                    を試してみたところ、次の結果が得られました。</p>
+                    <p>OpenSSL::SSL::SSLError (返された SSL_connect=1
+                    errno=0 state=SSLv3 読み取り完了 A: sslv3
+                    アラート証明書の有効期限が切れました):</p>
+                    <p>このノード サーバーの例
+                    https://github.com/tomdale/apple-pay-merchant-session-server
+                    で同じ証明書を試してみましたが、問題なく動作したので、これは私の
+                    Ruby コードに何かあるに違いありません。</p>
+                    <p>誰かがこれを機能させることができましたか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私も同じ問題を抱えていました。あなたが参照した例と
+                    https://github.com/norfolkmustard/ApplePayJS
+                    の実装の助けを借りて
+                    (https://forums.developer.apple.com/thread/51580
+                    の実装に関する議論も参照してください)それを機能させることができます。</p>
+                    <p>私にとっての鍵は、Apple が提供する正しい証明書
+                    (Apple Pay Merchant Identity 証明書)
+                    を渡し、次のように証明書キーを取得することでした。</p>
+                    <p>Apple からの Apple Pay Merchant Identification
+                    証明書と ApplePay.key.pem
+                    ファイルの内容を環境変数に追加した後、Ruby の
+                    Net::HTTP
+                    クラスを使用して次のリクエストを構築できました。</p>
+                    <pre><code>class YourControllerName &lt; ApplicationController
+
+  def apple_pay_validation
+    respond_to do |format|
+      format.json { render json: start_apple_session(params[:url]) } if params[:url].include?(&#39;apple.com&#39;)
+    end
+  end
+
+  private
+
+  def start_apple_session(url)
+    uri = URI.parse(url) # the url from event.validationURL
+    data = {&#39;merchantIdentifier&#39; =&gt; &quot;merchant.com.your_site_name&quot;, &#39;domainName&#39; =&gt; &quot;your_doamin&quot;, &#39;displayName&#39; =&gt; &quot;your_company_name&quot;}
+    pem = File.read(&#39;path/to/your/merchant_id.cer&#39;)
+    key = ENV[&#39;APPLE_PAY_MERCHANT_ID_ KEY&#39;]
+    passphrase = &#39;passphrase set up when exporting certificate in keychain&#39; # Should be an environment variable
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.ssl_version = :TLSv1_2
+    http.ciphers = [&#39;ECDHE-RSA-AES128-GCM-SHA256&#39;]
+    http.cert = OpenSSL::X509::Certificate.new(pem)
+    http.key = OpenSSL::PKey::RSA.new(key, passphrase)
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    request = Net::HTTP::Post.new(uri.request_uri, &#39;Content-Type&#39; =&gt; &#39;application/json&#39;)
+    request.body = data.to_json
+    response = http.request(request)
+    response.body
+  end
+
+end
+</code></pre>
+                    <p>これは、私の PerformValidation 関数 (上記の
+                    ApplePayJS リポジトリから変更)
+                    から呼び出されたもので、次のようになります。</p>
+                    <pre><code>performValidation = (valURL) -&gt;
+  new Promise((resolve, reject) -&gt;
+    xhr = new XMLHttpRequest
+    xhr.open &#39;GET&#39;, &#39;/your_controller_name/apple_pay_validation?url=&#39; + valURL
+    xhr.onerror = reject
+    xhr.onload = -&gt;
+      data = JSON.parse(@responseText)
+      resolve data
+    xhr.send()
+  )
+</code></pre>
+                    <p>誰かの時間と白髪を節約するのに役立つことを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

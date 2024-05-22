@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で時刻のタイムゾーンを変更するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で時刻のタイムゾーンを変更するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+で時刻のタイムゾーンを変更するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>タイムゾーン (UTC など) を持つ Time
+                    オブジェクトがあるとします。
+                    「時間」などの時間の他のパラメータを変更せずに、タイムゾーンを任意のタイムゾーン（別名、ローカルタイムゾーンではない）にリセットしたいと考えています。
+                    バージョン 3.3 の Ruby
+                    では、それを行う単一の方法が提供されていないようです
+                    (Time の公式ドキュメントと Stackoverflow
+                    の回答を参照)。では、どうすればこれを達成できるでしょうか?</p>
+                    <p>DateTime クラスの場合、change メソッドは (一見)
+                    この回答のように機能することに注意してください
+                    [編集: これは Rails メソッドです]。しかし、</p>
+                    <p>Ruby
+                    3と同様なので、Timeクラスでそれを行う方法を知りたいです。</p>
+                    <p>これらの回答で述べたように、Rails
+                    はいくつかの便利なメソッドを実装していることにも注意してください。しかし、それらは純粋な
+                    Ruby では利用できません (実際、Rails の in_time_zone
+                    は別の時間パラメーターである時間を変更します)。</p>
+                    <p>純粋な Ruby
+                    でそれを行うにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Time インスタンスは不変です。つまり、既存の Time
+                    オブジェクトを変更することはできません。あるいは、純粋な
+                    Ruby で行うのは少し面倒ですが
+                    (公式ドキュメントを参照)、既存のものに基づいて新しい
+                    Time
+                    インスタンスを作成することも可能です。その場合、他のタイムゾーンを変更せずに、新しい任意の「タイムゾーン
+                    […]」を設定します。時間のパラメータ」、つまり既存の時間から新しい時間にすべてコピーします。</p>
+                    <p>ここではいくつかの方法をリストします (注:
+                    シングルトン
+                    メソッドやインスタンス変数は継承されません)。</p>
+                    <pre><code>require &quot;time&quot;
+t = Time.now(in: &quot;+00:00&quot;)
+  # =&gt; &lt;2024-02-24 01:23:45 +0000&gt;
+
+t1= Time.new(*(t.to_a.reverse[4..-1]), in: &quot;+09:00&quot;)
+  # =&gt; &lt;2024-02-24 01:23:45 +0900&gt;
+
+t2= Time.new(t.year, t.month, t.day, t.hour, t.min, t.sec+t.subsec, in: &quot;+09:00&quot;)
+  # =&gt; &lt;2024-02-24 01:23:45 ... +0900&gt;
+
+ar = t.strftime(&quot;%Y %m %d %H %M %S %N&quot;).split.map(&amp;:to_i)
+t3= Time.new(*(ar[0..4]+[ar[5]+ar[6].quo(1_000_000_000), &quot;+09:00&quot;]))
+  # =&gt; &lt;2024-02-24 01:23:45 ... +0900&gt;
+
+t4= Time.at(t, in: &quot;+09:00&quot;) - 9*3600
+  # =&gt; &lt;2024-02-24 01:23:45.... +0900&gt;
+</code></pre>
+                    <p>ここで、t1 は 1
+                    秒までしか考慮しませんが、他のものはナノ秒まで考慮します。</p>
+                    <p>t2
+                    は最も直感的ですが、最も面倒です。ここで、Time#subsec
+                    は Rational
+                    を返すため、数式には浮動小数点の丸め誤差が含まれません。</p>
+                    <p>t3 には t2 に比べて利点がない可能性があります。
+                    t2 のような浮動小数点の丸め誤差は含まれません。</p>
+                    <p>t4 は長さはそれほど長くありませんが、DRY
+                    原則に反していることと、パリティ
+                    (プラスかマイナスか?)
+                    を正確に指定する必要があるという事実は、重大な欠点です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

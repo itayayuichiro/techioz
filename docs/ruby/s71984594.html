@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubocop が Metrics/AbcSize について不満を言う | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubocop が Metrics/AbcSize について不満を言う",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubocop が Metrics/AbcSize
+について不満を言う</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>それで、私はここで正しい道を進み、この警察を解決する方法を理解しようとしています、これはIMOの小さなコードのように見えますが、なぜ文句を言うのでしょうか？</p>
+                    <p>ネストされた if-else
+                    を移動しても何も変わりません。この問題を解決する方法について何か提案はありますか?</p>
+                    <pre><code> class WebPush::Register
+
+  include Interactor
+
+  # rubocop:disable Metrics/AbcSize
+  def call
+    user = Learner.find_by(id: context.user_id)
+
+    # return if existing
+    if user.web_push_subscription
+      context.subscription = user.web_push_subscription
+    else
+      subscription = WebPushSubscription.new(
+        endpoint:   context.push_params[:endpoint],
+        auth_key:   context.push_params[:keys][:auth],
+        p256dh_key: context.push_params[:keys][:p256dh],
+        learner:    user
+      )
+
+      if subscription.save
+        context.subscription = subscription
+      else
+        context.error = subscription.errors.full_messages
+        context.fail!
+      end
+    end
+  end
+  # rubocop:enable Metrics/AbcSize
+
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、ABC
+                    がどのように計算されるかを理解する必要があります。条件文のネストは
+                    ABC には影響しません。 RuboCop
+                    の警告出力には、計算結果が表示されます。</p>
+                    <pre><code>Assignment Branch Condition size for call is too high. [&lt;5, 28, 4&gt; 28.72/17]
+</code></pre>
+                    <p>この記事で説明したように、&lt;5, 28, 4&gt; は
+                    &lt;代入、分岐、条件&gt; です。</p>
+                    <p>全体のスコアは次のように計算されます: sqrt(5^2 +
+                    28^2 + 4^2) = 28.72</p>
+                    <p>警官のデフォルトの最大スコアは 17 です。</p>
+                    <p>以下のコードに各行の ABC
+                    スコアの注釈を付けました。</p>
+                    <pre><code>def call
+  user = Learner.find_by(id: context.user_id) # &lt;1, 3, 0&gt;
+
+  if user.web_push_subscription # &lt;0, 1, 1&gt;
+    context.subscription = user.web_push_subscription # &lt;1, 3, 0&gt;
+  else # &lt;0, 0, 1&gt;
+    # this constructor call is the most expensive part
+    subscription = WebPushSubscription.new( # &lt;1, 1, 0&gt;
+      endpoint:   context.push_params[:endpoint], # &lt;0, 3, 0&gt;
+      auth_key:   context.push_params[:keys][:auth], # &lt;0, 4, 0&gt;
+      p256dh_key: context.push_params[:keys][:p256dh], # &lt;0, 4, 0&gt;
+      learner:    user # &lt;0, 0, 0&gt;
+    )
+
+    if subscription.save # &lt;0, 1, 1&gt;
+      context.subscription = subscription # &lt;1, 2, 0&gt;
+    else # &lt;0, 0, 1&gt;
+      context.error = subscription.errors.full_messages # &lt;1, 4, 0&gt;
+      context.fail! # &lt;0, 2, 0&gt;
+    end
+  end
+end
+</code></pre>
+                    <p>コンテキストが参照されるたびに、メトリックによって
+                    B
+                    ポイントが追加されます。これは、コンテキストが呼び出し関数のローカル変数ではないため、メトリクスでは毎回新しいメソッド呼び出しであると想定されるためです。</p>
+                    <p>cop オプション CountRepeatedAttributes: false
+                    (これをお勧めします)
+                    を設定すると、結合されたコンテキストへのすべての参照に対して
+                    B ポイントが 1 つだけ追加されます。これにより、ABC
+                    スコアは 19.1 に下がります。</p>
+                    <p>その代わりに、次のように WebPushSubscription
+                    の作成を独自のメソッドに抽出することでスコアを下げることができます。</p>
+                    <pre><code>  def call
+    user = Learner.find_by(id: context.user_id)
+
+    if user.web_push_subscription
+      context.subscription = user.web_push_subscription
+    else
+      create_subscription(user)
+    end
+  end
+
+  private
+
+  def create_subscription(user)
+    push_params = context.push_params
+    subscription = WebPushSubscription.new(
+      endpoint:   push_params[:endpoint],
+      auth_key:   push_params.dig(:key, :auth),
+      p256dh_key: push_params.dig(:key, :p256dh),
+      learner:    user
+    )
+
+    if subscription.save
+      context.subscription = subscription
+    else
+      context.error = subscription.errors.full_messages
+      context.fail!
+    end
+  end
+</code></pre>
+                    <p>これにより、スコアが 2 つの方法に分割されます。
+                    create_subscription には、push_params
+                    を変数に割り当てたり、ネストされたハッシュ
+                    アクセサーに dig を使用したりするなど、追加の ABC
+                    節約戦略がいくつかあることに注意してください。
+                    create_subscription
+                    の最終スコアは、使用するcopオプションに応じて12から16の間であり、callは6から8の間です。</p>
+                    <p>一般に、ABC
+                    スコアを下げるために必要なのは、より小さなメソッドにリファクタリングすることだけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

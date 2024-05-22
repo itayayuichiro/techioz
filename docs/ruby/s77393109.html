@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Thor のlimited_options のエイリアス | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Thor のlimited_options のエイリアス",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Thor のlimited_options のエイリアス</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Thor
+                    でユーザーに入力を求めたいのですが、エイリアスがあります。</p>
+                    <pre><code>$ Is this correct?: [yes, no, maybe] (yes)
+</code></pre>
+                    <p>現在、私はこれを持っています：</p>
+                    <pre><code>class CLI &lt; Thor
+  desc &#39;do_thing&#39;, &#39;does a thing&#39;
+  def do_thing      
+    answer = ask(&quot;Is this correct?&quot;, limited_to: %w{yes no maybe}, default: &#39;yes&#39;)
+    # do stuff
+  end
+end
+</code></pre>
+                    <p>ユーザーに各オプションの最初の文字だけを入力してもらいたいと考えています。</p>
+                    <p>しかし、私は次のような応答を受け取ります。</p>
+                    <pre><code>$ Your response must be one of: [yes, no, maybe]. Please try again.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>回答は、limited_to
+                    で提供されるオプションのリストと直接照合されるため、質問するエイリアスを追加することはできません。ソース</p>
+                    <p>本当にこの機能が必要な場合、最善の策は、limited_options
+                    をスキップし、代わりに事後に答えを確認し、それに応じて応答することです。</p>
+                    <pre><code>class MyCLI  &lt; Thor
+  desc &#39;do_thing&#39;, &#39;does a thing&#39;
+  def do_thing      
+    answer = ask(&quot;Is this correct? (Y)es/(N)o/(M)aybe:&quot;, default: &#39;Y&#39;)
+    unless %w(y n m yes no maybe).include?(answer.downcase)
+      puts &quot;[#{answer}] is an invalid option. Please try again.&quot;
+      send(__method__)
+    end 
+    puts answer
+  end
+end
+</code></pre>
+                    <p>例：</p>
+                    <pre><code>Is this correct? (Y)es/(N)o/(M)aybe: (Y) Test 
+[Test] is an invalid option. Please try again.
+Is this correct? (Y)es/(N)o/(M)aybe: (Y) Yes 
+Yes
+</code></pre>
+                    <p>組み込みの限られたオプションを使用したい場合は、次のようなものを使用できますが、私の意見では、これは
+                    CLI で表現するとそれほど魅力的ではありません。</p>
+                    <pre><code>class CLI &lt; Thor
+  desc &#39;do_thing&#39;, &#39;does a thing&#39;
+  def do_thing      
+    answer = ask(&quot;Is this correct? (Y)es/(N)o/(M)aybe&quot;, limited_to: %w{y n m}, default: &#39;y&#39;, case_insensitive: true)
+  end
+end
+</code></pre>
+                    <p>これは次のように出力されます:</p>
+                    <pre><code>Is this correct? (Y)es/(N)o/(M)aybe [y,n,m] (y)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

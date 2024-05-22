@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>postgresデータベースのRails jsonbブール属性でクエリを実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "postgresデータベースのRails jsonbブール属性でクエリを実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>postgresデータベースのRails
+jsonbブール属性でクエリを実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    7では、JSONbハッシュを設定した次のCouncilモデルがあります。
+                    設定jsonb列でinnov_funnel_connected:
+                    trueであるすべての評議会を取得したいと考えています。</p>
+                    <pre><code># == Schema Information
+#
+# Table name: councils
+#
+#  id                                         :uuid             not null, primary key                                
+#  name                                       :string
+#  settings                                   :jsonb            not null
+
+class Council &lt; ApplicationRecord
+  serialize :settings, HashSerializer
+end
+
+class HashSerializer
+  def self.dump(hash)
+    hash.to_json
+  end
+
+  def self.load(jsonb)
+    hash = JSON.load(jsonb) if jsonb.class == String
+    HashWithIndifferentAccess.new(hash)
+  end
+end
+</code></pre>
+                    <pre><code>irb &gt; Council.last
+=&gt; #&lt;Council:0x000000010bf81e00
+ id: &quot;13df8a20-002c-45c1-9845-1815591688b6&quot;,
+ name: &quot;Ford123&quot;,
+ settings: {&quot;innov_funnel_connected&quot;=&gt;true}&gt;
+
+irb &gt; Council.last.settings
+=&gt; {&quot;innov_funnel_connected&quot;=&gt;true}
+
+irb&gt; Council.where(&quot;(settings -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true&quot;)
+  Council Load (0.9ms)  SELECT &quot;councils&quot;.* FROM &quot;councils&quot; WHERE ((settings -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true)
+=&gt; []
+
+irb&gt; Council.where(&quot;settings::jsonb @&gt; ?&quot;, { &quot;innov_funnel_connected&quot; =&gt; true }.to_json)
+  Council Load (1.1ms)  SELECT &quot;councils&quot;.* FROM &quot;councils&quot; WHERE (settings::jsonb @&gt; &#39;{&quot;innov_funnel_connected&quot;:true}&#39;)
+=&gt; []
+</code></pre>
+                    <pre><code>irb&gt; Council.where(&quot;settings -&gt;&gt; &#39;innov_funnel_connected&#39; = true&quot;).first
+  Council Load (2.7ms)  SELECT &quot;councils&quot;.* FROM &quot;councils&quot; WHERE (settings -&gt;&gt; &#39;innov_funnel_connected&#39; = true) ORDER BY &quot;councils&quot;.&quot;created_at&quot; ASC, &quot;councils&quot;.&quot;id&quot; ASC LIMIT $1  [[&quot;LIMIT&quot;, 1]]
+ActiveRecord::StatementInvalid: PG::UndefinedFunction: ERROR:  operator does not exist: text = boolean
+LINE 1: ...ils&quot; WHERE (settings -&gt;&gt; &#39;innov_funnel_connected&#39; = true) OR...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+from /Users/rege/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.3/lib/active_record/connection_adapters/postgresql_adapter.rb:768:in `exec_params&#39;
+Caused by PG::UndefinedFunction: ERROR:  operator does not exist: text = boolean
+LINE 1: ...ils&quot; WHERE (settings -&gt;&gt; &#39;innov_funnel_connected&#39; = true) OR...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+from /Users/rege/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.3/lib/active_record/connection_adapters/postgresql_adapter.rb:768:in `exec_params&#39;
+</code></pre>
+                    <pre><code>&gt; Council.where(&quot;(settings -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true)&quot;).first
+  Council Load (2.0ms)  SELECT &quot;councils&quot;.* FROM &quot;councils&quot; WHERE ((settings -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true)) ORDER BY &quot;councils&quot;.&quot;created_at&quot; ASC, &quot;councils&quot;.&quot;id&quot; ASC LIMIT $1  [[&quot;LIMIT&quot;, 1]]
+ActiveRecord::StatementInvalid: PG::SyntaxError: ERROR:  syntax error at or near &quot;)&quot;
+LINE 1: ...gs -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true)) ORDER BY...
+                                                             ^
+
+from /Users/rege/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.3/lib/active_record/connection_adapters/postgresql_adapter.rb:768:in `exec_params&#39;
+Caused by PG::SyntaxError: ERROR:  syntax error at or near &quot;)&quot;
+LINE 1: ...gs -&gt;&gt; &#39;innov_funnel_connected&#39;)::boolean is true)) ORDER BY...
+                                                             ^
+
+from /Users/rege/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.3/lib/active_record/connection_adapters/postgresql_adapter.rb:768:in `exec_params&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラー：</p>
+                    <p>エラー: 演算子が存在しません: text = ブール値</p>
+                    <p>問題を伝えています。</p>
+                    <p>ここから</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.postgresql.org/docs/current/functions-json.html</p>
+                    <p>json -&gt;&gt; 整数 → テキスト</p>
+                    <p>それで：</p>
+                    <pre><code>select &#39;{&quot;key&quot;: true}&#39;::json -&gt;&gt; &#39;key&#39; = true;
+
+ERROR:  operator does not exist: text = boolean
+LINE 1: select &#39;{&quot;key&quot;: true}&#39;::json -&gt;&gt; &#39;key&#39; = true;
+</code></pre>
+                    <p>解決：</p>
+                    <pre><code>select (&#39;{&quot;key&quot;: true}&#39;::json -&gt;&gt; &#39;key&#39;)::boolean = true;
+ ?column? 
+----------
+ t
+</code></pre>
+                    <p>またはその逆:</p>
+                    <pre><code> select &#39;{&quot;key&quot;: true}&#39;::json -&gt;&gt; &#39;key&#39; = &#39;true&#39;;
+ ?column? 
+----------
+ t
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

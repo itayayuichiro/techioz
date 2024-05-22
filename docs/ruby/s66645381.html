@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby-install を使用して Ruby をインストールすると、Mac M1 でビルド エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby-install を使用して Ruby をインストールすると、Mac M1 でビルド エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby-install を使用して Ruby
+をインストールすると、Mac M1 でビルド エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Mac M1 に Ruby-install を使用して Ruby 2.6.6
+                    または 2.7.2
+                    をインストールすると、次のエラーが発生します。 Ruby
+                    3.0.0 は正常に動作しますが、それより古いものは
+                    readline でエラーが発生し、ruby
+                    をインストールできません。</p>
+                    <pre><code>readline.c:1905:37: error: use of undeclared identifier &#39;username_completion_function&#39;; did you mean &#39;rl_username_completion_function&#39;?
+                                    rl_username_completion_function);
+                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                    rl_username_completion_function
+readline.c:79:42: note: expanded from macro &#39;rl_username_completion_function&#39;
+# define rl_username_completion_function username_completion_function
+                                         ^
+/opt/homebrew/opt/readline/include/readline/readline.h:485:14: note: &#39;rl_username_completion_function&#39; declared here
+extern char *rl_username_completion_function PARAMS((const char *, int));
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次の手順で、最終的に、2.6.6
+                    を含む古いバージョンの Ruby を m1 チップの MacBook
+                    Pro にインストールできました。</p>
+                    <p>まず、rbenv、ruby-build、readline
+                    を次のように再インストールする必要がありました。</p>
+                    <pre><code>brew reinstall rbenv ruby-build readline
+</code></pre>
+                    <p>次に、CONFIGURE_OPTS を使用すると、OpenSSL
+                    ビルドが壊れていました。代わりに RUBY_CONFIGURE_OPTS
+                    を使用してください。私は hombrew
+                    を使用しており、次のフラグを使用する必要がありました。</p>
+                    <pre><code>RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=`brew --prefix openssl` --with-readline-dir=`brew --prefix readline`&quot;
+</code></pre>
+                    <p>3 番目に、make
+                    コマンドの警告によってビルドが停止されないように次のように設定します。</p>
+                    <pre><code>RUBY_CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot;
+</code></pre>
+                    <p>4 番目に、rbenv 経由でインストールするときに必ず
+                    Arch フラグを設定します。</p>
+                    <pre><code>arch -x86_84
+</code></pre>
+                    <p>5
+                    番目に、自作パスが正しく設定されていることを確認します。</p>
+                    <pre><code>export PATH=&quot;/opt/homebrew/bin:$PATH&quot;
+export PATH=&quot;/opt/homebrew/opt:$PATH&quot;
+</code></pre>
+                    <p>Ruby 2.6.6
+                    を正常にインストールした最後のコマンドは次のとおりです。</p>
+                    <pre><code>export PATH=&quot;/opt/homebrew/bin:$PATH&quot;
+export PATH=&quot;/opt/homebrew/opt:$PATH&quot;
+RUBY_CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot; RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=`brew --prefix openssl` --with-readline-dir=`brew --prefix readline`&quot; sudo arch -x86_64 rbenv install --verbose 2.6.6
+</code></pre>
+                    <p>sudo を使用して、スクリプトに mkdir
+                    権限を付与しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

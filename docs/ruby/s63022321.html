@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby セーフ ナビゲーション オペレーターは、レシーバーが nil の場合にそのパラメーターを評価しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby セーフ ナビゲーション オペレーターは、レシーバーが nil の場合にそのパラメーターを評価しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby セーフ ナビゲーション
+オペレーターは、レシーバーが nil
+の場合にそのパラメーターを評価しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby のセーフ ナビゲーション演算子 (&amp;.)
+                    は、レシーバーが nil
+                    の場合にパラメーターを評価しますか?</p>
+                    <p>例えば：</p>
+                    <pre><code>logger&amp;.log(&quot;Something important happened...&quot;)
+</code></pre>
+                    <p>前もって感謝します。</p>
+                    <p>コードベース全体に次のようなコードがあります。</p>
+                    <pre><code>logger.log(&quot;Something important happened. (#{Time.current})&quot;) if verbose
+</code></pre>
+                    <p>私の主な目標は、log
+                    メソッドを呼び出すたびに行われる if
+                    詳細チェックの繰り返しを削除することです。これは忘れられやすく、誤用についてはまったく通知されないためです。</p>
+                    <p>「Tell、Don’t ask」の原則に触発されて、</p>
+                    <p>ログメソッド実装内の if
+                    冗長チェックを移動しました。</p>
+                    <pre><code>class Logger
+  # ...
+  
+  def log(message)
+    return unless verbose
+
+    # ...
+  end
+end
+
+def logger
+  @logger ||= Logger.new
+end
+
+logger.log(&quot;Something important happened. (#{Time.current})&quot;)
+</code></pre>
+                    <p>このアプローチにより、主な問題が解決されたため、コードが簡素化されました。log
+                    メソッドを呼び出すたびに
+                    if冗長を配置することを覚えておく必要がなくなりました。</p>
+                    <p>しかし、別の問題を受け取りました。</p>
+                    <p>「Something important…」文字列は、verbose が true
+                    か false かに関係なく、常に評価されます。</p>
+                    <p>したがって、ソリューションを完全に変更しました。</p>
+                    <pre><code>def logger
+  @logger ||= Logger.new if verbose
+end
+
+logger&amp;.log(&quot;Something important happened. (#{Time.current})&quot;)
+</code></pre>
+                    <p>その結果、冗長チェックの場合を思い出すという最初の問題を、&amp;
+                    を思い出すことに置き換えました。呼び出します。</p>
+                    <p>しかし、とにかく、安全なナビゲーション演算子を使用するのを忘れると
+                    NoMethodError が発生する、つまり、ログ
+                    メソッドの誤使用について通知されるため、これは改善であると考えています。</p>
+                    <p>ここで、「安全なナビゲーション
+                    オペレーターのアプローチ」が実際に私の問題に対して「より良い」選択肢であることを確認するために、次のようにします。</p>
+                    <p>Ruby のセーフ ナビゲーション
+                    オペレーターがレシーバーが nil
+                    のときにパラメーターを評価するかどうかを正確に知る必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>セーフ
+                    ナビゲーション演算子の構文ドキュメントから引用するには、次のようにします。</p>
+                    <p>そのため、次のように呼び出したときにロガーが nil
+                    の場合、log メソッドの引数は評価されません。</p>
+                    <pre><code>logger&amp;.log(&quot;something happened at #{Time.now}&quot;)
+</code></pre>
+                    <p>そうは言っても、Ruby コア
+                    ロガーは、まさに問題に対して別の解決策を提供することに注意してください。つまり、ログ
+                    レベルが高すぎる場合に、潜在的に高価な引数を評価する必要がなくなるのです。</p>
+                    <p>Ruby コア ロガーは、次のような add
+                    メソッドを実装します (簡略化)。</p>
+                    <pre><code>class Logger
+  attr_accessor :level
+
+  def initialize(level)
+    @level = level.to_i
+  end
+
+  def add(severity, message = nil)
+    return unless severity &gt;= level
+    
+    message ||= yield
+    log_device.write(message)
+  end
+
+  def info(message = nil, &amp;block)
+    add(1, message, &amp;block)
+  end
+end
+</code></pre>
+                    <p>これを次のように使用できます</p>
+                    <pre><code>logger = Logger.new(1)
+logger.info { &quot;something happened at #{Time.now}&quot; }
+</code></pre>
+                    <p>ここで、ブロックは、メッセージが実際に使用されるほどログ
+                    レベルが高い場合にのみ評価されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

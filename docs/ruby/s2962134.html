@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - ファイルをバッチで読み取る | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - ファイルをバッチで読み取る",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby - ファイルをバッチで読み取る</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サイズが 10MB で、いくつかの ID
+                    が含まれるファイルを読んでいます。それらを Ruby
+                    でリストに読み込みます。将来、ファイル内の ID
+                    の数が増加したときにメモリの問題が発生するのではないかと心配しています。大きなファイルをバッチで読み取る効果的な方法はありますか?</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Lazy Enumerator と each_slice
+                    を使用すると、両方の長所を活用できます。行を途中で切ることを心配する必要はなく、バッチで複数の行を繰り返すことができます。バッチサイズは自由に選択できます。</p>
+                    <pre><code>header_lines = 1
+batch_size   = 2000
+
+File.open(&quot;big_file&quot;) do |file|
+  file.lazy.drop(header_lines).each_slice(batch_size) do |lines|
+    # do something with batch of lines
+  end
+end
+</code></pre>
+                    <p>巨大な CSV
+                    ファイルをデータベースにインポートするために使用できます。</p>
+                    <pre><code>require &#39;csv&#39;
+batch_size   = 2000
+
+File.open(&quot;big_data.csv&quot;) do |file|
+  headers = file.first
+  file.lazy.each_slice(batch_size) do |lines|
+    csv_rows = CSV.parse(lines.join, headers: headers)
+    # do something with 2000 csv rows, e.g. bulk insert them into a database
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

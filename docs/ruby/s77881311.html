@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Test::Unit テスト クラス内の複数のアサーションが最初の失敗時にスキップされる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Test::Unit テスト クラス内の複数のアサーションが最初の失敗時にスキップされる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Test::Unit テスト
+クラス内の複数のアサーションが最初の失敗時にスキップされる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかの関連する質問とその回答を見ましたが、私の問題を完全に解決できるものはないようです。</p>
+                    <p>私の単体テストは通常、拡張とメンテナンスを容易にするために外部データセットによるデータ駆動型です。あらゆる種類の入力を使用してプリミティブをテストします。例として、(Ruby
+                    の通常のルールではなく)
+                    特定のルールに従って引数を評価する #truthify
+                    メソッドがあります。テスト入力のセットは拡大し続けています。</p>
+                    <p>したがって、2 つのテスト クラスがあり、1
+                    つは「true」引数が正しく評価されるかどうかをテストするためのもので、もう
+                    1
+                    つは「false」引数用です。各クラスは入力セットを反復処理し、ループ内でアサーションを作成します。ただし、最初に失敗すると、そのテスト
+                    クラスの処理が中止されます。</p>
+                    <p>これは私の最も単純な例の 1 つです。</p>
+                    <p>私が最後に Test::Unit (数年前)
+                    を使用したとき、ISTR には、テスト
+                    クラスを中止せずに、失敗した各アサーションを報告させる方法がありました。</p>
+                    <p>テスト値ごとに個別のテスト
+                    クラスを作成することは、たとえサブクラス化で物事を単純化したとしても、あまりにも扱いにくく保守不可能であり、KISS
+                    と DRY にも違反していると感じます。</p>
+                    <p>アサーションが失敗した後に Test::Unit
+                    に続行するように指示する方法がない場合、テスト
+                    ケース内のテスト
+                    クラスのリストを動的に変更する方法はありますか?そうすれば、少なくともケースの初期化で、外部データセットの値に基づいて個々のテスト
+                    クラスをすべて動的に追加できます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>各アサーションは独自のテスト
+                    メソッド内に存在する必要があります。</p>
+                    <pre><code>class MyTest &lt; Test::Unit::TestCase
+  10.times do |i|
+    define_method &quot;test_#{i}&quot; do
+      assert false, &quot;Assertion was false.&quot;
+    end
+  end
+end
+</code></pre>
+                    <pre><code>10 tests, 10 assertions, 10 failures, 0 errors, 0 pendings, 0 omissions, 0 notifications
+0% passed
+</code></pre>
+                    <p>必要に応じて、選択的にファイルを要求できます。</p>
+                    <pre><code># test/run.rb
+
+require &quot;test/unit&quot;
+
+# require whatever tests you want to run
+require_relative &quot;./my_test&quot;
+
+Test::Unit::AutoRunner.run
+</code></pre>
+                    <p>またはコマンドラインからの正規表現テストクラス:</p>
+                    <pre><code>$ ruby test/run.rb --testcase=/myte/i
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

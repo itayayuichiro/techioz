@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: ビルドに失敗しました (ruby-build 20210119 を使用した macOS 11.2) Mac Big Sur | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: ビルドに失敗しました (ruby-build 20210119 を使用した macOS 11.2) Mac Big Sur",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: ビルドに失敗しました (ruby-build
+20210119 を使用した macOS 11.2) Mac Big Sur</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>macOS Big Sur で Ruby のインストール (2.2.2)
+                    が失敗することを確認しました。</p>
+                    <p>私の macOS は Big Sur で、バージョンは 11.2
+                    で、これが OS
+                    で発生している問題に最も近いものでした。できる限りのことを試してみました。</p>
+                    <pre><code>CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot; rbenv install 2.5.3
+</code></pre>
+                    <p>そしてまた</p>
+                    <pre><code>RUBY_CFLAGS=-DUSE_FFI_CLOSURE_ALLOC rbenv install 2.5.3
+</code></pre>
+                    <p>これは私のターミナルでの出力です:</p>
+                    <pre><code>Downloading openssl-1.1.1i.tar.gz...
+-&gt; https://dqw8nmjcqpjn7.cloudfront.net/e8be6a35fe41d10603c3cc635e93289ed00bf34b79671a3a4de64fcee00d5242
+Installing openssl-1.1.1i...
+Installed openssl-1.1.1i to /Users/richard/.rbenv/versions/2.5.3
+
+Downloading ruby-2.5.3.tar.bz2...
+-&gt; https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.bz2
+Installing ruby-2.5.3...
+
+WARNING: ruby-2.5.3 is nearing its end of life.
+It only receives critical security updates, no bug fixes.
+
+ruby-build: using readline from homebrew
+/opt/homebrew/bin/ruby-build: line 1121: 31528 Killed: 9               &quot;$RUBY_BIN&quot; -e &#39;
+    manager = ARGV[0]
+    packages = {
+      &quot;apt-get&quot; =&gt; Hash.new {|h,k| &quot;lib#{k}-dev&quot; }.update(
+        &quot;openssl&quot; =&gt; &quot;libssl-dev&quot;,
+        &quot;zlib&quot; =&gt; &quot;zlib1g-dev&quot;
+      ),
+      &quot;yum&quot; =&gt; Hash.new {|h,k| &quot;#{k}-devel&quot; }.update(
+        &quot;yaml&quot; =&gt; &quot;libyaml-devel&quot;
+      )
+    }
+
+    failed = %w[openssl readline zlib yaml].reject do |lib|
+      begin
+        require lib
+      rescue LoadError
+        $stderr.puts &quot;The Ruby #{lib} extension was not compiled.&quot;
+      end
+    end
+
+    if failed.size &gt; 0
+      $stderr.puts &quot;ERROR: Ruby install aborted due to missing extensions&quot;
+      $stderr.print &quot;Try running `%s install -y %s` to fetch missing dependencies.\n\n&quot; % [
+        manager,
+        failed.map { |lib| packages.fetch(manager)[lib] }.join(&quot; &quot;)
+      ] unless manager.empty?
+      $stderr.puts &quot;Configure options used:&quot;
+      require &quot;rbconfig&quot;; require &quot;shellwords&quot;
+      RbConfig::CONFIG.fetch(&quot;configure_args&quot;).shellsplit.each { |arg| $stderr.puts &quot;  #{arg}&quot; }
+      exit 1
+    end
+  &#39; &quot;$(basename &quot;$(type -p yum apt-get | head -1)&quot;)&quot; 1&gt;&amp;4 2&gt;&amp;1
+
+BUILD FAILED (macOS 11.2 using ruby-build 20210119)
+
+Inspect or clean up the working tree at /var/folders/rn/c7nmr3x12gg5r8qwsr4ty8hh0000gn/T/ruby-build.20210209143521.94730.xfFT9O
+Results logged to /var/folders/rn/c7nmr3x12gg5r8qwsr4ty8hh0000gn/T/ruby-build.20210209143521.94730.log
+
+Last 10 log lines:
+installing bundled gems:            /Users/richard/.rbenv/versions/2.5.3/lib/ruby/gems/2.5.0 (build_info, cache, doc, extensions, gems, specifications)
+                                    power_assert 1.1.1
+                                    net-telnet 0.1.1
+                                    did_you_mean 1.2.0
+                                    xmlrpc 0.3.0
+                                    rake 12.3.0
+                                    minitest 5.10.3
+                                    test-unit 3.2.7
+installing rdoc:                    /Users/richard/.rbenv/versions/2.5.3/share/ri/2.5.0/system
+installing capi-docs:               /Users/richard/.rbenv/versions/2.5.3/share/doc/ruby
+</code></pre>
+                    <p>上記の両方のコマンドでこのエラーが発生し、どちらも同じ出力を返します。
+                    Ruby のバージョンも関係ないようです。3.0.0
+                    も試してみましたが、同じ結果が得られました。</p>
+                    <p>さらに、これは rbenv install で Ruby
+                    をインストールしようとしたときの元の出力です</p>
+                    <pre><code>Downloading openssl-1.1.1i.tar.gz...
+-&gt; https://dqw8nmjcqpjn7.cloudfront.net/e8be6a35fe41d10603c3cc635e93289ed00bf34b79671a3a4de64fcee00d5242
+Installing openssl-1.1.1i...
+Installed openssl-1.1.1i to /Users/richard/.rbenv/versions/2.5.3
+Downloading ruby-2.5.3.tar.bz2...
+-&gt; https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.bz2
+Installing ruby-2.5.3...
+WARNING: ruby-2.5.3 is nearing its end of life.
+It only receives critical security updates, no bug fixes.
+ruby-build: using readline from homebrew
+BUILD FAILED (macOS 11.2 using ruby-build 20210119)
+Inspect or clean up the working tree at /var/folders/rn/c7nmr3x12gg5r8qwsr4ty8hh0000gn/T/ruby-build.20210209143107.60561.YqaRpk
+Results logged to /var/folders/rn/c7nmr3x12gg5r8qwsr4ty8hh0000gn/T/ruby-build.20210209143107.60561.log
+Last 10 log lines:
+compiling ../.././ext/psych/yaml/reader.c
+compiling ../.././ext/psych/yaml/emitter.c
+compiling ../.././ext/psych/yaml/parser.c
+linking shared-object json/ext/generator.bundle
+5 warnings generated.
+linking shared-object date_core.bundle
+linking shared-object zlib.bundle
+1 warning generated.
+linking shared-object psych.bundle
+make: *** [build-ext] Error 2
+</code></pre>
+                    <p>xcode-select のバージョンは 2384 です。 Homebrew
+                    のバージョンは 3.0.0
+                    で、醸造博士は醸造の準備ができたと言いました。</p>
+                    <p>私の .zshrc
+                    ファイルには、次の行も含まれています。 eval “export
+                    PATH=”/Users/itayayuicularu/.rbenv/shims:<span
+                    class="math inline">${PATH}" エクスポート
+                    RBENV_SHELL=sh コマンド rbenv rehash 2&gt;/dev/null
+                    rbenv() { ローカルコマンド コマンド="$</span>{1:-}”
+                    if [ “$#” -gt 0 ];それから シフト フィ</p>
+                    <p>「<span class="math inline">$command」の場合
+                    リハッシュ|シェル) eval "$</span>(rbenv “sh-<span
+                    class="math inline">$command" "$</span>@”)“;; *)
+                    コマンド rbenv “<span class="math inline">$command"
+                    "$</span>@”;; イーサック }”</p>
+                    <p>現時点では、他にどこに頼ればいいのかわかりません🤷
+                    ログ
+                    ファイルで確認したい詳細がある場合は、どこから取得したかをお知らせください。ログ
+                    ファイルは大きすぎてここで共有できません。なぜこれが起こっているのでしょうか?どうすれば解決できますか?
+                    🤦u200d♂️</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rbenv のインストール中に、MacOS Monterey 12.2 (M1
+                    Pro チップ) でも同じ問題に直面しました。
+                    この解決策は私にとってはうまくいきました-</p>
+                    <p>これを実行する代わりに- rbenv インストール
+                    2.5.3</p>
+                    <p>これを実行してください-
+                    RUBY_CFLAGS=“-Wno-error=暗黙的関数宣言” rbenv
+                    インストール 2.5.3</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで同じクラスを2回定義する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで同じクラスを2回定義する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで同じクラスを2回定義する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコードは機能しますが、理由がわかりません。ファイルが
+                    2 つあります。 1 つ目は、active_market/walmart.rb
+                    にある walmart.rb
+                    というクラスです。クラス定義は次のとおりです。</p>
+                    <pre><code>module ActiveMarket
+    class Walmart
+        def test_one
+            puts &quot;test one&quot;
+        end
+    end
+end
+</code></pre>
+                    <p>私の Walmart
+                    クラスには、Order、Fulfillment、Report などの
+                    Walmart API の「API
+                    実装」があります。そのため、最初の API
+                    実装用のフォルダーと別のクラスを
+                    active_market/walmart/order.rb に作成しました。</p>
+                    <p>Order クラスの定義は次のとおりです。</p>
+                    <pre><code>class ActiveMarket::Walmart
+  def test_two
+    puts &quot;test two&quot;
+  end
+
+  class Order &lt; ActiveMarket::Walmart
+    def test_all
+      test_two
+      test_one
+    end
+  end
+
+end
+</code></pre>
+                    <p>ActiveMarket::Walmart.new と
+                    ActiveMarket::Walmart::Order.new
+                    を呼び出せるようにしたいと考えていました。これを行うには、上で示したように、クラス
+                    ActiveMarket::Walmart をもう一度定義し、その中に
+                    Order
+                    クラスを配置する必要がありました。これは期待どおりに機能しましたが、なぜこれら
+                    3
+                    つの関数すべてを正常に呼び出すことができるのかわかりません。</p>
+                    <pre><code>ActiveMarket::Walmart.new.test_one
+ActiveMarket::Walmart.new.test_two
+ActiveMarket::Walmart::Order.new.test_all
+</code></pre>
+                    <p>それで、問題はなぜこれが機能するのかということです。まったく異なる
+                    2 つのファイルで定義されている test_one 関数と
+                    test_two
+                    関数を同じクラスで呼び出すことができるのはなぜですか?
+                    ActiveMarket::Walmart クラスの 1
+                    つが完全にオーバーライドされることを期待していました。これには何か欠点はありますか、それとも実装を変更する必要がありますか?</p>
+                    <p>前もって感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    では、既存のクラスを再度開き、そこにメソッドを追加したり、既存のメソッドをオーバーライドしたりできます。</p>
+                    <p>あなたの例では、実際には 2 つのインスタンス
+                    メソッドを定義する ActiveMarket::Walmart クラスが 1
+                    つだけあります。</p>
+                    <p>これを試して：</p>
+                    <pre><code>walmart = ActiveMarket::Walmart.new
+walmart.test_one
+#=&gt; test one
+walmart.test_two
+#&gt; test two
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでメソッドを一時的に再定義するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでメソッドを一時的に再定義するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでメソッドを一時的に再定義するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>言ってください、私は次のものを持っています：</p>
+                    <pre><code>class Test
+  def initialize(m)
+    @m = m
+  end
+
+  def test
+    @m
+  end
+end
+</code></pre>
+                    <p>Test のすべてのインスタンス (既存と新規の両方)
+                    のメソッド #test が一時的に 113
+                    を返し、後で元のメソッドを復元するにはどうすればよいですか?</p>
+                    <p>とても簡単なことのように思えますが、それを達成するための良い方法が見つかりません。私のRubyの知識が乏しいせいかもしれません。</p>
+                    <p>私がこれまでに見つけたものは次のとおりです。</p>
+                    <pre><code># saving the original method
+Test.send(:alias_method, :old_test, :test)
+
+# redefining the method
+Test.send(:define_method, :test) { 113 }
+
+# restore the original method
+Test.send(:alias_method, :test, :old_test)
+</code></pre>
+                    <p>どちらが役割を果たしますが、私が理解しているように、既存の
+                    #old_test
+                    が存在する場合はそれも再定義することになります?..
+                    そして、それはメタプログラミングの適切な使用というよりもハッキングのように感じます?.</p>
+                    <p>たとえ難しいものや非現実的なものであっても、同じことを達成するための複数の方法を説明していただければ幸いです。
+                    Ruby
+                    のメタプログラミングの柔軟性と制限についてのアイデアを提供するために:)</p>
+                    <p>ありがとうございました🤗</p>
+                    <p>追伸私がこれらすべてを始めた理由: gem
+                    ラックスロットルを使用して /api
+                    で始まるリクエストをスロットルしていますが、他の URL
+                    は影響を受けないはずです。これらすべてをテストして、それが機能することを確認したいと考えています。スロットルをテストするには、テスト環境にもミドルウェアを追加する必要がありました。
+                    (minitest を使用して)
+                    正常にテストできましたが、ApiController
+                    をテストする他のすべてのテストは調整すべきではありません。各リクエストの後に
+                    1
+                    秒待つ必要がある場合、テストにかかる時間が大幅に長くなるからです。</p>
+                    <p>RequestSpecificIntervalThrottle#allowed?
+                    にモンキーパッチを適用することにしました。 minitest
+                    の #setups で { true }
+                    を使用して、これらすべてのテストのスロットルを一時的に無効にし、その後
+                    #teardowns で再度有効にします
+                    (そうしないと、スロットル自体をテストするテストが失敗します)。これについてどのようにアプローチするかを教えていただければ幸いです。</p>
+                    <p>しかし、すでにメタプログラミングについて掘り下げ始めているので、実際に使用するつもりはないとしても、これをどのように達成するか
+                    (メソッドを一時的に再定義する)
+                    にも興味があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>instance_method を使用すると、任意のインスタンス
+                    メソッドから UnboundMethod
+                    オブジェクトを取得できます。</p>
+                    <pre><code>class Foo
+  def bar
+    &quot;Hello&quot;
+  end
+end
+old_method = Foo.instance_method(:bar)
+# Redifine the method
+Foo.define_method(:bar) do
+  puts &quot;Goodbye&quot;
+end
+puts Foo.new.bar # Goodbye
+
+# restore the old method:
+Foo.define_method(old_method.name, old_method)
+</code></pre>
+                    <p>非バインド
+                    メソッドはオブジェクト化された時点のメソッドへの参照であり、基になるクラスに対するその後の変更は非バインド
+                    メソッドには影響しません。</p>
+                    <p>クラスメソッドに相当するものは次のとおりです。</p>
+                    <pre><code>class Foo
+  def self.baz
+    &quot;Hello&quot;
+  end
+end
+
+old_method = Foo.method(:baz).unbind
+</code></pre>
+                    <p>世界最小の (そしておそらく最も役に立たない)
+                    スタブ
+                    ライブラリを作成したい場合は、次のように実行できます。</p>
+                    <pre><code>class Stubby
+  def initialize(klass, method_name, &amp;block)
+    @klass = klass
+    @old_method = klass.instance_method(method_name)
+    @klass.define_method(method_name, &amp;block)
+  end
+
+  def restore
+    @klass.define_method(@old_method.name, @old_method)
+  end
+
+  def run_and_restore
+    yield
+  ensure
+    restore
+  end
+end
+
+puts Foo.new.bar # Hello
+
+Stubby.new(Foo, :bar) do
+  &quot;Goodbye&quot;
+end.run_and_restore do
+  puts Foo.new.bar # Goodbye
+end
+
+puts Foo.new.bar # Hello
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

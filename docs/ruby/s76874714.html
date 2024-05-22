@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails の非コントローラー クラスからパラメータを取得するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails の非コントローラー クラスからパラメータを取得するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails の非コントローラー
+クラスからパラメータを取得するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この関数は非コントローラークラスにあります</p>
+                    <pre><code>  def self.request(req_num, time)
+    token = XsrfToken.last[&#39;token&#39;]
+    db_parser = FetchDbParser.new
+    used_url = ENUM_URLS[req_num]
+    p token
+    conn = Faraday.new(
+      url: &quot;#{BASE}#{used_url}&quot;,
+      headers: { &#39;Content-Type&#39; =&gt; &#39;application/json&#39;, &#39;XSRF-TOKEN&#39; =&gt; token }
+    )
+    response = conn.post do |req|
+      req.body = { stationCodes: params[:id], collectTime: time }.to_json
+    end
+    res = JSON.parse(response.body)
+    return unless res[&#39;success&#39;]
+
+    parser_caller(req_num, res, db_parser)
+  end
+</code></pre>
+                    <p>ここでパラメータを取得する必要があります req.body
+                    = { stationCodes: params[:id],collectTime: time
+                    }.to_json ですが、それは未定義です</p>
+                    <p>また、ApplicationController
+                    クラスでメソッドを作成しようとしました。これは、非コントローラ
+                    クラスから呼び出され、このパラメータを返すことになっていましたが、別のエラーが発生しました。</p>
+                    <pre><code>`params&#39;: undefined method `filtered_parameters&#39; for nil:NilClass (NoMethodError)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>params
+                    はコントローラーの概念であり、コントローラー
+                    アクションのコンテキストでのみ使用できます。</p>
+                    <p>別のオブジェクトの params
+                    の値が必要な場合は、params
+                    または少なくとも必要な値をオブジェクトに明示的に渡す必要があります。</p>
+                    <p>たとえば、コントローラーが次のようになっている場合</p>
+                    <pre><code>def method_name
+  YourClass.request(req_num, time)
+end
+</code></pre>
+                    <p>self.request メソッドで params[:id]
+                    の値が必要な場合は、次のようにコントローラ
+                    メソッドに変更する必要があります。</p>
+                    <pre><code>def method_name
+  YourClass.request(req_num, time, params[:id])
+end  
+</code></pre>
+                    <p>このようにリクエストしてください</p>
+                    <pre><code>def self.request(req_num, time, id_from_params)  #&lt;= see here
+  token = XsrfToken.last[&#39;token&#39;]
+  db_parser = FetchDbParser.new
+  used_url = ENUM_URLS[req_num]
+  p token
+  conn = Faraday.new(
+    url: &quot;#{BASE}#{used_url}&quot;,
+    headers: { &#39;Content-Type&#39; =&gt; &#39;application/json&#39;, &#39;XSRF-TOKEN&#39; =&gt; token }
+  )
+  response = conn.post do |req|
+    req.body = { stationCodes: id_from_params, collectTime: time }.to_json  #&lt;= and here
+  end
+  res = JSON.parse(response.body)
+  return unless res[&#39;success&#39;]
+
+  parser_caller(req_num, res, db_parser)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

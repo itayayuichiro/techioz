@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レール |カミナリ: 最大ページ数を制限するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レール |カミナリ: 最大ページ数を制限するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レール |カミナリ:
+最大ページ数を制限するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ページネーションには Kaminari gem
+                    を使用しています。</p>
+                    <p>このようなコードを実行しようとすると例外が発生します。</p>
+                    <pre><code>Distributor.all.page(123123213213132113322)
+</code></pre>
+                    <p>すでにそのような構成をイニシャライザに追加しようとしましたが、役に立ちません:</p>
+                    <pre><code>Kaminari.configure do |config|
+  config.max_pages = 1000000000
+end
+</code></pre>
+                    <p>#page
+                    メソッド呼び出しで最大ページを強制的に制限する正しい方法は何ですか、それともそのような例外を回避するための他の方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく文書化されていない MySql オフセット制限
+                    3689348814741910324 — 別名 3_689_348_814_741_910_324
+                    別名 3,689,348,814,741,910,324 別名 ((2^65) / 10) +
+                    1) 別名 ((2**65) /10)+1。 Graffiti バックエンド API
+                    を作成しているときに、同じことに遭遇しました。</p>
+                    <p>これが私がそれに対処した方法です。ここにはきっと役に立つナゲットがあるでしょう。
+                    具体的には、以下で行ったように、いくつかのフィルタリングを適用する
+                    Kaminari
+                    ページ呼び出しをラップする独自のページネーション
+                    ヘルパーを作成できます。
+                    (発生したエラーをレスキュー/キャッチし、情報メッセージとしてユーザーに送り返します。)</p>
+                    <pre><code>class ApplicationResource &lt; Graphiti::Resource
+
+  ###################################################################
+  #
+  # Constants
+  #
+  ###################################################################
+
+  # Exceeding this integer value in a query causes MySQL to overflow the integer, typically raising an error.
+  # I found very little information about this limit online. I discovered it using trial and error, otherwise I&#39;d
+  # explain more.
+  MYSQL_QUERY_INT_MAX = 3_689_348_814_741_910_324 # ((2**65) / 10) + 1
+
+  CURRENT_PAGE_DEFAULT = 1 # Graphiti takes care of this behavior itself internally. This constant is for reference only.
+  CURRENT_PAGE_MIN     = 1
+  CURRENT_PAGE_MAX     = MYSQL_QUERY_INT_MAX
+
+  RESULTS_PER_PAGE_DEFAULT = 20
+  RESULTS_PER_PAGE_MIN     = 1
+  RESULTS_PER_PAGE_MAX     = 250
+
+
+
+  ###################################################################
+  #
+  # Pagination
+  #
+  # The `scope` draws from and builds upon the `base_scope` provided by the child resource.
+  # The `current_page` and `results_per_page` come from the request
+  # params in the format: /resources?page[number]=2&amp;page[size]=10
+  #
+  ###################################################################
+  self.default_page_size = RESULTS_PER_PAGE_DEFAULT # Override default from Graphiti::Resource which is 10.
+  self.max_page_size     = RESULTS_PER_PAGE_MAX     # Override default from Graphiti::Resource which is 1,000.
+
+  paginate do |scope, current_page, results_per_page|
+
+    # Apply defaults if the respective parameters are omitted.
+    # No need to check current_page as Graphiti internally enforces a default value (1).
+    results_per_page = RESULTS_PER_PAGE_DEFAULT if results_per_page.nil?
+
+    # Guard against invalid parameters.
+    # No need to guard against RESULTS_PER_PAGE_MAX as Graphiti does that on its own via the max_page_size setting above.
+    if results_per_page &lt; RESULTS_PER_PAGE_MIN
+      raise(Api::UnsupportedPageSizeMin.new(results_per_page, RESULTS_PER_PAGE_MIN))
+    end
+    if current_page &lt; CURRENT_PAGE_MIN || current_page &gt; CURRENT_PAGE_MAX
+      raise(Api::InvalidPageNumber.new(current_page, CURRENT_PAGE_MIN, CURRENT_PAGE_MAX))
+    end
+
+    # Perform pagination (makes use of the kaminari gem).
+    scope.page(current_page).per(results_per_page)
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

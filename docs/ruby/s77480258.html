@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails Minitest 1 つのテストで複数のモックをテストする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails Minitest 1 つのテストで複数のモックをテストする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails Minitest 1
+つのテストで複数のモックをテストする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails で Minitest
+                    を使用して単体テストを作成しています。</p>
+                    <p>時々、一度に複数のものをモックする必要があります。</p>
+                    <p>たとえば、ユーザーへの通知をトリガーするアクションをテストする場合、2
+                    つの外部サーバー (例: SmsClient と EmailClient)
+                    を一度にモックしたい場合があります。</p>
+                    <p>これは次のようにして実行できます。</p>
+                    <pre><code>test &#39;my test case&#39; do
+  SmsClient.stub :send, nil do
+    EmailClient.stub :send, nil do
+      get my_controller_url
+    end
+  end
+end
+</code></pre>
+                    <p>これは機能しますが、同じ呼び出しでもう 1
+                    つのクラスをモックする必要があります。</p>
+                    <p>これらのスタブ呼び出しのネストが制御不能になるのではないかと心配しています。</p>
+                    <p>質問:
+                    ネストを使用せずにこれらのサービスにモックをセットアップする方法はありますか?</p>
+                    <p>注: これらの例は単なる仮説です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを簡素化する Minitest
+                    ヘルパーがあるかどうかはわかりませんが、ネストを減らすことができるコアの
+                    Ruby コードをいくつか示します。</p>
+                    <pre><code>stubs = [
+  proc { |block| proc { SmsClient.stub(:send, nil, &amp;block) } },
+  proc { |block| proc { EmailClient.stub(:send, nil, &amp;block) } },
+]
+
+tests = proc do
+  # ...
+end
+
+stubs.reduce(:&lt;&lt;).call(tests).call
+# results in
+# (stubs[0] &lt;&lt; stubs[1]).call(tests).call
+#
+# aka
+# stubs[0].call(stubs[1].call(tests)).call
+#
+# aka
+# SmsClient.stub(:send, nil) do
+#   EmailClient.stub(:send, nil) do
+#     # ...
+#   end
+# end
+</code></pre>
+                    <p>この答えを理解するには、次のことを知っておく必要があります。</p>
+                    <pre><code>some_method :a, :b do
+  # block code
+end
+</code></pre>
+                    <p>次のように書くこともできます。</p>
+                    <pre><code>block = proc do
+  # block code
+end
+
+some_method(:a, :b, &amp;block)
+</code></pre>
+                    <p>subs 配列内の各項目は proc
+                    であり、ブロックを受け取り、別の要素に渡される新しい
+                    proc を返します。</p>
+                    <p>stubs.reduce(:&lt;&lt;)
+                    は、任意の引数を最後の要素に渡す合成プロシージャを作成します。そのプロシージャの戻り値は、その前の要素に渡されます。</p>
+                    <pre><code>double = proc { |n| n + n }
+pow2   = proc { |n| n * n }
+
+operations = [pow2, double]
+operations.reduce(:&lt;&lt;).call(2) # the pow2 of the double of 2
+# pow2.call(double.call(2))
+# a = 2 + 2 = 4
+# b = a * a = 4 * 4 = 16
+#=&gt; b = 16
+</code></pre>
+                    <pre><code>stubs.reduce(:&lt;&lt;).call(tests) # does the same
+# stubs[0].call(stubs[1].call(tests))
+# a = proc { EmailClient.stub(:send, nil, &amp;tests) }
+# b = proc { SmsClient.stub(:send, nil, &amp;a) }
+#=&gt; b = proc { SmsClient.stub(:send, nil, &amp;proc { EmailClient.stub(:send, nil, &amp;tests) }) }
+</code></pre>
+                    <p>b は依然として proc であるため、最終的な戻り値で
+                    .call
+                    を再度呼び出す必要があることに注意してください。</p>
+                    <p>上記のコードで何が起こっているかを理解するのに役立つ画像を次に示します。</p>
+                    <p>:&lt;&lt; を :&gt;&gt;
+                    に変更すると、ネストを反転できることに注意してください。</p>
+                    <p>ヘルパーを定義して共通ロジックを抽象化できます。</p>
+                    <pre><code>def stub_all(*stubs, &amp;test_block)
+  stubs.map! do |subject, *stub_args|
+    proc { |block| proc { subject.stub(*stub_args, &amp;block) } }
+  end
+
+  stubs.reduce(:&lt;&lt;).call(test_block).call
+end
+</code></pre>
+                    <pre><code>stub_all(
+  [SmsClient, :send, nil],
+  [EmailClient, :send, nil],
+) do
+  # ...
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

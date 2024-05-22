@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の with_locale メソッドでは追加の URL パラメータが許可されないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の with_locale メソッドでは追加の URL パラメータが許可されないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の with_locale メソッドでは追加の URL
+パラメータが許可されないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7
+                    プロジェクトにこのメーラーがあります。</p>
+                    <pre><code># app/mailers/quote_mailer.rb
+
+class QuoteMailer &lt; ApplicationMailer
+
+  def quote_mail(quote)
+    @quote = quote
+    @user = quote.user
+    @client = quote.client
+    @account = quote.account
+    I18n.with_locale(@quote.locale) do
+      mail(
+        :from     =&gt; @user.email,
+        :to       =&gt; @client.email,
+        :subject  =&gt; &quot;New Quote&quot;
+      )
+    end
+  end
+
+end
+</code></pre>
+                    <pre><code># app/views/mailer/quote_mail.text.erb
+
+Dear &lt;= @client.name %&gt;
+
+Please click here to download your Quote:
+
+&lt;%= quote_download_url(@quote.token, :namespace =&gt; @account.namespace) %&gt;
+
+Best regards
+
+&lt;%= @user.name %&gt;
+</code></pre>
+                    <pre><code># config/routes.rb
+
+Rails.application.routes.draw do
+
+  scope &#39;:locale&#39;, :locale =&gt; /#{I18n.available_locales.join(&quot;|&quot;)}/ do
+
+    scope &#39;:namespace&#39; do
+
+      resources :quote_downloads, :only =&gt; [:show]
+
+    end
+
+  end
+
+end
+</code></pre>
+                    <p>残念ながら、メール内のリンクは構築できず、エラーがスローされます。</p>
+                    <p>私の名前空間パラメータが Rails
+                    を混乱させているようです。</p>
+                    <p>これはどうすれば修正できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ロケールがデフォルトの URL
+                    オプションとして設定されていない限り、I18n.with_locale
+                    が URL
+                    にロケールを設定することは期待できません。レンダリングされた電子メールのロケールが変更されることだけを期待します。</p>
+                    <p>ただし、次のようにメーラーで手動で渡すこともできます。</p>
+                    <pre><code>Dear &lt;= @client.name %&gt;
+
+Please click here to download your Quote:
+
+&lt;%= quote_download_url(@quote.token, namespace: @account.namespace, locale: @quote.locale) %&gt;
+
+Best regards
+
+&lt;%= @user.name %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

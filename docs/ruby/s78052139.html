@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「127.0.0.1」のサーバーへの Rails docker-compose ファイル接続、ポート 5432 が失敗しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「127.0.0.1」のサーバーへの Rails docker-compose ファイル接続、ポート 5432 が失敗しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「127.0.0.1」のサーバーへの Rails
+docker-compose ファイル接続、ポート 5432 が失敗しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は現在、Docker Compose を使用して Docker
+                    化された Web アプリケーションに取り組んでいます。
+                    docker-compose.yml ファイルには、db と api という 2
+                    つのサービスが定義されています。db は PostgreSQL
+                    コンテナー、api は Rails
+                    アプリケーションです。ただし、Rails
+                    アプリケーションから PostgreSQL
+                    サーバーに接続しようとすると、エラーが発生します。</p>
+                    <p>.env</p>
+                    <pre><code>POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=127.0.0.1
+POSTGRES_DB=postgres
+</code></pre>
+                    <p>docker-compose.yml</p>
+                    <pre><code>version: &quot;3.9&quot;
+
+x-app: &amp;app
+  env_file:
+    - .env
+  stdin_open: true
+  tty: true
+
+services:
+  db:
+    &lt;&lt;: *app
+    image: postgres:16.2
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      DATABASE_URL: &quot;postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}&quot;
+    ports:
+      - 5432:5432
+
+  api:
+    &lt;&lt;: *app
+    build: .
+    command: sh -c &quot;rm -f tmp/pids/server.pid &amp;&amp; bundle exec rails s -p 3000 -b &#39;0.0.0.0&#39;&quot;
+    volumes:
+      - .:/app
+      - bundle-cache:/usr/local/bundle
+      - node_modules:/app/node_modules
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+
+volumes:
+  bundle-cache: null
+  pg-data: null
+  node_modules:
+</code></pre>
+                    <p>Dockerfile</p>
+                    <pre><code>FROM ruby:3.2.3-alpine
+RUN apk update --no-cache &amp;&amp; apk add build-base tzdata nodejs libpq-dev postgresql-client --no-cache
+WORKDIR /app
+COPY . ./
+RUN bundle install
+
+EXPOSE 3000
+
+CMD [&quot;rails&quot;, &quot;server&quot;, &quot;-b&quot;, &quot;0.0.0.0&quot;]
+</code></pre>
+                    <p>Rails アプリケーションの DATABASE_URL
+                    環境変数を「postgres://:<span class="citation"
+                    data-cites="postgres:5432">@postgres:5432</span>/」に更新しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この部分のようです:</p>
+                    <pre><code>    environment:
+      DATABASE_URL: &quot;postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}&quot;
+</code></pre>
+                    <p>APIサービス内にあるはずですよね？</p>
+                    <p>また、POSTGRES_HOST は db (depends_on
+                    で使用した値) です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

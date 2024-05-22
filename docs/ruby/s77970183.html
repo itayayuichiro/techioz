@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>libruby.so を使用する C プログラムをコンパイルしようとすると、リンカが Ruby シンボル (ruby_init など) を見つけられません。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "libruby.so を使用する C プログラムをコンパイルしようとすると、リンカが Ruby シンボル (ruby_init など) を見つけられません。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>libruby.so を使用する C
+プログラムをコンパイルしようとすると、リンカが Ruby シンボル (ruby_init
+など) を見つけられません。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby をコンパイルするには、次の手順に従いました:
+                    https://docs.ruby-lang.org/en/master/contributing/building_ruby_md.html#label-Quick+start+guide</p>
+                    <p>次に、Ruby インターフェイスを使用するこの単純な C
+                    プログラムを作成しました。</p>
+                    <pre><code>#include &quot;ruby.h&quot;
+
+int main(int argc, char* argv[])
+{
+    /* construct the VM */
+    ruby_init();
+
+    /* Ruby goes here */
+
+    /* destruct the VM */
+    return ruby_cleanup(0);
+}
+</code></pre>
+                    <p>次の単純なスクリプトを使用してプログラムをコンパイルします。</p>
+                    <pre><code>gcc -c -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/include/ruby-3.3.0+0/x86_64-linux -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/include/ruby-3.3.0+0 -L/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib -Wl,--compress-debug-sections=zlib -Wl,-rpath,/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib -lruby -lm -lpthread -Iinstall/include/ruby-3.3.0+0 -Iinstall/include/ruby-3.3.0+0/x86_64-linux -Linstall/lib/ -L.  ./oof.c -o oof.o
+
+
+
+gcc -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/include/ruby-3.3.0+0/x86_64-linux -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/include/ruby-3.3.0+0 -L/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib -Wl,--compress-debug-sections=zlib -Wl,-rpath,/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib -lruby -lm -lpthread -Iinstall/include/ruby-3.3.0+0 -Iinstall/include/ruby-3.3.0+0/x86_64-linux -Linstall/lib/ -L. ./oof.o -o oof
+</code></pre>
+                    <p>次に、次のエラーが発生します。</p>
+                    <pre><code>/usr/bin/ld: ./oof.o: in function `main&#39;:
+oof.c:(.text+0x23): undefined reference to `ruby_init&#39;
+/usr/bin/ld: oof.c:(.text+0x2d): undefined reference to `ruby_cleanup&#39;
+collect2: error: ld returned 1 exit status
+
+</code></pre>
+                    <p>これで、ruby_init が実際に libruby.so
+                    ファイル内にあることを確認しました。 objdump の出力
+                    (objdump –disassemble=ruby_init libruby.so)
+                    は次のとおりです。</p>
+                    <pre><code>
+libruby.so:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.got:
+
+Disassembly of section .text:
+
+00000000000fa290 &lt;ruby_init&gt;:
+   fa290:   f3 0f 1e fa             endbr64 
+   fa294:   48 83 ec 08             sub    $0x8,%rsp
+   fa298:   e8 63 c9 f4 ff          call   46c00 &lt;ruby_setup@plt&gt;
+   fa29d:   85 c0                   test   %eax,%eax
+   fa29f:   75 05                   jne    fa2a6 &lt;ruby_init+0x16&gt;
+   fa2a1:   48 83 c4 08             add    $0x8,%rsp
+   fa2a5:   c3                      ret    
+   fa2a6:   e8 15 b3 f4 ff          call   455c0 &lt;rb_ruby_debug_ptr@plt&gt;
+   fa2ab:   48 f7 00 fb ff ff ff    testq  $0xfffffffffffffffb,(%rax)
+   fa2b2:   75 0a                   jne    fa2be &lt;ruby_init+0x2e&gt;
+   fa2b4:   bf 01 00 00 00          mov    $0x1,%edi
+   fa2b9:   e8 82 9a f4 ff          call   43d40 &lt;exit@plt&gt;
+   fa2be:   66 48 8d 3d 32 a5 42    data16 lea 0x42a532(%rip),%rdi        # 5247f8 &lt;ruby_current_ec@@Base+0x5247c8&gt;
+   fa2c5:   00 
+   fa2c6:   66 66 48 e8 d2 b2 f4    data16 data16 rex.W call 455a0 &lt;__tls_get_addr@plt&gt;
+   fa2cd:   ff 
+   fa2ce:   b9 24 00 00 00          mov    $0x24,%ecx
+   fa2d3:   ba 04 00 00 00          mov    $0x4,%edx
+   fa2d8:   48 8b 38                mov    (%rax),%rdi
+   fa2db:   48 8b 77 78             mov    0x78(%rdi),%rsi
+   fa2df:   e8 9c fc ff ff          call   f9f80 &lt;rb_ec_error_print_detailed&gt;
+   fa2e4:   eb ce                   jmp    fa2b4 &lt;ruby_init+0x24&gt;
+
+Disassembly of section .fini:
+
+
+</code></pre>
+                    <p>また、共有ライブラリをロードしてその関数を呼び出す
+                    C プログラムも作成しました。</p>
+                    <pre><code>
+
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;dlfcn.h&gt;
+
+int main(int argc, char** argv)
+{
+    void *handle;
+    void (*init_func)();
+
+
+    handle = dlopen(&quot;./libruby.so&quot;, RTLD_LAZY);
+    if (!handle) {
+        /* fail to load the library */
+        fprintf(stderr, &quot;Error: %s\n&quot;, dlerror());
+        return EXIT_FAILURE;
+    }
+
+    *(void**)(&amp;init_func) = dlsym(handle, &quot;ruby_init&quot;);
+    if (!init_func) {
+        /* no such symbol */
+        fprintf(stderr, &quot;Error: %s\n&quot;, dlerror());
+        dlclose(handle);
+        return EXIT_FAILURE;
+    }
+
+    init_func();
+    dlclose(handle);
+
+    return EXIT_SUCCESS;
+}
+
+
+</code></pre>
+                    <p>Ruby
+                    ライブラリを静的ライブラリとして再コンパイルしようとしましたが、同じエラーが発生しました。また、
+                    make clean を実行してから make -j8
+                    を実行しようとしました。</p>
+                    <p>これで、ruby_init
+                    関数が正常に呼び出されます。他の C
+                    プログラムをリンクしようとしたときにのみリンク
+                    エラーが発生するのはなぜですか?前もって感謝します！</p>
+                    <p>追記：解決しました！リンクの順序が重要であることを示唆してくれた
+                    Max に感謝します。 gcc ./oof.o
+                    -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/include/ruby-3.3.0+0/x86_64-linux
+                    -I/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime
+                    を実行した後/ruby/install/include/ruby-3.3.0+0
+                    -L/home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib
+                    -Wl,–compress-debug-sections=zlib -Wl,-rpath,
+                    /home/cyberhacker/Asioita/Hakkerointi/Rubydatetime/ruby/install/lib
+                    -lruby -lm -lpthread -Iinstall/include/ruby-3.3.0+0
+                    -Iinstall/include/ruby-3.3.0+0/x86_64-linux
+                    -Linstall/lib/ -L. -o 正しくリンクされています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>発生しているエラーは Ruby 固有のものではなく、C
+                    ライブラリ一般のリンクに関する問題のようです。</p>
+                    <p>単にリンカーの順序の問題である可能性があります。すべての
+                    -l 引数の前に ./oof.c を置いてみてください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

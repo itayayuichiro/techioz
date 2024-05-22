@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>self キーワード引数をリストする Ruby メソッド | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "self キーワード引数をリストする Ruby メソッド",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>self キーワード引数をリストする Ruby
+メソッド</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>キーワード引数をリストするためにメソッドで呼び出すことができるメソッドはありますか?</p>
+                    <p>私が探しているのは次のようなものです</p>
+                    <pre><code>self.keyword_arguments
+</code></pre>
+                    <p>たとえば、次の例では配列を探しています。</p>
+                    <pre><code> [:var1, :var2]
+</code></pre>
+                    <pre><code>def test( var1: true, var2: false)
+  self.keyword_arguments
+end 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    では、メソッドはファーストクラスのオブジェクトではありません。メソッドを参照すると、そのメソッドはすでに実行されています。そのため、名前を通じてメソッドを参照するためにシンボルをよく使用します。オブジェクト指向の方法でメソッドを扱うために、Ruby
+                    は Method
+                    クラスをラッパーとして提供します。メソッドの Method
+                    インスタンスを取得したら、それをイントロスペクトする
+                    (またはメソッド自体をイントロスペクトさせる)
+                    ことができます。</p>
+                    <p>少し複雑ですが、次のようにアプローチします。</p>
+                    <pre><code>def test( var1: true, var2: false)
+  method(__method__)
+    .parameters
+    .filter_map { |k, v| v if k == :key || k == :keyreq }
+end
+
+test
+#=&gt; [:var1, :var2]
+</code></pre>
+                    <p>説明：</p>
+                    <p>メソッドの場合、後者は [[:key, :var1], [:key,
+                    :var2]] を返します。 :key
+                    はオプションのキーワード引数
+                    (デフォルト値を持つ引数) を示します。 :keyreq
+                    は必須のキーワード引数 (デフォルト値のない引数)
+                    を示しますが、メソッドには引数がありません。</p>
+                    <p><strong>kwargs のような任意のキーワード引数用の
+                    :keyrest もあります。 </strong>
+                    引数名はメソッドによる「内部」専用であり、呼び出し元が追加のキーワード引数を渡すために実際に使用するものではないため、出力には
+                    :keyrest は含めていません。</p>
+                    <p>次に、filter_map は、関心のあるキーの値
+                    (つまり、引数名) を返します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

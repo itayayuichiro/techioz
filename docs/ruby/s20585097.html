@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Minitest の初期化されていない定数エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Minitest の初期化されていない定数エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Minitest の初期化されていない定数エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rake test を使用して Spec 構文で Minitest
+                    を実行しようとしていますが、次のエラーが発生します。</p>
+                    <pre><code>/path/to/gem/spec/script_spec.rb:3:in `&lt;top (required)&gt;&#39;: uninitialized constant MyGem (NameError)
+</code></pre>
+                    <p>私のRakefile:</p>
+                    <pre><code>require &#39;rake/testtask&#39;
+
+Rake::TestTask.new do |t|
+  t.test_files = FileList[&#39;spec/*_spec.rb&#39;]
+end
+</code></pre>
+                    <p>私のファイル構造:</p>
+                    <pre><code>gem/
+--lib/
+----script.rb
+--spec/
+----script_spec.rb
+--Rakefile
+</code></pre>
+                    <p>私のscript.rb:</p>
+                    <pre><code>module MyGem
+  class OptionParser
+    def self.option?(arg)
+      arg =~ /^-{1,2}\w+$/
+    end
+  end
+end
+</code></pre>
+                    <p>script_spec.rb で Minitest::Spec
+                    構文を使用する:</p>
+                    <pre><code>require &quot;minitest/autorun&quot;
+
+describe MyGem::OptionParser do
+  describe &quot;option?&quot; do
+    it &quot;must be true for option name&quot; do
+      OptionParser.option?(&#39;--nocolor&#39;).assert true
+    end
+  end
+end
+</code></pre>
+                    <p>どうすれば修正できますか?もしかしてlibフォルダが読み込まれていないのでしょうか？
+                    Spec 構文に関連する何かを見逃していますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>MyGem::OptionParser
+                    がテストにロードされていません。仕様ファイルでこれを要求するか、すべてのテストで必要なすべてのファイルを要求する
+                    spec_helper を作成して、仕様で ‘spec_helper’
+                    のみを要求する必要があります。</p>
+                    <p>MyGem::OptionParser
+                    がテストにロードされていません。仕様ファイルでこれを要求するか、すべてのテストで必要なすべてのファイルを要求する
+                    spec_helper を作成して、仕様で ‘spec_helper’
+                    のみを要求する必要があります。</p>
+                    <pre><code># spec/spec_helper.rb
+require &#39;minitest/spec&#39;
+require &#39;minitest/autorun&#39;
+require &#39;script&#39;
+</code></pre>
+                    <p>そして、これを Rakefile
+                    に対して実行すると、require_relative ‘../lib/script’
+                    を実行する代わりに、仕様内で上記のような require
+                    ‘script’ を実行できるようになります。</p>
+                    <pre><code>require &#39;rake/testtask&#39;
+
+Rake::TestTask.new do |t|
+  t.test_files = FileList[&#39;spec/*_spec.rb&#39;]
+end
+</code></pre>
+                    <p>最後に、仕様を機能させるには、script_spec
+                    ファイルの先頭に require ‘spec_helper’
+                    を追加します。すべての仕様ファイルに対してこれを行う必要があり、仕様でロードする必要があるすべてのファイルの
+                    require を spec_helper
+                    ファイルに追加する必要があります。</p>
+                    <p>仕様スタイルのテストも行っているため、テストを次のように変更するとよいでしょう。</p>
+                    <pre><code>MyGem::OptionParser.option?(&#39;--nocolor&#39;).must_equal true
+</code></pre>
+                    <p>「spec_helper」ファイルに次のようなコードを含めて、lib
+                    フォルダー内のすべてのファイルを自動的にロードすることもできます。</p>
+                    <pre><code>Dir[&quot;../lib/**/*.rb&quot;].each do |rb_file|
+  require rb_file
+end
+</code></pre>
+                    <p>お役に立てれば！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

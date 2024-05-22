@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハンドラーが必要です。 with: キーワード引数を渡すか、ブロックを指定します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハンドラーが必要です。 with: キーワード引数を渡すか、ブロックを指定します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハンドラーが必要です。 with:
+キーワード引数を渡すか、ブロックを指定します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、アプリを Ruby バージョン 2.6.1 から 3.0.1
+                    に更新し、バージョン マネージャーとして rbenv
+                    を使用しています。</p>
+                    <p>しかし、Railsサーバーを実行しようとするとエラーが発生しました</p>
+                    <pre><code>=&gt; Booting Puma
+=&gt; Rails 6.1.3 application starting in development 
+=&gt; Run `bin/rails server --help` for more startup options
+Exiting
+/home/humayun/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-6.1.3/lib/active_support/rescuable.rb:56:in `rescue_from&#39;: Need a handler. Pass the with: keyword argument or provide a block. (ArgumentError)
+    from /home/humayun/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/will_paginate-3.1.8/lib/will_paginate/railtie.rb:67:in `rescue_from&#39;
+    from /home/humayun/umerfarooq/Alchemy/app/controllers/application_controller.rb:2:in `&lt;class:ApplicationController&gt;&#39;
+    from /home/humayun/umerfarooq/Alchemy/app/controllers/application_controller.rb:1:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>ここで、56
+                    行目でエラーを引き起こしている関数について読みました。</p>
+                    <p>アプリケーションコントローラー.rb</p>
+                    <pre><code> rescue_from Exception, with: :handle_exception
+ protect_from_forgery prepend: true, with: :exception
+ before_action :configure_permitted_parameters, if: :devise_controller?
+ before_action :initialize_api
+
+  def not_found
+    raise ActionController::RoutingError.new(&#39;Not Found&#39;)
+  end
+
+ def handle_exception(exception = nil)
+    return render_404 if [ActionController::RoutingError, ActiveRecord::RecordNotFound].include?(exception.class)
+     render_500
+ end
+</code></pre>
+                    <p>減価償却のせいだと思います。</p>
+                    <p>誰かこれらのエラーを処理する方法を教えてください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>handle_Exception
+                    には、ビューをレンダリングするかステータスを返すブロックが必要になる可能性があります。</p>
+                    <p>app/controllers/application_controller.rb:2
+                    のエラーで述べたように、エラーやハンドラーのないrescue_fromがある可能性があります。以下の構文のいずれかに従う必要があります。</p>
+                    <pre><code>class ApplicationController &lt; ActionController::Base
+  rescue_from User::NotAuthorized, with: :deny_access # self defined exception
+  rescue_from ActiveRecord::RecordInvalid, with: :show_errors
+
+  rescue_from &#39;MyAppError::Base&#39; do |exception|
+    render xml: exception, status: 500
+  end
+
+  private
+    def deny_access
+      ...
+    end
+
+    def show_errors(exception)
+      exception.record.new_record? ? ...
+    end
+end
+</code></pre>
+                    <p>ここのドキュメントに従って
+                    https://apidock.com/rails/ActiveSupport/Rescuable/ClassMethods/rescue_from</p>
+                    <ul>
+                    <li><ul>
+                    <li><ul>
+                    <li><ul>
+                    <li>アップデート：</li>
+                    </ul></li>
+                    </ul></li>
+                    </ul></li>
+                    </ul>
+                    <p>これは、キーワード属性に関する動作を変更する新しい
+                    Ruby
+                    の更新とともに、コントローラーのレスキュー_フロム
+                    メソッドをオーバーライドする、使用している
+                    will_paginate gem が原因です。</p>
+                    <p>ベースコントローラーにControllerRescuePatchが含まれている場合は、それを削除できる可能性があり、これで問題は解決しますが、ページネーションに何が起こるかはわかりません。
+                    それ以外の場合は、will_paginate
+                    がコードを更新してこれを修正するまで Ruby
+                    の更新を保留します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Xero から請求書を削除する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Xero から請求書を削除する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Xero から請求書を削除する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>請求書のステータスを「削除済み」に更新して、Xero
+                    から請求書を削除しようとしています。 xeroizer github
+                    ページに従って、次のことを試しました。</p>
+                    <pre><code>xero = XeroApp.find_by(business_id: 270);
+invoice = xero.find_invoice_by_ref(372).first
+delete_invoice = xero.xero_client.Invoice.build(id: invoice.id, status: &#39;DELETED&#39;)
+delete_invoice.save #=&gt; false
+delete_invoice.status #=&gt; &quot;AUTHORISED&quot;
+</code></pre>
+                    <p>残念ながら、これでは請求書のステータスは更新されません。対応する支払いを削除すれば解決するかもしれないと思いましたが、そうではありませんでした。ちなみに、私は上記と同様のアプローチを使用して支払いを削除しましたが、うまくいきました。</p>
+                    <p>delete_invoice.save
+                    に対する応答は次のとおりです。</p>
+                    <pre><code>XeroGateway Request: GET /api.xro/2.0/Invoices/09b354ba-c659-4aac-b353-7d56cb52c2d6?unitdp=4
+XeroGateway Response (200)
+/api.xro/2.0/Invoices/09b354ba-c659-4aac-b353-7d56cb52c2d6?unitdp=4
+== Response Body
+
+&lt;Response xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-
+instance&quot;&gt;
+  &lt;Id&gt;3033fc56-2eed-446c-a16b-1c0a3678f6cf&lt;/Id&gt;
+  &lt;Status&gt;OK&lt;/Status&gt;
+  &lt;ProviderName&gt;My-App&lt;/ProviderName&gt;
+  &lt;DateTimeUTC&gt;2022-02-24T13:40:46.7218944Z&lt;/DateTimeUTC&gt;
+  &lt;Invoices&gt;
+    &lt;Invoice&gt;
+      &lt;Contact&gt;
+        &lt;ContactID&gt;0bb81c84-22a0-40fc-a12b-322646752710&lt;/ContactID&gt;
+        &lt;ContactStatus&gt;ACTIVE&lt;/ContactStatus&gt;
+        &lt;Name&gt;Sagar Pandya&lt;/Name&gt;
+        &lt;Addresses&gt;
+          &lt;Address&gt;
+            &lt;AddressType&gt;STREET&lt;/AddressType&gt;
+          &lt;/Address&gt;
+          &lt;Address&gt;
+            &lt;AddressType&gt;POBOX&lt;/AddressType&gt;
+            &lt;AddressLine1&gt;123 High Road&lt;/AddressLine1&gt;
+            &lt;City&gt;London&lt;/City&gt;
+            &lt;PostalCode&gt;SW1 8RE&lt;/PostalCode&gt;
+            &lt;Country&gt;United Kingdom&lt;/Country&gt;
+          &lt;/Address&gt;
+        &lt;/Addresses&gt;
+        &lt;Phones&gt;
+          &lt;Phone&gt;
+            &lt;PhoneType&gt;DEFAULT&lt;/PhoneType&gt;
+            &lt;PhoneNumber&gt;07123456789&lt;/PhoneNumber&gt;
+          &lt;/Phone&gt;
+          &lt;Phone&gt;
+            &lt;PhoneType&gt;DDI&lt;/PhoneType&gt;
+          &lt;/Phone&gt;
+          &lt;Phone&gt;
+            &lt;PhoneType&gt;FAX&lt;/PhoneType&gt;
+          &lt;/Phone&gt;
+          &lt;Phone&gt;
+            &lt;PhoneType&gt;MOBILE&lt;/PhoneType&gt;
+          &lt;/Phone&gt;
+        &lt;/Phones&gt;
+        &lt;UpdatedDateUTC&gt;2022-02-08T20:01:08.327&lt;/UpdatedDateUTC&gt;
+        &lt;IsSupplier&gt;false&lt;/IsSupplier&gt;
+        &lt;IsCustomer&gt;true&lt;/IsCustomer&gt;
+      &lt;/Contact&gt;
+      &lt;Date&gt;2022-02-24T00:00:00&lt;/Date&gt;
+      &lt;DueDate&gt;2022-02-24T00:00:00&lt;/DueDate&gt;
+      &lt;BrandingThemeID&gt;5d4dd402-c851-497e-aae1-9ff265c0d15a&lt;/BrandingThemeID&gt;
+      &lt;Status&gt;AUTHORISED&lt;/Status&gt;
+      &lt;LineAmountTypes&gt;Exclusive&lt;/LineAmountTypes&gt;
+      &lt;LineItems&gt;
+        &lt;LineItem&gt;
+          &lt;ItemCode&gt;FOOTYT&lt;/ItemCode&gt;
+          &lt;Description&gt;Football T-Shirt&lt;/Description&gt;
+          &lt;UnitAmount&gt;100.0000&lt;/UnitAmount&gt;
+          &lt;TaxType&gt;NONE&lt;/TaxType&gt;
+          &lt;TaxAmount&gt;0.00&lt;/TaxAmount&gt;
+          &lt;LineAmount&gt;100.00&lt;/LineAmount&gt;
+          &lt;AccountCode&gt;200&lt;/AccountCode&gt;
+          &lt;Item&gt;
+            &lt;ItemID&gt;0ad76998-051d-4031-9f97-fba6b9bb255e&lt;/ItemID&gt;
+            &lt;Code&gt;FOOTYT&lt;/Code&gt;
+          &lt;/Item&gt;
+          &lt;Quantity&gt;1.0000&lt;/Quantity&gt;
+          &lt;LineItemID&gt;497fc08c-3571-49cb-bcd7-6a28533f9d34&lt;/LineItemID&gt;
+        &lt;/LineItem&gt;
+      &lt;/LineItems&gt;
+      &lt;SubTotal&gt;100.00&lt;/SubTotal&gt;
+      &lt;TotalTax&gt;0.00&lt;/TotalTax&gt;
+      &lt;Total&gt;100.00&lt;/Total&gt;
+      &lt;UpdatedDateUTC&gt;2022-02-24T12:26:13.317&lt;/UpdatedDateUTC&gt;
+      &lt;CurrencyCode&gt;GBP&lt;/CurrencyCode&gt;
+      &lt;Type&gt;ACCREC&lt;/Type&gt;
+      &lt;InvoiceID&gt;09b354ba-c659-4aac-b353-7d56cb52c2d6&lt;/InvoiceID&gt;
+      &lt;InvoiceNumber&gt;INV-0073&lt;/InvoiceNumber&gt;
+      &lt;Reference&gt;372&lt;/Reference&gt;
+      &lt;AmountDue&gt;100.00&lt;/AmountDue&gt;
+      &lt;AmountPaid&gt;0.00&lt;/AmountPaid&gt;
+      &lt;SentToContact&gt;false&lt;/SentToContact&gt;
+      &lt;CurrencyRate&gt;1.0000000000&lt;/CurrencyRate&gt;
+      &lt;HasAttachments&gt;false&lt;/HasAttachments&gt;
+      &lt;HasErrors&gt;false&lt;/HasErrors&gt;
+    &lt;/Invoice&gt;
+  &lt;/Invoices&gt;
+&lt;/Response&gt;
+== End Response Body
+=&gt; false
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここの API
+                    で説明されているメソッドを使用します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/waynerobinson/xeroizer/blob/master/lib/xeroizer/models/invoice.rb</p>
+                    <p>この質問について:
+                    請求書を取得した後、invoice.void! を使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

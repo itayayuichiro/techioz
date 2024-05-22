@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails (モデルの生成) は複数ではなく単数化されたテーブルを作成しています – モデルも単数テーブルを探しています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails (モデルの生成) は複数ではなく単数化されたテーブルを作成しています – モデルも単数テーブルを探しています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails (モデルの生成)
+は複数ではなく単数化されたテーブルを作成しています –
+モデルも単数テーブルを探しています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコマンドを使用しました。</p>
+                    <p>$ レール g モデル 装備</p>
+                    <p>そして、レールは次のことを実行しました。</p>
+                    <pre><code>  invoke  active_record
+  create    db/migrate/20160822040448_create_equipment.rb
+  create    app/models/equipment.rb
+  invoke    test_unit
+  create      test/models/equipment_test.rb
+  create      test/fixtures/equipment.yml
+</code></pre>
+                    <p>ご覧のとおり、移行は独特です。そこで、移行ファイルとテーブル名を次のように変更しました。</p>
+                    <pre><code>class CreateEquipments &lt; ActiveRecord::Migration
+  def change
+    create_table :equipments do |t|
+      # ...
+    end
+  end
+end
+</code></pre>
+                    <p>ここで、Rail のコンソール $rails c を開始する $
+                    rake db:merge を実行した後、Equipment
+                    を開始しようとすると、テーブルが見つからないというエラーが発生します。</p>
+                    <pre><code>&gt;&gt; Equipment.new
+PG::UndefinedTable: ERROR:  relation &quot;equipment&quot; does not exist
+LINE 5:                WHERE a.attrelid = &#39;&quot;equipment&quot;&#39;::regclass
+                                          ^
+:               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
+                FROM pg_attribute a LEFT JOIN pg_attrdef d
+                  ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+               WHERE a.attrelid = &#39;&quot;equipment&quot;&#39;::regclass
+                 AND a.attnum &gt; 0 AND NOT a.attisdropped
+               ORDER BY a.attnum
+
+ActiveRecord::StatementInvalid: PG::UndefinedTable: ERROR:  relation &quot;equipment&quot; does not exist
+LINE 5:                WHERE a.attrelid = &#39;&quot;equipment&quot;&#39;::regclass
+                                          ^
+:               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
+                FROM pg_attribute a LEFT JOIN pg_attrdef d
+                  ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+               WHERE a.attrelid = &#39;&quot;equipment&quot;&#39;::regclass
+                 AND a.attnum &gt; 0 AND NOT a.attisdropped
+               ORDER BY a.attnum
+</code></pre>
+                    <p>次の行をモデルに追加することで修正できました。</p>
+                    <pre><code>    class Equipment &lt; ActiveRecord::Base
+        self.table_name = &#39;equipments&#39;
+        # ...
+    end
+</code></pre>
+                    <p>これで問題は解決しましたが、そもそも問題の原因が知りたいのです。</p>
+                    <p>最後の注意: コンソールで #pluralize
+                    メソッドを実行してみましたが、文字列「Equipment」も複数形になりませんでした。</p>
+                    <pre><code>&gt;&gt; &#39;Equipment&#39;.pluralize
+=&gt; &quot;Equipment&quot;
+&gt;&gt; &#39;door&#39;.pluralize
+=&gt; &quot;doors&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>装備に複数はありません</p>
+                    <p>http://www.learnersdictionary.com/qa/equipments-equipment-noncount-mass-noun-singular-plural</p>
+                    <p>これは、そのような単語に対して予期される動作です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

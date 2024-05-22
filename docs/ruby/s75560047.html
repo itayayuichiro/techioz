@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails で日付ごとに評価データをグループ化する最良かつ最もパフォーマンスの高い方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails で日付ごとに評価データをグループ化する最良かつ最もパフォーマンスの高い方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+で日付ごとに評価データをグループ化する最良かつ最もパフォーマンスの高い方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>タスク
+                    テーブルがあり、完了したタスクごとに、ユーザーはタスクを評価できます
+                    (1 から 5)。</p>
+                    <p>タスク テーブルは次のようになります。</p>
+                    <pre><code>tasks
+  id: integer
+  closed_at: datetime
+  rating: integer
+</code></pre>
+                    <p>次に、次のような形式で日付ごとの評価を取得する
+                    API 応答を構築する必要があります。</p>
+                    <pre><code>{ 
+  &quot;2023-02-23&quot;: [ 
+    { rating: 1, count: 1 },
+    { rating: 2, count: 5 },
+    { rating: 3, count: 2 },
+    { rating: 4, count: 30 },
+    { rating: 5, count: 15}
+  ], 
+  &quot;2023-02-24&quot;: [
+    { rating: 1, count: 2 },
+    ...
+  ]
+}
+</code></pre>
+                    <p>これは単なる例です。私が望むのは、日付ごとのすべての評価数を取得することです。
+                    上の例では、2023 年 2 月 23 日に完了したタスクが 1
+                    つあり、評価が 1、同じ日に完了したタスクが 5
+                    つあり、評価が 2 です…</p>
+                    <p>Rubyでそれを行う最善の方法は何でしょうか?
+                    それに対する SQL
+                    ソリューションを見つけようとしていましたが、それが可能かどうかさえわかりません。</p>
+                    <p>それ以外の場合は、すべてのタスクを取得した後で
+                    Ruby
+                    コードのみを使用する最もパフォーマンスの高い方法を喜んで採用します。</p>
+                    <p>私はすでにこの実用的なソリューションを持っています:</p>
+                    <pre><code>grouped_tasks_per_date = Task.all.group_by { |t| t.closed_at.to_date.to_s }
+
+data = {}
+
+grouped_tasks_per_date.each do |date, tasks|
+  tasks_per_rating = tasks.group_by{|t| t.rating}
+
+  data[date] = tasks_per_rating.map {|k, v| [k, v.length] }.to_h
+end
+
+data
+=&gt; {&quot;2020-12-01&quot;=&gt;{1=&gt;1, 2=&gt;5, 3=&gt;2, 4=&gt;30, 5=&gt;15}}
+</code></pre>
+                    <p>私が受け取った上記の形式はまったく問題ありませんが、私の好みに合わないループを多用しすぎています…それで…コードを改善するアイデアやその他の方法がある場合は、アイデアを共有してください。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Model.all
+                    を実行したことがある場合は、テーブルが常に非常に小さいことを知っているか、より良い方法があるかのどちらかです。</p>
+                    <p>SQL
+                    でグループ化、カウント、並べ替えを実行します…</p>
+                    <pre><code>select date_trunc(&#39;day&#39;, closed_at), rating, count(*)
+from foo
+group by 1, 2
+order by 1, 2
+</code></pre>
+                    <p>1 と 2 は、最初と 2
+                    番目に選択された列、date_trunc(‘day’, Closed_at) と
+                    Rating を参照します。</p>
+                    <p>Closed_at
+                    を日付に正確に変換する方法は、使用している SQL
+                    データベースによって異なります。 Postgres の場合は
+                    date_trunc、MySQL の場合は day。</p>
+                    <p>デモンストレーション。</p>
+                    <p>同等の Rails では、group、order、count
+                    が使用されます。</p>
+                    <pre><code>grouped = Task
+  .select(&quot;datetrunc(&#39;day&#39;, closed_at)&quot;, rating)
+  .group(1, 2)
+  .order(1, 2)
+  .count
+</code></pre>
+                    <p>通常と同じように、特定の日に限定することもできます。</p>
+                    <p>これにより、次のような配列のハッシュが得られます。</p>
+                    <p>{[“2023-02-23”, 1] =&gt; 1, [“2023-02-23”, 2]
+                    =&gt; 5, …}</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

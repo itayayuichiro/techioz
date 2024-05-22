@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PDFファイルとPrawnを結合する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PDFファイルとPrawnを結合する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PDFファイルとPrawnを結合する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>複数の PDF
+                    ファイルを組み合わせるときに問題が発生します。</p>
+                    <p>「表示」アクションで PrawnPDF を使用して PDF
+                    を生成しています。</p>
+                    <p>選択した複数のアイテムを 1 つの PDF
+                    に結合できるようにしたいと考えています。</p>
+                    <p>私はcombine_pdf
+                    geamを使用してこの方法でそれを解決しようとしています</p>
+                    <pre><code>def nested_jobs_multiply_pdf
+  pdf_file_paths  = params[:items]
+  pdf_file_paths  = pdf_file_paths.map! do |x|
+    x.to_s + &quot;.pdf&quot;
+  end
+
+  @pdfForms = CombinePDF.new
+  pdf_file_paths.each do |x|
+    @pdfForms &lt;&lt; CombinePDF.parse(nested_job_path(x, format: &quot;pdf&quot;))
+  end
+  @pdfForms.save &quot;combined.pdf&quot;
+
+  flash[:notice] = &quot;Combined PDF successful&quot;
+  redirect_to nested_jobs_path
+end
+</code></pre>
+                    <p>残念ながらエラーが発生します</p>
+                    <pre><code>RuntimeError in NestedJobsController#nested_jobs_multiply_pdf
+Unknown PDF parsing error - malformed PDF file?
+
+Extracted source (around line #89):
+87   @pdfForms = CombinePDF.new
+88    pdf_file_paths.each do |x|
+89    @pdfForms &lt;&lt; CombinePDF.parse(nested_job_path(x, format: &quot;pdf&quot;))
+90   end
+91  @pdfForms.save &quot;combined.pdf&quot;
+92
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが機能するか試してください:</p>
+                    <pre><code>pdf_file_paths.each do |path|
+  @pdfForms &lt;&lt; CombinePDF.load(path) #path is relative path to pdf file stored locally like path/to/801.pdf
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>配列上のグループの正しいインデックス値を表示するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "配列上のグループの正しいインデックス値を表示するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>配列上のグループの正しいインデックス値を表示するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>products という次のテーブルがあります。</p>
+                    <pre><code>|id| |name|
+ 81   monitor
+ 82   keyboard
+ 83   mouse
+ 84   headphone
+</code></pre>
+                    <p>コントローラーは、次のコードを含む
+                    products_controller.rb です。</p>
+                    <pre><code> def index
+   @products = Product.all
+ end
+</code></pre>
+                    <p>次の結果が表示されるはずです</p>
+                    <pre><code>|Nº|  |name|         |Nº|   |name|
+ 1     monitor        3      mouse 
+ 2     keyboard       4      headphone
+</code></pre>
+                    <p>SLICEを使用して次のコードを試してみました。</p>
+                    <pre><code>&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Nº&lt;/td&gt;
+    &lt;td&gt;Product&lt;/td&gt;
+  &lt;/tr&gt;
+  
+  &lt;% @products.each_slice(2).each_with_index do |grouped_array,row_index| %&gt; 
+  &lt;tr&gt;
+     &lt;% grouped_array.each_with_index do |array, column_index| %&gt;
+     &lt;td&gt;&lt;%= column_index + 1 %&gt;&lt;/td&gt;
+     &lt;td&gt;&lt;%= array.name %&gt;&lt;/td&gt;
+     &lt;% end %&gt;
+  &lt;/tr&gt;
+  &lt;% end %&gt;
+&lt;/table&gt;
+</code></pre>
+                    <p>SLICEを使用した結果は次のようになりました。</p>
+                    <pre><code>|Nº|  |name|         |Nº|   |name|
+ 1     monitor        1      mouse 
+ 2     keyboard       1      headphone
+</code></pre>
+                    <p>in_groups_ofを使ってみた</p>
+                    <pre><code>  &lt;% @products.in_groups_of(2).each_with_index do |grouped_array,row_index| %&gt; 
+  &lt;tr&gt;
+     &lt;% grouped_array.each_with_index do |array, column_index| %&gt;
+     &lt;td&gt;&lt;%= column_index + 1 %&gt;&lt;/td&gt;
+     &lt;td&gt;&lt;%= array.name %&gt;&lt;/td&gt;
+     &lt;% end %&gt;
+  &lt;/tr&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>in_groups_of
+                    を使用した結果は次のようになりました。</p>
+                    <pre><code>|Nº|  |name|         |Nº|   |name|
+ 1     monitor        1      mouse 
+ 2     keyboard       1      headphone
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>IN_GROUPS_OF
+                    コードの場合、要素のインデックスは次のように計算できます。</p>
+                    <p>コントローラーの変更</p>
+                    <pre><code>@half_size = (@products.size / 2.0).round
+</code></pre>
+                    <p>ビューの変更</p>
+                    <pre><code>&lt;% @products.in_groups_of(@half_size).transpose.each_with_index do |grouped_array, row_index| %&gt;
+  &lt;tr&gt;
+    &lt;% grouped_array.each_with_index do |item, column_index| %&gt;
+      &lt;% if item.present? %&gt;
+        &lt;td&gt;&lt;%= row_index + column_index * @half_size + 1 %&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;%= item.name %&gt;&lt;/td&gt;
+      &lt;% end %&gt;
+    &lt;% end %&gt;
+  &lt;/tr&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>要素の量に関係なく機能します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

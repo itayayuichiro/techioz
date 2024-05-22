@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: group by 句を使用してレコードが取得されている間に、複数のレコードの単一列の値を更新します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: group by 句を使用してレコードが取得されている間に、複数のレコードの単一列の値を更新します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails: group by
+句を使用してレコードが取得されている間に、複数のレコードの単一列の値を更新します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>group by
+                    句を使用してテーブルからデータを取得しており、その後、最初のクエリで取得されたすべてのレコードの単一の列の値を更新したいと考えています。</p>
+                    <p>したがって、最初のクエリからレコードを更新するまで、新しい行が追加されていないことを確認する必要があります。</p>
+                    <p>説明: モデル Test に次の 5
+                    つの列があるとしましょう: Id A B C Status</p>
+                    <p>そこで、まず次のようにクエリします。</p>
+                    <pre><code>Test.select(&#39;count(*), A, B&#39;).where(status:&#39;new&#39;, C: &#39;value&#39;).group(&#39;A, B&#39;)
+</code></pre>
+                    <p>コードでグループを処理した後、最初のクエリで使用されたすべてのレコードのステータスを完了に変更したいと考えています。</p>
+                    <p>問題は、次のようにした場合です。</p>
+                    <pre><code>Test.where(status: &#39;new&#39;, C: &#39;value&#39;)
+</code></pre>
+                    <p>update_all
+                    を使用するには、この条件に一致する最初のクエリ以降、新しいレコードがテーブルに追加された可能性があります。最初のクエリでは処理されなかったため、実際には処理されませんでしたが、ステータスを「完了」に設定します。存在する。</p>
+                    <p>したがって、基本的には、最初のクエリから更新までテーブルの挿入をロックするか、クエリごとにグループ内で「考慮された」IDのリストを何らかの方法で取得する方法が必要です。</p>
+                    <p>それ、どうやったら出来るの？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初のクエリの select ステートメントから id
+                    も選択することをお勧めします。</p>
+                    <pre><code>Test.select(&#39;count(*), A, B, Id&#39;).where(status:&#39;new&#39;, C: &#39;value&#39;).group(&#39;A, B&#39;).
+</code></pre>
+                    <p>上記のクエリから ID
+                    を選択します。次に、別のクエリを使用して ID
+                    を更新します。</p>
+                    <pre><code>Test.where(&quot;Id IN ?&quot;, ids ).update_all()
+</code></pre>
+                    <p>必要な変更を加えて更新します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

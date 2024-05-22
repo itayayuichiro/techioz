@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails のベスト プラクティス : モデル内での関連オブジェクトの作成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails のベスト プラクティス : モデル内での関連オブジェクトの作成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails のベスト プラクティス :
+モデル内での関連オブジェクトの作成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>基本的に、ユーザー
+                    (電子メール、パスワード)、連絡先
+                    (名前、電話番号)、関係 (user_id、contact_id、レベル)
+                    の 3 つのテーブルがあります。</p>
+                    <p>ユーザーが新しい連絡先を作成したときに、その連絡先をそれに関連付けたいと考えています。協会の「友好度」のレベルは1～3まであります。</p>
+                    <p>フォームを使用して contacts#create
+                    コントローラーにレベルを入力します。</p>
+                    <p>今のところ、私はこれを持っていますが、これはうまく機能します</p>
+                    <pre><code>  def create
+    @contact = Contact.new(params[:contact])
+    if @contact.save
+      #@relation = Relation.new(:user_id =&gt; current_user.id, :contact_id =&gt; @contact.id, :level =&gt; params[:relation])
+      #@relation.save
+      redirect_to root_url, :notice =&gt; &quot;ok!&quot;
+    else
+      render &quot;new&quot;
+    end
+  end
+</code></pre>
+                    <p>私はリレーション作成を連絡先モデルに移動して次のようなことをしようと考えていました。</p>
+                    <pre><code>  after_create { Relation.create(user_id: current_user.id, contact_id: self.id, level: params[:relation]) }
+</code></pre>
+                    <p>もちろん、これは機能しませんが、アイデアはわかります。
+                    モデルでそれを行うのは良いことですか、それとも今のところそのままにしておいてもいいですか？</p>
+                    <p>乾杯</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このようなもの？基本的には、current_user
+                    に関連付けられた関係と連絡先をすべて 1
+                    つに作成するだけです。</p>
+                    <pre><code>current_user.relations.create(contact: Contact.new(params[:contact]), level: params[:relation])
+</code></pre>
+                    <p>これを after_create
+                    に移動しないでください。どちらかというと、ユーザー、連絡先、リレーションを受け入れる関数をどこかに作成してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

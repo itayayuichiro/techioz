@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Gosu ライブラリの描画関数の切り替え | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Gosu ライブラリの描画関数の切り替え",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Gosu ライブラリの描画関数の切り替え</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、マウスの左ボタンを押すとリンクされるfont.draw要素のリストを表示するのに苦労しています。ボタンが押されていて、mouse_x/y
+                    が正しい位置にある場合に描画が設定されるように設定しましたが、マウスの左ボタンを押すのをやめるとすぐにそれらが消えますが、これは理にかなっています。</p>
+                    <p>マウスダウンでこれらの描画を設定/切り替える方法があるかどうか疑問に思っていますが、これを示すリソースや例を見つけるのに苦労していますが、今学期の作業では教えられませんでした。</p>
+                    <p>現在のコードセットは次のとおりです。</p>
+                    <pre><code>def draw
+        music_file = File.new(&quot;albums.txt&quot;, &quot;r&quot;)
+        albums = read_albums(music_file)
+        artworks = read_artworks(albums)
+        music_file.close() 
+        @info_font.draw(&quot;mouse_x: #{mouse_x}&quot;, 0, 590, ZOrder::UI, 1.0, 1.0, Gosu::Color::BLACK) #debug
+        @info_font.draw(&quot;mouse_y: #{mouse_y}&quot;, 100, 590, ZOrder::UI, 1.0, 1.0, Gosu::Color::BLACK) #debug
+        draw_background() 
+        draw_albums(albums)
+        drawtracks_main(albums) #this is the issue I&#39;m trying to fix
+    end
+    def drawtracks_main(albums)
+        if (Gosu.button_down? Gosu::MsLeft and mouse_over_album1(mouse_x, mouse_y))
+            draw_tracks(albums[0].tracks) == true
+        end
+    end
+</code></pre>
+                    <pre><code>def draw_tracks(tracks)
+        count = tracks.length
+        index = 0
+        ypos = 19
+        xpos = 585
+        while index &lt; count
+            @track_font.draw((tracks[index].name), xpos, ypos, ZOrder::UI, 1.0, 1.0, Gosu::Color::BLACK) 
+            index += 1
+            ypos += 20
+        end
+    end
+    def mouse_over_album1(mouse_x, mouse_y)
+        if ((mouse_x &gt; 19 and mouse_x &lt; 287) and (mouse_y &gt; 19 and mouse_y &lt; 287))
+            true
+        else false
+        end
+    end
+</code></pre>
+                    <p>これを button_down
+                    内に描画するように切り替えてみましたが、実際には
+                    button_down
+                    内に描画できないことに気付きました。それ以外の場合、描画を
+                    true
+                    に設定して値を与えようとしましたが、もちろん機能しませんでした。</p>
+                    <p>どんな助けでも大助かりです!!</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>そこで、1 時間座って壁を見つめていた後、gosu
+                    に組み込まれている更新手順を使用する必要があることに気付きました。</p>
+                    <p><span class="citation"
+                    data-cites="draw_tracks_enabled">@draw_tracks_enabled</span>
+                    値を false に初期化し、これを使用します。</p>
+                    <pre><code>def update
+  if Gosu.button_down?(Gosu::MsLeft)
+    if mouse_over_album1(mouse_x, mouse_y)
+      @draw_tracks1_enabled = true
+    else 
+      @draw_tracks1_enabled = false
+    end 
+  end
+end
+</code></pre>
+                    <p>これを true (表示する別の項目を押した場合は
+                    false) にします。次に、単純な if <span
+                    class="citation"
+                    data-cites="draw_tracks1_enabled">@draw_tracks1_enabled</span>
+                    == true を記述して、トラックを描画します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

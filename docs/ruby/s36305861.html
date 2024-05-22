@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyをDockerにインストールするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyをDockerにインストールするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyをDockerにインストールするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>docker に Ruby をインストールしようとしています。
+                    1.9バージョンはインストールできましたが、2.2.0以降などの最新バージョンはインストールできません。実際にdockerにcalabashをセットアップしようとしています。これを試してみました。
+                    calabash-androidをインストールしようとするとエラーが発生します</p>
+                    <pre><code>ERROR:  Error installing calabash-android:
+luffa requires Ruby version &gt;= 2.0.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>別のベース Docker
+                    インスタンスから開始する場合は、ベース
+                    インスタンスのパッケージ管理システムから Ruby
+                    をインストールするコマンドを実行するだけです。たとえば、この
+                    GitHub Gist では、apt-get を使用して Ruby を Ubuntu
+                    インスタンスにインストールする方法を示しています。</p>
+                    <pre><code># Pull base image.
+FROM dockerfile/ubuntu
+
+# Install Ruby.
+RUN \
+  apt-get update &amp;&amp; \
+  apt-get install -y ruby
+</code></pre>
+                    <p>そして、この要点は、Ubuntu インスタンスに RVM と
+                    Ruby をインストールするように構成された Dockerfile
+                    を示しています。</p>
+                    <pre><code>FROM ubuntu
+
+RUN apt-get update
+
+# basics
+RUN apt-get install -y openssl
+
+# install RVM, Ruby, and Bundler
+RUN \curl -L https://get.rvm.io | bash -s stable
+RUN /bin/bash -l -c &quot;rvm requirements&quot;
+RUN /bin/bash -l -c &quot;rvm install 2.0&quot;
+RUN /bin/bash -l -c &quot;gem install bundler --no-ri --no-rdoc&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

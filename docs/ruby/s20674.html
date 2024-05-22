@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのインスタンスからプライベートクラスメソッドを呼び出す方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのインスタンスからプライベートクラスメソッドを呼び出す方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのインスタンスからプライベートクラスメソッドを呼び出す方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>もちろん、self.class.send :method、args
+                    以外にも。コードを複製せずに、クラス
+                    レベルとインスタンス
+                    レベルの両方で使用できるかなり複雑なメソッドを作成したいと考えています。</p>
+                    <p>アップデート：</p>
+                    <p><span class="citation"
+                    data-cites="Jonathan">@Jonathan</span> Branam:
+                    それは私の推測でしたが、他の誰も回避方法を見つけていないことを確認したかったのです。
+                    Ruby の可視性は Java
+                    の可視性とは大きく異なります。また、private がクラス
+                    メソッドでは機能しないこともまったく正しいですが、これはプライベート
+                    クラス メソッドを宣言します。</p>
+                    <pre><code>class Foo
+  class &lt;&lt;self
+    private
+    def bar
+      puts &#39;bar&#39;
+    end
+  end
+end
+
+Foo.bar
+# =&gt; NoMethodError: private method &#39;bar&#39; called for Foo:Class
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>質問に関連するコードスニペットを次に示します。クラス定義での「private」の使用は、クラス
+                    メソッドには適用されません。次の例のように「private_class_method」を使用する必要があります。</p>
+                    <pre><code>class Foo
+  def self.private_bar
+    # Complex logic goes here
+    puts &quot;hi&quot;
+  end
+  private_class_method :private_bar
+  class &lt;&lt;self
+    private
+    def another_private_bar
+      puts &quot;bar&quot;
+    end
+  end
+  public
+  def instance_bar
+    self.class.private_bar
+  end
+  def instance_bar2
+    self.class.another_private_bar
+  end
+end
+
+f=Foo.new
+f=instance_bar # NoMethodError: private method `private_bar&#39; called for Foo:Class
+f=instance_bar2 # NoMethodError: private method `another_private_bar&#39; called for Foo:Class
+</code></pre>
+                    <p>これを回避する方法がわかりません。ドキュメントには、プライベート
+                    メソッドの受信を指定できないと記載されています。また、プライベート
+                    メソッドには同じインスタンスからのみアクセスできます。クラス
+                    Foo は、Foo
+                    の特定のインスタンスとは異なるオブジェクトです。</p>
+                    <p>私の答えを最終的なものとして受け取らないでください。私は確かに専門家ではありませんが、回答しようとする他の人が適切なプライベート
+                    クラス メソッドを使用できるように、コード
+                    スニペットを提供したいと思いました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

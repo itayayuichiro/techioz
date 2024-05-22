@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5.1.7: Sprockets::Rails::Helper::AssetNotFound | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5.1.7: Sprockets::Rails::Helper::AssetNotFound",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 5.1.7:
+Sprockets::Rails::Helper::AssetNotFound</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5.1.7
+                    アプリケーションがあり、開発環境ではすべて正常に動作しています。ただし、ステージング環境や、rails
+                    s -e
+                    ステージングを使用してサーバーを実行している場合は、「Sprockets::Rails::Helper::AssetNotFound」というエラーが表示されます。</p>
+                    <p>たとえば、アセット「fontawesome-free-5.1.1-web/css/all.min.css」はアセット
+                    パイプラインに存在しません。</p>
+                    <p>fontawesome-free-5.1.1-web フォルダーは
+                    public/styleheets の下にあります。</p>
+                    <p>フォルダーをベンダー/スタイルシートまたはアセット/スタイルシートに移動しようとしましたが、同じエラーが表示されます。</p>
+                    <p>以下は私の環境/staging.rbです</p>
+                    <pre><code>AppName::Application.configure do
+  config.cache_classes = true
+
+  config.consider_all_requests_local       = true
+  config.action_controller.perform_caching = true
+  config.action_view.cache_template_loading = true
+  config.action_dispatch.x_sendfile_header = &#39;X-Accel-Redirect&#39;
+
+  config.log_level = :debug
+  memcached_config = YAML.load_file(Rails.root.join(&#39;config/memcached.yml&#39;))
+  memcached_hosts = memcached_config[&#39;defaults&#39;][&#39;servers&#39;]
+  config.cache_store = :mem_cache_store, *memcached_hosts
+
+
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.i18n.fallbacks = true
+
+  config.active_support.deprecation = :notify
+
+  config.eager_load = true
+  config.assets.js_compressor = Uglifier.new(harmony: true)
+  config.assets.compile = false
+  config.assets.raise_runtime_errors = true
+  config.assets.debug = true
+end
+</code></pre>
+                    <p>ここで何が問題になっているのかについてアドバイスをいただければ大変助かります。ありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたはこれをやっていると仮定します:</p>
+                    <pre><code>&lt;%= stylesheet_link_tag &#39;fontawesome/all.min.css&#39; %&gt;  
+</code></pre>
+                    <pre><code>vendor/
+└── assets/                  # &lt;= this one is important
+    └── stylesheets/
+        └── fontawesome/
+            └── all.min.css
+</code></pre>
+                    <p>ベンダー/アセットおよびアプリ/アセットのディレクトリは、アセット
+                    パスに自動的に追加されます。 Sprocket
+                    がアセットを検索するために使用するパスは次のとおりです。</p>
+                    <pre><code>&gt;&gt; puts Rails.application.config.assets.paths
+...
+/myapp/app/assets/stylesheets
+/myapp/vendor/assets/stylesheets         # &lt;=
+/usr/local/bundle/gems/coffee-rails-4.2.2/lib/assets/javascripts
+/usr/local/bundle/gems/actioncable-5.2.8.1/lib/assets/compiled
+...
+</code></pre>
+                    <p>config.assets.compile = false
+                    になっています。これは、sprockets がアセット
+                    パス内を調べてその場でコンパイルを完了することを意味します。現在、public/assets
+                    にプリコンパイルされたアセットが期待されています。</p>
+                    <pre><code># assuming sprockets is still serving files (but not compiling them anymore)
+&gt;&gt; Rails.application.config.public_file_server.enabled
+=&gt; true
+&gt;&gt; Rails.application.config.assets.compile
+=&gt; false
+
+&gt;&gt; helper.asset_path(&quot;fontawesome/all.min.css&quot;)
+Traceback (most recent call last):
+        1: from (irb):5
+Sprockets::Rails::Helper::AssetNotFound (The asset &quot;fontawesome/all.min.css&quot; is not present in the asset pipeline.)
+</code></pre>
+                    <p>bin/rails
+                    のアセットをプリコンパイルする必要があります。</p>
+                    <pre><code># config/initializers/assets.rb
+
+# but make it precompilable first
+Rails.application.config.assets.precompile += [&quot;fontawesome/all.min.css&quot;]
+</code></pre>
+                    <pre><code>$ bin/rails assets:precompile
+
+I, [2023-09-10T10:04:24.038220 #1]  INFO -- : Writing /myapp/public/assets/fontawesome/all.min-1f62e82d4d0217052a8d48596d631f5c58ee5149386c719419046118e4fa43f3.css
+...
+</code></pre>
+                    <p>今は動作するはずです:</p>
+                    <pre><code>&gt;&gt; helper.asset_path(&quot;fontawesome/all.min.css&quot;)
+=&gt; &quot;/assets/fontawesome/all.min-1f62e82d4d0217052a8d48596d631f5c58ee5149386c719419046118e4fa43f3.css&quot;
+
+# check if it is being served
+&gt;&gt; require &quot;open-uri&quot;
+&gt;&gt; URI.open(helper.asset_path(&quot;fontawesome/all.min.css&quot;, host: &quot;http://localhost:3000&quot;)).read
+=&gt; &quot;i am font\n&quot;
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://guides.rubyonrails.org/v5.0/configuring.html#configuring-assets</p>
+                    <p>アップデート</p>
+                    <p>ファイルを一括処理するには、2
+                    つのオプションがあります。プリコンパイルのためにアセットを動的に照合するプロシージャを追加します。</p>
+                    <pre><code># config/initializers/assets.rb
+
+VENDOR_ASSETS = lambda do |logical_path, filename|
+  filename.start_with?(::Rails.root.join(&quot;vendor/assets/&quot;).to_s) &amp;&amp;
+    [&quot;.css&quot;, &quot;.js&quot;].include?(File.extname(logical_path))
+end
+
+Rails.application.config.assets.precompile += [VENDOR_ASSETS]
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/sprockets-rails/blob/v3.4.2/lib/sprockets/railtie.rb#L88</p>
+                    <p>より良いオプションは、manifest.js
+                    を使用することです。これは、以降の Rails
+                    バージョンのデフォルトです。</p>
+                    <pre><code># config/initializers/assets.rb
+
+# don&#39;t need this in sprockets v4
+Rails.application.config.assets.precompile += [&quot;manifest.js&quot;]
+</code></pre>
+                    <pre><code>// app/assets/config/manifest.js
+
+//= link_tree ../images
+//= link_directory ../javascripts .js
+//= link_directory ../stylesheets .css
+//
+// link everything to be precompiled
+//= link_tree ../../../vendor/assets/stylesheets .css
+//= link_tree ../../../vendor/assets/javascripts .js
+//
+// or one file at a time 
+//= link fontawesome/all.min.css
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/sprockets#directives</p>
+                    <p>また、アセットをプリコンパイルするときは、URL
+                    を通じて直接アセットをロードする必要があることを意味します。
+                    //= require
+                    ディレクティブのみを使用する場合、必要なファイルはプリコンパイルされるファイルにマージされるため、プリコンパイルする必要はありません。取得できるのは、1
+                    つの大きな application.css ファイルだけです。</p>
+                    <pre><code>/* app/assets/stylesheets/application.css */
+
+/*
+ *= require_tree .
+ *= require_self
+ *= require fontawesome/all.min
+ */
+</code></pre>
+                    <p>テストするためにローカルでプリコンパイルしている場合は、完了後に
+                    bin/railsassets:clobber
+                    を実行することを忘れないでください。開発中にプリコンパイルされたアセットは必要ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

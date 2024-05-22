@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>チェーンレール。いずれかが当てはまる場合に選択する場所 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "チェーンレール。いずれかが当てはまる場合に選択する場所",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>チェーンレール。いずれかが当てはまる場合に選択する場所</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    アプリケーションで作成した条件付きクエリに問題があります。現在、特定の場所（location_north、location_southなど）がtrueである場合、および特定のタイプ（type_
+                    Dining、type_uniqueなど）がtrueである場合に店舗がクエリされていますが、代わりに、それらのすべてではなく、いずれかが2つである場合にクエリを実行したいと考えています。それらは真実です。</p>
+                    <p>たとえば、リードの location_north と
+                    location_east が true
+                    に設定されている場合、location_north または
+                    location_east
+                    を使用してすべてのストアにクエリを実行したい場合、ストアでは両方を
+                    true に設定する必要はありません。</p>
+                    <p>タイプについても同様です。リードのstore_type_uniqueがtrueで、store_type_
+                    Diningがtrueの場合、type_uniqueまたはtype_
+                    Diningがtrueであるすべての店舗をクエリしたいのですが、店舗では両方をtrueに設定する必要はありません。</p>
+                    <p>データベースの構成方法に問題があることはわかっていますが、現在のビルドでこれを設定する方法はありますか?ご指導ありがとうございます。感謝いたします。</p>
+                    <pre><code>    def build_filters_obj
+        filters = []
+        filters.push &#39;location_north&#39; if @lead.location_north
+        filters.push &#39;location_east&#39; if @lead.location_east
+        filters.push &#39;location_south&#39; if @lead.location_south
+        filters.push &#39;location_west&#39; if @lead.location_west
+        filters.push &#39;location_other&#39; if @lead.location_other
+        
+        return filters
+    end
+
+    def perform(lead_id)
+        @lead = Lead.find(lead_id)
+
+        lead_email = ValidEmail2::Address.new(@lead.email)
+        UserNotifierMailer.send_signup_email(@lead).deliver if lead_email.valid?
+
+        @stores = Store.all
+        @stores = @stores.where.not(email: [nil, &#39;&#39;])
+
+        n = @lead.guests_total.to_i
+        @stores = @stores.where(&quot;capacity_min &lt;= ? AND capacity_max &gt;= ?&quot;, n, n)
+        
+        @stores = @stores.where(:type_unique =&gt; true) if @lead.store_type_unique
+        @stores = @stores.where(:type_dining =&gt; true) if @lead.store_type_dining
+        @stores = @stores.where(:type_hotel =&gt; true) if @lead.store_type_hotel
+        
+        filters = build_filters_obj
+        filters.each do |filter|
+            @stores = @stores.where(filter.to_sym =&gt; true)
+        end
+
+        @stores = @stores.or(Store.where(:receive_all =&gt; true))
+
+        @stores.each do |store|
+            store_email = ValidEmail2::Address.new(store.email)
+            UserNotifierMailer.send_lead_email(store, @lead).deliver if store_email.valid?
+        end
+    end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>非常に簡単な変更は、次の各行を書き換えることです。</p>
+                    <pre><code>@stores = @stores.where(:type_unique =&gt; true) if @lead.store_type_unique
+</code></pre>
+                    <p>これに：</p>
+                    <pre><code>@stores = @stores.or(Store.where(:type_unique =&gt; true)) if @lead.store_type_unique
+</code></pre>
+                    <p>フィルターループ内の行も同様です。</p>
+                    <p>そこから、テストを作成して、正しいロジックが得られていることを確認します。最後に、コードをリファクタリングして
+                    DRY アップできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

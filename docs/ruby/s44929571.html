@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>フロントエンドを使用した Rails API - 電子メール リンクをバックエンドまたはフロントエンド アプリケーションにルーティングする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "フロントエンドを使用した Rails API - 電子メール リンクをバックエンドまたはフロントエンド アプリケーションにルーティングする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>フロントエンドを使用した Rails API -
+電子メール リンクをバックエンドまたはフロントエンド
+アプリケーションにルーティングする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails API バックエンドと ReactJS
+                    フロントエンドがあります。私のバックエンドは、多くの場合、確認のようなリンク
+                    (メール確認など)
+                    を含むカスタムメールを送信します。</p>
+                    <p>確認リンクはバックエンドを直接指すべきですか、それとも最初にフロントエンドをロードしてからバックエンドへの
+                    API 呼び出しを行うべきですか?</p>
+                    <p>私が考えている代替案は次の 2 つです。</p>
+                    <p>1 - メール確認リンクが直接ヒットします</p>
+                    <p>backend.example.com/email_confirmations/:confirmation_token、これにより、フロントエンドの特定の成功
+                    (エラー)
+                    ページ、frontend.example.com/email_confirmation/success(/failure)
+                    にリダイレクトされます。</p>
+                    <p>バックエンドでは、フロントエンド
+                    アプリへのリダイレクトを実行するための最小限のモジュールを備えた
+                    Metal
+                    コントローラーのみが必要です。コントローラーは常にリダイレクトで応答します)。フロントエンドからさらにアクションを実行する必要がある場合、別の
+                    API エンドポイントがヒットします。</p>
+                    <p>2 -
+                    電子メール確認リンクにより、次のフロントエンドが開きます。</p>
+                    <p>Frontend.example.com/email_confirmations/:confirmation_token
+                    は、backend.example.com/email_confirmations/:confirmation_token
+                    への API リクエストをトリガーします。</p>
+                    <p>次に、私の (Json:api) バックエンドは、Rails
+                    APIController を使用して jsonapi
+                    準拠の応答を作成します。</p>
+                    <p>練習では何をしているのですか？</p>
+                    <p>最初のシナリオにオプトインすることにしましたが、最初にフロントエンドを体系的に呼び出し/ロードするほうが合理的でしょうか?</p>
+                    <p>このようなシナリオでは、バックエンド/フロントエンドをどのように接続しますか?</p>
+                    <p>私は現在、受信パラメータを処理するだけの非常に単純な（メタル）コントローラを実装し、フロントエンドへのリダイレクトのみを実行します。次のようにフロントエンドを指す「URL
+                    ヘルパー」を定義したいと考えていました。</p>
+                    <pre><code>namespace :email_redirection do 
+    # Controller that gets hit by email confirmation links in scenario #1
+    resources :confirmations
+end
+
+namespace :frontend do
+    frontend_root = Rails.configuration.frontend_host_with_http_and_port
+
+    scope frontend_root do
+      # Generation of URL Helpers for the frontend app
+      resources :confirmations, only: [] do
+        get &#39;successful&#39;
+        get &#39;unsuccessful&#39;
+      end
+    end
+end
+</code></pre>
+                    <p>そして、私の確認コントローラーは次のようになります</p>
+                    <pre><code>class EmailRedirection::ConfirmationsController
+  def index
+    svc = MyConfirmationService.new(token: params[:confirmation_token])
+    if svc.confirm
+      redirect_to(
+        frontend_successful_confirmation_url,
+        email: svc.confirmable.email
+      )
+      else
+        redirect_to(frontend_unsuccessful_confirmation_url)
+      end
+    end
+  end
+</code></pre>
+                    <p>いくつかのエラーが発生しており、おそらく URL
+                    ヘルパーは別のホスト/ポートでは使用できないと思います…
+                    (または、各呼び出しに明示的に渡す必要があります)</p>
+                    <p>どうすればそれに対処できますか?また、1.
+                    が適切な選択である場合、成功/失敗時に送信するリダイレクト
+                    コードは何になりますか (3xx のみであるため)。</p>
+                    <p>どちらのソリューションもバックエンド/フロントエンド間のかなりの配線が必要ですが、どのように接続するのが最善かわかりません。</p>
+                    <p>注: 私のモデルは Device を使用していますが、Devic
+                    は API
+                    などにあまり優れていないためです。私はいくつかの副作用も処理する独自のconfirmationServiceを使用しています。
+                    Devise はここでは関係ないと思います</p>
+                    <p>外部 URL への Rails ルートの作成</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>どちらのアプローチにも長所と短所があり、どちらを選択するかは、特定の要件と好みによって異なります。それぞれのアプローチを詳しく見てみましょう。</p>
+                    <p>フロントエンドとバックエンドの間でホスト/ポートが異なるために
+                    URL ヘルパーで問題が発生した場合は、URL
+                    を生成するときにホストを明示的に指定できます。 Rails
+                    では、ホスト パラメータを URL
+                    ヘルパーに渡すことでこれを実現できます。</p>
+                    <pre><code>redirect_to frontend_successful_confirmation_url(host: &#39;frontend.example.com&#39;, email: svc.confirmable.email)
+</code></pre>
+                    <p>成功するには、リダイレクトに 302 Found または 303
+                    See Other を使用できます。失敗の場合は、4xx
+                    ステータス コード (たとえば、クライアント
+                    エラーの場合は 400 Bad Request) または 5xx
+                    ステータス コード (たとえば、サーバー エラーの場合は
+                    500 Internal Server Error) を使用できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

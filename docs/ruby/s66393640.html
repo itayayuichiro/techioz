@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>空の配列とハッシュがインターンされないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "空の配列とハッシュがインターンされないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>空の配列とハッシュがインターンされないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、Ruby は [] と {}
+                    が共通の共有オブジェクトを指すようにインターンされるように最適化していないことを知りました。デモ：</p>
+                    <pre><code>irb(main):001:0&gt; [].object_id
+=&gt; 70284401361960
+irb(main):002:0&gt; [].object_id
+=&gt; 70284392762340 # different
+irb(main):003:0&gt; [].object_id
+=&gt; 70284124310100 # different
+
+irb(main):005:0&gt; {}.object_id
+=&gt; 70284392857480
+irb(main):006:0&gt; {}.object_id
+=&gt; 70284392870480 # different
+irb(main):007:0&gt; {}.object_id
+=&gt; 70284392904360 # different
+</code></pre>
+                    <p>多くの場合、すぐに変更される値を初期化するために空のハッシュと配列リテラルが使用されることを理解しています。ただし、これは、代わりに
+                    [].freeze.object_id または {}.freeze.object_id
+                    を使用してフリーズした場合でも発生します。</p>
+                    <p>これを、環境変数 RUBYOPT が
+                    –enable-frozen-string-literal に設定されている場合の
+                    String と比較してください。</p>
+                    <pre><code>irb(main):001:0&gt; &quot;&quot;
+=&gt; 70284400947400
+irb(main):002:0&gt; &quot;&quot;
+=&gt; 70284400947400 # same
+irb(main):003:0&gt; &quot;&quot;
+=&gt; 70284400947400 # same
+</code></pre>
+                    <p>凍結された文字列リテラルを有効にしなくても、代わりに
+                    ““.freeze.object_id
+                    を呼び出すと、毎回同じオブジェクト ID
+                    が取得されます。ただし、最初の””
+                    リテラルには凍結された中間文字列オブジェクトがまだ割り当てられているのではないかと思われます。呼び出されている。</p>
+                    <p>パフォーマンス重視のコードベースでは
+                    (パフォーマンス重視なので、MRI
+                    を使用しながらも許容できます
+                    (笑))、この回避策を見たことがあります。これは、ハッシュがまたは、配列は可変である必要はありません。</p>
+                    <pre><code>module LessAllocations
+  EMPTY_HASH = {}.freeze
+  EMPTY_ARRAY = [].freeze
+
+  # String literals are already frozen, use &#39;&#39; instead
+  # EMPTY_STRING = &#39;&#39;
+end
+</code></pre>
+                    <p>そこで私の質問は次のとおりです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この質問に答えるには、現実世界のメモリ使用量の調査を行う必要がありますが、それは可能性が低いと思います。ちょっとした実験をしてみるといいでしょう…</p>
+                    <pre><code>class Array
+  EMPTY_ARRAY = [].freeze
+  
+  def freeze
+    empty? ? EMPTY_ARRAY : super
+  end
+end
+</code></pre>
+                    <p>空のオブジェクトは非常に小さいです。プログラムがメモリを使用している他のすべてのものと比較して、大量のメモリを使用することは、特殊なケースです。</p>
+                    <p>そのため、空のハッシュや配列にコピーオンライトを追加すると、速度が低下する可能性があります。</p>
+                    <p>冷凍するということは、空のままになることが事前にわかっていることを意味しますが、これは非常にまれです。既知の空のハッシュと配列が多すぎるため、パフォーマンスの問題が発生するのは、特殊なケースです。継続的な回避策は問題ないようです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

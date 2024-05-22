@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: マクロからマクロを呼び出すにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: マクロからマクロを呼び出すにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+マクロからマクロを呼び出すにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>他の 2
+                    つのマクロ呼び出しを呼び出すマクロが必要です。例えば。、</p>
+                    <p>前に：</p>
+                    <pre><code>  class Apple &lt; ValidatedObject::Base
+    attr_accessor :diameter
+    validates :diameter, type: Float
+  end
+
+</code></pre>
+                    <p>後：</p>
+                    <pre><code>  class Apple &lt; ValidatedObject::Base
+    validates_attr :diameter, type: Float
+  end
+</code></pre>
+                    <p>私の質問は実際のところ、#validates_attr
+                    を実装する方法です。#validates_attr には 2
+                    つの別々のマクロ呼び出しを行う以外の仕事はありません。</p>
+                    <p>マクロについて読んだり、define_method
+                    などを調べたりしています。しかし、他の 2
+                    つの既存のマクロに委任するだけの場合、本当にそのための新しいマクロを作成する必要がありますか?クラスメソッドを書いてみましたが、うまくいきませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、Validated Object::Base
+                    クラスでメソッドを定義できます。</p>
+                    <pre><code>class ValidatedObject::Base
+  def self.validates_attr(name, type:)
+    attr_accessor name
+    validates name, type: type
+  end
+
+  #...
+end
+</code></pre>
+                    <p>そして、次のように Apple
+                    サブクラスからそのメソッドを呼び出します。</p>
+                    <pre><code>class Apple &lt; ValidatedObject::Base
+  validates_attr :diameter, type: Float
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

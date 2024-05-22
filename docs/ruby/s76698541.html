@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同じモジュールの他のクラスの属性を拡張およびオーバーライドするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同じモジュールの他のクラスの属性を拡張およびオーバーライドするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同じモジュールの他のクラスの属性を拡張およびオーバーライドするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails でgraphql
+                    を使用しているときに、これを使用して、Product
+                    レコードに対して実行する突然変異/更新の引数を定義しています。これまでのところ、引数の定義に使用しているファイルは次のとおりです。</p>
+                    <pre><code> module Types
+  module Input
+    class ProductInputType &lt; Types::BaseInputObject
+      argument :name,           String, required: false
+      argument :description,    String, required: false
+      argument :initial_price,  Float, required: false
+    end
+  end
+end
+</code></pre>
+                    <p>重要なのは、製品の作成時に必要なすべてを定義したいのですが、モデルを更新するときにすべてが必要になるわけではないということです。そこで、2
+                    つの異なるファイルに 2
+                    つの異なるクラスを作成して、それらを必須にするかどうかを決めたいと思いました。</p>
+                    <p>製品を作成するには、次のすべてが必要です。</p>
+                    <pre><code>module Types
+  module Input
+    class CreateProductInputType
+      argument :name,           String, required: true
+      argument :description,    String, required: true
+      argument :initial_price,  Float, required: true
+    end
+  end
+end
+</code></pre>
+                    <p>ただし、更新するときは、必須の属性を 1
+                    つだけ必要とし、残りはすべて false
+                    にする必要があります。</p>
+                    <pre><code> module Types
+  module Input
+    class UpdateProductInputType
+      argument :name,           String, required: true
+    end
+  end
+end
+</code></pre>
+                    <p>最初の ProductInputType をすべて false
+                    として要求するデフォルトの動作として設定し、その
+                    ProductInputType
+                    を拡張して必要な引数のみをオーバーライドするだけで、これらの新しいクラス
+                    (CreateProductInputType と UpdateProductInputType)
+                    を作成できることを期待していました。次のように動作が変更されました。</p>
+                    <pre><code>    module Types
+      module Input
+        class CreateProductInputType &lt; ProductInputType
+          argument :name,           String, required: true
+          argument :initial_price,  Float, required: true
+        end
+      end
+    end
+
+    module Types
+      module Input
+        class UpdateProductInputType &lt; ProductInputType
+          argument :name,           String, required: true
+        end
+      end
+    end
+</code></pre>
+                    <p>しかし、このままではうまくいきません。これらがすべて同じモジュール内にあることを認識しながら、ProductInputType
+                    をこれらのクラスに拡張し、引数をオーバーライドするにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>1 つの方法は、ActiveSupport::Concern
+                    を使用して共通の属性を定義し、それらを InputType
+                    クラスに含めることです。</p>
+                    <p>このようにして、入力型クラス内に新しい属性を追加したり、共通の属性をオーバーライドしたりすることもできます。</p>
+                    <p>例：</p>
+                    <pre><code>
+module Types
+  module Input
+    module ProductInputAttributes
+      extend ActiveSupport::Concern
+
+      included do
+        argument :name,           String, required: false
+        argument :description,    String, required: false
+        argument :initial_price,  Float, required: false
+      end
+    end
+  end
+end
+
+module Types
+  module Input
+    class CreateProductInputType
+      include ProductInputAttributes
+
+      argument :name, String, required: true
+    end
+  end
+end
+
+module Types
+  module Input
+    class UpdateProductInputType
+      include ProductInputAttributes
+
+      argument :id, ID, required: true
+      argument :name, String, required: true
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

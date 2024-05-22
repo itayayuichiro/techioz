@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>確実にインストールされている gem での LoadError | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "確実にインストールされている gem での LoadError",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>確実にインストールされている gem での
+LoadError</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近 Rails
+                    を使い始めたのですが、次のようなエラーが頻繁に発生するようになりました。
+                    LoadError: そのようなファイルをロードできません –
+                    capybara</p>
+                    <p>しかし、capybara は間違いなく私の gemfile
+                    にあり、バンドルリストを作成すると、間違いなくそこにあります。これは、トールやティルト、その他のいくつかのゲームでも起こりました。</p>
+                    <p>私のgemfile:</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+# Bundle edge Rails instead: gem &#39;rails&#39;, github: &#39;rails/rails&#39;
+gem &#39;rails&#39;, &#39;~&gt; 4.2&#39;
+# Use sqlite3 as the database for Active Record
+gem &#39;sqlite3&#39;
+# Use SCSS for stylesheets
+# gem &#39;sass-rails&#39;, &#39;~&gt; 5.0&#39;    (Commented out because of Loaderror --thin)
+# Use Uglifier as compressor for JavaScript assets
+gem &#39;uglifier&#39;, &#39;&gt;= 1.3.0&#39;
+# Use CoffeeScript for .coffee assets and views
+gem &#39;coffee-rails&#39;, &#39;~&gt; 4.1.0&#39;
+# See https://github.com/rails/execjs#readme for more supported runtimes
+# gem &#39;therubyracer&#39;, platforms: :ruby
+
+# Use jquery as the JavaScript library
+gem &#39;jquery-rails&#39;
+# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+gem &#39;turbolinks&#39;
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem &#39;jbuilder&#39;, &#39;~&gt; 2.0&#39;
+# bundle exec rake doc:rails generates the API under doc/api.
+gem &#39;sdoc&#39;, &#39;~&gt; 0.4.0&#39;, group: :doc
+
+
+group :development, :test do
+  gem &#39;byebug&#39;
+  gem &#39;spring&#39;
+  gem &#39;rspec-rails&#39;
+  gem &#39;factory_bot_rails&#39;
+  gem &#39;capybara&#39;
+  gem &#39;capybara-rails&#39;    (Added because of LoadError capybara/rails)
+  gem &#39;database_cleaner&#39;
+end
+</code></pre>
+                    <p>何が起きてる？</p>
+                    <p>gemfile.lock</p>
+                    <pre><code>GEM
+  remote: https://rubygems.org/
+  specs:
+    actionmailer (4.2.11)
+      actionpack (= 4.2.11)
+      actionview (= 4.2.11)
+      activejob (= 4.2.11)
+      mail (~&gt; 2.5, &gt;= 2.5.4)
+      rails-dom-testing (~&gt; 1.0, &gt;= 1.0.5)
+    actionpack (4.2.11)
+      actionview (= 4.2.11)
+      activesupport (= 4.2.11)
+      rack (~&gt; 1.6)
+      rack-test (~&gt; 0.6.2)
+      rails-dom-testing (~&gt; 1.0, &gt;= 1.0.5)
+      rails-html-sanitizer (~&gt; 1.0, &gt;= 1.0.2)
+    actionview (4.2.11)
+      activesupport (= 4.2.11)
+      builder (~&gt; 3.1)
+      erubis (~&gt; 2.7.0)
+      rails-dom-testing (~&gt; 1.0, &gt;= 1.0.5)
+      rails-html-sanitizer (~&gt; 1.0, &gt;= 1.0.3)
+    activejob (4.2.11)
+      activesupport (= 4.2.11)
+      globalid (&gt;= 0.3.0)
+    activemodel (4.2.11)
+      activesupport (= 4.2.11)
+      builder (~&gt; 3.1)
+    activerecord (4.2.11)
+      activemodel (= 4.2.11)
+      activesupport (= 4.2.11)
+      arel (~&gt; 6.0)
+    activesupport (4.2.11)
+      i18n (~&gt; 0.7)
+      minitest (~&gt; 5.1)
+      thread_safe (~&gt; 0.3, &gt;= 0.3.4)
+      tzinfo (~&gt; 1.1)
+    addressable (2.5.2)
+      public_suffix (&gt;= 2.0.2, &lt; 4.0)
+    arel (6.0.4)
+    builder (3.2.3)
+    byebug (10.0.2)
+    capybara (3.12.0)
+      addressable
+      mini_mime (&gt;= 0.1.3)
+      nokogiri (~&gt; 1.8)
+      rack (&gt;= 1.6.0)
+      rack-test (&gt;= 0.6.3)
+      regexp_parser (~&gt; 1.2)
+      xpath (~&gt; 3.2)
+    capybara-console (0.0.4)
+      capybara
+      rails (&gt;= 3.0)
+    capybara-rails (0.0.2)
+      capybara
+      capybara-console
+      database_cleaner
+      exception_notification
+    coffee-rails (4.1.1)
+      coffee-script (&gt;= 2.2.0)
+      railties (&gt;= 4.0.0, &lt; 5.1.x)
+    coffee-script (2.4.1)
+      coffee-script-source
+      execjs
+    coffee-script-source (1.12.2)
+    concurrent-ruby (1.1.4)
+    crass (1.0.4)
+    database_cleaner (1.7.0)
+    diff-lcs (1.3)
+    erubis (2.7.0)
+    exception_notification (4.3.0)
+      actionmailer (&gt;= 4.0, &lt; 6)
+      activesupport (&gt;= 4.0, &lt; 6)
+    execjs (2.7.0)
+    factory_bot (4.11.1)
+      activesupport (&gt;= 3.0.0)
+    factory_bot_rails (4.11.1)
+      factory_bot (~&gt; 4.11.1)
+      railties (&gt;= 3.0.0)
+    globalid (0.4.1)
+      activesupport (&gt;= 4.2.0)
+    i18n (0.9.5)
+      concurrent-ruby (~&gt; 1.0)
+    jbuilder (2.8.0)
+      activesupport (&gt;= 4.2.0)
+      multi_json (&gt;= 1.2)
+    jquery-rails (4.3.3)
+      rails-dom-testing (&gt;= 1, &lt; 3)
+      railties (&gt;= 4.2.0)
+      thor (&gt;= 0.14, &lt; 2.0)
+    json (1.8.6)
+    loofah (2.2.3)
+      crass (~&gt; 1.0.2)
+      nokogiri (&gt;= 1.5.9)
+    mail (2.7.1)
+      mini_mime (&gt;= 0.1.1)
+    mini_mime (1.0.1)
+    mini_portile2 (2.3.0)
+    minitest (5.11.3)
+    multi_json (1.13.1)
+    nokogiri (1.8.5)
+      mini_portile2 (~&gt; 2.3.0)
+    public_suffix (3.0.3)
+    rack (1.6.11)
+    rack-test (0.6.3)
+      rack (&gt;= 1.0)
+    rails (4.2.11)
+      actionmailer (= 4.2.11)
+      actionpack (= 4.2.11)
+      actionview (= 4.2.11)
+      activejob (= 4.2.11)
+      activemodel (= 4.2.11)
+      activerecord (= 4.2.11)
+      activesupport (= 4.2.11)
+      bundler (&gt;= 1.3.0, &lt; 2.0)
+      railties (= 4.2.11)
+      sprockets-rails
+    rails-deprecated_sanitizer (1.0.3)
+      activesupport (&gt;= 4.2.0.alpha)
+    rails-dom-testing (1.0.9)
+      activesupport (&gt;= 4.2.0, &lt; 5.0)
+      nokogiri (~&gt; 1.6)
+      rails-deprecated_sanitizer (&gt;= 1.0.1)
+    rails-html-sanitizer (1.0.4)
+      loofah (~&gt; 2.2, &gt;= 2.2.2)
+    railties (4.2.11)
+      actionpack (= 4.2.11)
+      activesupport (= 4.2.11)
+      rake (&gt;= 0.8.7)
+      thor (&gt;= 0.18.1, &lt; 2.0)
+    rake (12.3.2)
+    rdoc (4.3.0)
+    regexp_parser (1.3.0)
+    rspec-core (3.8.0)
+      rspec-support (~&gt; 3.8.0)
+    rspec-expectations (3.8.2)
+      diff-lcs (&gt;= 1.2.0, &lt; 2.0)
+      rspec-support (~&gt; 3.8.0)
+    rspec-mocks (3.8.0)
+      diff-lcs (&gt;= 1.2.0, &lt; 2.0)
+      rspec-support (~&gt; 3.8.0)
+    rspec-rails (3.8.1)
+      actionpack (&gt;= 3.0)
+      activesupport (&gt;= 3.0)
+      railties (&gt;= 3.0)
+      rspec-core (~&gt; 3.8.0)
+      rspec-expectations (~&gt; 3.8.0)
+      rspec-mocks (~&gt; 3.8.0)
+      rspec-support (~&gt; 3.8.0)
+    rspec-support (3.8.0)
+    sdoc (0.4.2)
+      json (~&gt; 1.7, &gt;= 1.7.7)
+      rdoc (~&gt; 4.0)
+    spring (2.0.2)
+      activesupport (&gt;= 4.2)
+    sprockets (3.7.2)
+      concurrent-ruby (~&gt; 1.0)
+      rack (&gt; 1, &lt; 3)
+    sprockets-rails (3.2.1)
+      actionpack (&gt;= 4.0)
+      activesupport (&gt;= 4.0)
+      sprockets (&gt;= 3.0.0)
+    sqlite3 (1.3.13)
+    thor (0.20.3)
+    thread_safe (0.3.6)
+    turbolinks (5.2.0)
+      turbolinks-source (~&gt; 5.2)
+    turbolinks-source (5.2.0)
+    tzinfo (1.2.5)
+      thread_safe (~&gt; 0.1)
+    uglifier (4.1.20)
+      execjs (&gt;= 0.3.0, &lt; 3)
+    xpath (3.2.0)
+      nokogiri (~&gt; 1.8)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  byebug
+  capybara
+  capybara-rails
+  coffee-rails (~&gt; 4.1.0)
+  database_cleaner
+  factory_bot_rails
+  jbuilder (~&gt; 2.0)
+  jquery-rails
+  rails (~&gt; 4.2)
+  rspec-rails
+  sdoc (~&gt; 0.4.0)
+  spring
+  sqlite3
+  turbolinks
+  uglifier (&gt;= 1.3.0)
+
+BUNDLED WITH
+   1.17.1
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>spec/rails_helper.rb
+                    でこれを要求する必要があります。</p>
+                    <pre><code># spec/rails_helper.rb
+
+require &#39;spec_helper&#39;
+ENV[&#39;RAILS_ENV&#39;] ||= &#39;test&#39;
+require File.expand_path(&#39;../config/environment&#39;, __dir__)
+abort(&#39;The Rails environment is running in production mode!&#39;) if Rails.env.production?
+require &#39;rspec/rails&#39;
+
+# Add additional requires below this line. Rails is not loaded until this point!
+require &#39;capybara/rails&#39;
+</code></pre>
+                    <p>これについては、capybara README
+                    で詳しく説明されています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

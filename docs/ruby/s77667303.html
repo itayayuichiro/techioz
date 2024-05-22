@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: 存在しないキーの場合、デフォルト値ハッシュを持つハッシュにハッシュを保存する [重複] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: 存在しないキーの場合、デフォルト値ハッシュを持つハッシュにハッシュを保存する [重複]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+存在しないキーの場合、デフォルト値ハッシュを持つハッシュにハッシュを保存する
+[重複]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Hash.new({})
+                    のネストされた値を保存しようとすると、なぜこのように機能するのでしょうか?ボンネットの下で実際に何が起こっているのでしょうか?そのユースケースは何でしょうか?</p>
+                    <p>デフォルト値が {} のハッシュを作成する場合</p>
+                    <pre><code>a = Hash.new({})
+=&gt; {}
+a.default
+=&gt; {}
+</code></pre>
+                    <p>存在しないキーをクエリすると、期待どおりに空のハッシュが返されます</p>
+                    <pre><code>a[:foo]
+=&gt; {}
+</code></pre>
+                    <p>ただし、まだ存在しないキーに値を割り当てようとすると、</p>
+                    <pre><code>a[:foo][:bar] = &#39;baz&#39;
+=&gt; &quot;baz&quot;
+</code></pre>
+                    <p>ハッシュはまだ空のようです</p>
+                    <pre><code>a
+=&gt; {}
+</code></pre>
+                    <p>ただし、親キーを取得すると、ネストされたハッシュが返されます。</p>
+                    <pre><code>a[:foo]
+=&gt; {:bar=&gt;&quot;baz&quot;}
+</code></pre>
+                    <p>さらに混乱するのは、この新しいハッシュが親ハッシュのデフォルト値になっていることです。</p>
+                    <pre><code>a.default
+=&gt; {:bar=&gt;&quot;baz&quot;}
+</code></pre>
+                    <p>存在しないキーをクエリするとその値が返されるようにする</p>
+                    <pre><code>a[:biz]
+=&gt; {:bar=&gt;&quot;baz&quot;}
+</code></pre>
+                    <p>これは次のようにすることで解決できます</p>
+                    <pre><code>a[:foo] = {} unless a.key? :foo
+a[:foo][:bar] = &#39;baz&#39;
+a
+=&gt; {:foo=&gt;{:bar=&gt;&quot;baz&quot;}}
+</code></pre>
+                    <p>他の同様の質問でも、 a = Hash.new { |h,k|
+                    が提案されています。 h[k] =
+                    Hash.new(&amp;h.default_proc) }
+                    これは新しいキーを保存するために機能しますが、フェッチ操作用に空のハッシュも作成します。</p>
+                    <pre><code>a[:baz] == 2
+a
+=&gt; {:baz=&gt;{}}
+</code></pre>
+                    <p>メソッドを記述する以外に、値を取得するときではなく、値を格納するときに必要に応じてネストされたハッシュを作成するハッシュを取得する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby1
+                    では、複製されたデフォルトではなく、デフォルトのオブジェクト参照を保存していることに注意してください。それがあなたの意図ではないとしても、不足しているキーのデフォルトが同じオブジェクトであることを要求しています。
+                    Hash.new(0)
+                    のような単純な値の場合、新しい値が割り当てられるときにデフォルトは変更されず、置き換えられますが、ネストされたハッシュでは値を明示的に変更することになります。</p>
+                    <p>あなたが望むのは、これを次のように最小限に表現することです。</p>
+                    <pre><code>a = Hash.new { |h,k| h[k] = { } }
+</code></pre>
+                    <p>なぜこのように物事が混ざってしまうのか混乱した場合は、特定のオブジェクトの「アイデンティティ」を伝える
+                    object_id を確認してください。</p>
+                    <p>考慮する：</p>
+                    <pre><code>a = Hash.new({ })
+a[0].object_id == a[1].object_id
+# =&gt; true
+
+b = Hash.new { |h,k| h[k] = { } }
+b[0].object_id == b[1].object_id
+# =&gt; false
+</code></pre>
+                    <p>ここで、各「スロット」が独立していることがわかります。</p>
+                    <p>これらの自動インスタンス化モデルの欠点の 1
+                    つは、ご指摘のように、必ずしも必要ではないエントリが作成されてしまうことです。これを避けるには、次のようにより慎重に作業する必要があります。</p>
+                    <pre><code>if a.key?(:baz) &amp;&amp; a[:baz] == 2
+  # ...
+end
+</code></pre>
+                    <p>–</p>
+                    <p>1 JavaScript、Python
+                    などでも、少なくとも非プリミティブ型ではこの動作が見られます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

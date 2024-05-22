@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gem アップデート – システム障害 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gem アップデート – システム障害",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gem アップデート – システム障害</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>gem update –system
+                    の実行が次のエラーで失敗します。</p>
+                    <pre><code>#22 71.91 ERROR:  Error installing rubygems-update:
+#22 71.91   There are no versions of rubygems-update (= 3.5.2) compatible with your Ruby &amp; RubyGems
+#22 71.91   rubygems-update requires Ruby version &gt;= 3.0.0. The current ruby version is 2.7.5.203.
+#22 71.91 ERROR:  While executing gem ... (NoMethodError)
+#22 71.91     undefined method `version&#39; for nil:NilClass
+#22 71.93 Updating rubygems-update
+</code></pre>
+                    <p>私の Ruby のバージョンは次のとおりです。</p>
+                    <pre><code>rbenv local:
+2.7.5
+</code></pre>
+                    <p>Ruby 2.7.5 と互換性のあるバージョンの
+                    Rubygems-update
+                    を見つけてインストールする必要がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rubygems-update の RubyGems バージョン
+                    リストに移動し、Ruby バージョン基準 (&lt;= 2.7.5)
+                    に一致するバージョンが見つかるまで各バージョンをクリックするか、プログラマーになって楽しい方法でそれを実行します。</p>
+                    <pre><code>require &#39;open-uri&#39;
+require &#39;json&#39;
+
+GEM_TO_TEST           = &quot;rubygems-update&quot;
+RUBY_VERSION_TO_MATCH = &quot;2.7.5&quot;
+
+API_URL = &quot;https://rubygems.org/api/v1/versions/#{GEM_TO_TEST}.json&quot;
+
+# Load list of all available versions of GEM_TO_TEST
+gem_versions = JSON.parse(open(API_URL).read)
+
+# Process list to find matching Ruby version
+matching_gem = gem_versions.find { |gem|
+  Gem::Dependency.new(&#39;&#39;, gem[&#39;ruby_version&#39;]).
+    match?(&#39;&#39;, RUBY_VERSION_TO_MATCH)
+}
+
+puts &quot;Latest version of #{GEM_TO_TEST} &quot; +
+     &quot;compatible with Ruby #{RUBY_VERSION_TO_MATCH} &quot; +
+     &quot;is #{matching_gem[&#39;number&#39;]}.&quot;
+</code></pre>
+                    <p>これを実行すると、次の結果が得られます。</p>
+                    <pre><code>Latest version of rubygems-update compatible with Ruby 2.7.5 is 3.4.22.
+</code></pre>
+                    <p>したがって、問題の解決策は（おそらく）次のとおりです。</p>
+                    <pre><code>gem update --system 3.4.22
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails + globalize - 翻訳の自動読み込みを無効にする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails + globalize - 翻訳の自動読み込みを無効にする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails + globalize -
+翻訳の自動読み込みを無効にする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これらの宝石を含むアプリがあります:</p>
+                    <p>レール 5.2.8.1</p>
+                    <p>グローバル化 6.2.1</p>
+                    <p>グローバル化アクセサー 0.3.0</p>
+                    <p>アクセサー/翻訳された列を呼び出していないにもかかわらず、翻訳は常に自動ロードされているようです。例えば：</p>
+                    <pre><code>Model.where(id:123)
+Model Load (3.0ms)  SELECT  &quot;model&quot;.&quot;id&quot;, &quot;model&quot;.&quot;column1&quot;, &quot;model&quot;.&quot;created_at&quot;, &quot;model&quot;.&quot;updated_at&quot; FROM &quot;model&quot; WHERE &quot;model&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 123], [&quot;LIMIT&quot;, 11]]
+Model::Translation Load (0.5ms)  SELECT &quot;model_translations&quot;.* FROM &quot;model_translations&quot; WHERE &quot;model_translations&quot;.&quot;model_id&quot; = $1  [[&quot;model_id&quot;, 123]]
+</code></pre>
+                    <p>なぜ翻訳が自動的に読み込まれるのですか?これを無効にするにはどうすればよいですか?私も試してみました:</p>
+                    <pre><code>Model.where(id:123).select(:id)
+Model Load (0.7ms)  SELECT  &quot;model&quot;.&quot;id&quot; FROM &quot;model&quot; WHERE &quot;model&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 123], [&quot;LIMIT&quot;, 11]]
+Model::Translation Load (0.4ms)  SELECT &quot;model_translations&quot;.* FROM &quot;model_translations&quot; WHERE &quot;model_translations&quot;.&quot;model_id&quot; = $1  [[&quot;model_id&quot;, 123]]
+</code></pre>
+                    <p>変換テーブルで SELECT
+                    を呼び出さないようにする方法はありますか?ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、翻訳が自動ロードされないようにする方法があります。これを行うには、モデルで
+                    globalize_load_translations オプションを false
+                    に設定します。例えば：</p>
+                    <pre><code>class Model &lt; ApplicationRecord
+  globalize_load_translations false
+end
+</code></pre>
+                    <p>これにより、Model.find(123)
+                    を呼び出したときに翻訳がロードされなくなります。ただし、翻訳にアクセスする必要がある場合は、モデル
+                    インスタンスで translations
+                    メソッドを呼び出すことでアクセスできます。例えば：</p>
+                    <pre><code>model = Model.find(123)
+translations = model.translations
+</code></pre>
+                    <p>これにより、実際に必要な場合にのみ翻訳がロードされます。</p>
+                    <p>Rails アプリケーション構成ファイルで
+                    config.globalize.load_translations オプションを
+                    false
+                    に設定することで、翻訳の自動ロードをグローバルに無効にすることもできます。例えば：</p>
+                    <pre><code>config.globalize.load_translations = false
+</code></pre>
+                    <p>これにより、アプリケーション内のすべてのモデルの翻訳の自動ロードが無効になります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

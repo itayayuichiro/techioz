@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アクティブなレコードのクエリ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アクティブなレコードのクエリ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アクティブなレコードのクエリ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>早速本題に入ります。</p>
+                    <p>私はこれら 2 つのモデルを持っています:</p>
+                    <p>フォローされたモデルには、</p>
+                    <p>ユーザーモデルは次のようになります。</p>
+                    <pre><code>has_many :followeds, foreign_key: :followed_id, dependent: :destroy
+</code></pre>
+                    <p>フォローされたモデルは次のようになります</p>
+                    <pre><code>belongs_to :user
+</code></pre>
+                    <p>私が達成したいのはこれです: current_user
+                    (ログインしているユーザー)
+                    のフォロワーを取得したいです。</p>
+                    <p>何をすべきかについてはいくつか考えがありますが、それは次のようなものです。</p>
+                    <p>1 -
+                    ユーザーテーブルとフォローテーブルを結合します</p>
+                    <p>2 - users.id = Followings.user_id (current_user
+                    をフォローするユーザー) のユーザーを選択します。</p>
+                    <p>3 - and (条件) follows.followed_id =
+                    current_user.id
+                    (フォローされているユーザーは、ログインしている
+                    current_user です)</p>
+                    <p>役立つかどうかはわかりませんが、次のクエリは、ユーザーがフォローしているユーザーを取得するために
+                    (スタック オーバーフロー
+                    ユーザーの親切な助けを借りて)
+                    使用することに成功したものです。</p>
+                    <pre><code>@users = User.joins(:followeds).where(followeds: {user_id: current_user.id})
+</code></pre>
+                    <p>それに基づいて、クエリは次のようになると思います</p>
+                    <pre><code>@users = User.joins(:followeds).where(followeds: {followed_id: current_user.id})
+</code></pre>
+                    <p>次に、users.id = Followings.user_id
+                    を選択するためのクエリ</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの関連性が明確に理解できれば</p>
+                    <pre><code>User.where(id: Followed.select(:user_id).where(followed_id: current_user.id))
+</code></pre>
+                    <p>このような SQL が生成されます</p>
+                    <pre><code>SELECT * FROM users
+WHERE id IN (
+  SELECT user_id FROM followeds
+  WHERE followed_id = &lt;current_user_id&gt;
+);
+</code></pre>
+                    <p>:source および :through オプションを使用して User
+                    モデルに関連付けを追加することもできます</p>
+                    <pre><code>has_many :followers, through: :followeds, source: :user
+</code></pre>
+                    <p>そして、ただそれだけではなく</p>
+                    <pre><code>current_user.followers
+</code></pre>
+                    <p>これにより、次のようなクエリが生成されます</p>
+                    <pre><code>SELECT * FROM users
+INNER JOIN followeds ON users.id = followeds.user_id
+WHERE followeds.followed_id = &lt;current_user_id&gt;;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

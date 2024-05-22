@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec単体テストでの競合状態のシミュレーション | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec単体テストでの競合状態のシミュレーション",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec単体テストでの競合状態のシミュレーション</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>オブジェクトに対して長時間実行される可能性のある計算を実行する非同期タスクがあります。結果はオブジェクトにキャッシュされます。複数のタスクが同じ作業を繰り返すのを防ぐために、アトミックな
+                    SQL 更新によるロックを追加しました。</p>
+                    <pre><code>UPDATE objects SET locked = 1 WHERE id = 1234 AND locked = 0
+</code></pre>
+                    <p>ロックは非同期タスクのみに適用されます。オブジェクト自体はユーザーによって更新される可能性があります。その場合、オブジェクトの古いバージョンの未完了のタスクは、結果が古い可能性があるため、結果を破棄する必要があります。これもアトミック
+                    SQL 更新を使用すると非常に簡単に実行できます。</p>
+                    <pre><code>UPDATE objects SET results = &#39;...&#39; WHERE id = 1234 AND version = 1
+</code></pre>
+                    <p>オブジェクトが更新されている場合、そのバージョンは一致しないため、結果は破棄されます。</p>
+                    <p>これら 2 つのアトミック
+                    アップデートは、起こり得る競合状態に対処する必要があります。問題は、単体テストでそれをどのように検証するかです。</p>
+                    <p>最初のセマフォは、(1)
+                    オブジェクトがロックされている場合と (2)
+                    オブジェクトがロックされていない場合の 2
+                    つのシナリオで 2
+                    つの異なるテストを設定するだけなので、テストは簡単です。
+                    (SQL
+                    クエリのアトミック性をテストする必要はありません。それはデータベース
+                    ベンダーの責任であるためです。)</p>
+                    <p>2
+                    番目のセマフォをテストするにはどうすればよいでしょうか?最初のセマフォの後、2
+                    番目のセマフォの前に、サードパーティによってオブジェクトを変更する必要があります。更新を確実かつ一貫して実行するには、実行を一時停止する必要がありますが、RSpec
+                    でのブレークポイントの挿入はサポートされていないことがわかります。これを行う方法はありますか?それとも、そのような競合状態をシミュレートするために私が見落としている他のテクニックがあるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>電子機器製造のアイデアを借用して、テスト
+                    フックを製品コードに直接組み込むことができます。回路を制御したり検査したりするためのテスト機器用の特別な場所を備えた回路基板を製造できるのと同じように、コードでも同じことができます。</p>
+                    <p>データベースに行を挿入するコードがあるとします。</p>
+                    <pre><code>class TestSubject
+
+  def insert_unless_exists
+    if !row_exists?
+      insert_row
+    end
+  end
+
+end
+</code></pre>
+                    <p>ただし、このコードは複数のコンピューターで実行されています。したがって、別のプロセスがテストと挿入の間に行を挿入する可能性があるため、競合状態が発生し、DuplicateKey
+                    例外が発生します。コードが競合状態から生じる例外を処理するかどうかをテストしたいと考えています。これを行うには、テストで
+                    row_exists?
+                    の呼び出しの後に行を挿入する必要があります。ただし、insert_row
+                    を呼び出す前です。そこで、そこにテストフックを追加しましょう。</p>
+                    <pre><code>class TestSubject
+
+  def insert_unless_exists
+    if !row_exists?
+      before_insert_row_hook
+      insert_row
+    end
+  end
+
+  def before_insert_row_hook
+  end
+
+end
+</code></pre>
+                    <p>実際に実行すると、フックは CPU
+                    時間をわずかに消費するだけで何もしません。ただし、コードが競合状態についてテストされている場合、テストでは
+                    before_insert_row_hook にモンキー
+                    パッチが適用されます。</p>
+                    <pre><code>class TestSubject
+  def before_insert_row_hook
+    insert_row
+  end
+end
+</code></pre>
+                    <p>それはずるくないですか？疑うことを知らないイモムシの体を乗っ取った寄生蜂の幼虫のように、テストはテスト対象のコードをハイジャックして、テストに必要な正確な条件を作成します。</p>
+                    <p>このアイデアは XOR
+                    カーソルと同じくらい単純なので、多くのプログラマーが独自に発明したのではないかと思います。これは、競合状態のあるコードをテストするのに一般的に役立つことがわかりました。お役に立てれば幸いです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

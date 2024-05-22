@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>accepts_nested_attributes_for および after_remove | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "accepts_nested_attributes_for および after_remove",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>accepts_nested_attributes_for および
+after_remove</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんなモデルあるんですね</p>
+                    <pre><code>class Post &lt; ApplicationRecord
+
+  has_many :comments,
+            after_add: :soil,
+            after_remove: :soil,
+            dependent: :destroy
+
+  attr_accessor :soiled_associations
+
+  accepts_nested_attributes_for :comments, allow_destroy: true
+
+  def soil(record)
+    self.soiled_associations = [record]
+  end
+end
+</code></pre>
+                    <p>ビューに新しいコメントを追加すると、そのオブジェクトが
+                    post.soiled_associations 属性に追加されます
+                    (ところで、soiled_associations は、Rails の Dirty
+                    クラスに似た処理を行うカスタム
+                    メソッドに名前を付ける試みですが、アソシエーション用です)。</p>
+                    <p>ただし、ビュー内のコメントを削除しても、post.soiled_associations
+                    属性には何も追加されません。</p>
+                    <p>私の何が間違っているのでしょうか？
+                    accepts_nested_attributes_for がどのように機能するか
+                    (おそらくこれらのコールバックをバイパスする)
+                    に問題があるのではないかと思いますが、誰かがこれについて光を当てることができますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>自分が何をしているのかを示していないので、何が間違っているのかを伝えることはできません。しかし、それを行う方法はいくつかしかありません。</p>
+                    <pre><code>&gt;&gt; Post.new(comments_attributes: [{}]).soiled_associations
+=&gt; [#&lt;Comment:0x00007f01e99a30c0 id: nil, post_id: nil&gt;]
+
+&gt;&gt; Post.create(comments_attributes: [{}]).soiled_associations
+=&gt; [#&lt;Comment:0x00007f01e9a08fd8 id: 3, post_id: 2&gt;]
+
+&gt;&gt; post = Post.last
+&gt;&gt; post.comments.destroy_all
+&gt;&gt; post.soiled_associations
+=&gt; [#&lt;Comment:0x00007f01e99867e0 id: 3, post_id: 2&gt;]
+
+&gt;&gt; Post.create(comments_attributes: [{}])
+&gt;&gt; post = Post.last
+&gt;&gt; post.update(comments_attributes: [{id: 4, _destroy: true}])
+&gt;&gt; post.soiled_associations
+=&gt; [#&lt;Comment:0x00007f01e99a5500 id: 4, post_id: 3&gt;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

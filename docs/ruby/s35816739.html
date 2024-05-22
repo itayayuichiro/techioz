@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>__TEXT __DATA __OBJC その他の 10 進数とメソッドの違いは何ですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "__TEXT __DATA __OBJC その他の 10 進数とメソッドの違いは何ですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>__TEXT __DATA __OBJC その他の 10
+進数とメソッドの違いは何ですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>文字列に対して size と length
+                    を実行すると、同じ値が返されました。</p>
+                    <pre><code>&quot;akash&quot;.size # =&gt; 5
+&quot;akash&quot;.length # =&gt; 5
+</code></pre>
+                    <p>これら 2 つの方法の違いは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    ではメソッドをオーバーライドできるため、同じ結果をもたらす複数のメソッドが存在するクラスがあり、1
+                    つのメソッドの動作を他のメソッドに影響を与えることなく簡単にオーバーライドできます。一部のクラスは別のメソッドを使用してこれを実行しますが、他のクラスはこの動作をエイリアスとして実装します。</p>
+                    <p>多くの場合、どれがどれで、なぜであるかは言語実装の決定事項であり、コードを実装した
+                    Ruby コア
+                    チームのメンバーに尋ねることなしに標準的に答えることはできません。したがって、質問のその部分はスタック
+                    オーバーフローの範囲外です。エイリアス化されたメソッドには、動作に似たメソッドほど頻繁にモンキー
+                    パッチが適用されることは期待されていないと仮定するのは合理的な仮定ですが、それは単なる仮定に過ぎません。</p>
+                    <p>真に標準的な答えが必要な場合は、SVN
+                    ソースを調べたり、バグ
+                    トラッカーのディスカッションを検索したり、コア
+                    チームに直接質問したりする必要があります。ただし、私は以下に実際的な分析を提供します。</p>
+                    <p>たとえば、Ruby の String#size メソッドと
+                    String#length
+                    メソッドは実際には別のメソッドですが、Ruby
+                    は内部的に同じ C ソース
+                    コードを呼び出して両方を実装します。</p>
+                    <pre><code>rb_str_length(VALUE str)
+{
+    return LONG2NUM(str_strlen(str, NULL));
+}
+</code></pre>
+                    <p>これは純粋に実装の詳細です。 Ruby VM
+                    の観点から見ると、これらは実際には別々のメソッドであり、速度向上のために基盤となる
+                    C 実装をたまたま共有しているだけです。 String
+                    オブジェクトの #size または #length
+                    は両方の動作を変更せずに再定義できるはずですが、再定義すると
+                    Pry や IRB などの REPL
+                    に干渉することがよくあります。</p>
+                    <p>一方、クラスによっては #size と #length
+                    をエイリアスとして実装するものもあります。たとえば、Array#size
+                    は Array#length
+                    のエイリアスとして明示的に定義されます。結果として、元のメソッド名のコピーが
+                    #size として作成されるため、元の #length
+                    メソッドの動作を変更せずにエイリアス化されたバージョンを再定義できるはずです。</p>
+                    <p>この問題は実際には動作ではなく実装の違いです。実際には、唯一の意味のある違いは、どの
+                    Ruby
+                    コンポーネントが同様の動作を実装するかにあるように見えます。従来の理由やパフォーマンス上の理由がある可能性がありますが、単に誰も報告したり修正したりしていないバグである可能性もあります。</p>
+                    <p>この動作は正常であり、最小の驚きの原則に実際には違反していないため、軽微な言語の癖として扱います。ただし、それをより強く感じる人は、間違いなくバグを報告する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

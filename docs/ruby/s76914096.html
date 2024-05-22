@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails OpenSSL - PKCS12_parse: サポートされていません (OpenSSL::PKCS12::PKCS12Error) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails OpenSSL - PKCS12_parse: サポートされていません (OpenSSL::PKCS12::PKCS12Error)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails OpenSSL - PKCS12_parse:
+サポートされていません (OpenSSL::PKCS12::PKCS12Error)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>HTTParty を使用して、p12
+                    ファイルとパスワードを使用してホストに接続しています。
+                    gem は内部的に OpenSSL::PKCS12.new(p12_file_content,
+                    ‘password’)
+                    を使用するので、それをテストするために、rails
+                    コンソールでこれを実行しました。</p>
+                    <pre><code>p12_file_content = File.read(&quot;#{Rails.root}/config/certs/#{Rails.env}_client_certificate.p12&quot;)
+=&gt; &quot;0\x82\e\xF1\u0002&quot; .......
+
+OpenSSL::PKCS12.new(p12_file_content, &#39;myfakepassword&#39;)
+</code></pre>
+                    <p>エラー：</p>
+                    <pre><code>`initialize&#39;: PKCS12_parse: unsupported (OpenSSL::PKCS12::PKCS12Error)
+</code></pre>
+                    <p>次に、端末でファイルを読み取ろうとしました。</p>
+                    <pre><code>openssl pkcs12 -info -in development_client_certificate.p12 -nodes
+
+Enter Import Password:
+</code></pre>
+                    <p>そして、これは機能します。 OpenSSL Ruby
+                    がこの証明書で苦労するのはなぜですか?</p>
+                    <p>(追記: OpenSSL::PKCS12.new
+                    で動作する他の証明書があり、正しいパスワードを 100
+                    回試しました)</p>
+                    <p>バージョン:</p>
+                    <pre><code>irb(main):016:0&gt; OpenSSL::VERSION
+=&gt; &quot;3.0.1&quot;
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>ruby -v
+ruby 3.1.4p223 (2023-03-30 revision 957bb7cb81) [arm64-darwin22]
+
+openssl version
+OpenSSL 3.0.8 7 Feb 2023 (Library: OpenSSL 3.0.8 7 Feb 2023)
+</code></pre>
+                    <p>これらが重要かどうかわかりませんが? gem の 3.0.1
+                    は Ruby 3.1.4 に使用されます</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>修正: dbugger
+                    のコメントは正しかったです。リンクされている他の投稿には、証明書が従来の形式を使用していると記載されていました。これは私の場合でもあったことがわかりました。</p>
+                    <p>p12 証明書を新しい形式に変換してみました。</p>
+                    <p>.pem ファイルと .key
+                    ファイルはすでに存在していたので、最初にそれらを抽出する必要はありませんでした。</p>
+                    <p>新しい形式に変換するためだけに、このコマンドを使用しました（インターネット上の他の場所にあります）</p>
+                    <pre><code>openssl pkcs12 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in development_certificate.pem -out my_new_cert.p12 -inkey development_client_certificate.key
+</code></pre>
+                    <p>正直に言うと、PBE-SHA1-3DES
+                    アルゴリズムが何なのか、あるいは他のアルゴリズムが機能するかどうかはわかりませんが、これは機能します:)</p>
+                    <p>新しい証明書は Ruby の OpenSSL gem
+                    でうまく機能するようになりました :)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

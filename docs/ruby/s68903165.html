@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Apple M1 Mac では RVM インストール 2.6.7 が常に失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Apple M1 Mac では RVM インストール 2.6.7 が常に失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Apple M1 Mac では RVM インストール 2.6.7
+が常に失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RVM 2.6.7 のインストール中に M1 Mac
+                    で常に次のエラーが発生します</p>
+                    <pre><code>me@xx ~ % rvm install 2.6.7
+ruby-2.6.7 - #removing src/ruby-2.6.7 - please wait
+Searching for binary rubies, this might take some time.
+No binary rubies available for: osx/11.5/x86_64/ruby-2.6.7.
+Continuing with compilation. Please read &#39;rvm help mount&#39; to get more information on binary rubies.
+Checking requirements for osx.
+Certificates bundle &#39;/opt/homebrew/etc/[email protected]/cert.pem&#39; is already up to date.
+Requirements installation successful.
+Installing Ruby from source to: /Users/me/.rvm/rubies/ruby-2.6.7, this may take a while depending on your cpu(s)...
+ruby-2.6.7 - #downloading ruby-2.6.7, this may take a while depending on your connection...
+ruby-2.6.7 - #extracting ruby-2.6.7 to /Users/me/.rvm/src/ruby-2.6.7 - please wait
+ruby-2.6.7 - #configuring - please wait
+ruby-2.6.7 - #post-configuration - please wait
+ruby-2.6.7 - #compiling - please wait
+Error running &#39;__rvm_make -j8&#39;,
+please read /Users/me/.rvm/log/1629787822_ruby-2.6.7/make.log
+
+There has been an error while running make. Halting the installation.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、これはアップストリームの既知の問題です:
+                    https://bugs.ruby-lang.org/issues/17777 Ruby-build
+                    もこの問題を追跡しています:
+                    https://github.com/rbenv/ruby-build/issues/1489</p>
+                    <p>回避策は、次のコードを実行し、Ruby 2.6.7
+                    を再度インストールすることです。</p>
+                    <pre><code>$ export warnflags=-Wno-error=implicit-function-declaration
+$ rbenv install 2.6.7
+</code></pre>
+                    <p>-または-</p>
+                    <pre><code>$ CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot; rbenv install 2.6.7
+</code></pre>
+                    <p>これは、ネイティブ拡張機能を使用した gem
+                    のインストールにも影響を与える可能性があるようです
+                    (mysql2 もその 1 つです)。</p>
+                    <pre><code>gem install &lt;GEMNAME&gt; -- --with-cflags=&quot;-Wno-error=implicit-function-declaration&quot;
+</code></pre>
+                    <p>参考: Mac OS に Ruby 2.6.7
+                    をインストールする際のエラー - 解決方法?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

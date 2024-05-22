@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby- モジュール間で NoMethodError が発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby- モジュール間で NoMethodError が発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby- モジュール間で NoMethodError
+が発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>モジュールを正しく使用する方法を理解するのにいくつかの問題があります。</p>
+                    <p>私は持っている：</p>
+                    <pre><code>module Utilities
+  def file_search()
+    # some code
+    return x
+  end
+end
+
+
+module Remake_Components
+  require &#39;csv&#39;
+  include Utilities
+
+  f = Utilities.file_search()
+end
+</code></pre>
+                    <p>これにより、次のエラーが発生します:
+                    #&lt;NoMethodError: Utilities:Module
+                    の未定義メソッド “file_search”&gt; 私は f が
+                    file_search
+                    関数を実行した結果であると予想していました。</p>
+                    <p>他のメソッドで関数を使用するには include
+                    キーワードを使用する必要があると理解していましたが、そうではないようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>他のメソッドで関数を使用するには include
+                    キーワードを使用する必要があると理解していましたが、そうではないようです。</p>
+                    <p>Module#include
+                    は、モジュールを包含オブジェクトの階層チェーンに挿入し、包含オブジェクトのインスタンスが包含モジュールのインスタンス
+                    メソッドにアクセスできるようにします。</p>
+                    <p>あなたの場合、 file_search は Utilities
+                    で定義されたインスタンス メソッドであり、 include
+                    Utilities を呼び出すことで、このメソッドを
+                    Remake_Components
+                    のインスタンスで利用できるようにしました
+                    (ただし、モジュールには (それ自体)
+                    インスタンスがありません)。</p>
+                    <p>ユーティリティモジュールをレシーバーとして使用して
+                    file_search
+                    を呼び出そうとしている方法では、インクルードの呼び出しは必要ありませんが、メソッドを「クラスインスタンスメソッド」または「モジュール関数」として定義する必要があります。</p>
+                    <p>このように動作させたい場合は、2
+                    つのオプションがあります。</p>
+                    <pre><code>module Utilities
+  def file_search 
+    # some code
+    return x
+  end
+  module_function :file_search
+end
+</code></pre>
+                    <p>どちらのオプションでも、Utilities.file_search
+                    を呼び出すことができます。ただし、後者では、Module#include
+                    を使用するときに、このメソッドをプライベート
+                    インスタンス
+                    メソッドとして「含める」こともできます。</p>
+                    <p>例として:</p>
+                    <pre><code>module A 
+  def self.foo = &#39;Foo&#39;
+  def bar = &#39;Bar&#39;
+  module_function :bar
+end 
+
+class B 
+  include A 
+  def test_foo = A.foo
+  def test_bar = bar
+end 
+
+A.foo
+#=&gt; &quot;Foo&quot;
+A.bar 
+#=&gt; &quot;Bar&quot;
+B.new.test_foo
+#=&gt; &quot;Foo&quot;
+B.new.test_bar
+#=&gt; &quot;Bar&quot; 
+B.new.foo
+#=&gt; undefined method `foo&#39; for #&lt;B:0x00007f0c7785e528&gt; (NoMethodError)
+B.new.bar
+#=&gt; private method `bar&#39; called for #&lt;B:0x00007ff5a5dbe5a0&gt; (NoMethodError)
+</code></pre>
+                    <p>その他、それほど重要ではないメモをいくつか挙げておきます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのグローバル例外ハンドラ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのグローバル例外ハンドラ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのグローバル例外ハンドラ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyで例外用のグローバルリスナーを作成することは可能ですか?</p>
+                    <p>StateMachine::InvalidTransition
+                    のスクリプト内のすべての例外をキャッチして、アプリケーションがエラーを含む電子メールを送信して応答できるようにしたいと考えています。</p>
+                    <p>通常、Ruby ではレスキュー ブロックの前に begin
+                    が置かれますが、上記の例外をすべてキャッチする中央のリスナー
+                    メソッドが必要です。</p>
+                    <p>そもそもそんなことは可能なのでしょうか？</p>
+                    <p>本当は置きたくない</p>
+                    <pre><code>begin
+    # Do some stuff
+rescue StateMachine::InvalidTransition =&gt; exception
+    # Send error in email message
+end 
+</code></pre>
+                    <p>state_machine にあるすべてのイベントの内部。</p>
+                    <p>PHP の set_Exception_handler()
+                    に似たものが必要です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、例外用のグローバル
+                    リスナーを作成できます。ここでは 2
+                    つのアプローチを示します。</p>
+                    <pre><code>at_exit do
+  if $!.is_a? StateMachine::InvalidTransition
+    # Send error in email message
+  end
+end
+</code></pre>
+                    <p>このアプローチは、スクリプトの終了を停止できないため、クラッシュロガーとしてのみ役立ちます。</p>
+                    <pre><code>module PatchRaise
+  def raise(err, *args)
+    if defined?(err.exception) &amp;&amp;
+      err.exception.is_a?(StateMachine::InvalidTransition)
+      # Send error in email message
+    else
+      super(err, *args)
+    end
+  end
+
+  def fail(*args)
+    raise(*args)
+  end
+end
+
+Object.prepend PatchRaise
+</code></pre>
+                    <p>この方法ではスクリプトの終了を停止できますが、他に
+                    2 つの制限があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

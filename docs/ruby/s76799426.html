@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby RBS: ハッシュのスキーマの宣言 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby RBS: ハッシュのスキーマの宣言",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby RBS: ハッシュのスキーマの宣言</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のチームと私が取り組んでいるアプリケーションでは、Ruby
+                    ハッシュをデータ転送オブジェクト (DTO)
+                    として多用しています。また、現在、RBS と Steep
+                    の組み合わせを試して、開発プロセスに顕著な利点がもたらされるかどうかを確認したいと考えています。残念ながら、ハッシュパラメータの厳密なスキーマを宣言する方法が見つからないようです。例を示します。</p>
+                    <p>次の Ruby コードがあるとします。</p>
+                    <pre><code>module Foo
+
+  def some_func(args)
+    x, y, z = args.values_at(:x, :y, :z)
+
+    # do something with the params above
+  end
+
+end
+</code></pre>
+                    <p>そこで、上記の args ハッシュの構造を記述する
+                    *.rbs
+                    ファイルを作成したいと思います。これも可能でしょうか？</p>
+                    <p>TypeScript
+                    でも同様のことが非常に簡単に実行できます。TypeScript
+                    ではハッシュ テーブルもよく使用されます。</p>
+                    <pre><code>type Args = {
+  x: number,
+  y: string,
+  z: Array&lt;number&gt;
+}
+
+function some_func(args: Args): void;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、RBS (Ruby Signature) を使用して Ruby
+                    コード内のハッシュ
+                    パラメーターの構造を記述することは確かに可能です。
+                    RBS は Ruby
+                    の静的型チェッカーであり、型注釈と型チェックを提供することで開発プロセスの改善に役立ちます。</p>
+                    <p>この例では、args ハッシュの構造を記述する RBS
+                    ファイルを作成できます。その方法は次のとおりです。</p>
+                    <pre><code># foo.rbs
+
+module Foo
+  # Declare the type for the args parameter in the `some_func` method
+  type some_func_args = {
+    x: Integer,
+    y: String,
+    z: Array[Integer]
+  }
+
+  # Declare the method signature for some_func
+  def some_func(args : some_func_args) -&gt; void
+end
+</code></pre>
+                    <pre><code>steep check
+</code></pre>
+                    <p>Steep は、foo.rbs
+                    ファイルの型情報を使用して、メソッド呼び出しが宣言された型と一致するかどうかを確認します。</p>
+                    <p>この設定では、TypeScript
+                    がオブジェクトの型チェックを行うのと同様に、some_func
+                    メソッドの args
+                    パラメーターに対して静的な型チェックを行うことができます。これは、開発プロセスの早い段階で型関連の問題を発見し、コード全体の品質と保守性を向上させるのに役立ちます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

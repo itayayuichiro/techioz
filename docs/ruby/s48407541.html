@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ポリモーフィック アソシエーション レール : 異なるprimary_keysタイプ(idとuuid) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ポリモーフィック アソシエーション レール : 異なるprimary_keysタイプ(idとuuid)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ポリモーフィック アソシエーション レール :
+異なるprimary_keysタイプ(idとuuid)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ポリモーフィックテーブルを定義したいと思います。私の問題は、一方のテーブルのprimary_keyがuuid(string)型で、もう一方のid(integer)型であることです。
+                    おそらくmodel_typeに応じてmodel_able_idとmodel_able_uuidが異なるのではないかと思いましたが、それを理解できず、おそらくポリモーフィックのアクティブレコード機能が大量に壊れるでしょう。</p>
+                    <p>他に STI
+                    を使用することを考えたこともありますが、まだ混乱しています。もちろん、ID
+                    を UUID に移行すれば解決するでしょう
+                    (しかし、私はそうしません)。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>オプションで (ポリモーフィック)
+                    外部キーのタイプを指定します。必要に応じて、:string
+                    を :uuid に変更します。</p>
+                    <pre><code>create_table :table_name do |t|
+  t.references :target, type: :string, polymorphic: true, null: false
+end
+</code></pre>
+                    <p>この場合、文字列と整数の両方の target_id
+                    が受け入れられます。</p>
+                    <p>API ドキュメントを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

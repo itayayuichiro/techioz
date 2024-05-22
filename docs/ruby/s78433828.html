@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Devise と Hotwire を使用して動的なユーザー フォームを作成する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Devise と Hotwire を使用して動的なユーザー フォームを作成する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Devise と Hotwire を使用して動的なユーザー
+フォームを作成する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    7アプリに認証システムとしてインストールするように工夫しました。ホットワイヤーを使用して、組織および個々のユーザー
+                    タイプに応じた動的なフォームを作成できるようにしたいと考えています。つまり、個別のオプションをクリックすると、いくつかのフォーム
+                    フィールドが表示され、他のフィールドは非表示になります。これは新規登録ページと編集登録ページの両方で実行できるはずです。</p>
+                    <p>これを機能させるためにホットワイヤーを使用しようとしているので、ナビゲート刺激コントローラーを持っています</p>
+                    <p>ナビゲート_コントローラー.js</p>
+                    <pre><code>import { Controller } from &quot;@hotwired/stimulus&quot;;
+
+/*
+ * Usage
+ * =====
+ *
+ * add data-controller=&quot;navigate&quot; to the turbo frame you want to navigate
+ *
+ * Action (add to radio input):
+ * data-action=&quot;change-&gt;navigate#to&quot;
+ * data-url=&quot;/new?input=yes&quot;
+ *
+ */
+export default class extends Controller {
+  to(e) {
+    e.preventDefault();
+
+    const { url } = e.target.dataset;
+
+    this.element.src = url;
+  }
+}
+</code></pre>
+                    <p>私のサインアップ
+                    ページには、組織フィールドと、ナビゲート
+                    コントローラーを指すターボ フレーム
+                    タグをラップする条件ステートメントがあります。</p>
+                    <pre><code>&lt;h2&gt;Sign up&lt;/h2&gt;
+
+&lt;%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %&gt;
+  &lt;%= render &quot;devise/shared/error_messages&quot;, resource: resource %&gt;
+
+  &lt;%= turbo_frame_tag &quot;account_types&quot;, data: { controller: &quot;navigate&quot; } do %&gt;
+
+    &lt;div class=&quot;form-check form-check-inline&quot;&gt;
+      &lt;%= f.label :account_type, value: &#39;individual&#39;, class: &#39;form-check form-check-inline&#39; do %&gt;
+        &lt;%= f.radio_button :account_type, &#39;individual&#39;, class: &#39;form-check-input&#39;, data: { action: &quot;change-&gt;navigate#to&quot;, url: new_account_registration_path({ account: { account_type: &quot;individual&quot; } }) } %&gt;
+        &lt;label class=&quot;form-check-label&quot;&gt;Individual&lt;/label&gt;
+      &lt;% end %&gt;
+
+      &lt;%= f.label :account_type, value: &#39;organization&#39;, class: &#39;form-check form-check-inline&#39; do %&gt;
+        &lt;%= f.radio_button :account_type, &#39;organization&#39;, class: &#39;form-check-input&#39;, data: { action: &quot;change-&gt;navigate#to&quot;, url: new_account_registration_path({ account: { account_type: &quot;company&quot; } }) } %&gt;
+        &lt;label class=&quot;form-check-label&quot;&gt;Organization&lt;/label&gt;
+      &lt;% end %&gt;
+    &lt;/div&gt;
+
+    &lt;% if @account.organization? %&gt;
+
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;%= f.label :organization_name %&gt;&lt;br /&gt;
+        &lt;%= f.text_field :organization_name, autocomplete: &quot;Organization name&quot; %&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-check form-check-inline&quot;&gt;
+        Organization Type
+        &lt;%= f.label :organization_type, value: &#39;base&#39;, class: &#39;form-check form-check-inline&#39; do %&gt;
+          &lt;%= f.radio_button :organization_type, &#39;base&#39;, class: &#39;form-check-input&#39; %&gt;
+          &lt;label class=&quot;form-check-label&quot;&gt;Base&lt;/label&gt;
+        &lt;% end %&gt;
+
+        &lt;%= f.label :organization_type, value: &#39;ministry&#39;, class: &#39;form-check form-check-inline&#39; do %&gt;
+          &lt;%= f.radio_button :organization_type, &#39;ministry&#39;, class: &#39;form-check-input&#39; %&gt;
+          &lt;label class=&quot;form-check-label&quot;&gt;Ministry&lt;/label&gt;
+        &lt;% end %&gt;
+      &lt;/div&gt;
+
+    &lt;% else %&gt;
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;%= f.label :firstname %&gt;&lt;br /&gt;
+        &lt;%= f.text_field :firstname, autocomplete: &quot;firstname&quot; %&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;%= f.label :surname %&gt;&lt;br /&gt;
+        &lt;%= f.text_field :surname, autocomplete: &quot;surname&quot; %&gt;
+      &lt;/div&gt;
+    &lt;% end %&gt;
+  &lt;% end %&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :email %&gt;&lt;br /&gt;
+    &lt;%= f.email_field :email, autocomplete: &quot;email&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :username %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :username, autocomplete: &quot;username&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :state %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :state, autocomplete: &quot;state&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :country %&gt;&lt;br /&gt;
+    &lt;%= f.text_field :country, autocomplete: &quot;country&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :bio %&gt;&lt;br /&gt;
+    &lt;%= f.text_area :bio, autocomplete: &quot;bio&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password %&gt;
+    &lt;% if @minimum_password_length %&gt;
+    &lt;em&gt;(&lt;%= @minimum_password_length %&gt; characters minimum)&lt;/em&gt;
+    &lt;% end %&gt;&lt;br /&gt;
+    &lt;%= f.password_field :password, autocomplete: &quot;new-password&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password_confirmation %&gt;&lt;br /&gt;
+    &lt;%= f.password_field :password_confirmation, autocomplete: &quot;new-password&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;br&gt;
+
+  &lt;div class=&quot;actions&quot;&gt;
+    &lt;%= f.submit &quot;Sign up&quot; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+&lt;%= render &quot;devise/shared/links&quot; %&gt;
+</code></pre>
+                    <p>また、デバイス登録コントローラーを生成し、新しいアクションにパラメーターを追加しました</p>
+                    <pre><code># frozen_string_literal: true
+
+class Accounts::RegistrationsController &lt; Devise::RegistrationsController
+  before_action :configure_sign_up_params, only: [:create]
+  before_action :configure_account_update_params, only: [:update]
+
+  # GET /resource/sign_up
+  def new
+    # super
+    @account = Account.new configure_sign_up_params
+  end
+
+  # POST /resource
+  # def create
+  #   super
+  # end
+
+  # GET /resource/edit
+  # def edit
+  #   super
+  # end
+
+  # PUT /resource
+  # def update
+  #   super
+  # end
+
+  # DELETE /resource
+  # def destroy
+  #   super
+  # end
+
+  # GET /resource/cancel
+  # Forces the session data which is usually expired after sign
+  # in to be expired now. This is useful if the user wants to
+  # cancel oauth signing in/up in the middle of the process,
+  # removing all OAuth session data.
+  # def cancel
+  #   super
+  # end
+
+  protected
+
+  # If you have extra params to permit, append them to the sanitizer.
+  def configure_sign_up_params
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :firstname, :surname, :state, :country, :bio, :account_type, :organization_name, :organization_type])
+  rescue
+    {}
+  end
+
+  # If you have extra params to permit, append them to the sanitizer.
+  def configure_account_update_params
+    devise_parameter_sanitizer.permit(:account_update, keys: [:username, :firstname, :surname, :state, :country, :bio, :account_type, :organization_name, :organization_type])
+  end
+
+  # The path used after sign up.
+  # def after_sign_up_path_for(resource)
+  #   super(resource)
+  # end
+
+  # The path used after sign up for inactive accounts.
+  # def after_inactive_sign_up_path_for(resource)
+  #   super(resource)
+  # end
+end
+</code></pre>
+                    <p>デバイス登録コントローラーが正しくカスタマイズされていないため、機能しないのだと思います</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>configure_sign_up_params
+                    は、許可する追加のパラメータを追加するだけであり、その後、対応するアクション内で使用されます。</p>
+                    <pre><code>pp devise_parameter_sanitizer
+
+#=&gt;
+&lt;Devise::ParameterSanitizer:0x00007fd64171a420
+ @auth_keys=[:email],
+ @params=#&lt;ActionController::Parameters {&quot;controller&quot;=&gt;&quot;accounts/registrations&quot;, &quot;action&quot;=&gt;&quot;new&quot;} permitted: false&gt;,
+ @permitted=
+  {:sign_in=&gt;[:email, :password, :remember_me],
+   :sign_up=&gt;[:email, :password, :password_confirmation, :account_type],
+   # ^ used in Devise::RegistrationsController#create action
+   :account_update=&gt;[:email, :password, :password_confirmation, :current_password]},
+ @resource_name=:account&gt;
+</code></pre>
+                    <p>Sign_up_params
+                    メソッドは、登録時に許可されたパラメータを取得するために使用するものです。</p>
+                    <pre><code>class Accounts::RegistrationsController &lt; Devise::RegistrationsController
+  before_action :configure_sign_up_params, only: [:create, :new]
+
+  def new
+    build_resource sign_up_params
+  end
+
+  protected
+
+  def configure_sign_up_params
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:account_type])
+  end
+end
+</code></pre>
+                    <p>何が起こっているのかを理解するには、デバイスのソースを実際に見る必要があります。基本的なレールはこの状況でも機能します。</p>
+                    <pre><code>class Accounts::RegistrationsController &lt; Devise::RegistrationsController
+  def new
+    @account = Account.new(params.fetch(:account, {}).permit(:account_type))
+  end
+end
+</code></pre>
+                    <p>また、 <label>
+                    タグを不必要にネストしています。</p>
+                    <pre><code>&lt;%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %&gt;
+  &lt;%= turbo_frame_tag &quot;account_types&quot;, data: {controller: &quot;navigate&quot;} do %&gt;
+    &lt;%= f.label :account_type_individual do %&gt;
+      &lt;%= f.radio_button :account_type, &quot;individual&quot;,
+        data: {
+          action: &quot;change-&gt;navigate#to&quot;,
+          url: new_account_registration_path(account: {account_type: &quot;individual&quot;})
+        }
+      %&gt;
+      Individual
+    &lt;% end %&gt;
+
+    &lt;%= f.label :account_type_organization do %&gt;
+      &lt;%= f.radio_button :account_type, &quot;organization&quot;,
+        data: {
+          action: &quot;change-&gt;navigate#to&quot;,
+          url: new_account_registration_path(account: {account_type: &quot;organization&quot;})
+        }
+      %&gt;
+      Organization
+    &lt;% end %&gt;
+
+    &lt;% if resource.account_type == &quot;organization&quot; %&gt;
+      # TODO: company fields
+    &lt;% end %&gt;
+  &lt;% end %&gt;
+
+  &lt;%= f.submit &quot;Sign up&quot; %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

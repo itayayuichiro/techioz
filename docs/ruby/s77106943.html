@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Bundler で Ruby のプレビュー リリースを使用し、引き続き Heroku にデプロイする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Bundler で Ruby のプレビュー リリースを使用し、引き続き Heroku にデプロイする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Bundler で Ruby のプレビュー
+リリースを使用し、引き続き Heroku にデプロイする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>バンドラーと Heroku
+                    を使用するプロジェクトで、ruby-3.3.0-preview1
+                    リリースをテストしたいのですが、バンドラーをローカルでプレビュー
+                    バージョンで動作させることはできますが、それを
+                    Heroku にデプロイすることはできず、Heraku
+                    ドキュメントの手順は機能しません。地元で働く。</p>
+                    <p>Ruby のバージョンをインストールし (rbenv
+                    を使用しています)、.ruby-version ファイルを
+                    3.3.0-preview1
+                    に設定して使用するバージョンを設定します
+                    (または、必要に応じて、rbenv- を使用して単に 3.3.0
+                    と呼ぶこともできます)。エイリアスプラグインを使用しますが、これでも問題は解決されません）。</p>
+                    <p>Gemfile でプレビュー
+                    バージョンを使用するには、別の似た名前を指定します。</p>
+                    <pre><code>ruby &#39;3.3.0preview1&#39;
+</code></pre>
+                    <p>期待どおりに動作し、ローカルですべての gem
+                    を新しいバージョン内にインストールすると、アプリケーション内の
+                    RUBY_VERSION が 3.3.0 であることが確認できます。</p>
+                    <p>しかし、Heraku
+                    はこのバージョンを受け入れず、次のエラーが発生します。</p>
+                    <pre><code>The Ruby version you are trying to install does not exist: ruby-3.3.0.preview1
+</code></pre>
+                    <p>Heroku のドキュメントでは、Gemfile に 3.3.0
+                    を入れることを推奨していますが、これも実際には機能しません。3.3.0
+                    だけを使用すると、バンドラーがローカルで実行されないためです。</p>
+                    <pre><code>Your Ruby version is 3.3.0.preview1, but your Gemfile specified 3.3.0
+</code></pre>
+                    <p>観察: Gemfile のパッチレベルとしてプレビュー 1
+                    を指定しようとしましたが、これも機能しません。</p>
+                    <pre><code>ruby &#39;3.3.0&#39;, patchlevel: &#39;preview1&#39;
+</code></pre>
+                    <p>[更新]
+                    参考のために、これはバグであると思われるため、heroku-buildpack
+                    リポジトリに問題を作成しました。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/heroku/heroku-buildpack-ruby/issues/1387</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この回答は、OPで言及された問題をデバッグするときに検討するチェックリストのようなものになったので、これを将来の読者（私自身を含む）にメモとして残しました。</p>
+                    <p>Heroku
+                    スタックを変更する必要がある場合があります。</p>
+                    <p>そして、あなたは自分のものをチェックすることができます</p>
+                    <pre><code>heroku stack
+</code></pre>
+                    <p>最新のもの (heroku-22)
+                    を使用していることを確認します。通常、これは新しい
+                    Ruby バージョンをサポートしており、3.3.0-preview1 の
+                    Gemfile では 3.3.0
+                    を使用するように指示されています。</p>
+                    <p>heroku-22
+                    ではない場合は、次のように設定する必要があります。</p>
+                    <pre><code>heroku stack:set heroku-22
+</code></pre>
+                    <p>最新のスタックへのアップグレードには、そのフローといくつかの影響があることに注意してください。</p>
+                    <p>3.3.0-preview1 は 5 月 12
+                    日から利用可能になりました</p>
+                    <p>SOに関する同様の質問といくつかの回答:</p>
+                    <p>エラー メッセージが、ruby-3.3.0.preview1
+                    を参照していることに気付きました。そこに .preview1
+                    があるのは奇妙です。 Gemfile で Ruby 3.3.0-preview1
+                    を参照する必要がある箇所のタイプミスでしょうか?</p>
+                    <p>Gemfile と Gemfile.lock
+                    の間に問題がある可能性があるため、このリンクは Ruby
+                    のバージョンを指定するのに役立ちます。</p>
+                    <p>ビルドパックの悪ふざけ。コメントの 1
+                    つで述べられているように、Heraku
+                    はプレビューをチェックするために Gemfile で Ruby
+                    “3.3.0” を使用するように Ruby
+                    ビルドパックを更新しました1。
+                    次のようにビルドパックを特定のバージョンにロックすることもできます。</p>
+                    <pre><code>heroku buildpacks:set https://github.com/heroku/heroku-buildpack-ruby.git#v254
+</code></pre>
+                    <p>最新バージョンは v256 ですが、v254 には
+                    3.3.0-preview1 バージョンが含まれていました。
+                    ビルドパックの異なるバージョンを確認/選択すると役立つ場合があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

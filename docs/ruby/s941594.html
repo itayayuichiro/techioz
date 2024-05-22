@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Authenticity トークンについて | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Authenticity トークンについて",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Authenticity トークンについて</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails の認証トークンとは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>何が起こるのですか</p>
+                    <p>ユーザーがリソースを作成、更新、または破棄するためにフォームを表示すると、Rails
+                    アプリはランダムなAuthenticity_tokenを作成し、このトークンをセッションに保存し、フォームの非表示フィールドに配置します。ユーザーがフォームを送信すると、Rails
+                    はauthenticity_token
+                    を探し、セッションに保存されているものと比較し、一致する場合はリクエストの続行が許可されます。</p>
+                    <p>なぜそれが起こるのか</p>
+                    <p>認証トークンはセッションに保存されるため、クライアントはその値を知ることができません。これにより、Rails
+                    アプリ自体内でフォームを表示せずに、Rails
+                    アプリにフォームを送信することができなくなります。
+                    サービス A
+                    を使用していて、サービスにログインし、すべてが正常であると想像してください。ここで、サービス
+                    B
+                    を利用し、気に入った写真を見つけ、その写真を押して大きなサイズで表示したとします。ここで、サービス
+                    B
+                    に何らかの悪意のあるコードがあった場合、http://serviceA.example/close_account
+                    にリクエストを送信して、サービス A
+                    (ログインしている)
+                    にリクエストを送信し、アカウントの削除を要求する可能性があります。これは、CSRF
+                    (クロスサイト リクエスト フォージェリ)
+                    として知られているものです。</p>
+                    <p>サービス A
+                    が認証トークンを使用している場合、サービス B
+                    からのリクエストには正しい認証トークンが含まれておらず、続行が許可されないため、この攻撃ベクトルは適用できなくなります。</p>
+                    <p>API ドキュメントにはメタ
+                    タグの詳細が記載されています。</p>
+                    <p>ノート</p>
+                    <p>Rails はべき等でないメソッド
+                    (POST、PUT/PATCH、DELETE)
+                    のみを検証することに注意してください。 GET
+                    リクエストでは、認証トークンがチェックされません。なぜ？
+                    HTTP 仕様では、GET
+                    リクエストは冪等であり、サーバーでリソースを作成、変更、または破棄してはならないと規定されており、リクエストは冪等である必要があるためです
+                    (同じコマンドを複数回実行した場合、毎回同じ結果が得られるはずです)。</p>
+                    <p>また、実際の実装は最初に定義したようにもう少し複雑で、セキュリティが向上します。
+                    Rails
+                    は、すべてのフォームで同じ保存されたトークンを発行するわけではありません。また、毎回異なるトークンを生成して保存することもありません。ページがレンダリングされるたびに、セッション内で暗号化ハッシュを生成して保存し、保存されているトークンと照合できる新しい暗号化トークンを発行します。
+                    request_forgery_protection.rb
+                    を参照してください。</p>
+                    <p>レッスン</p>
+                    <p>authenticity_token
+                    を使用して、べき等でないメソッド
+                    (POST、PUT/PATCH、および DELETE)
+                    を保護します。また、サーバー上のリソースを変更する可能性のある
+                    GET リクエストを許可しないようにしてください。</p>
+                    <p>GET リクエストが冪等であることに関する <span
+                    class="citation"
+                    data-cites="erturne">@erturne</span>
+                    のコメントを確認してください。彼は私がここで説明したよりもわかりやすい方法でそれを説明しています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

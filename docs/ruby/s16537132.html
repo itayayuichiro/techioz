@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で DOM 要素にイベント リスナーがあるかどうかを確認する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で DOM 要素にイベント リスナーがあるかどうかを確認する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で DOM 要素にイベント
+リスナーがあるかどうかを確認する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Watir と Nokogiri を使用して Web
+                    ページを解析し、操作しています。 DOM
+                    要素をクリックしたときにスクリプトがトリガーされるかどうかを確認したいと考えています。私の調査によると、これは
+                    JavaScript と Chrome
+                    開発ツールで可能であることがわかっていますが、Ruby
+                    でこれを実現したいと考えています。</p>
+                    <p>たとえば、http://worrydream.com。表示された画像を検査すると、CSS
+                    スタイルが設定された div
+                    だけが表示されますが、それがリンクであることや、クリックしたときに反応することは示されていません。ただし、特定の要素をクリックすると、アニメーション
+                    (またはスクリプト)
+                    が実行されます。画像をクリックすることがイベントであることを示すものは何でしょうか?</p>
+                    <p>アップデート：
+                    当初、私がやろうと考えていたのは、ページに関連付けられた
+                    JavaScript
+                    をスクレイピングして、イベントがトリガーされるかどうかを何らかの方法で判断することでした。しかし、Mark
+                    Thomas
+                    が提案した解決策を試し、テストが完了したら彼の答えを正しいものとしてマークするつもりです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>簡単に言うと？何もない。</p>
+                    <p>長い答え:</p>
+                    <p>どの要素がスクリプトをトリガーするかを調べるには、各要素にリスナーをアタッチするために実行された
+                    Javascript
+                    を知る必要があります。そのためには、JavaScript
+                    を実行できる必要があります。 WATIR と Nokogiri
+                    は、それ自体では Javascript を実行しません。 WATIR
+                    は内部で JavaScript を実行するブラウザを使用します。
+                    Watir-webdriver は、ページの JavaScript を実行する
+                    JavaScript エグゼキュータも備えた Java
+                    ベースのブラウザ エミュレータ (Selenium)
+                    を使用します。 Nokogiri は JavaScript
+                    をまったく実行しません。</p>
+                    <p>したがって、特定の要素にどのリスナーがアタッチされているかを「読み取る」には、独自の
+                    Javascript を挿入する必要があります。 JavaScript
+                    環境を制御できないため、これは簡単ではありません。ただし、その方法が見つかったとしても、特定の要素にどのイベント
+                    リスナーがアタッチされているかを確認するための、W3C
+                    DOM
+                    インターフェイスが提供する標準的な方法がないことがわかります。
+                    JQuery などの個々の JavaScript
+                    ライブラリはリスナーをキャッシュしますが、それぞれが独自の方法でキャッシュを実行します。</p>
+                    <p>つまり、これは非常に複雑になります。</p>
+                    <p>考えられる解決策</p>
+                    <p>以下はすべて推測ですが、この情報を Ruby
+                    の世界に戻すことを本当に追求したい場合、これは試してみる価値があります。</p>
+                    <p>まず、JS
+                    をページに挿入して結果を取得する方法が必要です。
+                    Selenium
+                    にはこれを行うためのフックがあるため、watir-webdriver
+                    を使用するとこれが可能になる場合があります。
+                    Selenium で JS
+                    を挿入し、呼び出し元に結果を返す方法については、このページの最後を参照してください。もう
+                    1 つのオプションは、JS API を備えたヘッドレス
+                    ブラウザである PhantomJS です。</p>
+                    <p>次に、一般的な JS
+                    ライブラリのそれぞれがどのようにリスナーをキャッシュし、情報を収集できるかを理解する
+                    JavaScript
+                    ライブラリを見つける必要があります。そのためには、Visual
+                    Event 2 を試してください。</p>
+                    <p>これらを接続する必要があり、それには少しの JS
+                    ハックが必要になります。幸運を。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マネージド ID を使用して、Ruby On Rails のアクティブ ストレージを Azure に接続できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マネージド ID を使用して、Ruby On Rails のアクティブ ストレージを Azure に接続できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マネージド ID を使用して、Ruby On Rails
+のアクティブ ストレージを Azure に接続できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はこの記事を読みました:-
+                    https://hix.dev/tutorials/ruby-on-rails/active-storage#azure-rails-configuration</p>
+                    <p>レール側の設定</p>
+                    <pre><code>azure:
+  service: AzureStorage
+  storage_account_name: &lt;%= ENV[&#39;AZURE_STORAGE_ACCOUNT_NAME&#39;] %&gt;
+  storage_access_key: &lt;%= ENV[&#39;AZURE_STORAGE_ACCESS_KEY&#39;] %&gt;
+  container: &lt;%= ENV[&#39;AZURE_STORAGE_CONTAINER&#39;] %&gt;
+</code></pre>
+                    <p>また、マネージド ID を使用した Azure
+                    ストレージの接続については、この記事に従いました。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/azure/azure-storage-ruby/tree/master/blob#access-token</p>
+                    <p>そこで、以下の構成を試してみました</p>
+                    <pre><code>azure:
+  service: AzureStorage
+  storage_account_name: &lt;%= VaultService.get_secret(&quot;AZURE-STORAGE::AZURE-STORAGE-ACCOUNT-NAME&quot;) %&gt;
+  signer: &lt;%= Storage::Azure::Client.get_token_signer %&gt; 
+  container: &lt;%= VaultService.get_secret(&#39;AZURE-ATTACHMENTS-BUCKET-NAME&#39;) %&gt;
+</code></pre>
+                    <p>署名者の値を取得するには、上記に添付された github
+                    リンクに従いました。</p>
+                    <pre><code>      def self.get_token_signer
+        # https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-storage-sas#get-an-access-token-using-the-vms-identity-and-use-it-to-call-azure-resource-manager
+        # https://github.com/azure/azure-storage-ruby/tree/master/blob#access-token
+        access_token = AzureAd::ManagedIdentityTokenProvider.new(&#39;https://storage.azure.com/&#39;, client_id: ENV[&#39;AKS_MANAGED_IDENTITY_ID&#39;]).get_authentication_header.split(&#39; &#39;).last
+        # Creating an instance of `Azure::Storage::Common::Core::TokenCredential`
+        token_credential = ::Azure::Storage::Common::Core::TokenCredential.new access_token
+        token_signer = ::Azure::Storage::Common::Core::Auth::TokenSigner.new token_credential
+        token_signer
+      end
+</code></pre>
+                    <p>AzureAd::ManagedIdentityTokenProvider
+                    については、このコード部分から参照しました。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/Azure/azure-sdk-for-ruby/blob/master/runtime/ms_rest_azure/lib/ms_rest_azure/credentials/msi_token_provider.rb</p>
+                    <p>次のエラーが発生します</p>
+                    <pre><code>##[error]#38 6.433 Errno::ECONNREFUSED: Connection refused - connect(2) for &quot;169.254.169.254&quot; port 80
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1271:in `initialize&#39;
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1271:in `open&#39;
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1271:in `block in connect&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/timeout-0.3.2/lib/timeout.rb:189:in `block in timeout&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/timeout-0.3.2/lib/timeout.rb:196:in `timeout&#39;
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1269:in `connect&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-instrumentation-net_http-0.19.4/lib/opentelemetry/instrumentation/net/http/patches/instrumentation.rb:59:in `block in connect&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-api-1.0.1/lib/opentelemetry/trace/tracer.rb:29:in `block in in_span&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-api-1.0.1/lib/opentelemetry/trace.rb:82:in `block in with_span&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-api-1.0.1/lib/opentelemetry/context.rb:87:in `with_value&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-api-1.0.1/lib/opentelemetry/trace/tracer.rb:29:in `in_span&#39;
+##[error]#38 6.433 /usr/local/bundle/gems/opentelemetry-instrumentation-net_http-0.19.4/lib/opentelemetry/instrumentation/net/http/patches/instrumentation.rb:58:in `connect&#39;
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1248:in `do_start&#39;
+##[error]#38 6.433 /usr/lib/ruby/3.2.0/net/http.rb:1237:in `start&#39;
+
+</code></pre>
+                    <p>誰かこれを手伝ってくれませんか？上記の方法でアクティブストレージを接続することは可能でしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>残念ながら、Ruby 用の Azure SDK
+                    は非推奨になりました。参考として、このドキュメントを確認してください。</p>
+                    <p>現在動作しているのは、2024 年 9 月まで利用可能な
+                    Azure Storage SDK のみです。そのため、アクセス
+                    トークンを取得して Azure Active Directory
+                    で認証することはできません。マネージド ID
+                    を使用して承認することは不可能だと思います。参考として、このドキュメントを確認してください。</p>
+                    <p>私の知る限り、現時点では、ストレージ
+                    アカウントへのアクセスに使用できるのはアクセス
+                    キーのみです。</p>
+                    <p>主キーを使用してアクセスし、アクセスキーを使用して操作を実行できます。</p>
+                    <p>私のコード テスト.rb:</p>
+                    <pre><code>require &#39;azure/storage/blob&#39;  
+  
+  
+storage_account=&#39;blobbinding&#39;  
+storage_key = &#39;bl6mr2k440Kg6xxxxxxxxxxxxxxxxxxxxx&#39;  
+  
+client = Azure::Storage::Blob::BlobService.new(storage_account_name:storage_account, storage_access_key:storage_key)  
+  
+# Create a container  
+container = client.create_container(&#39;metrics&#39;)
+</code></pre>
+                    <p>出力：</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

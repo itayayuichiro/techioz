@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RTesseract により Windows 10 で「そのようなファイルまたはディレクトリはありません」エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RTesseract により Windows 10 で「そのようなファイルまたはディレクトリはありません」エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RTesseract により Windows 10
+で「そのようなファイルまたはディレクトリはありません」エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RTesseract と mini_magick
+                    を使用して、白い背景色とピンクのフォント色のいくつかの画像に対して
+                    Ruby プログラムで簡単な OCR
+                    を実行しようとしています。残念ながら、RTesseract
+                    では引き続き問題が発生します。オンラインで見つけて
+                    Program Files (x86) フォルダーに保存されている .dll
+                    実行可能ファイルを介して Tesseract-OCR v3.05
+                    をインストールしました。また、ImageMagick v6.9.9
+                    も、Program Files フォルダー (x86 ではありません)
+                    に独自の実行可能ファイルを介してインストールされています。これが私のコードです:</p>
+                    <pre><code>require &quot;mini_magick&quot;
+require &quot;rtesseract&quot;
+
+RTesseract.configure do |config|
+  config.processor = &quot;mini_magick&quot;
+end
+
+image = MiniMagick::Image.open(&quot;input.png&quot;)
+image = RTesseract.new(&#39;input.png&#39;).to_s
+puts image
+</code></pre>
+                    <p>ご覧のとおり、これは非常に単純なコードです。
+                    RTesseract
+                    コードをコメントアウトすると問題なく実行されますが、RTesseract
+                    の機能を呼び出すとすぐに、次のような問題が発生し始めました。</p>
+                    <pre><code>C:/RailsInstaller/Ruby2.2.0/lib/ruby/gems/2.2.0/gems/rtesseract-2.1.0/lib/rtesseract.rb:182:in `convert&#39;: No such file or directory - tesseract &quot;C:/Users/NORMAL~1/AppData/Local/Temp/20170801-8600-1evxygh.tif&quot; &quot;C:/Users/NORMAL~1/AppData/Local/Temp/1501649603.1925441244&quot;  -l eng         (RTesseract::ConversionError)
+        from C:/RailsInstaller/Ruby2.2.0/lib/ruby/gems/2.2.0/gems/rtesseract-2.1.0/lib/rtesseract.rb:194:in `to_s&#39;
+        from testingTesseract.rb:12:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>さまざまなことを試しましたが、この混乱した宝石を機能させるものは何もないようです。今頃は別の言語やラッパーを使用していたと思いますが、この
+                    gem
+                    は私のプロジェクトの中心であり、どうしても解決策が必要です。</p>
+                    <p>環境変数 PATH を C:Files (x86)-OCR
+                    に設定すると、tesseract
+                    が認識されるコマンドとなり、convert -version が
+                    Invalid Drive Spec
+                    という出力を与えるようになりました。現在のエラーは、ImageMagick
+                    が呼び出しによって認識または検出されないことであるようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>MiniMagick は使用していませんが、同じエラー
+                    メッセージが表示されました。私は Windows
+                    システムで開発を実行していますが、これが最初の問題だったかもしれません。
+                    「GEM Install
+                    RTasseract」でRTesseractをインストールしましたが、必要なTesseract-OCRがインストールされていませんでした。これは、https://github.com/UB-Mannheim/tesseract/wiki
+                    の手順に従って解決しました。</p>
+                    <p>その後、コマンドラインからtesseractを起動できましたが、Rubyからはまだ起動できませんでした。ただし、begin-rescue-end
+                    フレームを削除した後、どのファイルがエラーの原因となったのかという情報が得られました。私の場合
+                    (パスはインストールされている RTesseract
+                    のバージョンによって異なる場合があります):
+                    C:-x64\3.2.0.3</p>
+                    <p>最後になりましたが、最後のヒント:
+                    スキャンした画像が英語のテキストを表していない場合は、言語も変更する必要があります。例えば。私のテストファイルはドイツ語で、「ü」は「ii」に、「ä」は「6」に変換されました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

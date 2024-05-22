@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでの多次元配列の操作[重複] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでの多次元配列の操作[重複]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでの多次元配列の操作[重複]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコードを使用して初期化した多次元配列があります。</p>
+                    <pre><code>arr = Array.new(3, Array.new(3, &quot;x&quot;))
+puts arr.inspect
+
+# Console O/P
+# [[&quot;x&quot;, &quot;x&quot;, &quot;x&quot;], [&quot;x&quot;, &quot;x&quot;, &quot;x&quot;], [&quot;x&quot;, &quot;x&quot;, &quot;x&quot;]]
+</code></pre>
+                    <p>上記の配列を操作すると、予期しない応答が返されます。</p>
+                    <pre><code>arr[0][0] = &quot;y&quot;
+puts arr.inspect
+
+# Console O/P
+# [[&quot;y&quot;, &quot;x&quot;, &quot;x&quot;], [&quot;y&quot;, &quot;x&quot;, &quot;x&quot;], [&quot;y&quot;, &quot;x&quot;, &quot;x&quot;]]
+</code></pre>
+                    <p>更新の正確な次元を指定したのに、配列内の複数のエントリが更新される理由がわかりません。</p>
+                    <p>Array#initialize
+                    ドキュメントを参照しています。</p>
+                    <p>上記の実装とは異なり、この方法で配列を初期化して操作しようとすると、期待どおりの応答が得られます。</p>
+                    <pre><code>arr = Array.new(3) { Array.new(3) { &quot;x&quot; } }
+arr[0][1] = &quot;y&quot;
+
+puts arr.inspect
+
+# Console O/P
+# [[&quot;x&quot;, &quot;y&quot;, &quot;x&quot;], [&quot;x&quot;, &quot;x&quot;, &quot;x&quot;], [&quot;x&quot;, &quot;x&quot;, &quot;x&quot;]]
+</code></pre>
+                    <p>ここでも、実装が上記の初期化と異なる理由がわかりません。</p>
+                    <p>私の理解によれば、上記のドキュメントで述べた 2
+                    つの初期化の違いは次のとおりです。</p>
+                    <pre><code>#new(size, default_value) ⇒ Object
+#new(size) {|index| ... } ⇒ Object
+</code></pre>
+                    <p>両方の配列が同じように動作することが期待されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>違いは、最初のバージョンでは、各「行」にまったく同じ配列が再利用されることです。したがって、その配列内の値の
+                    1
+                    つを変更すると、それは同じ配列であるため、すべての行の配列が変更されます。</p>
+                    <pre><code>arr = Array.new(3, Array.new(3, &quot;x&quot;))
+arr.map(&amp;:object_id)
+#=&gt; [31740, 31740, 31740] # All arrays are the same object
+</code></pre>
+                    <p>ただし、2
+                    番目のバージョンでは、行ごとに新しい配列が作成されるため、1
+                    つのエントリを変更しても、他の配列のエントリは変更されません。</p>
+                    <pre><code>arr = Array.new(3) { Array.new(3) { &quot;x&quot; } }
+arr.map(&amp;:object_id)
+#=&gt; [81520, 81540, 81560] # Each array is a different instance
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

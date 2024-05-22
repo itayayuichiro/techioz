@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでBegin、Rescue、Ensure? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでBegin、Rescue、Ensure?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでBegin、Rescue、Ensure?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近 Ruby
+                    でプログラミングを始めて、例外処理について調べています。</p>
+                    <p>RubyのensureはC#のfinallyに相当するのか疑問に思っていました。持つべきもの:</p>
+                    <pre><code>file = File.open(&quot;myFile.txt&quot;, &quot;w&quot;)
+
+begin
+  file &lt;&lt; &quot;#{content} \n&quot;
+rescue
+  #handle the error here
+ensure
+  file.close unless file.nil?
+end
+</code></pre>
+                    <p>それともこうすべきでしょうか？</p>
+                    <pre><code>#store the file
+file = File.open(&quot;myFile.txt&quot;, &quot;w&quot;)
+
+begin
+  file &lt;&lt; &quot;#{content} \n&quot;
+  file.close
+rescue
+  #handle the error here
+ensure
+  file.close unless file.nil?
+end
+</code></pre>
+                    <p>たとえ例外が発生しなくても、何があっても確実に呼び出されますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、コードが常に評価されるようにします。それが「保証」と呼ばれる理由です。つまり、最終的には
+                    Java や C# と同等になります。</p>
+                    <p>begin/rescue/else/ensure/end
+                    の一般的なフローは次のようになります。</p>
+                    <pre><code>begin
+  # something which might raise an exception
+rescue SomeExceptionClass =&gt; some_variable
+  # code that deals with some exception
+rescue SomeOtherException =&gt; some_other_variable
+  # code that deals with some other exception
+else
+  # code that runs only if *no* exception was raised
+ensure
+  # ensure that this code always runs, no matter what
+  # does not change the final value of the block
+end
+</code></pre>
+                    <p>レスキュー、確保、その他を省略することもできます。変数を省略することもできます。その場合、例外処理コードで例外を検査できなくなります。
+                    (グローバル例外変数を使用すると、最後に発生した例外にアクセスすることはいつでもできますが、これは少し裏技的です。)
+                    また、例外クラスを省略することもできます。その場合、StandardError
+                    から継承するすべての例外がキャッチされます。
+                    (これは、すべての例外がキャッチされるという意味ではないことに注意してください。Exception
+                    のインスタンスではあるが StandardError
+                    ではない例外も存在するためです。ほとんどの場合、SystemStackError、NoMemoryError、SecurityError、NotImplementedError、LoadError、
+                    SyntaxError、ScriptError、Interrupt、SignalException、または
+                    SystemExit。)</p>
+                    <p>一部のブロックは暗黙的な例外ブロックを形成します。たとえば、メソッド定義は暗黙的に例外ブロックでもあるため、次のように記述する代わりに</p>
+                    <pre><code>def foo
+  begin
+    # ...
+  rescue
+    # ...
+  end
+end
+</code></pre>
+                    <p>あなたはただ書きます</p>
+                    <pre><code>def foo
+  # ...
+rescue
+  # ...
+end
+</code></pre>
+                    <p>または</p>
+                    <pre><code>def foo
+  # ...
+ensure
+  # ...
+end
+</code></pre>
+                    <p>クラス定義とモジュール定義にも同じことが当てはまります。</p>
+                    <p>ただし、あなたが質問している特定のケースでは、実際にはもっと優れたイディオムがあります。一般に、最後にクリーンアップする必要があるリソースを操作する場合、すべてのクリーンアップを行うメソッドにブロックを渡すことによってそれを行います。これは
+                    C# の using ブロックに似ていますが、Ruby
+                    は実際には十分強力であるため、Microsoft
+                    の高僧たちが山から下りてきて、親切にもコンパイラを変更してくれるのを待つ必要はありません。
+                    Ruby では、自分で実装することができます。</p>
+                    <pre><code># This is what you want to do:
+File.open(&#39;myFile.txt&#39;, &#39;w&#39;) do |file|
+  file.puts content
+end
+
+# And this is how you might implement it:
+def File.open(filename, mode=&#39;r&#39;, perm=nil, opt=nil)
+  yield filehandle = new(filename, mode, perm, opt)
+ensure
+  filehandle&amp;.close
+end
+</code></pre>
+                    <p>これはすでにコア ライブラリで File.open
+                    として利用可能です。ただし、これは、あらゆる種類のリソース
+                    クリーンアップ (C# で使用するもの)
+                    やトランザクション、その他考えられるあらゆるものを実装するために、独自のコードでも使用できる一般的なパターンです。</p>
+                    <p>これが機能しない唯一のケースは、リソースの取得と解放がプログラムの異なる部分に分散されている場合です。ただし、例のようにローカライズされている場合は、これらのリソース
+                    ブロックを簡単に使用できます。</p>
+                    <p>ところで、最新の C# では、Ruby スタイルのリソース
+                    ブロックを自分で実装できるため、
+                    を使用することは実際には不要です。</p>
+                    <pre><code>class File
+{
+    static T open&lt;T&gt;(string filename, string mode, Func&lt;File, T&gt; block)
+    {
+        var handle = new File(filename, mode);
+        try
+        {
+            return block(handle);
+        }
+        finally
+        {
+            handle.Dispose();
+        }
+    }
+}
+
+// Usage:
+
+File.open(&quot;myFile.txt&quot;, &quot;w&quot;, (file) =&gt;
+{
+    file.WriteLine(contents);
+});
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

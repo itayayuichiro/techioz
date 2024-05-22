@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec スーパークラスの不一致 (Sinatra) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec スーパークラスの不一致 (Sinatra)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec スーパークラスの不一致 (Sinatra)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sinatra API
+                    用の仕様ファイルがいくつかあります。彼らはモジュール
+                    MysuperBlog とそのモジュール内のクラス API
+                    をテストします。</p>
+                    <p>RSpec 構成ファイルにこれがあります:</p>
+                    <pre><code>RSpec.shared_context &#39;Reset class&#39; do
+    after(:each) do
+        Object.send(:remove_const, :API)
+    end
+end
+</code></pre>
+                    <p>仕様ファイルにはすべて次のコード行が含まれています。</p>
+                    <pre><code>require &#39;rack/test&#39;
+require &#39;json&#39;
+require_relative &#39;../../../app/main.rb&#39;
+
+module MysuperBlog
+    class API
+        RSpec.describe &#39;An author logs in to his account&#39;, type: :request do
+
+        include_context &#39;Reset class&#39;
+</code></pre>
+                    <p>メインのアプリ
+                    ファイルには次のものが含まれます。</p>
+                    <pre><code>module MysuperBlog    
+    class API &lt; Sinatra::Base
+</code></pre>
+                    <p>各 spec は成功しますが、引数なしで rspec
+                    を実行すると、エラーが発生します。</p>
+                    <pre><code>TypeError:
+  superclass mismatch for class API
+</code></pre>
+                    <p>これは、各ファイルでモジュールとクラスが定義されていることが原因だと思います。</p>
+                    <p>個々のテストとグローバル
+                    テストの両方がこのエラーなしで合格するには、コードをどのように並べ替えればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby の class
+                    キーワードには、クラスを作成することと、既存のクラスを再度開くことの
+                    2 つの目的があります。</p>
+                    <p>クラスに Object
+                    以外のスーパークラスがある場合、クラスを作成するときにそれを指定する必要がありますが、クラスを再度開くときには省略できます。例:
+                    (デモの目的でのみ Array を使用しています。コア
+                    クラスをサブクラス化すべきではありません)一般的に）</p>
+                    <pre><code>class Foo &lt; Array ; end
+
+class Foo ; end         # &lt;- works
+</code></pre>
+                    <p>逆に行うと、表示されているエラーが発生します。</p>
+                    <pre><code>class Foo ; end
+
+class Foo &lt; Array ; end # &lt;- TypeError: superclass mismatch for class Foo
+</code></pre>
+                    <p>クラスを作成し、そのスーパークラスを指定するファイルの前に、既存のクラスを再度開くことになるファイルをロードすると仮定します。</p>
+                    <p>その場合は、必ず後者を最初にロードしてください
+                    (仕様ヘルパーなどで必須にしてください)。そうすれば問題は解決するはずです。</p>
+                    <p>実際に既存のクラスを再度開くのではなく、テスト内の別の使い捨てクラスに同じクラス名を再利用しようとする場合は、クラスの使用が完了した後に、remove_const
+                    を使用して定数を削除できます。 /
+                    test：（例：フック後の RSpec 内）</p>
+                    <pre><code>class Foo &lt; Array ; end
+
+Object.send(:remove_const, :Foo)
+
+class Foo &lt; String ; end # different Foo, no error
+</code></pre>
+                    <p>このようにして、各クラス Foo
+                    は、前のクラスを再度開くのではなく、新しい独立したクラスを作成します。</p>
+                    <p>オブジェクトはトップレベルの定数に使用されます。ネストされた定数の場合は、Object
+                    を実際に定数を保持するモジュールに置き換えます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

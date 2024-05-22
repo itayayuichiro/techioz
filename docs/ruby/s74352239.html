@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sorbet を使用して同じ構造体を定義するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sorbet を使用して同じ構造体を定義するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sorbet
+を使用して同じ構造体を定義するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>全て！
+                    汎用の成功タイプと汎用の失敗タイプを結合した汎用の結果データ型を定義したいと考えています。
+                    TS では同じことが次のようになります。</p>
+                    <pre><code>type Success&lt;T&gt; = {
+    value: T
+}
+
+type Failure&lt;E&gt; = {
+    error: E
+}
+
+type Result&lt;T, E&gt; = Success&lt;T&gt; | Failure&lt;E&gt;
+</code></pre>
+                    <p>または Rust では次のようになります。</p>
+                    <pre><code>enum Result&lt;T, E&gt; {
+   Ok(T),
+   Err(E),
+}
+</code></pre>
+                    <p>しかし、残念ながら、Sorbet
+                    タイプの注釈を使用してそれを行う方法は見つかりませんでした。
+                    それは可能ですか？</p>
+                    <p>どうもありがとうございます。</p>
+                    <p>私が見つけた最も近いものは gem dry-monad
+                    の型定義でしたが、Success クラスと Failure
+                    クラスの両方が両方の type_members
+                    を再定義する必要があるため、ハックのように見えるので、実際には私が望んでいることではありません。</p>
+                    <p>説明</p>
+                    <p>この例を見てみましょう:
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://gist.github.com/woarewe/f4f3ee502f35c4c0d097695a52031b14
+                    私の目標は、次のような署名を定義することです。</p>
+                    <pre><code>sig { params(value: Integer).returns(Core::Type::Result[Integer, String]) }
+</code></pre>
+                    <p>しかし、あるクラスから別のクラスにジェネリック型を渡す方法がないように見えるため、それは不可能のようです。</p>
+                    <p>私が見つけた唯一の回避策は、関数定義内で特定の型を使用して共用体を構築することです。</p>
+                    <pre><code>sig { params(value: Integer).returns(T.any(Core::Type::Success[Integer], Core::Type::Failure[String])) }
+def zero?(value)
+  if value.zero?
+    Core::Type::Success.new(value)
+  else
+    Core::Type::Failure.new(&quot;It is not zero&quot;)
+  end
+end
+</code></pre>
+                    <p>最終的な解決策は次のようになります</p>
+                    <pre><code># typed: strict
+# frozen_string_literal: true
+
+module Core
+  module Type
+    class Success
+      extend T::Sig
+      extend T::Generic
+
+      ValueType = type_member
+
+      sig { returns(ValueType) }
+      attr_reader :value
+
+      sig { params(value: ValueType).void }
+      def initialize(value)
+        @value = value
+      end
+    end
+
+    class Failure
+      extend T::Sig
+      extend T::Generic
+
+      ErrorType = type_member
+
+      sig { returns(ErrorType) }
+      attr_reader :error
+
+      sig { params(error: ErrorType).void }
+      def initialize(error)
+        @error = error
+      end
+    end
+  end
+end
+
+extend T::Sig
+
+sig { params(value: Integer).returns(T.any(Core::Type::Success[Integer], Core::Type::Failure[String])) }
+def zero?(value)
+  if value.zero?
+    Core::Type::Success.new(value)
+  else
+    Core::Type::Failure.new(&quot;It is not zero&quot;)
+  end
+end
+
+result = zero?(0)
+case result
+when Core::Type::Success
+  p result.value
+when Core::Type::Failure
+  p result.error
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は最近、あなたが探しているものを正確に実装する
+                    gem の開発を手伝いました。
+                    https://github.com/maxveldink/sorbet-result</p>
+                    <p>この gem
+                    を使用すると、コードを次のように書き換えることができます。</p>
+                    <pre><code>sig { params(value: Integer).returns(Typed::Result[Integer, String]) }
+def zero?(value)
+  if value.zero?
+    Typed::Success.new(value)
+  else
+    Typed::Failure.new(&quot;It is not zero&quot;)
+  end
+end
+
+result = zero?(0)
+if result.success?
+  p result.payload
+else
+  p result.error
+end
+</code></pre>
+                    <p>この gem
+                    は、チェーンやその他の優れた機能もサポートしています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveAdmin フォームでエラーが発生すると、/new が URL から削除されます。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveAdmin フォームでエラーが発生すると、/new が URL から削除されます。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveAdmin フォームでエラーが発生すると、/new
+が URL から削除されます。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>モデルの管理ページを作成しています。新規フォームと編集フォームにエラーがある場合、/new
+                    が URL から削除されることに気付きました。</p>
+                    <p>たとえば、私の URL が /my_model/新しい</p>
+                    <p>エラーが発生すると、次のように変更されます
+                    /my_model</p>
+                    <p>URLに基づいてカスタムJavaScriptを作成しているため、これを修正する方法はありますか?
+                    新しい場合は何かをし、編集している場合は他のことをします</p>
+                    <p>誰か修正方法を知っている人がいたら教えてください</p>
+                    <p>アップデート：</p>
+                    <p>自分が何をしているのか、何が問題を引き起こしているのか、もっと詳しい情報を提供するべきだったので、ActiveAdmin
+                    gemを使用して管理ページを作成しているモデルがあります</p>
+                    <p>これが私のモデルです</p>
+                    <pre><code>class Task &lt; ApplicationRecord
+    validates :count, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 99 }, allow_nil: true
+  end
+</code></pre>
+                    <p>私のアクティブな管理ページは次のようになります。</p>
+                    <pre><code>ActiveAdmin.register Task, as: &quot;Tasks&quot; do
+  actions :all, except: [:destroy]
+  menu label: &quot;Tasks&quot;, parent: &quot;Tasks Menu&quot;
+
+  permit_params :name, :count
+  
+  index do
+    id_column
+    column :name
+    column :count
+  end
+
+  show do
+    tabs do
+      tab :basic do
+        attributes_table do
+          row :name
+          row :count
+        end
+      end
+    end
+  end
+
+  form do |f|
+    f.semantic_errors *f.object.errors.keys
+
+    f.inputs &quot;Basic Details&quot; do
+      f.input :name     
+      f.input :count
+
+      f.actions
+    end
+  end
+end
+</code></pre>
+                    <p>したがって、アイテムを開いたり、タスクを作成または更新しようとすると、URL
+                    は /admin/tasks/new または /admin/tasks/edit
+                    に移動します。</p>
+                    <p>そのため、URL に基づいて JQuery
+                    を使用していくつかの変更を加える必要があるため、次のようなスクリプトを作成しました。</p>
+                    <pre><code>var window_location_elements = location.href.split(&quot;/&quot;);
+var length = window_location_elements.length;
+
+
+if(window_location_elements[length-1] === &quot;edit&quot; || window_location_elements[length-1] === &quot;new&quot;){
+  // do something
+}
+</code></pre>
+                    <p>したがって、入力に無効なカウントの値を入力した場合に問題が発生します。フォームにはエラーがあり、完全に表示されていますが、エラーが発生するとすぐにURLが切り替わるという奇妙なことが起こります。
+                    :</p>
+                    <p>/admin/tasks/new から /admin/tasks のみに変更
+                    (編集も同様)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは私の側の間違いでした。新しいフォームと編集フォームを
+                    URL に関連付けるだけだったので、JavaScript
+                    を機能させることだけを考えていましたが、そうではありません。フォームが有効でない場合、Rails
+                    と同様に、ActiveAdmin
+                    がフォームの作成と更新を処理します。フォームを再度レンダリングし、無効なフォーム送信に対する応答として送信します。</p>
+                    <p>これを念頭に置き、これについて詳しく読むと、ActiveAdmin
+                    が DOM の body
+                    要素を更新して、サーバーにそれがどのフォームであるかを知らせることがわかりました。</p>
+                    <p>次に必要なのは、これを処理できるように JavaScript
+                    を更新することだけです。最終的な JavaScript
+                    は次のとおりです。</p>
+                    <pre><code>var bodyClassList = document.body.classList;
+
+if ( bodyClassList.contains(&quot;edit&quot;) || bodyClassList.contains(&quot;new&quot;) ||
+      bodyClassList.contains(&quot;update&quot;) || bodyClassList.contains(&quot;create&quot;) ) {
+   // do something
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

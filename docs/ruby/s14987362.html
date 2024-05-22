@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>STDOUT を文字列にキャプチャするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "STDOUT を文字列にキャプチャするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>STDOUT
+を文字列にキャプチャするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>puts &quot;hi&quot;
+puts &quot;bye&quot;
+</code></pre>
+                    <p>これまでのコードのSTDOUTを保存したいと思います（この場合、こんにちは
+                    bye 変数に「result」と言って印刷してください）</p>
+                    <pre><code>puts result
+</code></pre>
+                    <p>これを行う理由は、R コードを Ruby
+                    コードに統合しており、その出力は R コードの実行時に
+                    STDOUT
+                    に与えられますが、一部の評価を行うためにコード内で出力にアクセスすることはできません。混乱していたらごめんなさい。したがって、「puts
+                    result」行はこんにちはとさようならを与えるはずです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のメソッドは、stdout
+                    をキャプチャして文字列として返すための便利な汎用ツールです。
+                    (標準出力に出力されたものを検証する単体テストでこれを頻繁に使用します。)特に、復元する
+                    (そして驚くことを避けるため) ための ensure
+                    句の使用に注意してください。</p>
+                    <pre><code>def with_captured_stdout
+  original_stdout = $stdout  # capture previous value of $stdout
+  $stdout = StringIO.new     # assign a string buffer to $stdout
+  yield                      # perform the body of the user code
+  $stdout.string             # return the contents of the string buffer
+ensure
+  $stdout = original_stdout  # restore $stdout to its previous value
+end
+</code></pre>
+                    <p>たとえば、次のようになります。</p>
+                    <pre><code>&gt;&gt; str = with_captured_stdout { puts &quot;hi&quot;; puts &quot;bye&quot;}
+=&gt; &quot;hi\nbye\n&quot;
+&gt;&gt; print str
+hi
+bye
+=&gt; nil
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

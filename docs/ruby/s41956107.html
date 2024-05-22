@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Koans : About_Scoring_Project (正確には、.map メソッドを使用したイテレータ) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Koans : About_Scoring_Project (正確には、.map メソッドを使用したイテレータ)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Koans : About_Scoring_Project
+(正確には、.map メソッドを使用したイテレータ)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の初心者です。 Ruby
+                    Koans、About_Scoring_Project
+                    に取り組んでいるときに、いくつかの問題が発生しました。
+                    .map
+                    メソッドは、変数の名前ではなく、フレーズの順序に応じて値を返します。私は混乱しています…</p>
+                    <pre><code>def score(dice)
+  total_score = 0
+  side = 6
+  count = Array.new
+  side.times{count &lt;&lt; 0} # [0, 0, 0, 0, 0, 0]
+
+  # Tell the occured time of each side
+  while i = dice.pop
+    count[i-1] += 1
+  end
+
+  # Calculating total score
+
+  i = 0
+
+  count.map! do |item|
+    i += 1
+    if item &gt;= 3 &amp;&amp; i != 1
+      total_score = i*100
+      item - 3
+    elsif item &gt;= 3
+      total_score = 1000
+      item - 3
+    else
+      item
+    end
+  end
+
+  # Count the rest
+  total_score += ( count[0]*100 + count[4]*50 )
+
+  total_score # return the total score
+end
+</code></pre>
+                    <p>これは機能しますが、私が最初に書いたとき:</p>
+                    <pre><code>  elsif item &gt;= 3
+  item - 3
+  total_score = 1000
+</code></pre>
+                    <p>実行すると配列数は[1000, 0, 0, 0, 0,
+                    0]となった</p>
+                    <pre><code>  score([1,1,1]) # score([1,1,1]) = 101000 which should be 1000
+</code></pre>
+                    <p>つまり、total_value ではなく item に値 1000
+                    が与えられています。ただし、上記のように 2
+                    つのフレーズの順序を変更すると、正しく動作します。誰かこれを手伝ってくれませんか。私は
+                    Ruby
+                    とプログラミングの初心者です。私の片言の英語を許してください…</p>
+                    <p>プロジェクトのコンテキスト:</p>
+                    <pre><code># Greed is a dice game where you roll up to five dice to accumulate
+# points.  The following &quot;score&quot; function will be used to calculate the
+# score of a single roll of the dice.
+#
+# A greed roll is scored as follows:
+#
+# * A set of three ones is 1000 points
+#
+# * A set of three numbers (other than ones) is worth 100 times the
+#   number. (e.g. three fives is 500 points).
+#
+# * A one (that is not part of a set of three) is worth 100 points.
+#
+# * A five (that is not part of a set of three) is worth 50 points.
+#
+# * Everything else is worth 0 points.
+#
+#
+# Examples:
+#
+# score([1,1,1,5,1]) =&gt; 1150 points
+# score([2,3,4,6,2]) =&gt; 0 points
+# score([3,4,5,3,3]) =&gt; 350 points
+# score([1,5,1,2,4]) =&gt; 250 points
+#
+# More scoring examples are given in the tests below:
+#
+# Your goal is to write the score method.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>多かれ少なかれ、そうです。ブロックは、メソッドとほぼ同じように、最後に評価された式の値を単に返すだけです。</p>
+                    <p>あなたが持っている場合：</p>
+                    <pre><code>count.map! do |item|
+  item - 3
+  total_score = 1000
+end
+</code></pre>
+                    <p>total_score = 1000 は、1000
+                    と評価され、ブロックの戻り値になります。</p>
+                    <p>あなたが持っている場合：</p>
+                    <pre><code>count.map! do |item|
+  total_score = 1000
+  item - 3
+end
+</code></pre>
+                    <p>item - 3 はブロックの戻り値です。</p>
+                    <p>地図！次に、ブロックの値を含む新しい配列を作成します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SFTP転送をバッチで行うにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SFTP転送をバッチで行うにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SFTP転送をバッチで行うにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コンテキスト: 私は約を持っています。 SFTP
+                    経由で転送される 20K ファイル。
+                    単一のセッションで送信すると、セッションが途中で終了する可能性があるのではないかと疑っています。
+                    タイムアウトを検索しようとしましたが、アイドルセッションのタイムアウトが見つかりました。</p>
+                    <p>そこで、500ファイルを一括で転送できる一括転送のようなものがないか探してみました。そして、各バッチの後に新しいセッションが開始されます。
+                    Ruby の Net::SFTP ライブラリを使用しています</p>
+                    <p>私の現在のコードは</p>
+                    <pre><code>      Net::SFTP.start(host, username, :password =&gt; password, :port =&gt; port) do |sftp|
+        files.each do |file| # files is an array of filenames (with path)
+          puts &quot;Transferring &#39;#{file}&#39; to #{host}..&quot;
+          sftp.upload!(file, &quot;/#{File.basename(file)}&quot;)
+        end
+      end
+</code></pre>
+                    <p>私が試したことは何ですか？
+                    バッチ処理のオプションが存在するかどうか、ドキュメントまたはいくつかのブログで検索しようとしました。</p>
+                    <p>そのようなオプションがない場合は、以下のようにこれを処理する予定です</p>
+                    <pre><code>files.each_slice(500) do |batch|
+  Net::SFTP.start(host, username, :password =&gt; password, :port =&gt; port) do |sftp|
+    batch.each do |file| # files is an array of filenames (with path)
+      puts &quot;Transferring &#39;#{file}&#39; to #{host}..&quot;
+      sftp.upload!(file, &quot;/#{File.basename(file)}&quot;)
+    end
+  end
+end 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>タイムアウト値を見つけることができませんでしたが、より良いパフォーマンスを得るために使用しました</p>
+                    <pre><code>gem &#39;jsch_sftp&#39;
+</code></pre>
+                    <p>詳細は https://github.com/AquisTech/jsch_sftp
+                    でご覧いただけます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

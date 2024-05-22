@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の AES 128 CTR モード | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の AES 128 CTR モード",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の AES 128 CTR モード</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>CBC および CTR
+                    モードで暗号文を解読しようとしています。 IV
+                    は暗号文の最初の 16
+                    バイトであると言われています。これを解決するために
+                    Ruby でこの関数を書き、CBC
+                    を使用すると正しい結果が得られましたが、モードを CTR
+                    に変更するとすぐにランダムなバイト列が得られます。</p>
+                    <p>この投稿とこの投稿でも同様の質問がありますが、どちらも正しい
+                    IV
+                    テキストを使用していなかったので、自分のテキストを何度も確認しました。</p>
+                    <pre><code>def decrypt(key, cipher, mode=:CBC)
+  k = [key].pack(&#39;H*&#39;)
+  iv = [cipher.scan(/../).first(16).join].pack(&#39;H*&#39;)
+  c = [cipher].pack(&#39;H*&#39;)
+
+  aes = OpenSSL::Cipher::AES.new(128, mode)
+  aes.decrypt
+  aes.iv = iv
+  aes.key = k
+  aes.update(c) + aes.final
+end
+</code></pre>
+                    <p>mode=CBC の場合
+                    (最初の数バイトは無視されて正しい):</p>
+                    <pre><code>decrypt(&#39;140b41b22a29beb4061bda66b6747e14&#39;, &#39;4ca00ff4c898d61e1edbf1800618fb2828a226d160dad07883d04e008a7897ee2e4b7465d5290d0c0e6c6822236e1daafb94ffe0c5da05d9476be028ad7c1d81&#39;)
+=&gt; &quot;LQ\xFCXTr@\t\xC7\eb\x0Ex\xB3\nQBasic CBC mode encryption needs padding.&quot;
+</code></pre>
+                    <p>モード = CTR の場合:</p>
+                    <pre><code>decrypt(&#39;36f18357be4dbd77f050515c73fcf9f2&#39;, &#39;69dda8455c7dd4254bf353b773304eec0ec7702330098ce7f7520d1cbbb20fc388d1b0adb5054dbd7370849dbf0b88d393f252e764f1f5f7ad97ef79d59ce29f5f51eeca32eabedd9afa9329&#39;, :CTR)
+=&gt; &quot;$N\x8AF\x01\e&lt;\xA7\x9C\xCD;\xDF\xBB\xA28@\xF36\xA2\xFB\xEC`\xA5z\xE5\x02\xFA\xF5v\xDC\xE6};@\x8B:\xB9\x91\xCAj\xB8\x95\x04\x89J\xF6J.\xA0\xCC\xDFFvx\&quot;Z_\b\x0E~[\x1F\x92+&amp;U\xEB\x9E\xE0\xA7}\r\xC9Y?\xB2&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>上記のコメントにおける Maarten
+                    の助けのおかげで、復号化するときに暗号文に IV
+                    を含めないように方法を改良することができました。</p>
+                    <pre><code>def decrypt(key, cipher, mode=:CBC)
+  k = [key].pack(&#39;H*&#39;)
+  bytes = cipher.scan(/../)
+  iv = [bytes[0..15].join].pack(&#39;H*&#39;)
+  c = [bytes[16..-1].join].pack(&#39;H*&#39;)
+
+  aes = OpenSSL::Cipher::AES128.new(mode)
+  aes.decrypt
+  aes.iv = iv
+  aes.key = k
+  aes.update(c) + aes.final
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>IRB キーボード ショートカットは無効になっていますか?これらを再度有効にすることはできますか?私が何を壊してしまったのでしょうか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "IRB キーボード ショートカットは無効になっていますか?これらを再度有効にすることはできますか?私が何を壊してしまったのでしょうか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>IRB キーボード
+ショートカットは無効になっていますか?これらを再度有効にすることはできますか?私が何を壊してしまったのでしょうか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>予想される行動：
+                    この回答のようなreadlineショートカットを使用したキーボードショートカット。</p>
+                    <p>実際に何が起こるか: Ctrl+l
+                    を押して画面をクリアします。</p>
+                    <pre><code>irb
+2023-08-08 20:31:17 -0600
+Loaded Profile methods
+irb.main{
+irb.m${ ^Ltyping stuff^E^A
+</code></pre>
+                    <p>Ruby バージョン: Ruby 3.2.2 (2023-03-30
+                    リビジョン e51014f9c0) [x86_64-linux]</p>
+                    <p>私の ~/.irbrc
+                    が不注意でショートカットを妨害しているのではないかと思いました。ソースされないように名前を変更しましたが、動作は同じままで、irb
+                    は readline
+                    動作の代わりに「^#{letter_I_pressed}」を画面に書き込みます。</p>
+                    <p><esc> を押すと Ctrl-l がクリアされ、vi
+                    のような動作が可能になります (0
+                    は行頭に移動し、Shift-c は何も行いません)。
+                    では、bash モードを vi
+                    に設定すると、これが壊れる可能性がありますか? 私の
+                    /etc/profile には次のものがあります:</p>
+                    <pre><code>set -o vi
+set editing-mode vi
+set keymap vi
+set show-mode-in-prompt on
+</code></pre>
+                    <p>それで私は試しました: set -o emacs ;編集モード
+                    emacs を設定します。 emacs
+                    のキーマップを設定します。 irb</p>
+                    <p>奇妙なことに、これは emacs のような readline
+                    動作を有効にしませんし、上で説明したことも変わりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby は readline
+                    サポートなしでコンパイルされている可能性があります。これはほとんどの場合、Ruby
+                    または pkgconfig の最近の変更が原因で、pkgconfig
+                    が適切なライブラリを見つけられないため、さまざまなコンパイル
+                    フラグが適切に処理されません。</p>
+                    <p>前提条件がインストールされていることを確認し、コンパイル中に機能フラグを有効にしてください。この問題が発生した一部のプラットフォームまたは特定のビルドでは、readline
+                    に加えて rlwrap
+                    をインストールすると便利であることもわかりました。これは、不足しているアプリケーションに
+                    GNU readline および BSD libedit サポートを提供する
+                    readline ラッパーです。例えば：</p>
+                    <pre><code>brew install rlwrap
+rlwrap irb
+</code></pre>
+                    <p>readline または libedit が irb または icr
+                    に適切にコンパイルされていない場合の問題を修正しました。後者は
+                    Crystal の REPL で、この問題のせいで readline と
+                    libedit
+                    のサポートが当たり外れがあることが最近わかりました。</p>
+                    <p>あるいは、次の環境値を設定して再コンパイルしてみることもできます。</p>
+                    <pre><code>export LDFLAGS=&quot;-L/opt/homebrew/opt/readline/lib&quot;
+export CPPFLAGS=&quot;-I/opt/homebrew/opt/readline/include&quot;
+export PKG_CONFIG_PATH=&quot;/opt/homebrew/opt/readline/lib/pkgconfig&quot;
+</code></pre>
+                    <p>OpenSSL
+                    に関連する同様の問題も報告されているため、そこでも同様の操作を行う必要がある場合があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

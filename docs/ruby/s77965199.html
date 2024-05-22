@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Signal.trap の設定を解除するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Signal.trap の設定を解除するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Signal.trap
+の設定を解除するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>割り込み時に停止したいループがあるのですが、これを実行すると、元の動作が失われます。割り込みの動作を一時的に変更し、その後、通常どおりに動作できるように設定し直すにはどうすればよいですか?</p>
+                    <pre><code>stop = false
+trap = Signal.trap(&#39;INT&#39;) { stop = true } # returns &quot;DEFAULT&quot;
+loop do
+  break if stop
+end
+Signal.trap(&#39;INT&#39;) { trap } # &lt;-- does not work
+</code></pre>
+                    <p>私はできることを知っています：</p>
+                    <pre><code>Signal.trap(&#39;INT&#39;) do
+  stop = true
+  exit
+end
+</code></pre>
+                    <p>しかし、むしろデフォルトの動作にさせたいのですが…どうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>明示的に「デフォルト」の動作に設定できると思います。例を示します。</p>
+                    <pre><code>stop = false
+Signal.trap(&quot;INT&quot;) { stop = true }
+loop do
+  break if stop
+end
+
+loop do
+  # have to ctrl-\ to exit
+  p &quot;stuck forever&quot;
+  sleep 1
+end
+</code></pre>
+                    <pre><code>stop = false
+Signal.trap(&quot;INT&quot;) { stop = true }
+loop do
+  break if stop
+end
+
+Signal.trap(&quot;INT&quot;, &quot;DEFAULT&quot;)
+loop do
+  # ctrl-c now works
+  p &quot;not stuck forever&quot;
+  sleep 1
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ruby-doc.org/3.3.0/Kernel.html#method-i-trap</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

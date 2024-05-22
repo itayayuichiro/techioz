@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby と Rails のアップデート後に Heroku のスラッグ サイズ制限に遭遇する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby と Rails のアップデート後に Heroku のスラッグ サイズ制限に遭遇する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby と Rails のアップデート後に Heroku
+のスラッグ サイズ制限に遭遇する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby と Rails を次のマイナー リリース (Ruby と
+                    Rails それぞれ 3.2.2 から 3.3.0、7.0.8 から 7.1.2)
+                    に更新する作業を行っていますが、Heroics のスラッグ
+                    サイズ制限に遭遇しています。圧縮後の 520MB
+                    は明らかに制限を超えています。</p>
+                    <p>私のアプリは Google Text to Speech gem
+                    を利用していますが、これは明らかに grpc gem
+                    に依存しており、多くのスペースを占有しているようです。</p>
+                    <p>それ以外の場合、他に問題の原因がわかりません。
+                    Ruby 3.3.0
+                    にアップデートする前は、スラッグ警告は発生しませんでした。とりあえずRuby
+                    3.2.2にダウングレードしたほうがいいでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 3.2.2 と Ruby 3.3.0
+                    の比較はできませんが、それを聞くのは憂慮すべきことです
+                    (そして、アップグレードを延期する理由になる可能性もあります)。</p>
+                    <p>今後この質問を見つける人のために、私は積極的な
+                    .slugignore ファイルと [Heraku Post-Build Clean
+                    Buildpack|https://elements.heroku.com/buildpacks]
+                    を使用して Heroku のスラッグ
+                    サイズを減らすことに多くの成功を収めてきました。
+                    /lostmyname/heroku-buildpack-post-build-clean]</p>
+                    <pre><code>heroku buildpacks:add --index integer_index_based_on_how_many_buildpacks_you_have https://github.com/Lostmyname/heroku-buildpack-post-build-clean.git
+</code></pre>
+                    <p>次の .slug-post-clean ファイルを使用</p>
+                    <pre><code>node_modules
+tmp/cache
+tmp/cache/webpacker
+</code></pre>
+                    <p>そしてこのような .slugignore ファイル</p>
+                    <pre><code>*.psd
+*.pdf
+/test
+/spec
+</code></pre>
+                    <p>問題に応じて、他にも役立つコマンドがいくつかあります。</p>
+                    <p>heroku config:set
+                    BUNDLE_WITHOUT=“開発:docker:test”</p>
+                    <p>heroku ビルド:キャッシュ:パージ</p>
+                    <p>[Thoughtbot|https://thoughtbot.com/blog/how-to-reduce-a-large-heroku-compiled-slug-size]
+                    に従って、追加のマイルを獲得できる可能性がある
+                    Heroku リポジトリ
+                    プラグインをインストールすることもできます。</p>
+                    <pre><code>heroku plugins:install heroku-repo
+</code></pre>
+                    <p>次に、次を実行します。</p>
+                    <pre><code>heroku repo:gc --app your-app-name
+heroku repo:purge_cache --app your-app-name
+</code></pre>
+                    <p>Heroku では、大きな
+                    PDF、PSD、または画像ファイルもプロジェクトから削除することをお勧めします
+                    (大きな画像は間違いなくスラッグ
+                    サイズを増大させる可能性があります)。</p>
+                    <p>また、この
+                    [ブログポスト|https://blog.saeloun.com/2020/05/04/how-to-reduce-heroku-slug-size]
+                    で概説されているアプローチが、次のようなカスタム
+                    アセット クリーン
+                    タスクを追加するのに役立つこともわかりました。以下の例では、コンパイル後、スラッグが生成される直前に、node_modules
+                    フォルダーを削除します。</p>
+                    <pre><code># cat lib/tasks/assets.rake
+# Adapted from https://github.com/heroku/heroku-buildpack-ruby/issues/792
+
+namespace :assets do
+  desc &quot;Remove &#39;node_modules&#39; folder&quot;
+  task rm_node_modules: :environment do
+    Rails.logger.info &quot;Removing node_modules folder&quot;
+    FileUtils.remove_dir(&quot;node_modules&quot;, true)
+  end
+end
+
+skip_clean = %w(no false n f).include?(ENV[&quot;WEBPACKER_PRECOMPILE&quot;])
+
+unless skip_clean
+  if Rake::Task.task_defined?(&quot;assets:clean&quot;)
+    Rake::Task[&quot;assets:clean&quot;].enhance do
+      Rake::Task[&quot;assets:rm_node_modules&quot;].invoke
+    end
+  else
+    Rake::Task.define_task(&quot;assets:clean&quot; =&gt; &quot;assets:rm_node_modules&quot;)
+  end
+end
+</code></pre>
+                    <p>頑張ってナメクジを潰してください (また、Patrick
+                    のように最近 Ruby 3.2.2 から Ruby 3.3.0
+                    にアップグレードした場合は、ダウングレードして問題が解決するかどうかを確認するだけでも価値があるようです)。</p>
+                    <p>ナメクジに塩をかけてください！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

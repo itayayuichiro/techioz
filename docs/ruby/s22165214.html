@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mongoidで複数のレコードをバッチ挿入しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mongoidで複数のレコードをバッチ挿入しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mongoidで複数のレコードをバッチ挿入しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>1 つのクエリで Mongoid
+                    に複数のドキュメントを挿入する方法について、この
+                    Stackoverflow
+                    の回答を読んでいます。私が読んだ答えから:</p>
+                    <pre><code>batch = [{:name =&gt; &quot;mongodb&quot;}, {:name =&gt; &quot;mongoid&quot;}]  
+Article.collection.insert(batch)
+</code></pre>
+                    <p>これがどのように機能するかを理解するには例が必要です。
+                    Article クラスがあるとします。</p>
+                    <pre><code>class Article
+  include Mongoid::Document
+  include Mongoid::Timestamps
+
+  field :subject,   type: String
+  field :body,      type: String
+  field :remote_id, type: String
+
+  validates_uniqueness_of :remote_id
+
+  belongs_to :news_paper,   :inverse_of =&gt; :articles
+end
+</code></pre>
+                    <p>そして、私は例えば。記事の配列を作成します。</p>
+                    <pre><code>[ {subject: &quot;Mongoid rocks&quot;, body: &quot;It really does&quot;, remote_id: &quot;1234&quot;, news_paper_id: &quot;abc&quot;},
+{subject: &quot;Ruby rocks&quot;, body: &quot;It really does&quot;, remote_id: &quot;1234&quot;, news_paper_id: &quot;abc&quot;},
+{subject: &quot;Rails rocks&quot;, body: &quot;It really does&quot;, remote_id: &quot;5678&quot;, news_paper_id: &quot;abc&quot;} ]
+</code></pre>
+                    <p>これらを作成し、同時に検証で同じremote_idが2つあることを確認するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Remote_id
+                    フィールドに一意のインデックスを追加すると、MongoDB
+                    はこのフィールドの一意性を考慮します。</p>
+                    <p>インデックス({リモートID: 1 }, {一意: true })</p>
+                    <p>create_indexes: rake db:mongoid:create_indexes
+                    を実行することを忘れないでください。</p>
+                    <p>その後は、Article.collection.insert(batch)
+                    を自由に使用できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mac上のRubyのrabbitmqがメッセージを受信しませんでした | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mac上のRubyのrabbitmqがメッセージを受信しませんでした",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mac上のRubyのrabbitmqがメッセージを受信しませんでした</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はrabbitmqを初めて使用します。
+                    Rubyとrabbitmqを使用してMacでチュートリアルに従ってみました。
+                    2 つの .rb ファイルを作成しました。</p>
+                    <p>ワーカー.rb</p>
+                    <pre><code>require &#39;bunny&#39;
+connection=Bunny.new
+connection.start
+channel= connection.create_channel
+queue=channel.queue(&#39;hello&#39;)
+
+begin
+  puts &#39; Waiting for messages. To exit press CTRL+C&#39;
+  queue.subscribe(block: true) do |delivery_info, _properties, body|
+  puts &quot; [x] Received #{body}&quot;
+  # imitate some work
+  sleep body.count(&#39;.&#39;).to_i
+  puts &#39; [x] Done&#39;
+end
+rescue Interrupt =&gt; _
+  conn.close
+
+  exit(0)
+end
+</code></pre>
+                    <p>そしてreceive.rb</p>
+                    <pre><code> require &#39;bunny&#39;
+    connection=Bunny.new
+    connection.start
+    channel= connection.create_channel
+    queue=channel.queue(&#39;hello&#39;)
+    begin
+      puts &#39; Waiting for messages. To exit press CTRL+C&#39;
+      queue.subscribe(block: true) do |_delivery_info, _properties, body|
+        puts &quot;  Received #{body}&quot;
+    end
+rescue Interrupt =&gt; _
+  conn.close
+
+  exit(0)
+end
+</code></pre>
+                    <p>RabbitMQ サーバーが開いています。 Ruby
+                    new_task.rb を実行すると、予想どおりの出力 [x] Sent
+                    Hello World! が表示されます。 Ruby worker.rb
+                    を実行すると、メッセージを待っていると表示されますが、メッセージを受信しません。誰か助けてくれませんか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>チュートリアルのコードを注意深く調べて、自分が書いたものと比較することをお勧めします。</p>
+                    <p>new_task.rb
+                    のコードを提供していないため、ここに表示されているコードを使用していると思います。このコードは
+                    task_queue
+                    という名前のキューを想定していますが、上記で指定したコードでは
+                    hello という名前のキューが使用されています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

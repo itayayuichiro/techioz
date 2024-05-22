@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mac OS Ventura で Ruby 2.7.5 のインストールが失敗する *** 次の拡張機能はコンパイルされていません: openssl: 設定できませんでした。インストールされません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mac OS Ventura で Ruby 2.7.5 のインストールが失敗する *** 次の拡張機能はコンパイルされていません: openssl: 設定できませんでした。インストールされません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mac OS Ventura で Ruby 2.7.5
+のインストールが失敗する *** 次の拡張機能はコンパイルされていません:
+openssl: 設定できませんでした。インストールされません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>反応ネイティブ .70 を使用できるように、Ruby
+                    の古いバージョンをインストールしようとしています。
+                    いくつかのエラーが発生しています。これを機能させるためにご協力いただければ幸いです。
+                    openssl 1.1
+                    が使用されるように、次のコマンドを発行しました。</p>
+                    <pre><code>    CONFIG_PATH=/usr/local/opt/[email protected]/lib/pkgconfig rvm reinstall 2.7.5 --with-openssl-lib=/usr/local/opt/[email protected] --with-openssl-include=/usr/local/opt/[email protected]
+</code></pre>
+                    <p>Ruby
+                    のインストールが失敗します。ログには、タイトルで述べたエラーがリストされ、ext/openssl/mkmf.log
+                    が参照されます。
+                    そのログにはいくつかのエラーがリストされています。</p>
+                    <pre><code>    conftest.c:14:57: error: use of undeclared identifier &#39;t_open&#39;
+     t(void) { void ((*volatile p)()); p = (void ((*)()))t_open; return !p; }
+                                                            ^
+    1 error generated.
+    checked program was:
+    /* begin */
+     1: #include &quot;ruby.h&quot;
+     2:
+     3: /*top*/
+     4: extern int t(void);
+     5: int main(int argc, char **argv)
+     6: {
+     7:   if (argc &gt; 1000000) {
+     8:     int (* volatile tp)(void)=(int (*)(void))&amp;t;
+     9:     printf(&quot;%d&quot;, (*tp)());
+    10:   }
+    11:
+    12:   return !!argv[argc];
+    13: }
+    14: int t(void) { void ((*volatile p)()); p = (void ((*)()))t_open; return !p; }
+
+----------------
+
+
+
+
+
+ld: library not found for -lnsl
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+checked program was:
+/* begin */
+ 1: #include &quot;ruby.h&quot;
+ 2:
+ 3: /*top*/
+ 4: extern int t(void);
+ 5: int main(int argc, char **argv)
+ 6: {
+ 7:   if (argc &gt; 1000000) {
+ 8:     int (* volatile tp)(void)=(int (*)(void))&amp;t;
+ 9:     printf(&quot;%d&quot;, (*tp)());
+10:   }
+11:
+12:   return !!argv[argc];
+13: }
+14: extern void t_open();
+15: int t(void) { t_open(); return 0; }
+/* end */
+
+------------------------
+conftest.c:14:57: error: use of undeclared identifier &#39;socket&#39;
+int t(void) { void ((*volatile p)()); p = (void ((*)()))socket; return !p; }
+                                                        ^
+1 error generated.
+checked program was:
+/* begin */
+ 1: #include &quot;ruby.h&quot;
+ 2:
+ 3: /*top*/
+ 4: extern int t(void);
+ 5: int main(int argc, char **argv)
+ 6: {
+ 7:   if (argc &gt; 1000000) {
+ 8:     int (* volatile tp)(void)=(int (*)(void))&amp;t;
+ 9:     printf(&quot;%d&quot;, (*tp)());
+10:   }
+11:
+12:   return !!argv[argc];
+13: }
+14: int t(void) { void ((*volatile p)()); p = (void ((*)()))socket; return !p; }
+/* end */
+
+-----------------------------
+
+ld: library not found for -lsocket
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+checked program was:
+/* begin */
+ 1: #include &quot;ruby.h&quot;
+ 2:
+ 3: /*top*/
+ 4: extern int t(void);
+ 5: int main(int argc, char **argv)
+ 6: {
+ 7:   if (argc &gt; 1000000) {
+ 8:     int (* volatile tp)(void)=(int (*)(void))&amp;t;
+ 9:     printf(&quot;%d&quot;, (*tp)());
+10:   }
+11:
+12:   return !!argv[argc];
+13: }
+14: extern void socket();
+15: int t(void) { socket(); return 0; }
+/* end */
+
+--------------------
+conftest.c:6:3: error:
+# error
+  ^
+conftest.c:7:1: error: expected identifier or &#39;(&#39;
+|:/ === LIBRESSL_VERSION_NUMBER undefined === /:|
+^
+2 errors generated.
+checked program was:
+/* begin */
+1: #include &quot;ruby.h&quot;
+2:
+3: #include &lt;openssl/opensslv.h&gt;
+4: /*top*/
+5: #ifndef LIBRESSL_VERSION_NUMBER
+6: # error
+7: |:/ === LIBRESSL_VERSION_NUMBER undefined === /:|
+8: #endif
+/* end */
+
+---------------
+
+ 
+/Users/dcent/.rvm/src/ruby-2.7.5/ext/openssl/extconf.rb:111: OpenSSL &gt;= 1.0.1, &lt; 3.0.0 or LibreSSL &gt;= 2.5.0 is required
+        /Users/dcent/.rvm/src/ruby-2.7.5/ext/openssl/extconf.rb:111:in `&lt;top (required)&gt;&#39;
+        ./ext/extmk.rb:214:in `load&#39;
+        ./ext/extmk.rb:214:in `block in extmake&#39;
+        /Users/dcent/.rvm/src/ruby-2.7.5/lib/mkmf.rb:331:in `open&#39;
+        ./ext/extmk.rb:210:in `extmake&#39;
+        ./ext/extmk.rb:572:in `block in &lt;main&gt;&#39;
+        ./ext/extmk.rb:568:in `each&#39;
+        ./ext/extmk.rb:568:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>ご指導ありがとうございます。</p>
+                    <p>次のステップをどうすべきかわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>醸造インストール [email protected]</p>
+                    <p>これを試してみましたか？</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

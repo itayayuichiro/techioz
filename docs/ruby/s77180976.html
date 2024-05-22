@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ransack を 4.0.0 にアップグレードすると Paper_trail gem が動作を停止しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ransack を 4.0.0 にアップグレードすると Paper_trail gem が動作を停止しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ransack を 4.0.0 にアップグレードすると
+Paper_trail gem が動作を停止しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails 7.0.4
+                    アプリでは次のものを使用しています。</p>
+                    <p>データの変更履歴をフィルタリングして並べ替えるためのページがあります。</p>
+                    <pre><code>ActiveAdmin.register PaperTrail::Version do
+  menu label: &#39;History&#39;
+  actions :index
+
+  index title: &#39;History&#39; do
+    id_column
+    column :item
+    column :event
+    column &#39;Author&#39; do |version|
+      User.where(id: version.whodunnit.to_i).first
+    end
+    column &#39;Changes&#39;, :object_changes
+    column :created_at
+  end
+
+  filter :item_type
+  filter :item_id, as: :numeric
+  filter :created_at, input_html: {autocomplete: :off}
+  filter :whodunnit, label: &#39;Author&#39;, as: :numeric
+  filter :object_changes
+end
+</code></pre>
+                    <p>activeadmin 3.0.0 と ransack 4.0.0
+                    にアップグレードする前は、すべてが正常に動作していました。
+                    アップグレード後、すべてのページで次のエラーが発生します。
+                    「Ransack には …
+                    として明示的に許可リストに登録された属性が必要です。」
+                    この問題は、エラーが表示される履歴ページを除くすべてのページで簡単に修正されました。</p>
+                    <pre><code>class PaperTrail::Version &lt; ApplicationRecord
+
+  # ...
+
+  def self.ransackable_attributes(auth_object = nil)
+    [&quot;created_at&quot;, &quot;event&quot;, &quot;id&quot;, &quot;item_id&quot;, &quot;item_type&quot;, &quot;object&quot;, &quot;object_changes&quot;, &quot;whodunnit&quot;]
+  end
+
+  # ...
+
+end
+</code></pre>
+                    <p>私の config/initializers/paper_trail.rb
+                    はそれほど変わっておらず、ransackable_attributes
+                    メソッドを正しく追加したと思います。</p>
+                    <pre><code>module PaperTrail
+  class Version &lt; ActiveRecord::Base
+
+    def self.ransackable_attributes(auth_object = nil)
+      %w[created_at event id item_id item_type object object_changes whodunnit]
+    end
+
+    def user
+      User.where(id: self.whodunnit.to_i).first
+    end
+  end
+end
+
+PaperTrail::Model::ClassMethods.module_eval do
+  alias_method :old_has_paper_trail, :has_paper_trail
+  def has_paper_trail(options = {})
+    options[:ignore] ||= []
+    options[:ignore] += [:created_at, :updated_at, :current_sign_in_at, :last_sign_in_at, :current_sign_in_ip, :last_sign_in_ip, :sign_in_count]
+    old_has_paper_trail(options)
+  end
+end
+</code></pre>
+                    <p>しかし、エラーは同じままです。それを修正するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>少しばかげていますが、サーバーを再起動すると問題は解決しました。</p>
+                    <p>PaperTrail::Version
+                    を初期化子として使用していたので、サーバーを再起動しないと変更は有効になりませんでした。他のモデルへの変更は再起動しなくても有効になりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

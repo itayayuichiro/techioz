@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Async Gem: 基本的な使用例は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Async Gem: 基本的な使用例は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Async Gem: 基本的な使用例は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 3.0 では、非同期 gem
+                    が標準ライブラリ関数のブロック IO
+                    と互換性があるため、基本的な機能を理解したかったのですが、簡単な例を見てすでに混乱しています。</p>
+                    <pre><code>require &#39;async&#39;
+
+n = 10
+n.times do |i|
+  Async do
+    HTTParty.get(&quot;https://httpbin.org/delay/1.6&quot;)
+  end
+end
+</code></pre>
+                    <p>これは並列性を示しません。 Gem の Kernel#async
+                    に関するドキュメントを見ると、次のように書かれています。</p>
+                    <p>しかし、プロジェクトのドキュメントではそれが明確になっているようです。</p>
+                    <p>上記の例を機能させるには:</p>
+                    <pre><code>require &#39;async&#39;
+
+n = 10
+Async do
+  n.times do |i|
+    Async do
+      HTTParty.get(&quot;https://httpbin.org/delay/1.6&quot;)
+    end
+  end
+end
+</code></pre>
+                    <p>これは機能しますが、読者にとってはわかりにくいようです。最初の
+                    Async がブロックしているのに他の Async
+                    はブロックしていないことを読者としてどうやって知ることができるでしょうか?</p>
+                    <p>したがって、質問は次のとおりです。async gem
+                    の正規の基本的な使用法は何ですか?</p>
+                    <p>参考文献：</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>質問が「async gem
+                    の基本的な例は何ですか」である場合、2 番目のコード
+                    スニペットがその 1 つです。</p>
+                    <p>「なぜ API
+                    はこのようになっていますか?」という質問がある場合は、問題掲示板でこの
+                    gem
+                    に取り組んでいる開発者に質問する必要があるでしょう。</p>
+                    <p>「Async::Reactor の実行 (これが Kernel#Async
+                    の動作です)
+                    がブロックされるかどうかをどうやって確認できますか?」という質問であれば、Async#Task.current
+                    を呼び出すことができます。</p>
+                    <pre><code>require &#39;async&#39;
+require &#39;net/http&#39;
+
+def log_whether_blocking
+  if Async::Task.current?
+    puts &quot;Async::Task#current? is truthy, calling `Kernel#Async` will not block&quot;
+  else
+    puts &quot;Async::Task#current? is falsey, calling `Kernel#Async` will block&quot;
+  end
+end
+
+n = 10
+Async do
+  n.times do |i|
+    log_whether_blocking
+    Async do
+      Net::HTTP.get(URI(&quot;https://httpbin.org/delay/1.6&quot;))
+    end
+  end
+end
+
+n.times do |i|
+  log_whether_blocking
+  Async do
+    Net::HTTP.get(URI(&quot;https://httpbin.org/delay/1.6&quot;))
+  end
+end
+</code></pre>
+                    <p>これにより出力が得られます</p>
+                    <pre><code>Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is truthy, calling `Kernel#Async` will not block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+Async::Task#current? is falsey, calling `Kernel#Async` will block
+</code></pre>
+                    <p>API
+                    に詳しくない人にとっては便利な機能かもしれませんが、Kernel#Async
+                    呼び出しでラップすると、一連の Async::Reactor
+                    の実行を常に確実に同時に実行できます。ただし、場合によっては不要な場合もあります。そうするために。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

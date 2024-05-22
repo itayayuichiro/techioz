@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ブロック形式の File.open で IOError: Closed stream が発生する場合がある | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ブロック形式の File.open で IOError: Closed stream が発生する場合がある",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ブロック形式の File.open で IOError: Closed
+stream が発生する場合がある</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>独自の Marshal.dump
+                    をディスクに保存できるオブジェクトがあります。縮小された形式で:</p>
+                    <pre><code>class MyObject
+  # while the rest of the class is removed for brevity, this is the actual
+  # save method
+  def save
+    File.open(&quot;/some/path&quot;, &quot;wb&quot;) { |f| f &lt;&lt; Marshal.dump(self) }
+  end
+end
+</code></pre>
+                    <p>.save は、オブジェクト
+                    インスタンスの存続期間中、繰り返し呼び出すことができます。手動テストでは、これは正常に動作します。現在の状態がディスク上の以前の状態を上書きします。</p>
+                    <p>ただし、運用環境では、上記の処理が IOError:
+                    Closed stream で失敗し、作成されたファイルの長さが 0
+                    バイトになることがあります。</p>
+                    <p>私が理解しているところによると、すでに閉じられているIOストリームにアクセスしようとすると、閉じられたストリームが発生します。これまでのところ、それは賢明です。</p>
+                    <p>私が理解できないのは、上記の場合にどのようにしてこれが発生するのかということです。私が見たところ、#save
+                    を呼び出すたびに、私は</p>
+                    <p>上記のシナリオのどこで、どのように IO
+                    ストリームが途中で閉じられる可能性がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>MyObject
+                    インスタンスはインスタンス変数内の閉じたストリームを保持していますか?ドキュメントによると、Marshal
+                    は File
+                    などのシステムに関連するオブジェクトをダンプできません。したがって、MyObject
+                    が保持しているものに応じて、Marshal.dump
+                    がエラーをスローしている可能性があります。</p>
+                    <pre><code>class MyObject
+  def initialize(value = nil)
+    @some_attribute = value
+  end
+
+  def dump
+    Marshal.dump(self)
+  end
+end
+
+# Works OK with string value in attribute
+obj = MyObject.new(&#39;abc&#39;)
+ =&gt; #&lt;MyObject:0x00007f961766ae18 @some_attribute=&quot;abc&quot;&gt;
+obj.dump
+ =&gt; &quot;\x04\bo:\rMyObject\x06:\x14@some_attributeI\&quot;\babc\x06:\x06ET&quot;
+
+# Fails with open File
+file = File.open(&#39;Test&#39;)
+obj = MyObject.new(file)
+ =&gt; #&lt;MyObject:0x00007f9619ca34e0 @some_attribute=#&lt;File:Test&gt;&gt;
+obj.dump
+# (irb):47:in `dump&#39;: can&#39;t dump File (TypeError)
+
+# Fails with closed File
+file.close
+obj = MyObject.new(file)
+ =&gt; #&lt;MyObject:0x00007f9611d3d7c8 @some_attribute=#&lt;File:Test (closed)&gt;&gt;
+obj.dump
+# (irb):47:in `internal_encoding&#39;: closed stream (IOError)
+</code></pre>
+                    <p>これを回避するには、オブジェクトをシリアル化する方法を明示的に記述する必要があるかもしれません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

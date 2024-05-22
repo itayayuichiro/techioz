@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ロック機構をテストする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ロック機構をテストする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ロック機構をテストする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>BankAccountTransaction を BankAccount
+                    にインポートするコードがあります</p>
+                    <pre><code> bank_account.with_lock do
+   transactions.each do |transaction|
+     import(bank_account, transaction)
+   end
+ end
+</code></pre>
+                    <p>正常に動作しますが、トランザクションを 2
+                    回インポートしていないことを 100%
+                    確信できるように、RSpec
+                    ケースを書き込む必要があります。</p>
+                    <p>次のヘルパーを書きました</p>
+                    <pre><code>module ConcurrencyHelper
+  def make_concurrent_calls(function, concurrent_calls: 2)
+    threads = Array.new(concurrent_calls) do
+      thread = Thread.new { function.call }
+      thread.abort_on_exception = true
+
+      thread
+    end
+
+    threads.each(&amp;:join)
+  end
+end
+</code></pre>
+                    <p>そして私はそれをRSpecで呼び出しています</p>
+                    <pre><code>context &#39;when importing the same transaction twice&#39; do
+  subject(:concurrent_calls) { make_concurrent_calls(operation) }
+
+  let!(:operation) { -&gt; { described_class.call(params) } }
+  let(:filename) { &#39;single-transaction-response.xml&#39; }
+
+  it &#39;creates only one transaction&#39; do
+    expect { concurrent_calls }.to change(BankaccountTransaction, :count).by(1)
+  end
+end
+</code></pre>
+                    <p>しかし何も起こりません。テスト
+                    スーツはこの時点でスタックし、エラーなどはスローされません。</p>
+                    <p>スレッドをインスタンス化した直後にデバッグ
+                    ポイント (byebug)
+                    を配置し、関数を呼び出そうとしましたが、正常に実行されますが、スレッドに参加しても何も起こりません。</p>
+                    <p>これまでに試したこと</p>
+                    <p>他に何かアイデアはありますか？</p>
+                    <p>編集</p>
+                    <p>これが私の現在の DatabaseCleaner 構成です</p>
+                    <pre><code>RSpec.configure do |config|
+  config.before(:suite) do
+    DatabaseCleaner.clean_with(:deletion)
+  end
+
+  config.before do
+    DatabaseCleaner.strategy = :transaction
+  end
+
+  config.before(:each, js: true) do
+    DatabaseCleaner.strategy = :deletion
+  end
+
+  config.before do
+    DatabaseCleaner.start
+  end
+
+  config.after do
+    DatabaseCleaner.clean
+  end
+end
+</code></pre>
+                    <p>まだ戦略を :deleteion
+                    に変更しようとしていません。同様に変更してみます</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>with_lock は Rails
+                    の実装であり、テストする必要はありません。モックを使用して、コードが
+                    with_lock
+                    を呼び出すかどうかを確認できます。ここでの唯一のトリックは、トランザクションが確実にインポートされるようにすることです
+                    (つまり、with_lock 内のコードが実行されます)。 RSpec
+                    は、呼び出すことができるブロックを提供します。以下はその方法の抜粋です。完全に動作する実装はここにあります。</p>
+                    <pre><code>describe &quot;#import_transactions&quot; do
+  it &quot;runs with lock&quot; do
+    # Test if with_lock is getting called
+    expect(subject).to receive(:with_lock) do |*_args, &amp;block|
+      # block is provided to with_lock method
+      # execute the block and test if it creates transactions
+      expect { block.call }
+        .to change { BankAccountTransaction.count }.from(0).to(2)
+    end
+
+    ImportService.new.import_transactions(subject, transactions)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

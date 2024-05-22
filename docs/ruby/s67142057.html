@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>専門家の仕様テストにおける Rubocop RSpec/MultipleMemoizedHelpers の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "専門家の仕様テストにおける Rubocop RSpec/MultipleMemoizedHelpers の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>専門家の仕様テストにおける Rubocop
+RSpec/MultipleMemoizedHelpers の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリでの認証には pundit を、テストには
+                    RSpec
+                    を使用します。このため、ポリシーの仕様を作成する必要がありました。</p>
+                    <p>ただし、rubocop がエラー
+                    RSpec/MultipleMemoizedHelpers
+                    をスローするという問題が発生しています。 これは、let
+                    呼び出しと subject
+                    呼び出しが多すぎることを意味すると理解しています。私の問題は、コードを適切な呼び出し回数に従うように解決またはリファクタリングする方法がよくわからないことです。</p>
+                    <p>もう 1 つ、スペック ファイルに対して
+                    RSpec/MultipleMemoizedHelpers
+                    を無効にしても問題ありませんか?</p>
+                    <p>問題となるポリシー仕様ファイルのうち 3
+                    つを次に示します。</p>
+                    <pre><code>require &quot;rails_helper&quot;
+
+describe AnswerPolicy do
+  subject { described_class }
+
+  let(:user_admin) { build(:user, :admin) }
+  let(:consultant) { build(:consultant) }
+  let(:user_consultant) { build(:user, :consultant, consultant: consultant) }
+  let(:client) { build(:client, consultant: consultant) }
+  let(:user_client) { build(:user, :client, client: client) }
+  let(:other_client) { build(:client, consultant: build(:consultant)) }
+  let(:answer) { build(:answer, client: client) }
+  let(:other_answer) { build(:answer, client: other_client) }
+
+  permissions :update? do
+    it &quot;allows access to admin&quot; do
+      expect(described_class).to permit(user_admin)
+    end
+
+    it &quot;prevents consultants to update other non-client answers&quot; do
+      expect(described_class).not_to permit(user_consultant, other_answer)
+    end
+
+    it &quot;prevents clients to update their answers&quot; do
+      expect(described_class).not_to permit(user_client, answer)
+    end
+
+    it &quot;allows consultants to update their client&#39;s answers&quot; do
+      expect(described_class).to permit(user_consultant, answer)
+    end
+  end
+end
+</code></pre>
+                    <pre><code>describe AssessmentStepPolicy do
+  subject { described_class }
+
+  let(:user_admin) { build(:user, :admin) }
+  let(:consultant) { build(:consultant) }
+  let(:user_consultant) { build(:user, :consultant, consultant: consultant) }
+  let(:client) { build(:client, consultant: consultant) }
+  let(:user_client) { build(:user, :client, client: client) }
+  let(:other_client) { build(:client, consultant: build(:consultant)) }
+
+  permissions :view? do
+    it &quot;allows access to admin&quot; do
+      expect(described_class).to permit(user_admin)
+    end
+
+    it &quot;prevents consultants to view other non-client assessment details&quot; do
+      expect(described_class).not_to permit(user_consultant, other_client)
+    end
+
+    it &quot;allows clients to view their assessment details&quot; do
+      expect(described_class).to permit(user_client, client)
+    end
+
+    it &quot;prevents clients to view other client&#39;s assessment details&quot; do
+      expect(described_class).not_to permit(user_client, other_client)
+    end
+
+    it &quot;allows consultants to view their client&#39;s answers&quot; do
+      expect(described_class).to permit(user_consultant, client)
+    end
+  end
+
+  permissions :create? do
+    it &quot;allows access to any admin&quot; do
+      expect(described_class).to permit(user_admin)
+    end
+
+    it &quot;prevents consultants to assess other clients&quot; do
+      expect(described_class).not_to permit(user_consultant, other_client)
+    end
+
+    it &quot;prevents clients to assess themselves&quot; do
+      expect(described_class).not_to permit(user_client, client)
+    end
+
+    it &quot;allows consultants to assess their clients&quot; do
+      expect(described_class).to permit(user_consultant, client)
+    end
+  end
+end
+</code></pre>
+                    <pre><code>require &quot;rails_helper&quot;
+
+describe ReportPolicy do
+  subject { described_class }
+
+  let(:user_admin) { build(:user, :admin) }
+  let(:consultant) { build(:consultant) }
+  let(:user_consultant) { build(:user, :consultant, consultant: consultant) }
+  let(:client) { build(:client, consultant: consultant) }
+  let(:user_client) { build(:user, :client, client: client) }
+  let(:other_consultant) { build(:consultant) }
+  let(:other_client) { build(:client, consultant: other_consultant) }
+
+  permissions :dashboard? do
+    it &quot;allows access to admin&quot; do
+      expect(described_class).to permit(user_admin)
+    end
+
+    it &quot;prevents clients to view other client dashboards&quot; do
+      expect(described_class).not_to permit(user_client, other_client)
+    end
+
+    it &quot;prevents consultants to view other non-client dashboards&quot; do
+      expect(described_class).not_to permit(user_consultant, other_client)
+    end
+
+    it &quot;allows clients to view their dashboard&quot; do
+      expect(described_class).to permit(user_client, client)
+    end
+
+    it &quot;allows consultants to view their client&#39;s dashboards&quot; do
+      expect(described_class).to permit(user_consultant, client)
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この RSpec/MultipleMemoizedHelpers
+                    警官は物議を醸しています。
+                    letの数を任意の数に制限してほしい。</p>
+                    <p>私はそれに対して懸命に戦った。私にとって、それは変数が多すぎるために警察が違反行為を起こすのと同じです。
+                    rubocop とrubocop-ast
+                    ではこれが無効になっていますが、通常はデフォルトよりも多くのcopsを有効にしています。これらの
+                    let を def
+                    に変更すると、違反がなくなることに注意してください
+                    (ただし、何も変更していません。let は def
+                    の単なる構文シュガーです)。</p>
+                    <p>工場を共有するのは良いアイデアのように思えますが、警官も無効にすることをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

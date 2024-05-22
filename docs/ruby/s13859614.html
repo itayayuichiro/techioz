@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: 「現在の」宝石名を推測するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: 「現在の」宝石名を推測するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby:
+「現在の」宝石名を推測するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>尋問のために Gem
+                    の仕様を取得するには、次のことを認識しています。</p>
+                    <pre><code>spec = Gem::Specification.find_by_name(&#39;my_gem&#39;)
+</code></pre>
+                    <p>上記を再利用可能な方法で書き換えることができるように、「この」gem
+                    の名前をプログラムで識別する方法はありますか?</p>
+                    <p>言い換えれば、実行時に実行中の Ruby コードから親
+                    gem
+                    の名前を取得するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>現在のソース ファイルの gem 仕様を見つけるには
+                    (lib ディレクトリ内のソース
+                    ファイルであると仮定して):</p>
+                    <pre><code>require &#39;rubygems&#39;
+
+searcher = if Gem::Specification.respond_to? :find
+  # ruby 2.0
+  Gem::Specification
+elsif Gem.respond_to? :searcher
+  # ruby 1.8/1.9
+  Gem.searcher.init_gemspecs
+end
+spec = unless searcher.nil?
+  searcher.find do |spec|
+    File.fnmatch(File.join(spec.full_gem_path,&#39;*&#39;), __FILE__)
+  end
+end
+</code></pre>
+                    <p>実際に関心のあるソース ファイルから
+                    <strong>FILE</strong>
+                    を渡すか、呼び出し元スタックを調べることによって、これを再利用可能にすることができます
+                    (ただし、それはおそらく悪い考えです)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>計算に基づいて ActiveRecord クエリを順序付ける方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "計算に基づいて ActiveRecord クエリを順序付ける方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>計算に基づいて ActiveRecord
+クエリを順序付ける方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>たとえば、販売しているペストリーの数でパン屋をリストしたいと思います。</p>
+                    <p>それらをランク付けするには、各ペストリーの入手可能なペストリーの数に、販売されている割合を掛けたものを合計します。ベーカリーでは
+                    0 ～ 10
+                    個のペストリーを販売する可能性があります。例えば：</p>
+                    <pre><code>bakery1.pastry1 = 100
+bakery1.pastry1_discount = 10 (%)
+bakery1.pastry2 = 50
+bakery1.pastry2_discount = 20 (%)
+(2 pastries on sale)
+</code></pre>
+                    <p>(100 x 10) + (50 x 20) = 2000 ..
+                    が最初にリストされます。</p>
+                    <pre><code>bakery2.pastry1 = 10
+bakery2.pastry1_discount = 40
+bakery2.pastry2 = nil
+bakery2.pastry2_discount = nil
+(only 1 pastry on sale, etc)
+</code></pre>
+                    <p>10 x 40 = 400 .. 2 番目に記載</p>
+                    <pre><code>bakery3.pastry1 = 10
+bakery3.pastry1_discount = 20
+bakery3.pastry2 = nil
+bakery3.pastry2_discount = nil
+</code></pre>
+                    <p>10 x 20 = 200 .. 最後にリストされています</p>
+                    <p>では、特定の属性値の乗算の合計によってベーカリーを注文するにはどうすればよいでしょうか?</p>
+                    <p>これまでのところ、sort_by
+                    はデータベースのメモリに負荷がかかることがわかりました。</p>
+                    <p>更新: … (ペストリーの販売 - ペストリーの販売) x
+                    割引になるはずです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>orderの代わりにsort_byを使用し、利用可能なペストリーを計算するインスタンスメソッドを作成しました</p>
+                    <pre><code>class Bakery
+ # method to calculate pastery availability
+ def pastery_count
+   count = 0
+   self.pastery.each do |ps|
+     count = count + ps.count.to_i * ps.discount.to_i
+   end
+
+   count
+ end
+end
+</code></pre>
+                    <p>次に、sort_by を使用して呼び出します</p>
+                    <pre><code>Bakery.sort_by{|br| br.pastery_count}
+</code></pre>
+                    <p>where句と組み合わせることもできます</p>
+                    <pre><code>Bakery.where(...).sort_by{|br| br.pastery_count}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

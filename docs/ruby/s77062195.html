@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails - 二重レンダリングエラー - リダイレクトとリターン | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails - 二重レンダリングエラー - リダイレクトとリターン",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails - 二重レンダリングエラー -
+リダイレクトとリターン</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>エラー: AbstractController::DoubleRenderError
+                    (このアクションでは、レンダーおよび/またはリダイレクトが複数回呼び出されています。レンダーまたはリダイレクトを呼び出せるのはアクションごとに
+                    1
+                    回だけであることに注意してください。また、リダイレクトもレンダーもアクションの実行を終了しないことに注意してください)したがって、リダイレクト後にアクションを終了したい場合は、「redirect_to(…)
+                    and return」のようなことを行う必要があります。)</p>
+                    <p>更新時に、モデルは template.exists?
+                    をチェックし、true
+                    の場合、レポートをダウンロードし、親オブジェクトにリダイレクトします。それ以外の場合は、リダイレクトするだけです。</p>
+                    <p>「if」ステートメントの接線側で「and
+                    return」を使用しているのですが、なぜ期待どおりに機能しないのですか?</p>
+                    <pre><code>def update
+  template = resource.check_changes(params[:well_master])
+  paramString = resource.to_json
+  
+  update! do |format|
+    if resource.errors.present?
+      return render :edit
+    else
+      if template != &#39;&#39;
+        generateWellLetter(template, &#39;Rpt_Farm_Name&#39;, paramString) 
+      else
+        rec = resource.PERMIT
+        format.html { redirect_to admin_well_master_path(rec) }
+      end
+    end
+  end
+end
+ 
+def generateWellLetter(template, letterName, params)
+  @URL = &quot;#{ENV[&quot;API_HOST&quot;]}/api/Document/Generate/#{template}&quot;
+  response = HTTParty.post(@URL,
+     :body =&gt; params,
+     :headers =&gt; { &quot;Content-Type&quot; =&gt; &quot;application/json&quot; })
+
+  Zip::InputStream.open(StringIO.new(response)) do |io|
+    while entry = io.get_next_entry
+      report = io.read
+      send_data report, :filename =&gt; letterName + &#39;.docx&#39;, :type =&gt; &#39;docx&#39;
+    end
+  end
+
+  respond_to do |format|
+    rec = resource.PERMIT
+    format.html { redirect_to admin_well_master_path(rec) } and return
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>レンダリングの回数が多すぎるため、レンダリング呼び出しをまとめて保持することをお勧めします。</p>
+                    <pre><code># send_data is like render, you can only call it once
+while entry = io.get_next_entry
+  report = io.read
+  send_data report, filename: letterName + &quot;.docx&quot;, type: &quot;docx&quot;
+end
+</code></pre>
+                    <pre><code># can&#39;t send_data and also render
+#
+# can&#39;t use respond_to and respond_with (from inherited_resources -&gt; responders)
+# that&#39;s what `update!` method is for
+#
+# returning inside of the respond_to block means 
+# `redirect_to admin_well_master_path(rec)` never runs
+respond_to do |format|
+  rec = resource.PERMIT
+  format.html { redirect_to admin_well_master_path(rec) } and return
+end
+</code></pre>
+                    <p>継承されたリソースを使用している場合は、おそらくそれを使用する必要があります。そうでない場合は役に立たないため、独自のロジックでresponse_toブロックを使用する必要があります。</p>
+                    <pre><code>def update
+  template = resource.check_changes(params[:well_master])
+  update! do |success, failure|
+    # failure - already renders :edit so it&#39;s not needed
+    success.html do
+      if template.present?
+        generate_well_letter(template, resource.to_json) do |report|
+          send_data report, filename: &quot;Rpt_Farm_Name.docx&quot;, type: &quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;
+        end
+      else
+        redirect_to admin_well_master_path(resource.PERMIT)
+      end
+    end
+  end
+end
+
+def generate_well_letter(template, json)
+  url = &quot;#{ENV[&quot;API_HOST&quot;]}/api/Document/Generate/#{template}&quot;
+  response = HTTParty.post(url, body: json, headers: {&quot;Content-Type&quot; =&gt; &quot;application/json&quot;})
+
+  # either you&#39;re sending the whole zip file or just one file from the zip file
+  Zip::InputStream.open(response) do |io|
+    entry = io.get_next_entry
+    report = entry.get_input_stream.read
+    yield report
+  end
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/activeadmin/inherited_resources#overwriting-actions</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

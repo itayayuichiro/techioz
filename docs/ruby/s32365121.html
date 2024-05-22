@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RoR: ローカル ファイルからデータベースに画像をシードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RoR: ローカル ファイルからデータベースに画像をシードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RoR: ローカル
+ファイルからデータベースに画像をシードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Codecademy は、(seeds.rb 内) のような URL
+                    を介して画像をシードできることを示しています。</p>
+                    <pre><code>t1 = Tag.create(title: &quot;Beaches&quot;, image: &quot;http://s3.amazonaws.com/codecademy-content/courses/learn-rails/img/beach01.jpg&quot;)
+Destination.create(name: &quot;Ipanema&quot;, description: &quot;The beach of Ipanema is known for its elegant development and its social life.&quot;, image: &quot;http://s3.amazonaws.com/codecademy-content/courses/learn-rails/img/beach02.jpg&quot;, tag_id: t1.id)
+</code></pre>
+                    <p>しかし、代わりに使用したいローカル
+                    ファイルがある場合はどうすればよいでしょうか?私のファイルパスはRubyで次のように与えられます。</p>
+                    <pre><code>File.join(Rails.root,&#39;db&#39;,&#39;images&#39;,&#39;Event1.jpg&#39;)
+</code></pre>
+                    <p>使ってみた</p>
+                    <pre><code>image: File.open(File.join(Rails.root,&#39;db&#39;,&#39;images&#39;,&#39;Event1.jpg&#39;))
+</code></pre>
+                    <p>代わりに</p>
+                    <pre><code>image: &quot;http://s3.amazonaws.com/codecademy-content/courses/learn-rails/img/beach02.jpg&quot;
+</code></pre>
+                    <p>しかしうまくいきませんでした。</p>
+                    <p>現在、ビュー内の画像にアクセスしています。</p>
+                    <pre><code>&lt;%= image_tag t.image %&gt;
+</code></pre>
+                    <p>どうすればこれを達成できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、いくつかの概念を理解する必要があります。</p>
+                    <p>それを理解したら、それを実際に実装する方法についていくつかのオプションを分析するとよいでしょう。</p>
+                    <p>ａ．画像のバイナリ BLOB または Base 64
+                    表現を保存します。実際に使用する前に、ローカルファイルに記述し、image_tag
+                    の引数として渡します。短所:
+                    非常に非効率的です。それがあなたが最初にやろうとしていることなので、オプションとして入れましたが、それは実行可能ではないと思います。データベースは、単一列エントリに大量のデータを保持するように最適化されていません
+                    (これは DB
+                    エンジンとデータのクエリ方法に依存するため、割り引いて考えてください)。また、DB
+                    からの読み取りやローカル
+                    ファイルへの書き込みは非常に遅いため、そのイメージをできるだけ早く提供する必要があります。</p>
+                    <p>b.ファイルへの参照を保存し、画像をローカルに保存します
+                    (たとえば、app/assets/images
+                    に保存できます)。次に、image_tag
+                    Rails.root.join(‘app’, ‘assets’, ‘images’,
+                    t.filename) で参照できます。短所:
+                    画像が利用可能かどうかを簡単に知る方法はありません。</p>
+                    <ol start="3" type="a">
+                    <li>CodeAcademy
+                    の例と同様に、画像を外部サービスに保存し、その画像への
+                    URL 参照を保存します。 AWS S3
+                    など、そのために特別に設計されたサービスがいくつかあります。これらは一般に画像とファイルを提供するために高度に最適化されているため、画像をすべて単独で提供するよりも優れています。ただし、StackOverflow
+                    などの規模が大きい場合は、外部サービスを使用するよりも集中的に使用した方が良い/安価になる可能性があるため、独自のストレージ
+                    サービスを持ちたい場合があります。では、これらの外部サービスはどのようにしてそれを行うのでしょうか?はそれをディスクに直接保存する場合があります。次に、その
+                    URL
+                    にアクセスすると、プログラムは別のファイルと同じようにそのコンテンツを提供しますが、ブラウザーがそのコンテンツを解釈できるように必要なヘッダーを追加します
+                    (上記の概念 1. を参照)。編集: StackOverflow
+                    は外部サービスを使用します:
+                    imgur.com/gravatar.com、ブラウザの「要素の検査」ツールを使用して、自分の目で確認してください:)</li>
+                    </ol>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

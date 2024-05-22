@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby と irb は異なるモジュール検索パスを使用しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby と irb は異なるモジュール検索パスを使用しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby と irb
+は異なるモジュール検索パスを使用しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>restclient モジュールを要求しようとしている Ruby
+                    スクリプトがあります。この 1
+                    行だけまで減らしても、やはり失敗します。</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+require &#39;restclient&#39;
+</code></pre>
+                    <p>実行すると、次のエラーが表示されます。</p>
+                    <pre><code>./test.rb:3:in `require&#39;: no such file to load -- restclient (LoadError)
+    from ./test2.rb:3
+</code></pre>
+                    <p>irb
+                    を実行すると、モジュールは正常にロードされます。</p>
+                    <pre><code>$ irb
+&gt;&gt; require &quot;restclient&quot;
+=&gt; true
+&gt;&gt;
+</code></pre>
+                    <p>私の知る限り、スクリプトと irb
+                    の両方に同じモジュール パスがあるようです。</p>
+                    <pre><code>$ ruby -e &quot;puts $:&quot;
+/Library/Ruby/Site/1.8
+/Library/Ruby/Site/1.8/powerpc-darwin10.0
+/Library/Ruby/Site/1.8/universal-darwin10.0
+/Library/Ruby/Site
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby/1.8
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby/1.8/universal-darwin10.0
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8/powerpc-darwin10.0
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8/universal-darwin10.0
+.
+
+$ irb
+&gt;&gt; puts $:
+/Library/Ruby/Site/1.8
+/Library/Ruby/Site/1.8/powerpc-darwin10.0
+/Library/Ruby/Site/1.8/universal-darwin10.0
+/Library/Ruby/Site
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby/1.8
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby/1.8/universal-darwin10.0
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/vendor_ruby
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8/powerpc-darwin10.0
+/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/lib/ruby/1.8/universal-darwin10.0
+.
+=&gt; nil
+&gt;&gt;
+</code></pre>
+                    <p>モジュールが irb を介してロードされるのに、Ruby
+                    を介して直接実行される場合にはロードされない原因は何ですか?</p>
+                    <p>もう 1 つの紛らわしい詳細は、restclient gem
+                    が最初からパス内にないようだということです。
+                    irbはどうやって見つけているのでしょうか？</p>
+                    <pre><code>$ locate restclient | grep gems
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/bin/restclient
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/abstract_response.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/exceptions.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/net_http_ext.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/payload.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/raw_response.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/request.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/resource.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient/response.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/lib/restclient.rb
+/Library/Ruby/Gems/1.8/gems/rest-client-1.6.1/spec/restclient_spec.rb
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>試す</p>
+                    <pre><code>require &quot;rubygems&quot;
+</code></pre>
+                    <p>ソースコードファイルに追加するか、ruby -rubygems
+                    filename.rb で Ruby プログラムを開始します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

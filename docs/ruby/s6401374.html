@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsの2つのフィールドを比較する検証方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsの2つのフィールドを比較する検証方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsの2つのフィールドを比較する検証方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のモデルには、検証の一環として相互に比較したい
+                    2 つのフィールドがあります。 end_time が start_time
+                    より後であることを確認したいです。それらを比較するための検証メソッドを作成しましたが、値は常に
+                    nil
+                    であるため、何か間違ったことをしているに違いありません。誰か助けてくれませんか？</p>
+                    <pre><code>class LogEntry &lt; ActiveRecord::Base
+  validates :start_time, :presence =&gt; { :message =&gt; &quot;must be a valid date/time&quot; }
+  validates :end_time, :presence =&gt; {:message =&gt; &quot;must be a valid date/time&quot;}
+  validate :start_must_be_before_end_time
+
+  def start_must_be_before_end_time
+    errors.add(:start_time, &quot;must be before end time&quot;) unless
+       start_time &gt; end_time
+  end 
+end
+</code></pre>
+                    <p>エラーが発生します</p>
+                    <pre><code>undefined method `&gt;&#39; for nil:NilClass
+</code></pre>
+                    <p>したがって、start_time および/または end_time は
+                    nil
+                    です。見つけた多くの例に従っていると思っていましたが、どうやらそうではないようです。私には何が欠けているのでしょうか？</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の推測では、メソッドを次のようにする必要があると思います。</p>
+                    <pre><code>private
+
+def start_must_be_before_end_time
+    errors.add(:start_time, &quot;must be before end time&quot;) unless
+        start_time &lt; end_time
+end 
+</code></pre>
+                    <p>(また、&gt; ではなく &lt; に注意してください
+                    (または if と &gt;= に変更してください)</p>
+                    <p>これが機能しない場合は、start_time と end_time
+                    がコントローラーで正しく定義されていることも確認する必要があります。時間が複数のフォーム要素にわたって作成されると、おかしなことが起こる可能性があります。</p>
+                    <p>Rails 7 ComparisonValidator を使用する場合</p>
+                    <p>Rails 7 には ComparisonValidator
+                    が追加されており、次のように便利なメソッド
+                    validates_comparison_of
+                    を使用できるようになります。</p>
+                    <pre><code>class LogEntry &lt; ActiveRecord::Base
+  validates_comparison_of :start_time, less_than: :end_time
+  # OR
+  validates_comparison_of :end_time, greater_than: :start_time
+end
+</code></pre>
+                    <p>詳細はこちら:
+                    https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_comparison_of</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

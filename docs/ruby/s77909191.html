@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 has_one リレーションエラー「不明な属性を書き込めません」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 has_one リレーションエラー「不明な属性を書き込めません」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 has_one
+リレーションエラー「不明な属性を書き込めません」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はrails
+                    6.1を使用しており、has_oneリレーションを定義しようとしています。これが私の現在のモデル定義です。</p>
+                    <pre><code>class Session &lt; ApplicationRecord
+
+  self.implicit_order_column = &#39;created_at&#39;
+
+  belongs_to :consultant
+  belongs_to :professional
+  has_one :session_summary, dependent: :destroy, foreign_key: &#39;session_summary_id&#39;
+
+end
+
+class SessionSummary &lt; ApplicationRecord
+
+  validates :objectives, presence: true
+
+  belongs_to :session, foreign_key: &#39;session_summary_id&#39;
+end
+</code></pre>
+                    <p>そしてこれらは私の移行です:</p>
+                    <pre><code>class CreateSessionSummaries &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :session_summaries do |t|
+      t.string :objectives, null: false
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class CreateSessions &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :sessions, id: :uuid do |t|
+      t.timestamps
+    end
+
+    add_reference :sessions, :professional, type: :uuid, null: false, foreign_key: true
+    add_reference :sessions, :consultant, type: :uuid, null: false, foreign_key: true
+    add_reference :sessions, :session_summary, type: :bigint, null: false, foreign_key: true, index: { unique: true }
+  end
+end
+</code></pre>
+                    <p>しかし、次のようなコードを実行すると:</p>
+                    <pre><code>s= Session.new
+ss = SessionSummary.new
+
+s.session_summary = s
+</code></pre>
+                    <p>このエラーが発生しました:</p>
+                    <pre><code>/Users/user/.rbenv/versions/3.1.4/lib/ruby/gems/3.1.0/gems/activemodel-6.1.7.6/lib/active_model/attribute.rb:207:in `with_value_from_database&#39;: can&#39;t write unknown attribute `session_summary_id` (ActiveModel::MissingAttributeError)
+
+          raise ActiveModel::MissingAttributeError, &quot;can&#39;t write unknown attribute `#{name}`&quot;
+          ^^^^^
+</code></pre>
+                    <p>私の定義の何が間違っているのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>add_reference :sessions、:session_summary
+                    は以下と矛盾しています。</p>
+                    <pre><code>class Session  
+  has_one :session_summary
+</code></pre>
+                    <p>HasOne 関係の場合、session_id は
+                    session_summaries
+                    テーブルに保存されますが、移行により
+                    session_summary_id がセッション
+                    テーブルに追加されます。 add_reference
+                    ドキュメント</p>
+                    <p>セッションに SummarySession を 1
+                    つだけ持たせたい場合は、移行元を変更するだけで済みます。</p>
+                    <pre><code>add_reference :sessions, :session_summary, type: :bigint, null: false, foreign_key: true, index: { unique: true }
+</code></pre>
+                    <p>To (タイプの変更にも注意してください)</p>
+                    <pre><code>add_reference :session_summaries, :session, type: :uuid, null: false, foreign_key: true, index: { unique: true }
+</code></pre>
+                    <p>関係は自然であるため、クラス内の外部キーは必要ありません</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

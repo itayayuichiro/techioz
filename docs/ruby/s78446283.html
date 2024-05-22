@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>サービス アカウントを使用して GA4 API への Ruby REST リクエストを承認するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "サービス アカウントを使用して GA4 API への Ruby REST リクエストを承認するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>サービス アカウントを使用して GA4 API への
+Ruby REST リクエストを承認するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>GA4 API ライブラリから特定のページ
+                    パスのビュー数を取得しようとしています。 Ruby GA4
+                    API クライアント gem google-analytics-data
+                    を使用してこれを行うことができましたが、GA4 Query
+                    Explorer と Ruby API
+                    コードの間では結果が大きく異なるため、基本的な REST
+                    リクエストを使用して結果を比較したいと考えています。一部のパスでは同じカウントが生成されますが、ほとんどのパスでは同じカウントが生成されません。</p>
+                    <p>エラーが発生し続けます</p>
+                    <pre><code>/var/lib/gems/2.7.0/gems/googleauth-1.11.0/lib/googleauth/service_account.rb:87:in `unescape&#39;: undefined method `gsub&#39; for nil:NilClass (NoMethodError)
+</code></pre>
+                    <p>このエラーは次の行によって生成されます。</p>
+                    <pre><code>credentials = Google::Auth::ServiceAccountCredentials.make_creds(
+     scope: claims[:scope],
+     json_key: private_key
+  )
+</code></pre>
+                    <p>gsub
+                    を削除してもエラーが生成されるため、コード内の gsub
+                    行は関係ありません。</p>
+                    <p>これが私の完全なコードです。</p>
+                    <pre><code>#!/usr/bin/ruby
+
+require &#39;googleauth&#39;  
+require &#39;net/http&#39;
+require &#39;json&#39;
+require &#39;time&#39;
+require &#39;./environment&#39; 
+error_message = nil
+
+module GoogleAnalytics
+
+    def self.make_ga4_rest_request(body)
+      # Define GA4 Reporting API endpoint URL
+      
+      endpoint = &quot;https://analyticsreporting.googleapis.com/v4/reports:batchGet&quot;
+
+      key_data = JSON.parse(File.read(SERVICE_ACCOUNT_KEY_FILE))
+      
+      private_key = key_data[&#39;private_key&#39;].gsub(&quot;\n&quot;, &quot;&quot;)
+
+      puts private_key.inspect
+   
+      claims = {
+         iss: SERVICE_ACCOUNT_EMAIL,
+         scope: AUDIENCE,
+         aud: AUDIENCE,
+         exp: (Time.now + 60 * 60).to_i  # JWT expires in 1 hour
+         }
+        
+      credentials = Google::Auth::ServiceAccountCredentials.make_creds(
+         scope: claims[:scope],
+         json_key: private_key
+      )
+        
+      jwt = credentials.authorization.id_token
+        
+      headers = {
+        &quot;Content-Type&quot;: &quot;application/json&quot;,
+        &quot;Authorization&quot;: &quot;Bearer #{jwt}&quot;
+      }
+             
+      # Prepare the Net::HTTP request object
+      uri = URI(endpoint)
+      https = Net::HTTP.new(uri.host, uri.port)
+      https.use_ssl = true
+      request = Net::HTTP::Post.new(uri)
+
+      # request.set_header!(*headers) newer ruby versions
+      headers.each do |key, value|
+        request.add_field(key, value)
+      end
+
+      request.body = body.to_json
+
+            # Send the request and handle response
+      response = https.request(request)
+      if response.is_a?(Net::HTTPSuccess)
+        JSON.parse(response.body)
+      else
+        error_message = &quot;Error making GA4 request: #{response.code} - #{response.message}&quot;  
+        puts &quot;Error message: #{error_message}&quot;
+        puts &quot;Response object: #{response.body}&quot;  # Print thend
+      end  
+    end
+end
+</code></pre>
+                    <p>完全を期すために含めたクエリの本文は次のとおりです</p>
+                    <pre><code> body = {
+                      &quot;reportRequests&quot;: [
+                        {
+                        &quot;property&quot;: &quot;properties/#{PROPERTY_ID}&quot;, 
+                        &quot;dateRanges&quot;: [{&quot;startDate&quot;: report_start_date, &quot;endDate&quot;: report_end_date}],
+                        &quot;metrics&quot;: [{&quot;expression&quot;: &quot;ga:screenPageViews&quot;}],
+                        &quot;dimensions&quot;: [{&quot;name&quot;: &quot;ga:pagePath&quot;}],
+                        &quot;filters&quot;: [{&quot;field&quot;: &quot;ga:pagePath&quot;, &quot;operator&quot;: &quot;REGEXP_CONTAINS&quot;, &quot;value&quot;: page}], 
+                        }
+                      ]
+                    }
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>require &#39;googleauth&#39;
+require &#39;net/http&#39;
+require &#39;json&#39;
+require &#39;time&#39;
+require &#39;./environment&#39;  # Make sure you&#39;ve defined SERVICE_ACCOUNT_KEY_FILE, SERVICE_ACCOUNT_EMAIL, AUDIENCE, PROPERTY_ID, etc.
+
+module GoogleAnalytics
+  def self.make_ga4_rest_request(body)
+    # Define GA4 Reporting API endpoint URL
+    endpoint = &quot;https://analyticsreporting.googleapis.com/v4/reports:batchGet&quot;
+
+    key_data = JSON.parse(File.read(SERVICE_ACCOUNT_KEY_FILE))
+    private_key = key_data[&#39;private_key&#39;].gsub(&quot;\n&quot;, &#39;&#39;)
+
+    claims = {
+      iss: SERVICE_ACCOUNT_EMAIL,
+      scope: AUDIENCE,
+      aud: AUDIENCE,
+      exp: (Time.now + 60 * 60).to_i  # JWT expires in 1 hour
+    }
+
+    credentials = Google::Auth::ServiceAccountCredentials.make_creds(
+      scope: claims[:scope],
+      json_key: private_key
+    )
+
+    jwt = credentials.authorization.id_token
+
+    headers = {
+      &#39;Content-Type&#39;: &#39;application/json&#39;,
+      &#39;Authorization&#39;: &quot;Bearer #{jwt}&quot;
+    }
+
+    # Prepare the Net::HTTP request object
+    uri = URI(endpoint)
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    request = Net::HTTP::Post.new(uri)
+
+    headers.each do |key, value|
+      request.add_field(key, value)
+    end
+
+    request.body = body.to_json
+
+    # Send the request and handle response
+    response = https.request(request)
+    if response.is_a?(Net::HTTPSuccess)
+      JSON.parse(response.body)
+    else
+      error_message = &quot;Error making GA4 request: #{response.code} - #{response.message}&quot;
+      puts &quot;Error message: #{error_message}&quot;
+      puts &quot;Response object: #{response.body}&quot;
+    end
+  end
+end
+
+# Example usage:
+body = {
+  &quot;reportRequests&quot;: [
+    {
+      &quot;property&quot;: &quot;properties/#{PROPERTY_ID}&quot;,
+      &quot;dateRanges&quot;: [{&quot;startDate&quot;: report_start_date, &quot;endDate&quot;: report_end_date}],
+      &quot;metrics&quot;: [{&quot;expression&quot;: &quot;ga:screenPageViews&quot;}],
+      &quot;dimensions&quot;: [{&quot;name&quot;: &quot;ga:pagePath&quot;}],
+      &quot;filters&quot;: [{&quot;field&quot;: &quot;ga:pagePath&quot;, &quot;operator&quot;: &quot;REGEXP_CONTAINS&quot;, &quot;value&quot;: page}]
+    }
+  ]
+}
+
+result = GoogleAnalytics.make_ga4_rest_request(body)
+puts result
+</code></pre>
+                    <p>プレースホルダー
+                    (SERVICE_ACCOUNT_KEY_FILE、SERVICE_ACCOUNT_EMAIL、AUDIENCE、PROPERTY_ID
+                    など)
+                    を実際の値に置き換えてください。この変更されたコードは、サービス
+                    アカウントの資格情報を使用して GA4 API への REST
+                    リクエストを正しく承認する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

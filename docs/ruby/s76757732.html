@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docker化されたアプリケーションでのRuby on Railsエラー「スタックスマッシングが検出されました」を解決する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docker化されたアプリケーションでのRuby on Railsエラー「スタックスマッシングが検出されました」を解決する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docker化されたアプリケーションでのRuby on
+Railsエラー「スタックスマッシングが検出されました」を解決する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の M2 MacBook Pro 16 インチ、2023 上</p>
+                    <p>Mac オペレーティング システムを 13.4.1 (c)
+                    (22F770820d) に更新するまで動作していた Dockerized
+                    Rails アプリがあります。</p>
+                    <p>ここで、再構築してデプロイしたアプリコンテナの開発ページをロードすると、次の出力でシャットダウンします。</p>
+                    <pre><code>2023-07-24 16:03:33    (0.1ms)  SELECT pg_try_advisory_lock(3213395767516697805);
+2023-07-24 16:03:33   ActiveRecord::SchemaMigration Load (0.3ms)  SELECT &quot;schema_migrations&quot;.* FROM &quot;schema_migrations&quot;
+2023-07-24 16:03:33   ActiveRecord::InternalMetadata Load (0.2ms)  SELECT  &quot;ar_internal_metadata&quot;.* FROM &quot;ar_internal_metadata&quot; WHERE &quot;ar_internal_metadata&quot;.&quot;key&quot; = $1 LIMIT $2  [[&quot;key&quot;, &quot;environment&quot;], [&quot;LIMIT&quot;, 1]]
+2023-07-24 16:03:33    (0.1ms)  BEGIN
+2023-07-24 16:03:33    (0.1ms)  COMMIT
+2023-07-24 16:03:33    (0.1ms)  SELECT pg_advisory_unlock(3213395767516697805)
+2023-07-24 16:03:33   ActiveRecord::SchemaMigration Load (0.1ms)  SELECT &quot;schema_migrations&quot;.* FROM &quot;schema_migrations&quot;
+2023-07-24 16:03:36 *** stack smashing detected ***: /usr/local/bundle/bin/rake assets:precompile terminated
+2023-07-24 16:03:36 ./entrypoint.sh: line 5:    17 Aborted                 bundle exec rake assets:precompile
+2023-07-24 16:03:36 Puma starting in single mode...
+2023-07-24 16:03:36 * Version 3.12.1 (ruby 2.5.1-p57), codename: Llamas in Pajamas
+2023-07-24 16:03:36 * Min threads: 5, max threads: 5
+2023-07-24 16:03:36 * Environment: development
+2023-07-24 16:03:38 * Listening on tcp://0.0.0.0:3000
+2023-07-24 16:03:38 Use Ctrl-C to stop
+2023-07-24 16:03:44 Started GET &quot;/&quot; for 10.0.0.2 at 2023-07-24 16:03:44 -0400
+2023-07-24 16:03:44 Cannot render console from 10.0.0.2! Allowed networks: 127.0.0.1, ::1, 127.0.0.0/127.255.255.255
+2023-07-24 16:03:44   ActiveRecord::SchemaMigration Load (0.6ms)  SELECT &quot;schema_migrations&quot;.* FROM &quot;schema_migrations&quot;
+2023-07-24 16:03:44 Processing by PagesController#splash as HTML
+2023-07-24 16:03:44   Rendering pages/splash.haml within layouts/application
+2023-07-24 16:03:44 *** stack smashing detected ***: puma 3.12.1 (tcp://0.0.0.0:3000) [app] terminated
+2023-07-24 16:03:44 ./entrypoint.sh: line 11:    29 Aborted                 bundle exec puma -C config/puma.rb
+</code></pre>
+                    <p>Docker
+                    リソースを天文学的な数字にまで増やしてみましたが、うまくいきませんでした。私の主要な
+                    Docker ファイルの一部を以下に示します。</p>
+                    <p>docker-compose.local.yml:</p>
+                    <pre><code>version: &#39;3.7&#39;
+services:
+  web:
+    image: game-fuse_web
+    build:
+      context: .
+      dockerfile: ./Dockerfile.web.local
+    restart: always
+    depends_on:
+      - app
+    volumes:
+      - &#39;.:/var/www/game-fuse-ast&#39;
+    ports:
+      - 80:80
+
+  db:
+    image: postgres:9.6-bullseye
+    env_file:
+      - .env
+    volumes:
+      - &quot;db:/var/lib/postgresql/data&quot;
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=game-fuse_development
+    ports:
+      - &quot;5432:5432&quot;
+    
+
+  app:
+    stdin_open: true
+    tty: true
+    image: game-fuse_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile.local
+    command: ./entrypoint.sh
+    volumes:
+      - .:/app
+    ports:
+      - 3000:3000
+    working_dir: /app
+    depends_on:
+      - db
+
+    
+volumes:
+  db:
+</code></pre>
+                    <p>Dockerfile.local:</p>
+                    <pre><code>FROM ruby:2.5.1-slim
+
+ENV TZ=America/New_York
+
+
+# Allow recently archived stretch to be accessed
+
+RUN echo &quot;deb http://archive.debian.org/debian stretch main&quot; &gt; /etc/apt/sources.list &amp;&amp; \
+    sed -i &#39;s/deb.debian.org/debian.osuosl.org/g&#39; /etc/apt/sources.list &amp;&amp; \
+    sed -i &#39;s/security.debian.org/debian.osuosl.org/g&#39; /etc/apt/sources.list
+
+
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential cron libpq-dev nodejs git
+RUN gem install nokogiri -v 1.12.5
+RUN gem install net-protocol -v 0.1.2
+RUN gem install net-smtp -v 0.3.0
+RUN gem install net-imap -v 0.2.2
+#RUN gem install -N rails
+
+# Set an environment variable where the Rails app is installed to inside of Docker image
+ENV RAILS_ROOT /var/www/game-fuse
+
+RUN mkdir -p $RAILS_ROOT
+
+# Set working directory
+WORKDIR $RAILS_ROOT
+
+# Setting env up
+ENV RAILS_ENV=&#39;development&#39;
+ENV RACK_ENV=&#39;development&#39;
+
+# Remove reliance on git:// protocol
+RUN git config --global url.&quot;https://&quot;.insteadOf git://
+
+# Adding gems
+COPY Gemfile Gemfile 
+COPY Gemfile.lock Gemfile.lock
+COPY config ./config
+
+# Adding project files
+RUN gem install bundler -v 2.3.26
+
+RUN bundle install --jobs 20 --retry 5 
+
+RUN cd $RAILS_ROOT &amp;&amp; bundle exec whenever --update-crontab
+</code></pre>
+                    <p>エントリポイント.sh:</p>
+                    <pre><code>#!/bin/bash
+
+bundle exec rake db:migrate
+
+bundle exec rake assets:precompile
+
+#bundle exec whenever --update-crontab
+
+#cron
+
+bundle exec puma -C config/puma.rb
+
+</code></pre>
+                    <p>Ruby on Rails または Docker
+                    のコンテキストでインターネット上でこのエラーについてどこを調べればよいのかよくわかりません。また、検索結果もあまりありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「スタックの破壊が検出されました」は、puma
+                    がバッファ
+                    オーバーフローに陥っていることを示しており、プログラムがデータの漏洩や破損からユーザーを保護しています。これはおそらく、コンパイルされた
+                    Puma バイナリ拡張からのものであり、Ruby や Rails
+                    からのものではありません。</p>
+                    <p>3.12.1 は Puma
+                    の非常に古いバージョンです。まずはアップデートしてみることをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

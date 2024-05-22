@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyの標準ライブラリでタイムゾーン関数を使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyの標準ライブラリでタイムゾーン関数を使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyの標準ライブラリでタイムゾーン関数を使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby のドキュメントには、タイムゾーンを Time
+                    イニシャライザに渡すことができると記載されています。</p>
+                    <pre><code>zone = timezone(&quot;Europe/Athens&quot;)      # Eastern European Time, UTC+2
+Time.new(2002, 10, 31, 2, 2, 2, zone) #=&gt; 2002-10-31 02:02:02 +0200
+</code></pre>
+                    <p>ただし、timezone
+                    を呼び出そうとすると、未定義のメソッド「timezone」が表示されます。何か特別な要件はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが言及しているタイムゾーン方法は、実際には単なる例です。
+                    Rubyには存在しません。私も同意しますが、この表現と例はおそらく少し誤解を招きます。</p>
+                    <p>Ruby stdlib は、タイムゾーンの UTC
+                    オフセットまたは名前を渡すことにより、タイムゾーンを文字列として渡します。これは最初の例に示されています。</p>
+                    <p>文字列「+02:00」に注目してください。</p>
+                    <p>次に、あなたが言及している「犯罪者」の例は次のとおりです。</p>
+                    <p>この例は、どこかにイニシャライザに提供できる TZ
+                    を表すオブジェクトを返すコード (ここでは仮想メソッド
+                    timezone) があるかのように読めます。</p>
+                    <p>実際の例は、広く採用されている tzinfo
+                    ライブラリを使用した次の例です。</p>
+                    <pre><code>[2] pry(main)&gt; require &#39;tzinfo&#39;
+=&gt; true
+[3] pry(main)&gt; tz = TZInfo::Timezone.get(&#39;America/New_York&#39;)
+=&gt; #&lt;TZInfo::DataTimezone: America/New_York&gt;
+[4] pry(main)&gt; Time.new(2002, 10, 31, 2, 2, 2, tz)
+=&gt; 2002-10-31 02:02:02 -0500
+[5] pry(main)&gt; Time.new(2002, 10, 31, 2, 2, 2)
+=&gt; 2002-10-31 02:02:02 +0100
+</code></pre>
+                    <p>上記の例では、仮想メソッド timezone が tzinfo
+                    から新しい TZ
+                    オブジェクトを初期化する実際のコードにどのように置き換えられるかに注目してください。</p>
+                    <p>最後に、Time
+                    オブジェクトでzoneを呼び出すことにより、タイムゾーン設定にアクセスできます。取得される内容は、ゾーンの初期化に使用したオブジェクトによって異なることに注意してください。デフォルトでは文字列ですが、以下の例のように
+                    tzinfo を使用すると、tzinfo
+                    インスタンスが取得されます。</p>
+                    <pre><code>[6] pry(main)&gt; Time.new(2002, 10, 31, 2, 2, 2, tz).zone
+=&gt; #&lt;TZInfo::DataTimezone: America/New_York&gt;
+[7] pry(main)&gt; Time.new.zone
+=&gt; &quot;CET&quot;
+</code></pre>
+                    <p>要約すると、タイムゾーン
+                    メソッドは定義されていません
+                    (実際、ドキュメントで示されている方法では、カーネルで定義する必要がありますが、Ruby
+                    ではさらに奇妙です)。これは単なるプレースホルダーの例でした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

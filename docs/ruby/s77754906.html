@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Devise 登録パラメータの形式が異なる場合があるのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Devise 登録パラメータの形式が異なる場合があるのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Devise
+登録パラメータの形式が異なる場合があるのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5 アプリとの Devise
+                    統合を少しカスタマイズしました。
+                    Devise::RegistrationsController から継承し、Super
+                    を呼び出すのではなく、User
+                    リソースに対する独自の作成アクションを実装しています。</p>
+                    <p>開発中は常に、本番環境ではほとんどの場合、フォームからのパラメータは次のように渡されます。</p>
+                    <pre><code>{
+  &quot;utf8&quot;=&gt;&quot;✓&quot;,
+  &quot;authenticity_token&quot;=&gt;&quot;***&quot;,
+  &quot;user&quot;=&gt; {
+    &quot;email&quot;=&gt;&quot;[email protected]&quot;,
+    &quot;password&quot;=&gt;&quot;[FILTERED]&quot;,
+    &quot;password_confirmation&quot;=&gt;&quot;[FILTERED]&quot;
+  },
+  &quot;commit&quot;=&gt;&quot;Create account&quot;
+}
+</code></pre>
+                    <p>ただし、少数の場合、運用環境のみで、params
+                    は次のようになります。</p>
+                    <pre><code>{
+  &quot;utf8&quot;=&gt;&quot;✓&quot;,
+  &quot;authenticity_token&quot;=&gt;&quot;***&quot;,
+  &quot;user[email]&quot;=&gt;&quot;[email protected]&quot;,
+  &quot;user[password]&quot;=&gt;&quot;[FILTERED]&quot;,
+  &quot;user[password_confirmation]&quot;=&gt;&quot;[FILTERED]&quot;,
+  &quot;commit&quot;=&gt;&quot;Create account&quot;,
+  &quot;registration&quot;=&gt; {
+    &quot;user[email]&quot;=&gt;&quot;[email protected]&quot;,
+    &quot;user[password]&quot;=&gt;&quot;[FILTERED]&quot;,
+    &quot;user[password_confirmation]&quot;=&gt;&quot;[FILTERED]&quot;,
+    &quot;commit&quot;=&gt;&quot;Create account&quot;
+  }
+}
+</code></pre>
+                    <p>なぜこの 2
+                    番目の形式のパラメーターが表示されるのかわかりません。私の推測では、状況によっては、Devise
+                    がパラメーターを異なる方法で処理するということです。私が検討できる唯一のケースは、検証の問題の後に再送信することですが、これを試行するたびに、パラメータは依然として最初の形式
+                    (開発および運用環境) で渡されます。</p>
+                    <p>create アクションは、params[:user]
+                    にユーザー属性のハッシュがあることを前提として記述されていますが、この
+                    2
+                    番目の形式には当てはまりません。これらのパラメーターの
+                    2
+                    つの形式を処理できますが、なぜこれが起こるのかを理解したいのですが、このアクションがランダムに異なるパラメーターで呼び出されるのは望ましくありません。</p>
+                    <p>関連する場合は、送信フォーム (スタイル
+                    クラスは省略):</p>
+                    <pre><code>  &lt;%= form_for(@user, as: :user, url: registration_path(:user)) do |f| %&gt;
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;%= f.label :email %&gt;
+      &lt;%= f.email_field :email, autofocus: true %&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;%= f.label :password %&gt;
+      &lt;%= f.password_field :password, autocomplete: &quot;off&quot; %&gt;
+    &lt;/div&gt;
+
+
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;%= f.label :password_confirmation, &#39;Password confirmation&#39; %&gt;
+      &lt;%= f.password_field :password_confirmation, autocomplete: &quot;off&quot; %&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+      &lt;div&gt;
+        &lt;%= f.submit &quot;Create account&quot; %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+</code></pre>
+                    <p>アップデートに伴い編集されました。追加のログ記録により、興味深いことが確認されました。バグのあるリクエストの
+                    request.media_type は application/json です
+                    (通常のリクエストの場合は
+                    application/x-www-form-urlencoded
+                    である必要があります)。</p>
+                    <p>アップデートに伴い編集しました。フォームデータが間違ったリクエストタイプで送信されているように見えます。これは、値が解凍されない理由（パラメータの属性名として
+                    user[email]
+                    がある理由）と、その登録オブジェクトにラップされたパラメータ
+                    (JSON に対して Wrap_parameters
+                    を有効にしました)。</p>
+                    <p>これでは説明できないのは、なぜ一部のリクエストだけがこのメディア
+                    タイプでタグ付けされるのかということです。</p>
+                    <p>最終編集:
+                    ログをしばらく観察した結果、この問題はボットによって引き起こされていると結論付けました。障害は常に同じ
+                    IP からの 3
+                    つのリクエストの一部として発生し、最後のリクエストのみが
+                    JSON
+                    データを持ち、すべて数秒以内に発生します。ボットはフォームを読み取り、Rails
+                    にとって意味のない方法で JSON
+                    に変換しているだけです。これを見てくださった方々に感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、ActionController::ParamsWrapper
+                    が開始されるときに発生します。</p>
+                    <p>有効にすると、params
+                    ラッパーは、現在のコントローラーの名前でまだネストされていない場合、受信パラメーターをその名前でラップします。</p>
+                    <p>この例では、user の下にネストされたパラメータを
+                    RegistrationsController
+                    という名前のコントローラに送信しています。したがって、ParamsWrapper
+                    はそれらを登録で再度ラップします。これらを
+                    UsersController に送信した場合、それらは既に user
+                    の下にネストされているため、変更にはなりません。</p>
+                    <p>私見ですが、これは Ruby on Rails
+                    の最も役に立たず、エラーが発生しやすい魔法の動作の 1
+                    つです。問題が発生することが多いため、私は通常すぐに無効にします。たとえば、フロントエンドはネストを行わず、この機能にのみ依存しているが、バックエンドは再構築して名前空間を導入するか、コントローラーの名前を変更する必要がある場合です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

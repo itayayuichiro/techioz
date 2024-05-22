@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コントローラーから静的メソッドを呼び出し、そのクラスのインスタンスを更新する - AR::Association::HasOneAssociation の未定義メソッドを取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コントローラーから静的メソッドを呼び出し、そのクラスのインスタンスを更新する - AR::Association::HasOneAssociation の未定義メソッドを取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コントローラーから静的メソッドを呼び出し、そのクラスのインスタンスを更新する
+- AR::Association::HasOneAssociation の未定義メソッドを取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の質問：</p>
+                    <p>正しい構造はどのようなものであるべきでしょうか?これを何度か再設計しようとしましたが、密結合の問題が発生し続けます。</p>
+                    <p>関連情報:</p>
+                    <p>いくつかのサードパーティ
+                    ソフトウェア用の新しいエンドポイントを作成しています。
+                    ペイロードを受け取り、それを Subscription
+                    クラスの静的メソッドに渡します。
+                    そこから、ペイロード関連のサブスクリプションを検索し、そのインスタンスを確立して、クラスの残りの情報に基づいて更新を実行したいと考えています。次のようなエラーが発生します:
+                    ActiveRecording::Association::HasOneAssociation
+                    のメソッド更新が未定義です</p>
+                    <p>エンドポイントコントローラー:</p>
+                    <pre><code>class Api::V2::EndpointController &lt; Api::V5::BaseController
+    def connect
+        data = decode(request.body.read)
+        Subscription.static_method(data)
+    end
+end
+</code></pre>
+                    <p>サブスクリプションモデル:</p>
+                    <pre><code>class Subscription &lt; ActiveRecord::Base
+
+    def self.static_method(data)
+        @subscription = Subscription.find_by_id(data.subscription_id)
+        @subscription.update(data)
+    end
+end
+</code></pre>
+                    <p>サブスクリプションコントローラー:</p>
+                    <pre><code>class SubscriptionsController &lt; ApplicationController
+    def update
+        #execute update
+    end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードをモデルに移動することは、最初からあまり良いアイデアではありませんでした。更新が成功したかどうかを確認し、それに応じて応答する必要があるのはコントローラーです。モデルには、渡されたもの以外のコンテキストの概念がなく、すでに多大な責任を負っています。</p>
+                    <p>可能な限り最も単純な方法で、このコードをコントローラーに書き込むだけです。</p>
+                    <pre><code># @todo setup the correct inflections in config/initializers/inflections.rb
+# @see https://github.com/rubocop/ruby-style-guide#camelcase-classes
+# @see https://github.com/rubocop/ruby-style-guide#namespace-definition
+module API
+  module V2
+    # @todo Write a high level description of the what the responsibility of this class is.
+    # the name itself is pretty smelly. 
+    # &quot;Endpoint&quot; is very vague - every controller method is an endpoint.
+    # Why is this inheriting from a different version of the API? Very smelly.    
+    class EndpointController &lt; API::V5::BaseController
+      # @todo write a description of the purpose of this method
+      # @todo document the route that this method corresponds to
+      def connect
+        data = decode(request.body.read) # WTF is this? 
+        # .find will raise an exception if the id is not valid
+        # Rails will catch this and return a 404.
+        subscription = Subscription.find(data.subscription_id)
+        # When you assume, you make an ass out of you and me.
+        # Always check if the update is successful
+        if subscription.update(data)
+          head :ok # or provide some other response
+        else
+          head :unprocessable_entity
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>後でこのコードを 2
+                    回以上繰り返していることがわかった場合は、サービス
+                    オブジェクトなどの抽象化を追加してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>pyVmomiを使用してvibパッケージを検索します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "pyVmomiを使用してvibパッケージを検索します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>pyVmomiを使用してvibパッケージを検索します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の esxcli コマンド グループの並列 pyVmomi API
+                    は何ですか:</p>
+                    <pre><code>software sources vib get - Displays detailed information about one or more VIB packages in the depot
+</code></pre>
+                    <p>(https://vdan.cz/esxcli-commands-for-esxi-7-0/)</p>
+                    <p>ホストから特定の vib
+                    コンポーネントを取得したい</p>
+                    <p>実際、私は Ruby スクリプトを Python
+                    に変換しています。これらは Ruby
+                    スクリプトの関連するコード行です。</p>
+                    <pre><code>@vim = RbVmomi::VIM.connect(:host =&gt; @conn[&quot;server&quot;], :password =&gt; @conn[&quot;password&quot;], :user =&gt; @conn[&quot;user&quot;], :port =&gt; 443, :insecure =&gt; true)
+@dc = @vim.serviceInstance.find_datacenter
+@host = @dc.hostFolder.children.first.host.first
+@host.esxcli.software.sources.vib.get(:depot =&gt; [vib_component]).map(&amp;:props)
+</code></pre>
+                    <p>ありがとう、</p>
+                    <p>次のオブジェクトを検索しましたが、ソフトウェア
+                    パッケージのリストが見つかりませんでした。</p>
+                    <pre><code>si = SmartConnect(host=[server], user=[user], pwd=[password], port=443, 
+                  disableSslCertValidation=True, connectionPoolTimeout=60)
+content = si.RetrieveContent()
+container = content.rootFolder  # starting point to look into
+viewType = [pyVmomi.vim.HostSystem]  # object types to look for
+recursive = True  # whether we should look into it recursively
+containerView = content.viewManager.CreateContainerView(container, viewType, recursive)
+children = containerView.view
+for child in children:
+                    software_packages = child.configManager.imageConfigManager.fetchSoftwarePackages()
+                    for package in software_packages:
+                        if package.name in component:
+                            print(package.name)
+</code></pre>
+                    <p>しかし、私はまだURLを探していて、パッケージオブジェクトのreferenceurlが空です…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最終的に、次の関数をクラスに追加しました。</p>
+                    <pre><code>def get_host(si):
+  content = si.RetrieveContent()
+  container = content.rootFolder  # starting point to look into
+  viewType = [pyVmomi.vim.HostSystem]  # object types to look for
+  recursive = True  # whether we should look into it recursively
+  containerView = content.viewManager.CreateContainerView(container, viewType, recursive)
+  children = containerView.view
+  return children[0]
+
+def get_host_software_sources(host, component: str) -&gt; str:
+  components = list()
+  software_packages = host.configManager.imageConfigManager.fetchSoftwarePackages()
+  for package in software_packages:
+    if package.name in component:
+      components.append(package)
+    if not components:
+      print(f&quot;Error: {component} not found!&quot;)
+  return components
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

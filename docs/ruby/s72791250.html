@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>1 回のフォーム送信で複数のレコードを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "1 回のフォーム送信で複数のレコードを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>1
+回のフォーム送信で複数のレコードを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザー、材料、そしてどのユーザーがどの材料を持っているかのマップである
+                    UserIngredient の 3 つのモデルがあります。</p>
+                    <p>私の現在のセットアップは、一度に 1
+                    つの材料を追加するために機能します。私が望んでいるのは、ユーザーが各材料を個別にクリックするのではなく、いくつかの材料を入力して「送信」を
+                    1
+                    回クリックするだけで済むようにコードを更新することです。
+                    nested_resources
+                    を調べましたが、それを使用するのに適切な場所ではないようです。</p>
+                    <p>これを行う正しい方法は何ですか?</p>
+                    <p>app/models/user.rb</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  ...
+
+  has_many :user_ingredients, dependent: :destroy
+  has_many :ingredients, through: :user_ingredients
+  
+  ...
+end 
+</code></pre>
+                    <p>アプリ/モデル/成分.rb</p>
+                    <pre><code>class Ingredient &lt; ApplicationRecord
+  ...
+
+  has_many :user_ingredients, dependent: :destroy
+  has_many :owners, through: :user_ingredients
+
+  ...
+end
+</code></pre>
+                    <p>app/models/user_ingredient.rb</p>
+                    <pre><code>class UserIngredient &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :ingredient
+
+  validates :user, presence: true
+  validates :ingredient, presence: true
+end
+</code></pre>
+                    <p>app/views/user_ingredients/new.html.erb</p>
+                    <pre><code>&lt;div&gt;
+  &lt;%= turbo_frame_tag @user_ingredient do %&gt;
+    &lt;%= render &quot;form&quot;, user_ingredient: @user_ingredient %&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>app/views/ユーザー成分/_form.html.erb</p>
+                    <pre><code>&lt;div class=&quot;w-full mx-auto&quot;&gt;
+  &lt;%= form_for @user_ingredient do |f| %&gt;
+    &lt;div class=&quot;flex-row gap--md&quot;&gt;
+      &lt;%= f.select(
+        :ingredient_id,
+        options_from_collection_for_select(Ingredient.where(id: f.object.ingredient_id), :id, :name, :selected =&gt; f.object.ingredient_id),
+        { prompt: &#39;Start typing to search&#39; },
+        { id: &quot;drDwn_ingredient&quot;,
+          class: &quot;w-full border border-black&quot;,
+          required: true,
+          data: { 
+            controller: &quot;selectIngredient&quot;,
+            selectIngredient_url_value: autocomplete_ingredients_path,
+          },
+        }) %&gt;
+
+      &lt;div class=&quot;flex-row gap--xxxs&quot;&gt;
+        &lt;label&gt;
+          &lt;input type=&quot;submit&quot; class=&quot;add_cancel_ing gap--md&quot; /&gt;
+          &lt;%= inline_svg_tag &quot;svg/circle-check.svg&quot;, class: &quot;svg_add_ing&quot; %&gt;
+        &lt;/label&gt;
+        &lt;%= link_to user_ingredients_path do %&gt;
+          &lt;%= inline_svg_tag &quot;svg/circle-xmark.svg&quot;, class: &#39;svg_cancel_ing&#39; %&gt;
+        &lt;% end %&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>app/controllers/user_ingredients_controller.rb</p>
+                    <pre><code>class UserIngredientsController &lt; ApplicationController
+  before_action :authenticate_user!
+  before_action :set_user_ingredient, only: [:show, :destroy]
+
+  def index
+    @user_ingredients = current_user.user_ingredients
+  end
+
+  def new
+    @user_ingredient = UserIngredient.new
+  end
+
+  def create
+    @user_ingredient = UserIngredient.new(user_ingredient_params.merge(user: current_user))
+
+    if @user_ingredient.save
+      respond_to do |format|
+        format.html { redirect_to user_ingredients_path, notice: &#39;Ingredient was successfully added to your bar!&#39; }
+        format.turbo_stream { flash.now[:notice] = &#39;Ingredient was successfully added to your bar!&#39; }
+      end
+    else
+      render :new
+    end
+  end
+
+  def destroy
+    @user_ingredient.destroy
+    respond_to do |format|
+      format.html { redirect_to user_ingredients_path, notice: &quot;Ingredient was removed!&quot; }
+      format.turbo_stream { flash.now[:notice] = &quot;Ingredient was removed!&quot; }
+    end
+  end
+
+  private
+
+  ...
+
+  def set_user_ingredient
+    @user_ingredient = current_user.user_ingredients.find(params[:id])
+  end
+
+  def user_ingredient_params
+    params.require(:user_ingredient).permit(:id, :ingredient_id)
+  end
+end
+</code></pre>
+                    <p>app/javascript/controllers/selectIngredient_controller.js</p>
+                    <pre><code>import { Controller } from &quot;@hotwired/stimulus&quot;;
+import { get } from &quot;@rails/request.js&quot;;
+import TomSelect from &quot;tom-select&quot;;
+
+export default class extends Controller {
+  static values = { url: String };
+
+  multi_select_config = function () {
+    return {
+      plugins: [&quot;remove_button&quot;, &quot;no_active_items&quot;],
+      valueField: &quot;value&quot;,
+      load: (q, callback) =&gt; this.search(q, callback),
+
+      closeAfterSelect: true,
+      persist: false,
+      create: false,
+    };
+  };
+
+  async search(q, callback) {
+    const response = await get(this.urlValue, {
+      query: { q: q },
+      responseKind: &quot;json&quot;,
+    });
+
+    if (response.ok) {
+      const list = await response.json;
+      callback(list);
+    } else {
+      console.log(&quot;Error in select_ctrl: &quot;);
+      console.log(response);
+      callback();
+    }
+  }
+
+  connect() {
+    new TomSelect(this.element, this.multi_select_config());
+  }
+}
+
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ユーザーには accepts_nested_attributes_for
+                    メソッドを使用する必要があります
+                    そして、ユーザー経由で関連レコードを作成してみてください。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html</p>
+                    <p>または、複数のレコードを含むカスタム
+                    フォームを一度に受け入れるためのカスタム
+                    アクションを作成してみることもできます。ただし、最初のオプションの方が予測可能であり、サポートが容易です。</p>
+                    <p>ビューには cocoon gem
+                    を使用できます。かなり古いものですが、まだまだ現役で使えます。
+                    または、そこからインスピレーションを受けてカスタム
+                    ソリューションを作成することもできます)
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/nathanvda/cocoon</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

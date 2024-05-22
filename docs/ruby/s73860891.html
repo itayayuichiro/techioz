@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsがパラメータエラーとしてオブジェクトを送信しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsがパラメータエラーとしてオブジェクトを送信しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsがパラメータエラーとしてオブジェクトを送信しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は記事を処理するコントローラーを持っており、最近そのように編集および作成アクションを実装しました。</p>
+                    <pre><code>def edit
+      @article = Article.find(params[:id])
+end
+
+def update
+      @article = Article.find(params[:id])
+
+      if @article.update(article_params)
+        redirect_to @article
+      else
+        render :edit, status: :unprocessable_entity
+      end 
+end
+</code></pre>
+                    <p>記事を編集しようとすると、次のメッセージが表示されたエラーが発生します:
+                    スクリーンショット</p>
+                    <p>このようにフォーム部分を使用してレイアウトをロードしています。</p>
+                    <pre><code>&lt;%= render &quot;form&quot;, article: @article %&gt;
+</code></pre>
+                    <p>新しい記事を保存しようとした後、編集アクションは適切に機能し、要件を満たさずに保存しようとすると本文のエラー
+                    メッセージは表示されません。この問題を解決するにはどうすればよいでしょうか?
+                    前もって感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>レンダリング
+                    エラーを処理するには、より良い方法があります。フォーム
+                    ビルダーによってラップされたオブジェクトにアクセスするだけです。</p>
+                    <pre><code>&lt;%= form_with(model: article) do |form| %&gt;
+  &lt;% if form.object.errors.any? %&gt;
+    &lt;ul&gt;
+      &lt;% form.object.each do |error| %&gt;
+        &lt;li&gt;&lt;%= error.full_message %&gt;&lt;/li&gt;
+      &lt;% end %&gt;
+    &lt;/ul&gt;    
+  &lt;% end %&gt;
+  # ...
+&lt;% end %&gt;
+</code></pre>
+                    <p>これにより、フォームでラップされたモデル
+                    インスタンスに対応する変数の名前を知らなくても、エラー
+                    メッセージのレンダリングを DRY で終了できます。</p>
+                    <p>ただし、古典的な nil エラーもあります。<span
+                    class="citation"
+                    data-cites="article">@article</span> はおそらく nil
+                    です。また、質問にあるコードを額面通りに受け取ると再現できないため、これは私たちが実際に解決できる問題ではありません。
+                    stackoverflow
+                    でよくあることですが、実際の問題は画像の外のどこかに潜んでいます。</p>
+                    <p>このコードをデバッグするには、実行していると思われるコードが実際に実行されていることを確認し、一連のブレークポイントを設定して、それが実際に設定され、ビューに正しく渡されていることを確認する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

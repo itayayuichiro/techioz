@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RailsエンジンのActiveAdminでエラーが発生します：初期化されていない定数MyEngine::Admin | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RailsエンジンのActiveAdminでエラーが発生します：初期化されていない定数MyEngine::Admin",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RailsエンジンのActiveAdminでエラーが発生します：初期化されていない定数MyEngine::Admin</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>メインアプリケーションにマウントした Rails
+                    エンジンに activeadmin
+                    をインストールしました。ホーム
+                    ページにアクセスしようとすると、次のエラーが表示されます:
+                    uninitialized constant BackOffice::Admin</p>
+                    <p>lib/back_office/engine.rb のコード</p>
+                    <pre><code>require &#39;devise&#39;
+require &#39;activeadmin&#39;
+
+module BackOffice
+  class Engine &lt; ::Rails::Engine
+    isolate_namespace BackOffice
+
+    initializer :back_office do
+      ActiveAdmin.application.load_paths += Dir[File.dirname(__FILE__) + &#39;/back_office/admin&#39;]
+    end
+  end
+end
+</code></pre>
+                    <p>ルート.rb</p>
+                    <pre><code>BackOffice::Engine.routes.draw do
+  devise_for :admin_users, class_name: &quot;BackOffice::AdminUser&quot;
+  ActiveAdmin.routes(self)
+end
+</code></pre>
+                    <p>私のメインアプリのroutes.rbファイルにはこれがあります:</p>
+                    <pre><code>mount BackOffice::Engine, at: &quot;/back_office&quot;
+</code></pre>
+                    <p>誰か手伝ってくれませんか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>初期化されていない定数エラーは、BackOffice::Admin
+                    が見つからないことを意味します。まず、その定数はエンジンで定義されていますか?それとも、BackOffice
+                    モジュールの親内にネストせずに、back_office
+                    名前空間で Admin を定義していますか? Rails
+                    コンソールを起動して BackOffice::Admin
+                    と入力すると、クラス定数を解決できますか?</p>
+                    <p>このようなことは機能しますか?</p>
+                    <pre><code>initializer :back_office do
+  ActiveAdmin.application.load_paths &lt;&lt; root.join(&#39;back_office/admin&#39;)
+end
+</code></pre>
+                    <p>イニシャライザにバインディングを設定して、root.join(‘back_office/admin’)
+                    が期待したパスを構築していることを検証してください。
+                    ActiveAdmin
+                    の初期化フローで適切なタイミングでアクションが実行されるようにするために、
+                    before または after
+                    引数を追加する必要がある場合もあります。</p>
+                    <p>Bundle exec Rails
+                    ルートを実行する場合、マウントしている管理ルートの名前空間は正しく設定されていますか?
+                    「ホームページにアクセスしようとする」とき、どのルートにアクセスしますか？開発サーバーのログでアプリから得られるフィードバックは何ですか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec の subject と let の違いは何ですか?いつ使用する必要があるのか、それとも使用しないのか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec の subject と let の違いは何ですか?いつ使用する必要があるのか、それとも使用しないのか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec の subject と let
+の違いは何ですか?いつ使用する必要があるのか、それとも使用しないのか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>http://betterspecs.org/#subject には、subject と
+                    let
+                    に関する情報が記載されています。しかし、それらの違いについてはまだよくわかりません。さらに、SO
+                    post RSpec テストで before、let、subject
+                    を使用することに対する議論は何ですか?主語もletも使わない方が良いとのこと。どこに行こうか？とても混乱しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>概要: RSpec
+                    のサブジェクトは、テスト対象のオブジェクトを参照する特別な変数です。期待値を暗黙的に設定でき、1
+                    行の例がサポートされます。いくつかの慣用的なケースでは読者には明らかですが、それ以外の場合は理解するのが難しいため、避ける必要があります。
+                    RSpec の let 変数は、単に遅延インスタンス化 (メモ化)
+                    された変数です。主題ほど従うのは難しくありませんが、テストが複雑になる可能性があるため、慎重に使用する必要があります。</p>
+                    <p>サブジェクトはテストされるオブジェクトです。
+                    RSpec
+                    にはこの主題について明確なアイデアがあります。定義されていない場合もあります。存在する場合、RSpec
+                    は明示的に参照せずにそのメソッドを呼び出すことができます。</p>
+                    <p>デフォルトでは、最も外側のサンプル グループ
+                    (describe または context ブロック)
+                    の最初の引数がクラスの場合、RSpec
+                    はそのクラスのインスタンスを作成し、それをサブジェクトに割り当てます。たとえば、次のようにパスします。</p>
+                    <pre><code>class A
+end
+
+describe A do
+  it &quot;is instantiated by RSpec&quot; do
+    expect(subject).to be_an(A)
+  end
+end
+</code></pre>
+                    <p>subject を使用して自分で件名を定義できます。</p>
+                    <pre><code>describe &quot;anonymous subject&quot; do
+  subject { A.new }
+  it &quot;has been instantiated&quot; do
+    expect(subject).to be_an(A)
+  end
+end
+</code></pre>
+                    <p>サブジェクトを定義するときに、サブジェクトに名前を付けることができます。</p>
+                    <pre><code>describe &quot;named subject&quot; do
+  subject(:a) { A.new }
+  it &quot;has been instantiated&quot; do
+    expect(a).to be_an(A)
+  end
+end
+</code></pre>
+                    <p>件名に名前を付けた場合でも、匿名で参照できます。</p>
+                    <pre><code>describe &quot;named subject&quot; do
+  subject(:a) { A.new }
+  it &quot;has been instantiated&quot; do
+    expect(subject).to be_an(A)
+  end
+end
+</code></pre>
+                    <p>複数の名前付きサブジェクトを定義できます。最も新しく定義された名前付きサブジェクトは匿名サブジェクトです。</p>
+                    <p>ただし、主題は定義されていますが、</p>
+                    <p>暗黙の主語 (例のグループから推測される)
+                    は理解するのが難しいです。</p>
+                    <p>したがって、暗黙の主語を使用するのは、文脈がすべての読者によく理解される可能性が高く、実際に例の説明が必要ない場合にのみ役立ちます。標準的なケースは、Shoulda
+                    matcher を使用して ActiveRecord
+                    検証をテストすることです。</p>
+                    <pre><code>describe Article do
+  it { is_expected.to validate_presence_of(:title) }
+end
+</code></pre>
+                    <p>明示的な匿名サブジェクト
+                    (名前のないサブジェクトで定義)
+                    は、読者がそれがどのようにインスタンス化されるかを確認できるため、多少は優れていますが、</p>
+                    <p>名前付きサブジェクトは意図を明らかにする名前を提供しますが、let
+                    変数の代わりに名前付きサブジェクトを使用する唯一の理由は、匿名サブジェクトを時々使用したい場合です。匿名サブジェクトが理解しにくい理由は先ほど説明しました。
+                    。</p>
+                    <p>したがって、明示的な匿名サブジェクトまたは名前付きサブジェクトが正当に使用されることは非常にまれです。</p>
+                    <p>let 変数は、次の 2
+                    つの違いを除いて、名前付きサブジェクトとまったく同じです。</p>
+                    <p>例間の重複を減らすために let
+                    を使用することは完全に正当です。ただし、テストの明確さを犠牲にしない場合にのみそうしてください。
+                    let を使用する最も安全な時期は、let
+                    変数の目的がその名前から完全に明らかであり
+                    (読者が各例を理解するために何行も離れた定義を見つける必要がないため)、それがどの例でも同じように。これらのいずれかが当てはまらない場合は、単純な古いローカル変数でオブジェクトを定義するか、例で直接ファクトリ
+                    メソッドを呼び出すことを検討してください。</p>
+                    <p>させて！怠惰ではないので危険です。誰かが let!
+                    を含むサンプル
+                    グループにサンプルを追加したが、そのサンプルには
+                    let! は必要ありません。変数、</p>
+                    <p>したがって、let!
+                    を使用するとしても、将来のサンプル作成者がその罠に陥る可能性が低い、小規模で単純なサンプル
+                    グループでのみ使用してください。</p>
+                    <p>主語や let
+                    変数の過剰使用が一般的ですが、これについては個別に議論する価値があります。次のように使用することを好む人もいます。</p>
+                    <pre><code>describe &#39;Calculator&#39; do
+  describe &#39;#calculate&#39; do
+    subject { Calculator.calculate }
+    it { is_expected.to be &gt;= 0 }
+    it { is_expected.to be &lt;= 9 }
+  end
+end
+</code></pre>
+                    <p>(これは 2
+                    つの期待値が必要な数値を返すメソッドの単純な例ですが、メソッドが多くの期待値を必要とするより複雑な値を返す場合、および/または多くの副作用がある場合、このスタイルにはさらに多くの例/期待値を含めることができます。すべてに期待が必要です。）</p>
+                    <p>人々がこれを行うのは、1 つの例につき期待値は 1
+                    つだけであるべきだという話を聞いたことがあるため
+                    (これは、1 つの例につき 1
+                    つのメソッド呼び出しのみをテストする必要があるという有効なルールと混同されています)、または
+                    RSpec
+                    のトリッキーさに惚れているためです。匿名または名前付きサブジェクト、または
+                    let
+                    変数のいずれを使用する場合でも、このようなことは行わないでください。このスタイルにはいくつかの問題があります。</p>
+                    <p>代わりに、単一の例を作成します。</p>
+                    <pre><code>describe &#39;Calculator&#39; do
+  describe &#39;#calculate&#39; do
+    it &quot;returns a single-digit number&quot; do
+      result = Calculator.calculate
+      expect(result).to be &gt;= 0
+      expect(result).to be &lt;= 9
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

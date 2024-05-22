@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby / Rails は初期範囲から値を見つけます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby / Rails は初期範囲から値を見つけます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby / Rails は初期範囲から値を見つけます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>キーの値と次のキーの値に基づいてハッシュのキーを見つける最良の方法は何ですか?</p>
+                    <p>例を使用すると理解しやすくなります。</p>
+                    <p>このコードを考慮すると、次のようになります。</p>
+                    <pre><code>h = {
+ &#39;size-1&#39;: 0,
+ &#39;size-2&#39;: 50,
+ &#39;size-3&#39;: 100,
+ &#39;size-4&#39;: 150,
+}
+
+def find_key(value)
+  # ...
+end
+
+find_key(0) -&gt; &#39;size-1&#39;
+find_key(25) -&gt; &#39;size-1&#39;
+find_key(50) -&gt; &#39;size-2&#39;
+find_key(51) -&gt; &#39;size-2&#39;
+find_key(99) -&gt; &#39;size-2&#39;
+find_key(9999) -&gt; &#39;size-4&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>値によって各「範囲」の始まりが定義されるため、逆方向の検索が簡単になります。そのためには、反転配列を作成します:
+                    (期待される出力に従って、ハッシュ値をシンボルから文字列に変更しました)</p>
+                    <pre><code>@hash = {
+  &#39;size-1&#39; =&gt; 0,
+  &#39;size-2&#39; =&gt; 50,
+  &#39;size-3&#39; =&gt; 100,
+  &#39;size-4&#39; =&gt; 150
+}
+
+@pairs = @hash.to_a.reverse
+#=&gt; [[&quot;size-4&quot;, 150], [&quot;size-3&quot;, 100], [&quot;size-2&quot;, 50], [&quot;size-1&quot;, 0]]
+</code></pre>
+                    <p>または <span class="citation"
+                    data-cites="pairs">@pairs</span> = <span
+                    class="citation"
+                    data-cites="hash.sort_by">@hash.sort_by</span> {
+                    |_k, v| 経由-v }
+                    ハッシュがまだソートされていない場合。</p>
+                    <p>find を使用して配列を検索できるようになりました:
+                    (最初にペアのキーを返します)</p>
+                    <pre><code>def find_key(value)
+  @pairs.find { |_k, v| v &lt;= value }.first
+end
+</code></pre>
+                    <p>これにより、次のようになります。</p>
+                    <pre><code>find_key(0)    #=&gt; &quot;size-1&quot;
+find_key(25)   #=&gt; &quot;size-1&quot;
+find_key(50)   #=&gt; &quot;size-2&quot;
+find_key(51)   #=&gt; &quot;size-2&quot;
+find_key(99)   #=&gt; &quot;size-2&quot;
+find_key(9999) #=&gt; &quot;size-4&quot;
+</code></pre>
+                    <p>ハッシュ/配列が非常に大きい場合は、同様に機能する二分検索の使用を検討することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

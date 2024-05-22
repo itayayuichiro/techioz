@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Stimulus を使用して複数のアクションを同じイベントにバインドする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Stimulus を使用して複数のアクションを同じイベントにバインドする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Stimulus
+を使用して複数のアクションを同じイベントにバインドする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails テンプレートの Stimulus
+                    を使用して複数のアクションを同じイベントにバインドできるかどうかを知っている人はいますか?</p>
+                    <p>私は現在これを持っています：</p>
+                    <pre><code>&lt;%= form.text_area :content, value: &#39;&#39;, id: &quot;message-input&quot;,
+                           data: { action: &quot;input-&gt;message-form#inputChange input-&gt;form#autogrowInput 
+                           keydown.enter-&gt;message-form#sendMessage keydown.enter-&gt;message-actions#clearReply 
+                           keydown.ctrl+enter-&gt;message-form#addNewLine keydown.ctrl+enter-&gt;form#autogrowInput&quot;, message_form_target: &quot;messageInput&quot;, form_target: &quot;inputField&quot; },
+                           class: &quot;form-input-no-label&quot;, autofocus: true %&gt;
+</code></pre>
+                    <p>イベント呼び出しの重複を避け、次のように複数のアクションを連鎖させたいと考えています。</p>
+                    <pre><code>&lt;%= form.text_area :content, value: &#39;&#39;, id: &quot;message-input&quot;,
+                           data: { action: &quot;input-&gt;message-form#inputChange form#autogrowInput
+                           keydown.enter-&gt;message-form#sendMessage message-actions#clearReply
+                           keydown.ctrl+enter-&gt;message-form#addNewLine form#autogrowInput&quot;, message_form_target: &quot;messageInput&quot;, form_target: &quot;inputField&quot; },
+                           class: &quot;form-input-no-label&quot;, autofocus: true %&gt;
+</code></pre>
+                    <p>ただし、これにより、指定されたアクションが機能しなくなります。</p>
+                    <p>イベントの重複を回避できるかどうか知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードをフォーマットするだけの方がよいでしょう。</p>
+                    <pre><code>&lt;%= form.text_area :content,
+  data: {
+    action: %(
+      input-&gt;message-form#inputChange
+      input-&gt;form#autogrowInput
+      keydown.enter-&gt;message-form#sendMessage
+      keydown.enter-&gt;message-actions#clearReply
+      keydown.ctrl+enter-&gt;message-form#addNewLine
+      keydown.ctrl+enter-&gt;form#autogrowInput
+    ),
+    message_form_target: :messageInput,
+    form_target: :inputField
+  }
+%&gt;
+</code></pre>
+                    <p>こうすることで、行をすばやくコピーして貼り付けたり、移動したりすることができます。</p>
+                    <p>あるいは、ヘルパーを作成することもできます。</p>
+                    <pre><code># app/helpers/application_helper.rb
+
+def data_action hash
+  hash.map do |event, actions|
+    actions.map do |controller, action|
+      &quot;#{event}-&gt;#{controller.to_s.dasherize}##{action}&quot;
+    end
+  end.join(&quot; &quot;)
+end
+</code></pre>
+                    <pre><code>&lt;%= form.text_area :content,
+  data: {
+    action: data_action(
+      input:                {message_form: :inputChange, form: :autogrowInput},
+      &quot;keydown.enter&quot;:      {message_form: :sendMessage, message_actions: :clearReply},
+      &quot;keydown.ctrl+enter&quot;: {message_form: :addNewLine,  form: :autogrowInput}
+    ),
+    message_form_target: :messageInput,
+    form_target: :inputField
+  }
+%&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

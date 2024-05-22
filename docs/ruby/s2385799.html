@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails で 404 にリダイレクトするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails で 404 にリダイレクトするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails で 404
+にリダイレクトするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails で 404
+                    ページを「偽装」したいと考えています。 PHP
+                    では、次のようなエラー
+                    コードを含むヘッダーを送信します。</p>
+                    <pre><code>header(&quot;HTTP/1.0 404 Not Found&quot;);
+</code></pre>
+                    <p>それはRailsではどのように行われるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>404
+                    を自分でレンダリングしないでください。そうする理由はありません。
+                    Rails にはこの機能がすでに組み込まれています。 404
+                    ページを表示したい場合は、次のように
+                    ApplicationController で render_404 メソッド (または
+                    not_found と呼んでいました) を作成します。</p>
+                    <pre><code>def not_found
+  raise ActionController::RoutingError.new(&#39;Not Found&#39;)
+end
+</code></pre>
+                    <p>Rails は、AbstractController::ActionNotFound と
+                    ActiveRecord::RecordNotFound
+                    も同様に処理します。</p>
+                    <p>これにより、次の 2 つの点が改善されます。</p>
+                    <ol type="1">
+                    <li>Rails
+                    の組み込みのrescue_fromハンドラーを使用して404ページをレンダリングします。</li>
+                    <li>コードの実行を中断し、次のような便利なことができるようになります。</li>
+                    </ol>
+                    <pre><code>  user = User.find_by_email(params[:email]) or not_found
+  user.do_something!
+</code></pre>
+                    <p>醜い条件文を書く必要はありません。</p>
+                    <p>おまけに、テストでの扱いも非常に簡単です。たとえば、rspec
+                    統合テストでは次のようになります。</p>
+                    <pre><code># RSpec 1
+
+lambda {
+  visit &#39;/something/you/want/to/404&#39;
+}.should raise_error(ActionController::RoutingError)
+
+# RSpec 2+
+
+expect {
+  get &#39;/something/you/want/to/404&#39;
+}.to raise_error(ActionController::RoutingError)
+</code></pre>
+                    <p>そしてミニテスト:</p>
+                    <pre><code>assert_raises(ActionController::RoutingError) do 
+  get &#39;/something/you/want/to/404&#39;
+end
+</code></pre>
+                    <p>または、Rails render 404 not found from
+                    acontroller action
+                    から詳細情報を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

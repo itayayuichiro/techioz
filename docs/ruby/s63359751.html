@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の Google PeopleApi - CreateContact メソッドの引数が無効です | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の Google PeopleApi - CreateContact メソッドの引数が無効です",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の Google PeopleApi - CreateContact
+メソッドの引数が無効です</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「google-api-client」 gem を使用して、Ruby
+                    アプリケーションから Google People API
+                    に接続しています。
+                    https://github.com/googleapis/google-api-ruby-client</p>
+                    <p>他のメソッド（list_person_connections、get_people、delete_person_contact、update_person_contact）はなんとか動作しましたが、Google
+                    People
+                    APIのcreateContact（create_person_contact）メソッドを動作させることができません。</p>
+                    <p>投稿を送信した後、次のエラーが表示されます。</p>
+                    <pre><code>400 Caught error badRequest: Request contains an invalid argument.
+</code></pre>
+                    <p>これは、名前フィールドのみを含む連絡先を作成するサンプル
+                    コードです (実際には、本文に email
+                    パラメーターとphoneNumbers
+                    パラメーターも送信したいと思いますが、同じエラーが返されるため、ここでは最も単純な例を示します)。</p>
+                    <pre><code>require &#39;google/apis/content_v2&#39;
+require &quot;google/apis/people_v1&quot;
+require &quot;googleauth&quot;
+require &quot;googleauth/stores/file_token_store&quot;
+require &quot;fileutils&quot;
+require &#39;google/apis/people_v1&#39;
+require &#39;google/api_client/client_secrets&#39;
+
+client_secrets = Google::APIClient::ClientSecrets.load &#39;credentials.json&#39;
+auth_client = client_secrets.to_authorization
+auth_client.update!(
+    :scope =&gt; [&#39;https://www.googleapis.com/auth/contacts&#39;, &#39;https://www.googleapis.com/auth/contacts.other.readonly&#39;],
+    :redirect_uri =&gt; &#39;http://localhost:3102/oauth2callback&#39;,
+    :client_id =&gt; &#39;MY CLIENT ID&#39;,
+    :client_secret =&gt; &#39;MY CLIENT SECRET&#39;,
+    #:authorization_uri =&gt; &#39;https://accounts.google.com/o/oauth2/auth&#39;,
+    :additional_parameters =&gt; {&quot;access_type&quot; =&gt; &quot;offline&quot;, &quot;include_granted_scopes&quot; =&gt; &quot;true&quot;})
+auth_uri = auth_client.authorization_uri.to_s
+
+auth_client.code = &#39;THE AUTH CODE&#39;
+auth_client.fetch_access_token!
+people = Google::Apis::PeopleV1::PeopleServiceService.new
+people.authorization = auth_client
+
+body = {:names =&gt; [{:givenName =&gt; &quot;TEST&quot;}]}
+people.create_person_contact(body, person_fields: &#39;names&#39;)
+</code></pre>
+                    <p>問題は最後の 2
+                    行だけです。呼び出されると、これを本文とともに送信します。</p>
+                    <pre><code>Sending HTTP post https://people.googleapis.com/v1/people:createContact?personFields=names
+</code></pre>
+                    <p>そして、何を変更しても上記のエラーが返されます。
+                    ドキュメントでは、これとまったく同じコードを実際に試してテストすることができ、動作します。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://developers.google.com/people/api/rest/v1/people/createContact?authuser=2&amp;apix=true&amp;apix_params=%7B%22personFields%22%3A%22names%22%2C%22resource%22%3A%7B%22names%22%3A%5B%7B%22givenName%22%3A%22TEST%22%7D%5D%7D%7D</p>
+                    <p>私と同じようにリクエスト本文のフォームに記入し、EXECUTE
+                    を押すと、200 OK の応答が返されます。</p>
+                    <p>無効な引数がわかりません。これは、私が
+                    update_person_contact
+                    メソッドで実行していることとまったく同じであり、機能します。</p>
+                    <p>インターネットで検索しましたが、同様の問題を抱えている人は見つかりません。ドキュメントには多くのことが書かれていません:
+                    https://www.rubydoc.info/github/google/google-api-ruby-client/Google%
+                    2FApis%2FPeopleV1%2FPeopleServiceService:create_person_contact</p>
+                    <p>誰か私を助けてくれる考えはありますか？
+                    ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ほぼ諦めかけた後、CURL
+                    オプションを試してみることにしました。そこで、上にリンクした「この
+                    API を試してみる」ページからそれをコピーし、Ruby
+                    コードに翻訳しました。</p>
+                    <pre><code>curl --request POST \
+  &#39;https://people.googleapis.com/v1/people:createContact?personFields=names&#39; \
+  --header &#39;Authorization: Bearer [YOUR_ACCESS_TOKEN]&#39; \
+  --header &#39;Accept: application/json&#39; \
+  --header &#39;Content-Type: application/json&#39; \
+  --data &#39;{&quot;names&quot;:[{&quot;givenName&quot;:&quot;TEST&quot;}]}&#39; \
+  --compressed
+</code></pre>
+                    <p>そして、あなたは何を知っていますか？出来た。</p>
+                    <p>したがって、この gem
+                    はこの特定のケースでは機能しないと思います
+                    (念のため言っておきますと、google-api-client v:
+                    0.42.2 および 0.43.0
+                    です)。しかし、同じ問題の解決策を見つけるためにここに来たのであれば、
+                    、これが私にとってうまくいったので、お役に立てば幸いです。</p>
+                    <p>(これは私のコードの最後の 2
+                    行を置き換えます):</p>
+                    <pre><code>require &#39;net/http&#39;
+    require &#39;uri&#39;
+    require &#39;json&#39;
+
+    uri = URI.parse(&quot;https://people.googleapis.com/v1/people:createContact?personFields=names&quot;)
+    request = Net::HTTP::Post.new(uri)
+    request.content_type = &quot;application/json&quot;
+    request[&quot;Authorization&quot;] = &quot;Bearer #{people.authorization.access_token}&quot;
+    request[&quot;Accept&quot;] = &quot;application/json&quot;
+    request.body = JSON.dump({
+                                 &quot;names&quot; =&gt; [
+                                     {
+                                         &quot;givenName&quot; =&gt; &quot;TEST&quot;
+                                     }
+                                 ],
+                                 &quot;emailAddresses&quot; =&gt; [
+                                     {
+                                         &quot;value&quot; =&gt; &quot;[email protected]&quot;
+                                     }
+                                 ],
+                                 &quot;phoneNumbers&quot; =&gt; [
+                                     {
+                                         &quot;value&quot; =&gt; &quot;12345678&quot;
+                                     }
+                                 ]
+                             }
+    )
+
+    req_options = {
+        use_ssl: uri.scheme == &quot;https&quot;,
+    }
+
+    response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+      http.request(request)
+    end
+
+    response.code
+    response.body
+</code></pre>
+                    <p>理想的ではありませんが、今日はうまくいきました。</p>
+                    <p>編集：これを書いた後、本文には正しいフィールドがあるため、「personFields」パラメータさえも役に立たないことに気づきました。</p>
+                    <p>私の回答を見るとわかるように、URI
+                    の「名前」フィールドを呼び出しただけですが、これら 3
+                    つのフィールドはすべて、保存後の新しい連絡先
+                    (名前、電子メール、電話番号)
+                    に正しく存在していました。したがって、これもおそらく役に立たない/オプションです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

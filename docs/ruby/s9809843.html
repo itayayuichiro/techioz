@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby クラスの属性を理解し、アクセサー マクロと self を使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby クラスの属性を理解し、アクセサー マクロと self を使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby クラスの属性を理解し、アクセサー マクロと
+self を使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、Ruby でクラスを作成します。</p>
+                    <pre><code>class User
+  def initialize
+  end
+end
+</code></pre>
+                    <p>ここで、ゲッター/セッターを使用してハッシュである属性を作成したいとします。これを行うためのオプションについて混乱しています。</p>
+                    <p>これを行うと:</p>
+                    <pre><code>class User
+  attr_accessor :some_hash
+end
+</code></pre>
+                    <p>しかし、このハッシュが nil
+                    になることは望ましくなく、常に空のハッシュになります。</p>
+                    <p>いつやるべきか迷っています:</p>
+                    <pre><code>def some_hash
+  self.some_hash ||= {}
+end
+</code></pre>
+                    <p>そして、やります：</p>
+                    <pre><code>def some_hash
+  @some_hash ||= {}
+end
+</code></pre>
+                    <p>違いはなんですか？</p>
+                    <p>attr_accessor
+                    を使用しない場合は、リーダーとライター
+                    (またはゲッター/セッター)
+                    の両方を作成する必要があります。</p>
+                    <pre><code>def some_hash=()
+end
+
+def some_hash
+end
+</code></pre>
+                    <p>ハッシュである some_hash
+                    属性を作成するためのオプションを誰かが明確にしてくれ、それが空の場合は決して
+                    nil を返さないことを願っています。</p>
+                    <p>つまり、attr_accessor
+                    を使用し、メソッドを手動で作成し、最後に <span
+                    class="citation"
+                    data-cites="some_hash">@some_hash</span> と
+                    self.some_hash をいつ使用するかです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>attr_accessor :some_hash
+                    は、指定された属性のリーダーおよびライター
+                    メソッドを定義します。これは次と同等です。</p>
+                    <pre><code>class User
+  def some_hash
+    @some_hash
+  end
+
+  def some_hash=(a_hash)
+    @some_hash = a_hash
+  end
+end
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="some_hash">@some_hash</span>
+                    はオブジェクトのインスタンス変数を参照し、some_hash
+                    と some_hash=
+                    はメソッドです。前者は変数の値を返し、後者は変数を設定します。</p>
+                    <p>イディオム self.some_hash ||= {} は
+                    self.some_hash || と同等です。 self.some_hash =
+                    {}。</p>
+                    <p>Ruby
+                    のブール演算子はショートサーキットです。つまり、最初の式
+                    (self.some_hash) が true 値を返した場合、2 番目の式
+                    (self.some_hash = {}) はまったく実行されません。</p>
+                    <p>方法:</p>
+                    <pre><code>def some_hash
+  self.some_hash ||= {}
+end
+</code></pre>
+                    <p>some_hash ||
+                    に展開されるため、実際には再帰的です。
+                    self.some_hash = {}。スタック
+                    オーバーフローが発生するまで、自身を呼び出し続けます。
+                    2 番目の形式を使用します。</p>
+                    <pre><code>def some_hash
+  @some_hash ||= {}
+end
+</code></pre>
+                    <p>インスタンス変数を直接設定するため、再帰の問題は発生せず、ライター
+                    メソッドを呼び出す必要もありません。 <span
+                    class="citation"
+                    data-cites="some_hash">@some_hash</span> が nil
+                    の場合、メソッドが戻る前に空のハッシュが割り当てられるため、some_hash
+                    は nil を返すことはできません。</p>
+                    <p>ちなみに、変数は User
+                    インスタンスの作成時ではなく、最初にアクセスされたときに初期化されるため、これは遅延初期化とも呼ばれます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

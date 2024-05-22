@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>なぜrubocopやrubyスタイルガイドはget_やset_を使用しないのですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "なぜrubocopやrubyスタイルガイドはget_やset_を使用しないのですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>なぜrubocopやrubyスタイルガイドはget_やset_を使用しないのですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は自分のプロジェクトでrubocopを実行し、それによって生じた苦情を修正していました。</p>
+                    <p>ある特定の苦情が私を悩ませました</p>
+                    <p>この苦情からはあまり理解できなかったので、github
+                    でソースコードを調べました。</p>
+                    <p>このスニペットを見つけました</p>
+                    <pre><code>def bad_reader_name?(method_name, args)
+  method_name.start_with?(&#39;get_&#39;) &amp;&amp; args.to_a.empty?
+end
+
+def bad_writer_name?(method_name, args)
+  method_name.start_with?(&#39;set_&#39;) &amp;&amp; args.to_a.one?
+end
+</code></pre>
+                    <p>要約すると次のようになります。</p>
+                    <p>その理由は何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでのポイントは、Ruby
+                    開発者がメソッドを常にゲッターとして考えることを好むことだと思います。メソッドは何かを返し、同等の「糖衣構文」を使用するためです
+                    (Class.dog = something を実行できる def
+                    self.dog=(params)
+                    のように)。本質的に、私がいつも指摘してきた点は、get
+                    と set が冗長で冗長であるということです。</p>
+                    <p>これとは対照的に、ファインダー
+                    メソッドのような複数の引数を指定して get および set
+                    を実行します (特に get、ActiveRecord の where
+                    を考えてください)。</p>
+                    <p>「スタイルガイド」=
+                    純粋な意見であることに留意してください。一般に、スタイル
+                    ガイドのより高い目標は一貫性であるため、間違いなく間違っている、または読みにくい点がない限り、特定のタイプよりもすべてを同じにすることを目標にする必要があります。これが、rubocop
+                    がこれをオフにできる理由です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

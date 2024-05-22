@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>/rails/config/database.yml の解析中に YAML 構文エラーが発生し続ける | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "/rails/config/database.yml の解析中に YAML 構文エラーが発生し続ける",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>/rails/config/database.yml の解析中に YAML
+構文エラーが発生し続ける</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Pop!_OS 22.04 LTS
+                    コンピューターで作業しています。本当に助けが必要なんです。
+                    Ruby on Rails は初めてです。 docker で postresql
+                    を使用して Rails 7.1.0 アプリを構築しています。 Ruby
+                    3.2.2 (2023-03-30 リビジョン e51014f9c0)
+                    [x86_64-linux] および psql (PostgreSQL) 16.0 (Ubuntu
+                    16.0-1.pgdg22.04+1) がインストールされています。
+                    コマンド「docker-compose
+                    build」を実行すると、コンパイルプロセスはすべてうまくいきました。</p>
+                    <p>しかし、docker-compose up
+                    を実行しようとすると、bin/rails
+                    が中止されましたと表示され続けます。
+                    /rails/config/database.yml の解析中に YAML
+                    構文エラーが発生しました。 YAML
+                    はスペースを使用して一貫してインデントする必要があることに注意してください。タブは使用できません。エラー:
+                    (): 行 14 列 13
+                    で次のトークンをスキャン中に、トークンを開始できない文字が見つかりました</p>
+                    <p>試してみたことがあります。</p>
+                    <p>「docker-compose
+                    build」でアプリをビルドした後。ターミナルで「docker-compose
+                    up」コマンドを実行しました。ブラウザの「localhost:3000」アドレスでアプリを起動できるように、docker
+                    でサーバーを起動することを期待していました。しかし、私はその逆を受け取りました。</p>
+                    <p>私の端末には次のように表示されました。</p>
+                    <pre><code>sharkphonesuniverse-demo-web-1  | YAML syntax error occurred while parsing
+/rails/config/database.yml. Please note that YAML must be consistently
+indented using spaces. Tabs are not allowed. Error: (&lt;unknown&gt;): found
+character that cannot start any token while scanning for the next token at
+line 14 column 13
+</code></pre>
+                    <p>私のdatabase.ymlの内容は次のとおりです。</p>
+                    <pre><code>default: &amp;default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  host: &lt;%= ENV[&#39;POSTGRES_HOST&#39;] %&gt;
+  port: 5432
+
+development:
+  &lt;&lt;: *default
+  database: sharkphonessale_development
+  username: &lt;%= ENV[&#39;POSTGRES_USER&#39;] %&gt;
+  password: &lt;%= ENV[&#39;POSTGRES_PASSWORD&#39;] %&gt;
+
+test:
+  &lt;&lt;: *default
+  database: sharkphonessale_test
+  username: &lt;%= ENV[&#39;POSTGRES_USER&#39;] %&gt;
+  password: &lt;%= ENV[&#39;POSTGRES_PASSWORD&#39;] %&gt;
+
+production:
+  &lt;&lt;: *default
+  database: &lt;%= ENV[&#39;POSTGRES_DB&#39;] %&gt;
+  username: &lt;%= ENV[&#39;POSTGRES_USER&#39;] %&gt;
+  password: &lt;%= ENV[&#39;POSTGRES_PASSWORD&#39;] %&gt;
+</code></pre>
+                    <p>.env ファイルの内容</p>
+                    <pre><code>RAILS_ENV=production
+POSTGRES_HOST=db
+POSTGRES_DB=demodb_production
+POSTGRES_USER=my db username goes here
+POSTGRES_PASSWORD=my db password goes here
+RAILS_MASTER_KEY=I paste the content of my config &gt; master.key file here
+</code></pre>
+                    <p>注：私はすでに、database.yml
+                    の内容が一貫してインデントされていることを確認しました。また、https://www.yamllint.com/
+                    で、database.yml
+                    の内容もチェックしました。その内容が有効であることが示されています。しかし、依然として同じエラーメッセージが表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラー メッセージは、行 14 列 13
+                    に問題があることを示しています。これらのツールが行と列のカウントを
+                    0 から開始するか 1
+                    から開始するかは必ずしも明確ではありませんが、エラー
+                    メッセージは開発セクションの次の行を参照していると思われます。</p>
+                    <pre><code>  password: &lt;%= ENV[&#39;POSTGRES_PASSWORD&#39;] %&gt;
+            ^
+</code></pre>
+                    <p>ここで、Ruby on Rails
+                    がそのファイルをどのように処理するかを見てみるのが理にかなっています。最初にファイルを読み取り、次にそのファイル内の
+                    ERB
+                    ステートメントを処理し、ステートメントを戻り値に置き換えます。その後、最後のステップで
+                    Rails が YAML を解析します。</p>
+                    <p>つまり、YAML 解析でエラーが発生した場合、生の
+                    YAML
+                    ファイルを確認する必要はありません。しかしその代わりに、ERB
+                    ステートメントが処理された後にドキュメントがどのように見えるかを理解する必要があります。</p>
+                    <p>また、エラー メッセージは、ドキュメント内の
+                    &lt;%= ENV[‘POSTGRES_PASSWORD’] %&gt;
+                    の戻り値が始まる位置を正確に示しているため、実際に問題が
+                    ENV[‘POSTGRES_PASSWORD’ の値にあることは明らかです。
+                    ]。</p>
+                    <p>推測することしかできません。
+                    ENV[‘POSTGRES_PASSWORD’]
+                    は空白の場合があり、処理後の行は次のようになります。</p>
+                    <pre><code>  password: 
+</code></pre>
+                    <p>または、存在する可能性がありますが、パスワードが
+                    YAML
+                    を無効にする文字で始まっている場合もあります。パスワードが
+                    {foo だった場合、その行は次のようになります。</p>
+                    <pre><code>  password: {foo
+</code></pre>
+                    <p>その結果、{
+                    はその場所では使用できない標識文字であるため、YAML
+                    は無効になります。</p>
+                    <p>この問題を解決するには:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

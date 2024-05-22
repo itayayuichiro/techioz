@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby、rspec によるファクトリーボットエラーの重複 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby、rspec によるファクトリーボットエラーの重複",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby、rspec
+によるファクトリーボットエラーの重複</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アプリでエラーが発生してしまいました。最初に
+                    RSpec と PagesController
+                    テストでテストしています。</p>
+                    <pre><code>let(:user) { create(:user, favorite_category: &quot;Elettronica&quot;) }
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <pre><code>Failure/Error:
+  factory :user , class: User do
+    email { &#39;[email protected]&#39; }
+    password { &#39;password&#39; }
+    full_name { &#39;a b&#39; }
+    uid { &#39;12345&#39; }
+    avatar_url { &#39;http://example.com/avatar.png&#39; }
+    role { 0 }
+    favorite_category { &quot;moda&quot; }
+  end
+</code></pre>
+                    <p>フォルダー spec/factory 内の異なるファイルに 3
+                    つのファクトリーがあり、すべてユーザーに関連しています。</p>
+                    <p>行き詰まってしまい、何が問題なのか分かりません。</p>
+                    <p>私のユーザーモデル:</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and 
+   :omniauthable
+    devise :omniauthable, :database_authenticatable, :registerable,
+     :recoverable, :rememberable, :validatable, omniauth_providers: 
+    [:google_oauth2]
+    
+attr_accessor :current_password
+
+has_one_attached :avatar
+
+def avatar_thumbnail
+  if avatar.attached?
+  avatar.variant(resize: &quot;150x150!&quot;).processed
+ else
+  &quot;/assets/default_profile.jpg&quot;
+ end  
+end
+
+has_many :messages
+has_many :reviews
+has_many :researches
+has_many :active_relationships, class_name: &quot;Relationship&quot;,
+                            foreign_key: &quot;follower_id&quot;,
+                            dependent: :destroy
+has_many :following, through: :active_relationships, source: 
+:followed    
+has_many :passive_relationships, class_name: &quot;Relationship&quot;,
+                             foreign_key: &quot;followed_id&quot;,
+                             dependent: :destroy
+has_many :followers, through: :passive_relationships, source: 
+:follower
+
+
+def self.from_omniauth(auth)
+   where(provider: auth.provider, uid: auth.uid).first_or_create do 
+   |user|
+   user.email = auth.info.email
+   user.password = Devise.friendly_token[0, 20]
+   user.full_name = auth.info.name # assuming the user model has a 
+   name
+   user.avatar_url = auth.info.image # assuming the user model has an 
+   image
+  # If you are using confirmable and the provider(s) you use validate 
+  emails,
+  # uncomment the line below to skip the confirmation emails.
+  # user.skip_confirmation!
+  end
+  end
+
+def admin?
+ role == 1  # Supponiamo che tu abbia un campo &#39;role&#39; nel tuo modello 
+ User
+end
+
+def moderator?
+ role == 2  # Supponiamo che tu abbia un campo &#39;role&#39; nel tuo modello 
+ User
+end
+**strong text**
+def follow(other_user)
+ active_relationships.create(followed_id: other_user.id)
+end
+
+
+# Unfollows a user.
+def unfollow(other_user)
+ active_relationships.find_by(followed_id: other_user.id).destroy
+ end
+
+# Returns true if the current user is following the other user.
+def following?(other_user)
+  following.include?(other_user)
+end
+end`
+</code></pre>
+                    <p>ファクトリーユーザー</p>
+                    <pre><code>FactoryBot.define do
+ factory :user do
+  email { &#39;[email protected]&#39; }
+  password { &#39;password&#39; }
+  full_name { &#39;John Doe&#39; }
+  uid { &#39;12345&#39; }
+  avatar_url { &#39;http://example.com/avatar.png&#39; }
+  role { 0 }
+  favorite_category { &quot;Elettronica&quot; }
+end
+end
+</code></pre>
+                    <p>ページ仕様:</p>
+                    <pre><code>require &#39;rails_helper&#39;
+require &quot;./spec/factories/user.rb&quot;
+
+RSpec.describe PagesController, type: :controller do
+
+let(:user) { create(:user, favorite_category: &quot;Elettronica&quot;) }
+
+describe &quot;GET #home&quot; do
+it &quot;returns a successful response&quot; do
+  get :home
+  expect(response).to be_successful
+end
+
+it &quot;assigns the current user&quot; do
+  get :home
+  expect(assigns(:user)).to eq(user)
+end
+
+it &quot;assigns search results if the user has a favorite category&quot; do
+  get :home
+  expect(assigns(:search_results)).not_to be_nil
+end
+
+it &quot;does not assign search results if the user has no favorite category&quot; 
+do
+  user.update(favorite_category: &quot;nessuna categoria&quot;)
+  get :home
+  expect(assigns(:search_results)).to be_nil
+end
+end
+
+describe &#39;GET #search&#39; do
+ it &#39;assigns instance variables and renders the template&#39; do
+  get :search, params: {
+    keyword: &#39;lamp&#39;,
+    sort_order: &#39;PricePlusShippingLowest&#39;,
+    minprice: 0,
+    maxprice: 100,
+    instaexp: 1,
+    place: &#39;US&#39;,
+    minf: &#39;0&#39;,
+    maxtime: &#39;10&#39;
+  }
+
+  expect(assigns(:users)).to be_a(ActiveRecord::Relation)
+  expect(assigns(:keyword)).to eq(&#39;lamp&#39;)
+  expect(assigns(:sort_order)).to eq(&#39;PricePlusShippingLowest&#39;)
+  expect(assigns(:minprice)).to eq(0)
+  expect(assigns(:maxprice)).to eq(100)
+  expect(assigns(:instaexp)).to eq(1)
+  expect(assigns(:place)).to eq(&#39;US&#39;)
+  expect(assigns(:minf)).to eq(&#39;0&#39;)
+  expect(assigns(:maxtime)).to eq(&#39;10&#39;)
+
+  # Add more expectations for other instance variables as needed
+
+  expect(response).to render_template(:search)
+  end
+
+  end
+
+describe &#39;GET #search&#39; do
+ it &#39;assigns a non-empty @search_results&#39; do
+  # Stub the external service that is being called in the controller
+  allow_any_instance_of(Caller).to receive(:cerca).and_return([
+    { &#39;title&#39; =&gt; &#39;Item 1&#39;, &#39;price&#39; =&gt; 10 }
+  ])
+
+  get :search, params: {
+    keyword: &#39;lamp&#39;,
+    sort_order: &#39;PricePlusShippingLowest&#39;,
+    minprice: 0,
+    maxprice: 100,
+    instaexp: 1,
+    place: &#39;US&#39;,
+    minf: &#39;0&#39;,
+    maxtime: &#39;10&#39;
+  }
+
+  expect(assigns(:search_results)).not_to be_nil
+end
+end
+end
+</code></pre>
+                    <p>エラーは FactoryBot::DuplicateDefinitonError:
+                    工場出荷時に登録済み:ユーザー</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラーメッセージ全体を共有しましたね。したがって、ほとんどのアプリケーションでは電子メールは一意である必要があるため、電子メール列で重複エラーが発生していると推測することしかできません。</p>
+                    <p>ファクトリでは、次の行でユーザーが作成されるたびに同じ電子メール
+                    アドレスが作成されます。</p>
+                    <pre><code>email { &#39;[email protected]&#39; }
+</code></pre>
+                    <p>つまり、一度に作成できるレコードは 1
+                    つだけです。ただし、一部のテストでは 2
+                    人のユーザーを作成する必要があり、そのようなテストは常に失敗します。</p>
+                    <p>FactoryBot
+                    を使用すると、一意である必要がある列に連続した値を作成できます。電子メールの定義を次のように変更することで、FactoryBot
+                    でシーケンスを有効にできます。</p>
+                    <pre><code>sequence :email { |n| &quot;test-#{n}@example.com&quot; }
+</code></pre>
+                    <p>これにより、メール
+                    アドレスの数字が増加することで、異なるメール
+                    アドレスを持つすべてのユーザーが生成されます: [email
+                    protected]、[email protected]、[email
+                    protected]…</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

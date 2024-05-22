@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rake タスクを定義した後に説明を追加するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rake タスクを定義した後に説明を追加するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rake
+タスクを定義した後に説明を追加するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>一般的な rake
+                    タスク定義は次のようになります。</p>
+                    <pre><code>desc &quot;Set the environment value for the database&quot;
+task &quot;environment:set&quot; =&gt; [:environment, :load_config] do
+  ActiveRecord::InternalMetadata.create_table
+  ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+end
+</code></pre>
+                    <p>しかし、desc
+                    がなく、ランタイムの後半、タスク定義を含むファイルの実行後にそれを追加したい場合はどうなるでしょうか。
+                    desc “これはドキュメントです”、task: :taskname
+                    のようなものです。これは可能でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはかなり古い質問ですが、Google
+                    検索からここにたどり着いた人のために私の回答を投稿します。</p>
+                    <p>タスクは複数回言及することができ、その前に記述があると、そのたびに指定された説明が追加されます
+                    (置き換えられません)。同じ効果を得るために使用できるタスク
+                    オブジェクトのメソッドもあります。</p>
+                    <pre><code># Rakefile
+
+desc &#39;Foo 1&#39;
+task :foo
+
+desc &#39;Foo 2&#39;
+task :foo
+
+task(:foo).add_description &#39;Foo 3&#39;
+task(:foo).comment = &#39;Foo 4&#39;
+</code></pre>
+                    <pre><code>rake -T
+# =&gt; rake foo  # Foo 1 / Foo 2 / Foo 3 / Foo 4
+</code></pre>
+                    <p>「タスクの実行後」という概念が、タスク定義の実行を意味するのか、タスク本体の実行を意味するのか、少し不明確です。後者は
+                    Rake
+                    の依存関係と最新性の解決に依存するため、タスク本体が実行されない可能性があります。</p>
+                    <p>とにかく、技術的には、タスク本体内であっても、いつでも
+                    #add_description と #comment=
+                    を呼び出すことができます。ただし、説明はタスクを実行しない
+                    rake -T と rake -D
+                    のみを示しているため、これによる実際的な効果は思いつきません。</p>
+                    <pre><code>task :foo do |t|
+  # ...
+  t.add_description &#39;executed&#39; # technically possible, but to what avail?
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

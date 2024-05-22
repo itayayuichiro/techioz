@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails と MongoDB Atlas の間の認可の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails と MongoDB Atlas の間の認可の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails と MongoDB Atlas の間の認可の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>公式ドキュメントに従って、Rails
+                    アプリケーションで mongoDB
+                    アトラスを使用しようとしています。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.mongodb.com/docs/mongoid/current/reference/rails-integration/</p>
+                    <p>しかし、作成または読み取りを行うと、次のエラーが表示されます。</p>
+                    <pre><code># Mongo::Error::OperationFailure in PostsController#create
+\[8000:AtlasError\]: (Unauthorized) not authorized on admin to execute command { insert: &quot;posts&quot;, $db: &quot;admin&quot;, ordered: true, writeConcern: { w: &quot;majority&quot; }, txnNumber: 1.000000, lsid: { id: {4 \[129 103 129 204 83 248 73 51 140 2 11 71 126 35 223 247\]} } } (on ac-xjgsx9t-shard-00-02.whzyr5q.mongodb.net:27017, modern retry, attempt 1)
+</code></pre>
+                    <p>手動で保存しようとしても:</p>
+                    <pre><code>3.0.0 :003 \&gt; post = Post.new(title: &quot;Please&quot;, body: &quot;Help me stack overflow&quot;)
+
+=\&gt; #\&lt;Post \_id: 63f590426e92a40ae84042bb, created_at: nil, updated_at: nil, title: &quot;Please&quot;, body: &quot;Help me stack overf...
+
+3\.0.0 :004 \&gt; post.save
+
+/Users/myuser/.rvm/gems/ruby-3.0.0/gems/mongo-2.18.2/lib/mongo/operation/result.rb:364:in \`raise_operation_failure&#39;: \[8000:AtlasError\]: (Unauthorized) not authorized on admin to execute command { insert: &quot;posts&quot;, $db: &quot;admin&quot;, ordered: true, writeConcern: { w: &quot;majority&quot; }, txnNumber: 1.000000, lsid: { id: {4 \[235 127 224 68 69 252 76 207 177 72 92 1 135 84 190 63\]} } } (on ac-xjgsx9t-shard-00-02.whzyr5q.mongodb.net:27017, modern retry, attempt 1) (Mongo::Error::OperationFailure)
+</code></pre>
+                    <p>これは私の mongoid.yml です。</p>
+                    <pre><code>development:
+  clients:
+    default:
+      uri: mongodb+srv://hiddenuser:[email protected]/?retryWrites=true&amp;w=majority
+      options:
+        server_selection_timeout: 5
+</code></pre>
+                    <p>なぜ機能しないのかわかりません…</p>
+                    <p>私はすべてを試しました…古いバージョンのMMRで試しました（対応するドキュメントに従って）。何も機能しません。</p>
+                    <p>Atlas 上にクラスターを作成し、IP
+                    を認証し、ユーザーがすべての権限を持っていることを確認しました…ステータス
+                    atlasAdmin を持つ別のユーザーも追加しました…</p>
+                    <p>間違ったパスワードを入力すると、次のエラーが表示されます。</p>
+                    <pre><code>Mongo::Auth::Unauthorized in PostsController#create
+User admin (mechanism: scram) is not authorized to access admin (auth source: admin, used mechanism: SCRAM-SHA-1, used server: ac-xjgsx9t-shard-00-02.whzyr5q.mongodb.net:27017 (PRIMARY)): [8000:AtlasError]: bad auth : authentication failed (modern retry, attempt 1)
+</code></pre>
+                    <p>つまり、私のパスワードは最初から正しいのです…</p>
+                    <p>何か見逃したものはありますか？最初に Atlas
+                    でコレクションを作成する必要がありますか?</p>
+                    <p>ご協力いただきありがとうございます！</p>
+                    <p>問題が解決しました</p>
+                    <p>間違いはここから来ました:</p>
+                    <pre><code>mongodb+srv://hiddenuser:[email protected]/?retryWrites=true&amp;w=majority
+</code></pre>
+                    <p>?retry
+                    の前にコレクションの名前を置く必要があります。</p>
+                    <pre><code>mongodb+srv://hiddenuser:[email protected]/NAMEOFYOURCOLLECTION?retryWrites=true&amp;w=majority
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

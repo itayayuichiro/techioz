@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>T.unsafe() でラップしているにもかかわらず、Ruby Sorbet が行を自動修正してしまう | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "T.unsafe() でラップしているにもかかわらず、Ruby Sorbet が行を自動修正してしまう",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>T.unsafe()
+でラップしているにもかかわらず、Ruby Sorbet
+が行を自動修正してしまう</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このコードはtest_helper.rbにあります</p>
+                    <pre><code>require &#39;simplecov&#39;
+class SimpleCov::Formatter::MergedFormatter
+  def format(result)
+    simplecov = T.unsafe(SimpleCov::Formatter::HTMLFormatter).new
+    T.unsafe(simplecov.format(result))
+  end
+end
+</code></pre>
+                    <p>この gem は非常に古いため、.rbi
+                    ファイルがありません。
+                    https://sorbet.org/docs/error-reference#5002
+                    のドキュメントで理解できないこと</p>
+                    <p>ただし、この gem には rbi
+                    ファイルがありません。</p>
+                    <p>Sorbet は SimpleCov::Formatter::HTMLFormatter を
+                    RuboCop::Formatter::HTMLFormatter
+                    に自動修正します</p>
+                    <p>このエラーが発生: 定数 HTMLFormatter
+                    https://srb.help/5002 を解決できません</p>
+                    <p>しかし、オブジェクトはまったく問題ありません。また、それを
+                    T.unsafe(…)
+                    でラップしましたが、それでも自動修正されます。</p>
+                    <p>予想される結果:
+                    どうすればこれを孵化から逃れることができますか?
+                    (ファイルの先頭に # typed: false
+                    を設定しようとしましたが、シャーベットはまだこの行で文句を言います)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Sorbet 導入の最低条件は、すべての定数
+                    (つまり、クラス/モジュール)
+                    が解決されることです。この場合、Sorbet は定数
+                    SimpleCov::Formatter::HTMLFormatter
+                    についてまったく知らないため、T.unsafe
+                    かどうかに関係なく、これを処理できません。</p>
+                    <p>推奨されているタピオカ
+                    ベースのワークフローを使用して RBI
+                    ファイルを生成していることを願っています。その場合、simplecov
+                    の RBI ファイルが生成されているはずです。 gem の
+                    .rbi
+                    ファイルをどこかから見つける必要はありません。Tapioca
+                    が gem 自体からそれを生成します。</p>
+                    <p>別のワークフローを使用している場合は、定数とブロックを解除するために必要なメソッドを定義する
+                    RBI ファイル (できれば sorbet/rbi フォルダーの下)
+                    を簡単に作成できます。この例では、次のようなものがうまく機能するはずです。</p>
+                    <pre><code>class SimpleCov::Formatter::HTMLFormatter
+  def format(result); end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails - 動的フォームを構築するためのアプローチ [終了] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails - 動的フォームを構築するためのアプローチ [終了]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails - 動的フォームを構築するためのアプローチ
+[終了]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はユーザーがフォームを「デザイン」できるRailsアプリに取り組んでいます。以下の画像を参照してください。</p>
+                    <p>このために次のモデルがあります。</p>
+                    <pre><code>class ProgramPart &lt; ApplicationRecord
+  has_many :block_elements, dependent: :destroy
+
+class BlockElement &lt; ApplicationRecord
+  belongs_to :program_part
+
+  enum element_types: {
+    rich_content: 0,
+    textfield: 1,
+    textarea: 2
+  }
+
+  has_rich_text :content
+</code></pre>
+                    <p>動的なフォームをユーザーにどのように表示するのか、どのようなアプローチを使用すればよいのか、よくわかりません。</p>
+                    <p>現在持っているもの:</p>
+                    <pre><code>&lt;%= form_with [how should my form look when inputs are dynamic?] %&gt;
+  &lt;% @program_part.block_elements.each do |block| %&gt;
+      
+    &lt;% if block.element_type == BlockElement.element_types[:rich_content] %&gt;
+      &lt;%= block.content %&gt;
+    &lt;% elsif block.element_type == BlockElement.element_types[:textfield]  %&gt;
+
+      &lt;%= block.question %&gt;
+      &lt;!-- not sure how this should look --&gt;
+      &lt;%= @form_builder.text_field(:answer_value)%&gt;
+        
+    &lt;% elsif block.element_type == BlockElement.element_types[:textarea]  %&gt;
+      &lt;!-- textarea --&gt;
+    &lt;% end %&gt;
+
+  &lt;% end %&gt;
+
+&lt;% end %&gt;
+</code></pre>
+                    <p>誰か似たようなことを実装した人、またはそれに関する良いリソースを知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>管理者が構成してクライアントが使用できるフォームで同様のことを実装しました。基本は次のとおりです。</p>
+                    <p>次のように、抽象的な Page オブジェクト、抽象的な
+                    DOM オブジェクト、そして各 DOM
+                    要素のオブジェクトが必要です。</p>
+                    <pre><code>class PageTemplate
+  has_many :dom_objects
+end
+
+class DomObject
+  self.table_name = &#39;dom_objects&#39;
+  belongs_to :page_template
+  
+  def dom_type
+    nil
+  end
+end
+
+class TextField &lt; DomObject
+  self.table_name = &#39;dom_objects&#39;
+
+  def dom_type
+    &#39;text_field&#39;
+  end
+end
+class TextArea &lt; DomObject
+  self.table_name = &#39;dom_objects&#39;
+
+  def dom_type
+    &#39;text_area&#39;
+  end
+end
+</code></pre>
+                    <p>dom_type
+                    は、レンダリングする必要があるオブジェクトのタイプをシステムに伝えるものになります。もちろん、これも
+                    DB
+                    に保存する必要がありますが、抽象的なオブジェクトの代わりに
+                    text_field
+                    オブジェクトを追加する場合は、データベース
+                    フィールドに型を自動的に入力するのに役立ちます。ご覧のとおり、すべての静的
+                    dom オブジェクトは抽象 DomObject
+                    からネストされています。これは基本的に、作成されたすべての
+                    dom オブジェクトのテーブルです。幅、高さ、追加の CSS
+                    クラスなどの情報をパラメータとして dom オブジェクト
+                    テーブルに追加することもでき、作成されたすべての dom
+                    入力を独自の高度にカスタマイズ可能なエンティティにすることができます。</p>
+                    <p>まとめ</p>
+                    <p>このアプローチはオブジェクト指向であり、設計上複合的です。それぞれの「レンガ」を設定し、JS
+                    で動的に「壁」を組み立てるだけで、DB
+                    にきれいに保存されます。次に、db からページ
+                    オブジェクトを取得し、必要な場所にレンダリングするだけです。</p>
+                    <p>それが役に立てば幸い！ :)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

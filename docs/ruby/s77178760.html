@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>値が既知の配列にあるハッシュをパターン マッチングするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "値が既知の配列にあるハッシュをパターン マッチングするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>値が既知の配列にあるハッシュをパターン
+マッチングするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュのパターンマッチを試みています。ハッシュに、文字列値が既知の文字列の配列内にあるキーが含まれているかどうかを知りたいです(機能している他の基準とともに)。</p>
+                    <p>私がこれまでに持っているものは次のとおりです。</p>
+                    <pre><code>THINGS = %w[red orange yellow]
+
+hash = {foo: &#39;yellow&#39;}
+
+case hash
+in {foo: THINGS}
+  # I want this to match but it doesn&#39;t
+else
+  # ..
+end
+</code></pre>
+                    <p>パターンマッチングでこれは可能でしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パターンマッチングと@Rajagopalanの提案を組み合わせて使用できますか?ガード句を使用することによって。</p>
+                    <pre><code>THINGS = %w[red orange yellow]
+
+def foo_color_match(hash)
+  case hash
+  in foo: a if THINGS.any?(a)
+   &quot;matched #{a}&quot;
+  else
+   &#39;no_match&#39;
+  end
+end
+
+h = {foo: &#39;yellow&#39;}
+h1 = {foo: &#39;black&#39;}
+
+p foo_color_match(h)
+#=&gt; &quot;matched yellow&quot;
+p foo_color_match(h1)
+#=&gt; &quot;no match&quot;
+</code></pre>
+                    <p>それ以外の場合は、次のような奇妙なトリックを実行できます</p>
+                    <pre><code>THINGS = %w[red orange yellow]
+
+def foo_color_match(hash, color_palette: THINGS)
+  m = color_palette.to_enum 
+  def m.===(other) = member?(other)
+
+  case hash
+  in foo: ^m =&gt; a
+   &quot;matched #{a}&quot;
+  else
+   &#39;no_match&#39;
+  end
+end
+
+h = {foo: &#39;yellow&#39;}
+h1 = {foo: &#39;black&#39;}
+
+p foo_color_match(h)
+#=&gt; &quot;matched yellow&quot;
+p foo_color_match(h1)
+#=&gt; &quot;no match&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails ロガータグは永続的に残ります | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails ロガータグは永続的に残ります",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails ロガータグは永続的に残ります</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7.0.4 で Active Support
+                    のタグ付きログを使用すると、タグは永続的なままになります。奇妙な動作のように見えます。ドキュメントでは、タグ付きの使用は現在のメッセージにのみ適用されるべきであると示唆していますが、おそらく私が文言を間違って解釈している可能性があります。</p>
+                    <p>また、フラッシュメソッド（タグリストをクリアするようです）も機能しません。</p>
+                    <p>Railsコンソールでの私のテスト:</p>
+                    <pre><code>3.1.2 :027 &gt; Rails.logger.tagged( &quot;ThisIsTag&quot; ).info( &quot;ThisIsMessage&quot; )
+[ThisIsTag] ThisIsMessage
+ =&gt; 26
+3.1.2 :028 &gt; Rails.logger.info( &quot;ThisIsMessage&quot; )
+[ThisIsTag] ThisIsMessage
+ =&gt; 14
+3.1.2 :029 &gt; Rails.logger.flush
+ =&gt; nil
+3.1.2 :030 &gt; Rails.logger.info( &quot;ThisIsMessage&quot; )
+[ThisIsTag] ThisIsMessage
+ =&gt; 14
+3.1.2 :031 &gt; Rails.logger.tagged.info( &quot;ThisIsMessage&quot; )
+ThisIsMessage
+ =&gt; 14
+3.1.2 :032 &gt; Rails.logger.info( &quot;ThisIsMessage&quot; )
+ThisIsMessage
+ =&gt; 14
+</code></pre>
+                    <p>1
+                    つのメッセージにタグを適用すると、次のすべてのログに同じタグが付けられるようです。とても奇妙だ。タグをクリアする唯一の方法は、パラメータなしで
+                    tagged
+                    を呼び出すことであることがわかりました。しかし、コード内でこれを使用するのは、率直に言って非常に面倒です。例は次のとおりです。</p>
+                    <pre><code>def foo
+  # some code
+  Rails.logger.tagged( &quot;Debug 123&quot; ).debug( &quot;Important debug message&quot; )
+  Rails.logger.tagged
+  # some more code
+end
+</code></pre>
+                    <p>そこで私の質問は、期待通りに動作するかということです。実際の状況ではタグをどのように使用する必要がありますか?もしかしたら私はこの機能を誤用しているかもしれませんが、私の理解では、意図に従って正しく使用しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはバグのようです。</p>
+                    <p>Rails 7.0
+                    でサンプルを実行すると、コンソールにブロードキャストされる出力にのみ影響することがわかります。しかし、ログ
+                    ファイルを見ると、ログに記録されたメッセージ全体でタグ付けが保持されていないことがわかります。たとえば、次のようにするとします。</p>
+                    <pre><code>Rails.logger.tagged(&#39;MyTag&#39;).info(&#39;Message1&#39;)
+[MyTag] Message1
+Rails.logger.info(&#39;Message2&#39;)
+[MyTag] Message2
+</code></pre>
+                    <p>そうすれば、log/development.log
+                    はタグを「Message1」にのみ正しく適用します。</p>
+                    <pre><code>[MyTag] Message1
+Message2
+</code></pre>
+                    <p>あなたが説明している動作は、この未解決の問題にも記載されています。この問題も関係していると思います。</p>
+                    <p>Rails 7.1
+                    では、デフォルトではログ出力はコンソールにブロードキャストされません。したがって、ログを別の場所にブロードキャストしようとしない限り、この動作は発生しません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

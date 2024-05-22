@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ERB エンジンがラック gem を使用した CSS リンクで動作しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ERB エンジンがラック gem を使用した CSS リンクで動作しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ERB エンジンがラック gem を使用した CSS
+リンクで動作しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ラック gem と erb
+                    を使用してファイルを提供しようとしましたが、erb
+                    がレンダリングしている HTML ファイル内の CSS リンク
+                    タグが機能しません。</p>
+                    <p>erb
+                    の実行とビューのレンダリングに使用されるヘルパー:</p>
+                    <pre><code>def render(file, *args)
+    template = File.read(&quot;public/#{file}.html.erb&quot;) || 
+    File.read(&quot;public/404.html.erb&quot;)
+    template_output = ERB.new(template).result(binding)
+
+    res = Rack::Response.new(bind_layout { template_output })
+end
+
+def bind_layout(&amp;block)
+    layout = File.read(&quot;public/layout.html.erb&quot;)
+    ERB.new(layout).result(binding)
+end
+</code></pre>
+                    <p>CSSインポートを使用したレイアウト:</p>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;stylesheets/layout.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;main&quot;&gt;
+        &lt;h1&gt;ONM LAYOUT&lt;/h1&gt;
+        &lt;%= yield %&gt;
+        &lt;h2&gt;onfoototer&lt;/h2&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>ページはテンプレートとレイアウトを正しく提供しますが、リンクされた
+                    CSS には当てはまりません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、ラックがファイルを HTML
+                    として解釈し、バインドされた HTML
+                    ビューとともにすべてを提供していたことでした。私が見つけた解決策は、Rack::Static
+                    を使用して静的 CSS
+                    を適切に提供することでした。Rack::Static, :urls
+                    =&gt; [‘/static/stylesheets’, ‘layout.css’]
+                    を使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

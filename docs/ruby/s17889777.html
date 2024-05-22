@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: オブジェクトの永続性を一時的に無効にする方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: オブジェクトの永続性を一時的に無効にする方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:
+オブジェクトの永続性を一時的に無効にする方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>同様に、フリーズするとオブジェクトの値を更新する機能が
+                    (ある程度まで) 無効になります。直接呼び出し
+                    (User.save) と間接呼び出し (User.children &lt;&lt;
+                    child)
+                    の両方で、そのオブジェクトおよび関連オブジェクトの作成/保存/更新の機能を無効にするメソッド
+                    User.disable_persistence
+                    を作成するにはどうすればよいでしょうか。</p>
+                    <p>以下のような宝石、または簡単な方法はありますか?</p>
+                    <pre><code>class User &lt; ...
+  def disable_persistence
+    # magic here (nullify save, and other methods, prevent callbacks etc.)
+    class_eval :before_save do 
+      errors.add(:base, &quot;Persistence has been disabled for this object&quot;)
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は簡単そうに思えます。ただし、注意が必要な部分は、間接的に
+                    (User.children &lt;&lt; child) の部分です。
+                    これは、親オブジェクト (User)
+                    が新しいレコードである場合に簡単に対処できます。しかし、そうでない場合はそう簡単にはいきません。
+                    これは、user#children &lt;&lt; child
+                    のようなステートメントは、ユーザーのレコードが新しいときに親レコードと子レコードを保存するためです。
+                    ただし、そうでない場合は同じことは行いません。後者の場合、子供だけが保存されます。この問題は解決されていません
+                    このプロジェクトは、少なくとも今のところは自動的に行われます。開発者は最初に子オブジェクトの永続性を無効にする必要があります
+                    後者のケースでこれを達成するためです。</p>
+                    <p>author_spec.rb
+                    ファイルを参照してください。全体のストーリーを教えていただけると非常に助かります。</p>
+                    <p>SOW
+                    の質問に答えるタスクとして私が開発したプロジェクト全体はここにあります:
+                    https://github.com/pmatsinopoulos/disable_persistence</p>
+                    <p>それに貢献したい人は、自由にどうぞ。</p>
+                    <p>読者の便宜のために、すべてのトリックを実行するコードをここでも引用します。</p>
+                    <p>disable_persistence.rb ファイル:</p>
+                    <pre><code>module DisablePersistence
+  extend ActiveSupport::Concern
+
+  def disable_persistence
+    @persistence_disabled = true
+  end
+
+  def enable_persistence
+    @persistence_disabled = false
+  end
+
+  module ClassMethods
+    def disable_persistence
+      @@class_persistence_disabled = true
+    end
+
+    def enable_persistence
+      @@class_persistence_disabled = false
+    end
+
+    def persistence_disabled?
+      @@class_persistence_disabled ||= false
+    end
+
+    def persistence_disabled
+      persistence_disabled?
+    end
+  end
+
+  included do
+    attr_reader :persistence_disabled
+    alias :persistence_disabled? :persistence_disabled
+
+    before_save :can_persist?
+
+    after_initialize do |base|
+      base.instance_variable_set(:@persistence_disabled, false)
+    end
+
+    def can_persist?
+      !persistence_disabled? &amp;&amp; !self.class.persistence_disabled?
+    end
+
+    protected :can_persist?
+  end
+end
+
+ActiveRecord::Base.send :include, DisablePersistence
+</code></pre>
+                    <p>ノート：</p>
+                    <p>A. インスタンスは以下に応答します。</p>
+                    <p>B. クラスは次のことに応答します。</p>
+                    <p>C.
+                    インスタンスが永続化できるかどうかをチェックする、保護された
+                    before_save
+                    メソッドがあります。インスタンスとクラスの両方の永続性が有効であることを確認します。いずれかが無効になっている場合、インスタンスを永続化できません。</p>
+                    <p>D. この機能は、すべての ActiveRecord::Base
+                    クラスに自動的に組み込まれます。これは上の最後の行です。それは望まないかもしれません。それを望まない場合は、この機能を必要とするすべての
+                    ActiveRecord::Base クラスで include
+                    DisablePersistence を呼び出す必要があります。</p>
+                    <p>E. リンク先の Rails
+                    プロジェクトには、このコードを含むファイルを必要とするイニシャライザーがあります。設定/イニシャライザを調べてください。それ以外の場合は、自分で要求する必要があります。</p>
+                    <p>使用例のいくつか (著者とその書籍を想定):</p>
+                    <p>最初の例:</p>
+                    <pre><code>author = Author.new
+author.disable_persistence
+author.save # will return false and nothing will be saved
+author.enable_persistence
+author.save # will return true and author will be saved
+</code></pre>
+                    <p>2 番目の例:</p>
+                    <pre><code>author = Author.new
+author.disable_persistence
+book = Book.new
+author.books &lt;&lt; book
+author.save # false and nothing will be saved
+</code></pre>
+                    <p>3 番目の例:</p>
+                    <pre><code>author = Author.new
+author.save
+book = Book.new
+book.disable_persistence
+author.books &lt;&lt; book # nothing will be saved
+</code></pre>
+                    <p>4 番目の例:</p>
+                    <pre><code>author = Author.new
+author.save
+book = Book.new
+author.disable_persistence
+author.books &lt;&lt; book # will be saved indeed, because the book has enabled persistency
+</code></pre>
+                    <p>5 番目の例:</p>
+                    <pre><code>author = Author.new
+Author.disable_persistence
+author.save # will return false and will not save
+</code></pre>
+                    <p>上記があなたの質問の答えになるか、少なくとも何らかの形で役立つことを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails には、nil:NilClass の未定義の get selected value メソッドが 1 つあります。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails には、nil:NilClass の未定義の get selected value メソッドが 1 つあります。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails には、nil:NilClass の未定義の get
+selected value メソッドが 1 つあります。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アソシエーションを通じて選択された値を取得したい
+                    関連付けはアイテムとカテゴリです と</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+ has_one :categoryship
+  has_one :category, through: :categoryship, dependent: :destroy
+  accepts_nested_attributes_for :category
+
+end
+</code></pre>
+                    <p>アイテム編集時</p>
+                    <pre><code>&lt;%= f.select :category_id, 
+    options_for_select(
+        Category.all.map{|rel| [rel.name, rel.id]},
+        @item.category_id )
+      %&gt;
+</code></pre>
+                    <p>まだ機能しません。アイテム編集を試して、カテゴリIDでカテゴリシップを取得しましたが、選択したカテゴリをまだ取得できません。誰かがこれについてヒントをくれるでしょうか？</p>
+                    <pre><code>  def edit
+
+    @categoryship = @item.categoryship
+    @category = @categoryship.where(category_id: category_id)
+ 
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>したがって、ビューには <span class="citation"
+                    data-cites="item.category_id">@item.category_id</span>
+                    がありますが、モデルに基づくと、fkey
+                    はアイテムではなくカテゴリシップにあります。</p>
+                    <p>次に、コントローラー
+                    コードで、より近いように見えます。最初に <span
+                    class="citation"
+                    data-cites="categoryship">@categoryship</span> =
+                    <span class="citation"
+                    data-cites="item.categoryship">@item.categoryship</span>
+                    を取得します。これは良いことです。ビュー内で <span
+                    class="citation"
+                    data-cites="categoryship.category_id">@categoryship.category_id</span>
+                    を使用できるためです。</p>
+                    <p>ただし、<span class="citation"
+                    data-cites="category">@category</span> = <span
+                    class="citation"
+                    data-cites="categoryship.where">@categoryship.where</span>(category_id:
+                    category_id)
+                    は失われます。カテゴリシップにはbelongs_to
+                    :categoryがあると仮定しているので、ここのコントローラーでは
+                    <span class="citation"
+                    data-cites="category">@category</span> = <span
+                    class="citation"
+                    data-cites="categoryship.category">@categoryship.category</span>
+                    とする必要があります。</p>
+                    <p>それが役立つことを願っています。または、あなたが何をしようとしているのかを理解するために、ここにさらにコードを追加する必要があることがわかります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

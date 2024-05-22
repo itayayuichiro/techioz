@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 7 の明るいテーマと暗いテーマを切り替える際のちらつき効果 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 7 の明るいテーマと暗いテーマを切り替える際のちらつき効果",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 7
+の明るいテーマと暗いテーマを切り替える際のちらつき効果</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この YouTube チュートリアルを使用して、テーマ
+                    (ライト、ダーク、またはシステムのデフォルト)
+                    を切り替える機能を紹介しました。すべて正常に動作しますが、ちらつき効果というバグがあります。
+                    たとえば、LIGHT
+                    テーマを使用しており、他のサブページにアクセスすると、すべて良好で、Light
+                    テーマが表示されます。
+                    ダークテーマに切り替えます。これは機能しますが、他のサブページにアクセスすると、暗いテーマが適用される前に明るいテーマが一瞬表示され、ちらつきが生じます。</p>
+                    <p>このテーマの切り替えが機能するようにチュートリアルに記載されているコード変更は次のとおりです。</p>
+                    <p>application.html.erb (クリック可能なリンク):</p>
+                    <pre><code>&lt;%= cookies[:theme] %&gt;
+&lt;%= link_to &#39;Light&#39;, set_theme_path(theme: &#39;light&#39;) %&gt;
+&lt;%= link_to &#39;Dark&#39;, set_theme_path(theme: &#39;dark&#39;) %&gt;
+&lt;%= link_to &#39;System default&#39;, set_theme_path %&gt;
+</code></pre>
+                    <p>テーマ.scss:</p>
+                    <pre><code>@media (prefers-color-scheme: dark) {
+    .home {
+      background:black;
+      color: white;
+    }
+
+    .home.light {
+        background: silver;
+        color: black;
+    }
+  }
+
+
+  @media (prefers-color-scheme: light) {
+    .home {
+        background: silver;
+        color: black;
+
+    }
+
+    .home.dark {
+        background:black;
+        color: white;
+    }
+  }
+</code></pre>
+                    <p>ルート.rb:</p>
+                    <pre><code>  get &#39;set_theme&#39;, to: &#39;theme#update&#39;
+</code></pre>
+                    <p>テーマコントローラー.rb:</p>
+                    <pre><code>class ThemeController &lt; ApplicationController
+    def update
+        cookies[:theme] = params[:theme]
+        redirect_to(request.referrer || root_path )
+    end
+end
+</code></pre>
+                    <p>テーマの切り替えは機能しますが、このちらつき効果を削除したいと考えています。誰かこれについて手伝ってくれませんか？</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>HTML
+                    でテーマを直接設定していないため、読み込みの開始時にテーマが設定されていると思います。</p>
+                    <pre><code>&lt;html class=&quot;&lt;%= cookies[:theme] == &#39;dark&#39; ? &#39;dark&#39; : &#39;light&#39; %&gt;&quot;&gt;
+</code></pre>
+                    <p>これとは別に、StimulusJS を使用して、JS
+                    経由でトグルと Cookie
+                    設定を追加することをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

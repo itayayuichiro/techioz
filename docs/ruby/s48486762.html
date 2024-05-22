@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: REST API 経由で PDF 請求書をダウンロード (電子経済) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: REST API 経由で PDF 請求書をダウンロード (電子経済)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: REST API 経由で PDF 請求書をダウンロード
+(電子経済)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>会計ポータルの e-conomic から Ruby
+                    スクリプトを使用して PDF
+                    請求書をダウンロードしようとしています。 REST API
+                    を使用しているので、請求書の PDF の URL
+                    を見つけることができます。</p>
+                    <p>ただし、どうやってダウンロードすればよいのかわかりません。
+                    PDF URL
+                    を使用して「GET」ステートメントを直接参照すると、大量の意味のないデータ
+                    (Ruby 出力で表される PDF 自体である可能性があります)
+                    を出力できます。</p>
+                    <p>PDF ファイルを PC のローカル
+                    フォルダーにダウンロードする方法はありますか?</p>
+                    <p>ありがとう、</p>
+                    <p>マーティン</p>
+                    <p>RUBY コード:
+                    以下を使用すると、前述のような無意味な出力が出力されます。</p>
+                    <pre><code>hHeader = {&quot;X-AppSecretToken&quot; =&gt; &#39;[TOKEN]&#39;, &quot;X-AgreementGrantToken&quot; =&gt; &#39;[TOKEN]&#39;, &quot;Content-Type&quot; =&gt; &#39;application/json&#39;}
+puts hTest = RestClient.get(&quot;https://restapi.e-conomic.com/invoices/booked/10000/pdf&quot;, hHeader)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おっと、間違った質問に答えてしまいました。次のように
+                    PDF ファイルをダウンロードしてローカル
+                    ファイルに書き込むことができます。</p>
+                    <pre><code>File.open(&#39;some_name.pdf&#39;, &#39;wb&#39;) do |local_f|
+  open(&#39;http://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf&#39;, &#39;rb&#39;) do |pdf|
+    local_f &lt;&lt; pdf.read
+  end
+end
+</code></pre>
+                    <p>========</p>
+                    <p>はい、PDF ファイルはプレーンテキスト
+                    ファイルのように読むことができません。
+                    pdfファイルは特殊な形式のファイルです。 pdf-reader
+                    gem を使用して PDF ファイルをデコードできます。</p>
+                    <pre><code>require &#39;pdf-reader&#39;
+require &#39;open-uri&#39;
+require &#39;pp&#39;
+
+open(&#39;http://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf&#39;) do |f|
+  p f.read(100)  #Gibberish
+
+  reader = PDF::Reader.new(f)
+  pp reader.info  #A hash
+
+  reader.pages.each do |page|
+    puts page.text
+  end
+
+end
+
+--output:--
+&quot;%PDF-1.3\r%\xE2\xE3\xCF\xD3\r\n7 0 obj\r&lt;&lt;/Linearized 1/L 7945/O 9/E 3524/N 1/T 7656/H [ 451 137]&gt;&gt;\rendobj\r         &quot;
+
+{:Author=&gt;&quot;cdaily&quot;,
+ :CreationDate=&gt;&quot;D:20000629102108+11&#39;00&#39;&quot;,
+ :Creator=&gt;&quot;Microsoft Word 8.0&quot;,
+ :ModDate=&gt;&quot;D:20131028152413-04&#39;00&#39;&quot;,
+ :Producer=&gt;&quot;Acrobat Distiller 4.0 for Windows&quot;,
+ :Title=&gt;&quot;This is a test PDF file&quot;}
+
+
+                         Adobe Acrobat PDF Files
+
+Adobe® Portable Document Format (PDF) is a universal file format that preserves all
+of the fonts, formatting, colours and graphics of any source document, regardless of
+the application and platform used to create it.
+
+
+Adobe PDF is an ideal format for electronic document distribution as it overcomes the
+problems commonly encountered with electronic file sharing.
+
+•   Anyone, anywhere can open a PDF file. All you need is the free Adobe Acrobat
+    Reader. Recipients of other file formats sometimes can&#39;t open files because they
+    don&#39;t have the applications used to create the documents.
+
+
+•   PDF files always print correctly on any printing device.
+
+•   PDF files always display exactly as created, regardless of fonts, software, and
+    operating systems. Fonts, and graphics are not lost due to platform, software, and
+    version incompatibilities.
+
+
+•   The free Acrobat Reader is easy to download and can be freely distributed by
+    anyone.
+
+•   Compact PDF files are smaller than their source files and download a
+    page at a time for fast display on the Web.
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

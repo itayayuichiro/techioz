@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyの「NoMethodError」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyの「NoMethodError」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyの「NoMethodError」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby を使用してこの Codewars
+                    の問題を解決しようとしていますが、このエラーが発生し続け、理由がわかりません。</p>
+                    <pre><code>main.rb:10:in `head_smash&#39;: undefined method `each&#39; for &quot;&quot;:String (NoMethodError)
+from main.rb:80:in `block in &lt;main&gt;&#39;
+from /runner/frameworks/ruby/cw-2.rb:55:in `block in describe&#39;
+from /runner/frameworks/ruby/cw-2.rb:46:in `measure&#39;
+from /runner/frameworks/ruby/cw-2.rb:51:in `describe&#39;
+from main.rb:17:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>この問題を解決するための私のコードは次のとおりです。</p>
+                    <pre><code> def head_smash(arr)
+  arr1 = []
+    if arr == []
+        return &#39;Gym is empty&#39;
+    elsif arr.is_a?(Integer) == true
+        return &#39;This isn\&#39;t the gym!!&#39;
+    else
+      arr.each do |i| 
+         arr1.append(i.gsub(/O/, &#39; &#39;))
+      end
+    end
+    return arr1
+ end
+</code></pre>
+                    <p>どうすればこれを解決できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードが失敗するのは、おそらくこのテスト
+                    (この演習のテストの行 #64 を参照) です。</p>
+                    <pre><code>Test.assert_equals(head_smash(&#39;&#39;),&#39;Gym is empty&#39;)
+</code></pre>
+                    <p>このテストでは、入力は空の文字列ですが、コードは文字列タイプをチェックせず、少なくとも空の文字列を処理します。代わりに、arr
+                    が文字列の場合、コードは arr.each
+                    を呼び出します。</p>
+                    <p>この特定の問題を解決する非常に簡単なアプローチは、最初の条件を変更することです。</p>
+                    <pre><code>if arr == []
+</code></pre>
+                    <p>以下のいずれかに</p>
+                    <pre><code>if arr == [] || arr == &#39;&#39;
+
+if [[], &#39;&#39;].include?(arr)
+
+if arr.respond_to?(:empty?) &amp;&amp; arr.empty?
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

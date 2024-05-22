@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の関連付けが正しく関連付けられていません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の関連付けが正しく関連付けられていません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+の関連付けが正しく関連付けられていません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この目的は、コメントがユーザーに属する記事に属するようにすることです。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  has_one :profile
+  has_many :articles, -&gt; {order &#39;published_at DESC, title ASC&#39;}, dependent: :nullify          
+  has_many :replies, through: :articles, source: :comments
+end
+</code></pre>
+                    <pre><code>
+class Article &lt; ApplicationRecord
+  validates :title, :body, presence: true 
+
+  belongs_to :user
+  has_and_belongs_to_many :categories
+  has_many :comments
+
+  def long_title
+    &quot;#{title} - #{published_at}&quot;
+  end
+end
+</code></pre>
+                    <pre><code>
+class Comment &lt; ApplicationRecord
+  belongs_to :article
+end
+
+</code></pre>
+                    <p>コンソールから返される内容は次のとおりです。</p>
+                    <pre><code> irb(main):048&gt; user.replies
+=&gt; []
+</code></pre>
+                    <p>しかし！</p>
+                    <pre><code> irb(main):049&gt; user.replies.all
+  Comment Load (0.7ms)  SELECT &quot;comments&quot;.* FROM &quot;comments&quot; INNER JOIN &quot;articles&quot; ON &quot;comments&quot;.&quot;article_id&quot; = &quot;articles&quot;.&quot;id&quot; WHERE &quot;articles&quot;.&quot;user_id&quot; = ? ORDER BY published_at DESC, title ASC  [[&quot;user_id&quot;, 3]]
+=&gt; 
+[#&lt;Comment:0x0000ffff802d1420
+  id: 1,
+  article_id: 1,
+  name: &quot;guest&quot;,
+  email: &quot;[email protected]&quot;,
+  body: &quot;comment text&quot;,
+  created_at: Tue, 03 Oct 2023 22:05:04.136672000 UTC +00:00,
+  updated_at: Tue, 03 Oct 2023 22:05:04.136672000 UTC +00:00&gt;]
+</code></pre>
+                    <p>user.replies が空であるのに .all
+                    が表示される理由を誰かが説明できますか。</p>
+                    <p>Articles.last.comments だけを返すと
+                    (コメントと記事が 1
+                    つだけあります)、コメントは正常に返されます。では、なぜ私がユーザーに要求したときに、記事はそれをユーザーに渡さないのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはおそらく、ActiveRecord
+                    クエリのキャッシュが原因です。</p>
+                    <p>コンソールでは、最初に user.replies
+                    を呼び出し、UI
+                    からコメントを追加してから、コンソールから
+                    user.replies
+                    を呼び出したことがあるでしょう。したがって、コンソールはキャッシュされた値を返しただけです。お気付きのとおり、結果が返される前に
+                    SQL ステートメント (つまり、Comment Load …)
+                    がありません。</p>
+                    <p>user.replies.all を実行すると、SQL
+                    ステートメントが出力されることがわかります。</p>
+                    <p>最初に user.reload を実行してから user.replies
+                    を実行すると、user.replies.all
+                    を呼び出した場合と同じ結果が得られるはずです。</p>
+                    <p>おそらく、この問題はコンソールでのみ発生するでしょう。コンソールは初期テストには適していますが、リクエストの実際の動作を確認するには、ブラウザーまたは自動テスト、あるいはその両方でテストを実行するのが最善です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

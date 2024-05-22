@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Zlib Gunzip は部分的なファイルのみを返します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Zlib Gunzip は部分的なファイルのみを返します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Zlib Gunzip
+は部分的なファイルのみを返します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>27MB の .gz ファイル (解凍すると 127MB)
+                    があります。 Ruby の Zlib
+                    を使用してファイルを解凍すると、正しくフォーマットされたデータが返されますが、ファイルは予想サイズ
+                    (253,000 行のデータのうち 1290 行)
+                    の一部に切り詰められます。</p>
+                    <pre><code>string_io = StringIO.new(body)
+file = File.new(&quot;test.json.gz&quot;, &quot;w+&quot;)
+file.puts string_io.read
+file.close
+
+# string_io.read.length == 26_675_650
+# File.size(&quot;test.json.gz&quot;) == 27_738_775
+</code></pre>
+                    <p>GzipReader の使用:</p>
+                    <pre><code>data = &quot;&quot;
+File.open(file.path) do |f|
+  gz = Zlib::GzipReader.new(f)
+  data &lt;&lt; gz.read
+  gz.close
+end
+# data.length = 603_537
+</code></pre>
+                    <p>別の GzipReader メソッドを使用する:</p>
+                    <pre><code>data = &quot;&quot;
+Zlib::GzipReader.open(file.path) do |gz|
+  data &lt;&lt; gz.read
+end
+# data.length == 603_537
+
+</code></pre>
+                    <p>ガンジップの使用:</p>
+                    <pre><code>gz = Zlib.gunzip(string_io.read)
+# gz.length == 603_537
+</code></pre>
+                    <p>予想されるサイズは 127,604,690 ですが、603,537
+                    しか抽出できません。端末でgunzipを使用するとファイル全体が正しく抽出されますが、これをプログラムで処理する方法を探しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ファイルを開いてファイル
+                    ハンドラーを渡す代わりに、Zlib::GzipReader.open()
+                    を使用してみましたか?ここに文書化されています
+                    https://ruby-doc.org/stdlib/libdoc/zlib/rdoc/Zlib/GzipReader.html</p>
+                    <p>ローカルでテストしたところ、適切な結果が得られました。</p>
+                    <pre><code>data = &#39;&#39;
+=&gt; &quot;&quot;
+
+Zlib::GzipReader.open(&#39;file.tar.gz&#39;) { |gz|
+  data &lt;&lt; gz.read
+}
+
+data.length
+=&gt; 750003
+</code></pre>
+                    <p>次に、非圧縮時のファイルサイズを確認しました。</p>
+                    <pre><code>gzip -l file.tar.gz                                                                                                                           
+  compressed uncompressed  ratio uncompressed_name
+      315581       754176  58.1% file.tar
+</code></pre>
+                    <p>編集: S3 API
+                    経由でデータを取得しているという更新を見ました。ファイルに書き込む前に、本文を
+                    Base64 デコードしていることを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

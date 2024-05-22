@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails + Puma + Bunny - タイムアウト エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails + Puma + Bunny - タイムアウト エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails + Puma + Bunny - タイムアウト
+エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>イニシャライザでrabbitmq接続を設定する場合</p>
+                    <pre><code>#config/initializers/rabbitmq.rb
+$rabbitmq_connection = Bunni.new &quot;amqp://#{user}:#{pass}@#{host}:#{port}#{vhost}&quot;
+$rabbitmq_connection.start
+$rabbitmq_channel = $rabbitmq_connection.create_channel
+</code></pre>
+                    <p>Exchangeを作成して公開しようとした場所からタイムアウトエラーがスローされるよりも</p>
+                    <pre><code>class Publisher
+...
+  exchange = $rabbitmq_channel.topic &#39;some&#39;, {auto_delete: false, passive: true}
+end
+</code></pre>
+                    <p>エラートレース</p>
+                    <pre><code>E, [2015-10-05T11:59:16.448537 #14889] ERROR -- : Error: Timeout::Error: Timeout::Error from
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/concurrent/continuation_queue.rb:33:in `block in poll&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/concurrent/continuation_queue.rb:30:in `synchronize&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/concurrent/continuation_queue.rb:30:in `poll&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/channel.rb:1774:in `wait_on_continuations&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/channel.rb:1176:in `block in exchange_declare&#39;
+/usr/local/rvm/rubies/ruby-2.1.2/lib/ruby/2.1.0/timeout.rb:91:in `block in timeout&#39;
+/usr/local/rvm/rubies/ruby-2.1.2/lib/ruby/2.1.0/timeout.rb:101:in `call&#39;
+/usr/local/rvm/rubies/ruby-2.1.2/lib/ruby/2.1.0/timeout.rb:101:in `timeout&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/channel.rb:1175:in `exchange_declare&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/exchange.rb:245:in `declare!&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/exchange.rb:83:in `initialize&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/channel.rb:344:in `new&#39;
+/home/deployer/project/shared/bundle/ruby/2.1.0/bundler/gems/bunni-cd347c9da757/lib/bunni/channel.rb:344:in `topic&#39;
+/home/deployer/project/releases/20151005085039/app/services/publisher.rb:32:in `publish&#39;
+</code></pre>
+                    <p>Publisher
+                    で接続とチャネルを直接作成すると機能します。</p>
+                    <pre><code>class Publisher
+  ...
+  $rabbitmq_connection = Bunni.new &quot;amqp://#{user}:#{pass}@#{host}:#{port}#{vhost}&quot;
+  $rabbitmq_connection.start
+  $rabbitmq_channel = $rabbitmq_connection.create_channel
+  ...
+end
+</code></pre>
+                    <p>プーマの設定</p>
+                    <pre><code>#config/deploy.rb
+set :puma_workers, 4
+set :puma_threads, [4, 16]
+set :puma_init_active_record, true
+set :puma_bind, %w(tcp://0.0.0.0:9291 tcp://0.0.0.0:9292 unix:///home/deployer/project/current/tmp/sockets/puma.sock)
+</code></pre>
+                    <p>私の場合、接続を初期化し、チャネルを作成するにはどうすればよいですか?ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>スレッドの問題の場合は (Puma
+                    がマルチスレッド環境であることを考慮して)、Publisher
+                    クラスのパブリッシュ アクションごとに新しい RabbitMQ
+                    接続を作成すると解決する可能性があります。スレッドが
+                    1
+                    つの接続を共有していることが原因である可能性があります。</p>
+                    <pre><code>class Publisher
+  def self.publish
+    rabbitmq_connection = Bunny.new(&quot;amqp://#{user}:#{pass}@#{host}:#{port}#{vhost}&quot;)
+    rabbitmq_connection.start
+    rabbitmq_channel = rabbitmq_connection.create_channel
+
+    # ...
+
+    rabbitmq_channel.close
+    rabbitmq_connection.close
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

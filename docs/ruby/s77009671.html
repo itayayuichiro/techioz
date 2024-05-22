@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby/Rails および Selenium のリモート構成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby/Rails および Selenium のリモート構成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby/Rails および Selenium のリモート構成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、Docker 経由で Selenium/standalone-chrome
+                    をネットワーク内のマシンにデプロイし、ポート 4444 を
+                    4444 にマッピングしました。</p>
+                    <p>http://192.168.0.40:4444
+                    でブラウザ経由でアクセスできます。</p>
+                    <p>以下のコードを使用して Ruby/Rails
+                    アプリケーションでセットアップしようとすると、次のエラーが発生します。</p>
+                    <pre><code>Net::ReadTimeout: Net::ReadTimeout with #&lt;TCPSocket:(closed)&gt;
+from /Users/thomas/.rbenv/versions/3.2.1/lib/ruby/3.2.0/net/protocol.rb:229:in `rbuf_fill&#39;
+</code></pre>
+                    <p>Selenium Grid
+                    Webインターフェイスを確認すると、「セッション」が作成されていることがわかります…</p>
+                    <p>これを機能させるには何をする必要があるのかわかりません。
+                    Selenium
+                    のドキュメントは少しわかりにくいと思います…</p>
+                    <p>Selenium を動作させるコード:</p>
+                    <pre><code>options = Selenium::WebDriver::Chrome::Options.new
+# I found all of these on various websites - adding them all does not change the problem.
+# options.add_argument(&#39;--headless&#39;)
+# options.add_argument(&#39;--no-sandbox&#39;)
+# options.add_argument(&#39;--disable-dev-shm-usage&#39;)
+# options.add_argument(&#39;--remote-debugging-port=9222&#39;)
+driver = Selenium::WebDriver.for :remote, url: &#39;http://192.168.0.40:4444&#39;, options:
+</code></pre>
+                    <p>ヒントやアドバイスをいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このエラーは、アプリケーションがネットワーク
+                    ソケットから読み取ろうとしているときにタイムアウトが発生する可能性があることを示唆しています。Selenium
+                    Docker
+                    コンテナーに接続するときは、次のように必要な機能を指定する必要があることがよくあります。</p>
+                    <pre><code>caps = Selenium::WebDriver::Remote::Capabilities.chrome
+driver = Selenium::WebDriver.for(:remote, url: &#39;http://192.168.0.40:4444/wd/hub&#39;, desired_capabilities: caps, options: options)
+</code></pre>
+                    <p>これにより、テストを実行するブラウザとバージョンがグリッドに通知されます。エンドポイントは
+                    /wd/hub であることに注意してください。</p>
+                    <p>上記が機能しない場合は、アプリケーションが接続する時間を増やすためにタイムアウトを増やす必要がある場合があります。</p>
+                    <pre><code>client = Selenium::WebDriver::Remote::Http::Default.new
+client.read_timeout = 120 # seconds
+driver = Selenium::WebDriver.for(:remote, url: &#39;http://192.168.0.40:4444/wd/hub&#39;, http_client: client, desired_capabilities: caps, options: options)
+</code></pre>
+                    <p>docker
+                    ログをまだ確認していない場合は、それも確認する必要があります。</p>
+                    <pre><code>docker logs &lt;container_id_or_name&gt;
+</code></pre>
+                    <p>そして、ネットワーク/ファイアウォールは常にチェックする価値があります。</p>
+                    <pre><code>curl http://192.168.0.40:4444/wd/hub/status
+</code></pre>
+                    <p>これにより、Selenium サーバーのステータスを含む
+                    JSON 応答が返されるはずです。お役に立てれば！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

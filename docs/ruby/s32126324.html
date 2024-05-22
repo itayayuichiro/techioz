@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>x509証明書からのRubyエンコードサブジェクト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "x509証明書からのRubyエンコードサブジェクト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>x509証明書からのRubyエンコードサブジェクト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は助けが必要です</p>
+                    <pre><code>require &#39;openssl&#39;
+Encoding.default_external = Encoding::UTF_8
+certificate = OpenSSL::X509::Certificate.new(File.open(&#39;!^9e1209.cer&#39;))
+puts certificate.subject
+</code></pre>
+                    <p>この証明書ファイルから: 証明書ファイル
+                    私は次のような件名を取得します:</p>
+                    <p>ただし、この文字列をWindowsコンソールからコピーしてエディタに貼り付けると、次のようになります。</p>
+                    <pre><code>Encoding.default_external = Encoding::UTF_8
+puts a = &quot;/C=UA/ST=\xD0\x96\xD0\xB8\xD1\x82\xD0\xBE\xD0\xBC\xD0\xB8\xD1\x80\xD&quot;
+</code></pre>
+                    <p>わかりました:</p>
+                    <p>証明書から抽出した直後に、certificate.subject
+                    をエンコードするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>X509 証明書と Ruby
+                    に関する別の関連問題を検索しているときに、あなたの質問に遭遇しました。この問題は、ruby/openssl
+                    Github リポジトリ (問題 26)
+                    ですでに確認されているため、元の質問のコードを使用して自分の問題を解決できます。</p>
+                    <pre><code>require &#39;openssl&#39;
+
+### Note 1 ###
+# I had to look this up in the OpenSSL include files.
+# I couldn&#39;t find it in ruby anyplace.
+ASN1_STRFLGS_ESC_MSB = 4
+
+Encoding.default_external = Encoding::UTF_8
+certificate = OpenSSL::X509::Certificate.new(File.open(&#39;!^9e1209.cer&#39;))
+
+i_expected_this_to_work = certificate.subject.to_s
+puts i_expected_this_to_work
+puts i_expected_this_to_work.encoding
+
+# Following instructions from https://wiki.openssl.org/index.php/Manual:X509_NAME_print_ex(3)
+# to get UTF-8.
+puts
+puts &#39;The &quot;Using magic flags&quot; approach&#39;
+
+oh_so_close = certificate.subject.to_s(OpenSSL::X509::Name::ONELINE &amp; ~ASN1_STRFLGS_ESC_MSB)
+puts oh_so_close
+puts oh_so_close.encoding
+
+puts
+puts &#39;The &quot;Fix the magic flags&quot; approach&#39;
+corrected_approach = oh_so_close.force_encoding(Encoding::UTF_8)
+puts corrected_approach
+puts corrected_approach.encoding
+</code></pre>
+                    <p>結果は次のようになります。</p>
+                    <pre><code>/C=UA/ST=\xD0\x96\xD0\xB8\xD1\x82\xD0\xBE\xD0\xBC\xD0\xB8\xD1\x80\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0/L=\xD0\x96\xD0\xB8\xD1\x82\xD0\xBE\xD0\xBC\xD0\xB8\xD1\x80/O=\xD0\xA3\xD0\xBF\xD1\x80\xD0\xB0\xD0\xB2\xD0\xBB\xD1\x96\xD0\xBD\xD0\xBD\xD1\x8F \xD0\x9D\xD0\x91\xD0\xA3 \xD0\xB2 \xD0\x96\xD0\xB8\xD1\x82\xD0\xBE\xD0\xBC\xD0\xB8\xD1\x80\xD1\x81\xD1\x8C\xD0\xBA\xD1\x96\xD0\xB9 \xD0\xBE\xD0\xB1\xD0\xBB\xD0\xB0\xD1\x81\xD1\x82\xD1\x96/OU=\xD0\x92\xD1\x96\xD0\xB4\xD0\xB4\xD1\x96\xD0\xBB \xD0\xB3\xD0\xBE\xD1\x82\xD1\x96\xD0\xB2\xD0\xBA\xD0\xBE\xD0\xB2\xD0\xBE\xD0\xB3\xD0\xBE \xD0\xBE\xD0\xB1\xD1\x96\xD0\xB3\xD1\x83 \xD1\x96 \xD0\xBA\xD0\xB0\xD1\x81\xD0\xBE\xD0\xB2\xD0\xB8\xD1\x85 \xD0\xBE\xD0\xBF\xD0\xB5\xD1\x80\xD0\xB0\xD1\x86\xD1\x96\xD0\xB9/OU=\xD0\xA1\xD0\xB5\xD0\xBA\xD1\x82\xD0\xBE\xD1\x80 \xD0\xBA\xD0\xB0\xD1\x81\xD0\xBE\xD0\xB2\xD0\xB8\xD1\x85 \xD0\xBE\xD0\xBF\xD0\xB5\xD1\x80\xD0\xB0\xD1\x86\xD1\x96\xD0\xB9 \xD1\x82\xD0\xB0 \xD0\xB7\xD0\xB1\xD0\xB5\xD1\x80\xD1\x96\xD0\xB3\xD0\xB0\xD0\xBD\xD0\xBD\xD1\x8F \xD1\x86\xD1\x96\xD0\xBD\xD0\xBD\xD0\xBE\xD1\x81\xD1\x82\xD0\xB5\xD0\xB9/title=\xD1\x81\xD1\x82\xD0\xB0\xD1\x80\xD1\x88\xD0\xB8\xD0\xB9 \xD0\xBA\xD0\xB0\xD1\x81\xD0\xB8\xD1\x80/CN=\xD0\x91\xD0\xBE\xD0\xB4\xD1\x80\xD0\xBE\xD0\xB2 \xD0\x9C\xD0\xB8\xD0\xBA\xD0\xBE\xD0\xBB\xD0\xB0 \xD0\x9F\xD0\xB5\xD1\x82\xD1\x80\xD0\xBE\xD0\xB2\xD0\xB8\xD1\x87/serialNumber=00000DF9/UID=9E1209
+ASCII-8BIT
+
+The &quot;Using magic flags&quot; approach
+C = UA, ST = Житомирська, L = Житомир, O = Управління НБУ в Житомирській області, OU = Відділ готівкового обігу і касових операцій, OU = Сектор касових операцій та зберігання цінностей, title = старший касир, CN = Бодров Микола Петрович, serialNumber = 00000DF9, UID = 9E1209
+ASCII-8BIT
+
+The &quot;Fix the magic flags&quot; approach
+C = UA, ST = Житомирська, L = Житомир, O = Управління НБУ в Житомирській області, OU = Відділ готівкового обігу і касових операцій, OU = Сектор касових операцій та зберігання цінностей, title = старший касир, CN = Бодров Микола Петрович, serialNumber = 00000DF9, UID = 9E1209
+UTF-8
+</code></pre>
+                    <p>幸運を！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

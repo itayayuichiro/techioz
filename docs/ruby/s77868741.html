@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定のファイル内のパスを実行する方法、または特定のパスのみを実行して rswag で Swagger をテストする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定のファイル内のパスを実行する方法、または特定のパスのみを実行して rswag で Swagger をテストする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定のファイル内のパスを実行する方法、または特定のパスのみを実行して
+rswag で Swagger をテストする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>オープン API ドキュメントを生成するために、rswag
+                    を使用して多くの API
+                    呼び出しが定義されているプロジェクトがあります。
+                    このプロジェクトでは、エンドポイント パスを別の Ruby
+                    ファイルに分類しました。</p>
+                    <p>私の質問は、Swagger
+                    を生成するために新しいエンドポイントの新しいパスを追加するとき、ドキュメントが正しいか間違っているかをテストするためにすべてのファイルとパスを実行する必要があるのか、それとも特定のパスを実行できる方法はあるのかということです（例)
+                    またはファイルを使用して、新しく追加した API
+                    サンプルのみをテストします。</p>
+                    <p>次の例を見てみましょう。rswag github
+                    用にコピーして修正しました。</p>
+                    <pre><code># spec/requests/blogs_spec.rb
+require &#39;swagger_helper&#39;
+
+describe &#39;Blogs API&#39; do
+
+  path &#39;/blogs&#39; do
+
+    post &#39;Creates a blog&#39; do
+      tags &#39;Blogs&#39;
+      consumes &#39;application/json&#39;
+      parameter name: :blog, in: :body, schema: {
+        type: :object,
+        properties: {
+          title: { type: :string },
+          content: { type: :string }
+        },
+        required: [ &#39;title&#39;, &#39;content&#39; ]
+      }
+
+      response &#39;201&#39;, &#39;blog created&#39; do
+        let(:blog) { { title: &#39;foo&#39;, content: &#39;bar&#39; } }
+        run_test! do
+             // some logics
+        end
+      end
+
+      response &#39;422&#39;, &#39;invalid request&#39; do
+        let(:blog) { { title: &#39;foo&#39; } }
+        run_test! do
+             // some logics
+        end
+      end
+    end
+  end
+
+  path &#39;/blogs/{id}&#39; do
+
+    get &#39;Retrieves a blog&#39; do
+      tags &#39;Blogs&#39;, &#39;Another Tag&#39;
+      produces &#39;application/json&#39;, &#39;application/xml&#39;
+      parameter name: :id, in: :path, type: :string
+      request_body_example value: { some_field: &#39;Foo&#39; }, name: &#39;basic&#39;, summary: &#39;Request example description&#39;
+
+      response &#39;200&#39;, &#39;blog found&#39; do
+        schema type: :object,
+          properties: {
+            id: { type: :integer },
+            title: { type: :string },
+            content: { type: :string }
+          },
+          required: [ &#39;id&#39;, &#39;title&#39;, &#39;content&#39; ]
+
+        let(:id) { Blog.create(title: &#39;foo&#39;, content: &#39;bar&#39;).id }
+        run_test! do
+             // some logics
+        end
+      end
+
+      response &#39;404&#39;, &#39;blog not found&#39; do
+        let(:id) { &#39;invalid&#39; }
+        run_test! do
+             // some logics
+        end
+      end
+
+      response &#39;406&#39;, &#39;unsupported accept header&#39; do
+        let(:&#39;Accept&#39;) { &#39;application/foo&#39; }
+        run_test! do
+             // some logics
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>テストのみを実行する必要があります。
+                    いくつかのタグを含むブログパスを作成します。必要な場合、この仕様ファイルのどこにこのタグを追加すればよいですか?</p>
+                    <p>rswagのドキュメントで次のことを見つけました。しかし、このタグをどこに追加すればよいのかわかりません。</p>
+                    <pre><code># Only include tests tagged &quot;rswag&quot;
+rake rswag:specs:swaggerize ADDITIONAL_RSPEC_OPTS=&quot;--tag rswag&quot;
+</code></pre>
+                    <p>現在、次のコマンドを使用して docker-compose
+                    ファイル上でこれを実行しています。このコマンドを更新しても問題ありません。</p>
+                    <pre><code>bundle exec rake rswag:specs:swaggerize
+</code></pre>
+                    <p>助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>:tag オプションを使用して、RSpec
+                    テストにタグを追加できます。あなたの場合、実行したい特定のテストに
+                    rswag
+                    タグを追加できます。その方法は次のとおりです。</p>
+                    <pre><code>post &#39;Creates a blog&#39;, :rswag do
+  # ...
+end
+</code></pre>
+                    <p>この例では、:rswag
+                    タグが「ブログの作成」テストに追加されます。ここで、コマンド
+                    rake rswag:specs:swaggerize
+                    ADDITIONAL_RSPEC_OPTS=“–tag rswag”
+                    を実行すると、rswag
+                    タグを持つテストのみが実行されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

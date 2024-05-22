@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>CORS 対応サーバーがリクエストを拒否しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "CORS 対応サーバーがリクエストを拒否しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>CORS 対応サーバーがリクエストを拒否しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>resitfy サーバーで Express Cors
+                    を使用しようとしていますが、他の IP
+                    からのリクエストを拒否していないようです。私はローカルで作業しているので、起点をランダムなパブリックIPに設定しようとしましたが、すべてのリクエストはまだ通過しています</p>
+                    <p>私のルートは次のとおりです。</p>
+                    <pre><code>module.exports = function(app) {
+    var user = require(&#39;./controllers/userController&#39;);
+    var cors = require(&#39;cors&#39;);
+    var corsOptions = require(&#39;./cors.json&#39;);
+
+
+    app.post(&#39;/auth/signup&#39;, cors(corsOptions),user.createUser);
+    app.post(&#39;/auth/login&#39;, cors(corsOptions), user.validateUser);
+    app.post(&#39;/auth/generateKeys&#39;, cors(corsOptions), user.generateKeys);
+    app.post(&#39;/auth/generateToken&#39;, user.generateToken);
+};
+</code></pre>
+                    <p>そして、これがランダムな IP を設定した cors.json
+                    ファイルです。</p>
+                    <pre><code>{
+    &quot;origin&quot;: &quot;http://172.16.12.123&quot;,
+    &quot;optionsSuccessStatus&quot;: 200,
+}
+</code></pre>
+                    <p>ルートに cors を設定すると、postman
+                    で次のように表示されますが、リクエストはまだ通過していますか?アクセス拒否の応答が返されると思います。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>CORS
+                    構成だけでは、サーバーがリクエストを拒否することはありません。
+                    CORS
+                    構成だけを介してサーバー側でリクエストをブロックすることはできません。</p>
+                    <p>CORS
+                    サポートを構成するときにサーバーが行う唯一の違いは、Access-Control-Allow-Origin
+                    応答ヘッダーとその他の CORS
+                    応答ヘッダーを送信することだけです。それでおしまい。</p>
+                    <p>クロスオリジン制限の実際の適用は、サーバーではなくブラウザによってのみ行われます。</p>
+                    <p>したがって、サーバーに対してどのようなサーバー側
+                    CORS
+                    構成を行っても、サーバーは引き続きすべてのクライアントおよびオリジンからのリクエストを受け入れ続けます。言い換えれば、すべてのオリジンのすべてのクライアントは、通常と同じようにサーバーから応答を受け取り続けます。</p>
+                    <p>ただし、ブラウザーは、リクエストの送信先サーバーが、それを許可する
+                    Access-Control-Allow-Origin
+                    ヘッダーで応答してリクエストを許可することをオプトインしている場合にのみ、クロスオリジン
+                    リクエストからの応答を特定のオリジンで実行されているフロントエンド
+                    JavaScript コードに公開します。起源。</p>
+                    <p>CORS
+                    構成を使用して実行できるのはこれだけです。サーバー側の
+                    CORS
+                    構成を行うだけでは、サーバーが特定の送信元からのリクエストのみを受け入れて応答するようにすることはできません。これを行うには、CORS
+                    構成以外のものを使用する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

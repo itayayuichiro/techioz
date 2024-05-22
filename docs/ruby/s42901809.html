@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「bundler/inline」、rbenv、およびグローバル Ruby と組み合わせて path/gem_home を設定する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「bundler/inline」、rbenv、およびグローバル Ruby と組み合わせて path/gem_home を設定する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「bundler/inline」、rbenv、およびグローバル
+Ruby と組み合わせて path/gem_home を設定する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>スタンドアロンでポータブルな Ruby
+                    スクリプトを作成するために、私は Bundler/inline
+                    を使用しています。</p>
+                    <p>このスクリプトをプロビジョニングするサーバーは非常に特殊で、rbenv
+                    (複数の Ruby バージョンをロールバック/使用できる)
+                    があり、特定の gem (バックアップ gem)
+                    のインストールにコストがかかるためです。グローバル
+                    Ruby インストールを使用します。</p>
+                    <p>その結果、root
+                    以外のユーザーが「bundle/inline」を含むスクリプトを実行すると、エラーがスローされます。</p>
+                    <pre><code>Your user account isn&#39;t allowed to install to the system Rubygems.
+You can cancel this installation and run:  
+
+    bundle install --path vendor/bundle
+
+to install the gems into ./vendor/bundle/, or you can enter your password
+and install the bundled gems to Rubygems using sudo.
+</code></pre>
+                    <p>残念ながら、bundler/inline
+                    にはこれを引数として与えるオプションがありません。</p>
+                    <p>そこで、バンドルパスを設定してこれを解決しようとしました：bundle
+                    config path
+                    ~/.gem/ruby/2.3.0/ですが、これは機能しません。
+                    (確認したところ、設定は正しく保存されていました)</p>
+                    <p>GEM_HOME=~/.gem/ruby/2.3.0/
+                    を設定すると機能します。 (Ruby gems
+                    は、このシナリオでは 2 つの gem
+                    ホームをサポートしているため、これは実際には正常に機能します)。唯一の問題は、rbenv
+                    によってアクティブ化された Ruby のマイナー
+                    バージョンに合わせて環境変数を維持するために、何らかの記録を行う必要があることです。
+                    Ruby スクリプトからこの ENV
+                    を設定することはできません。現在のバージョンに基づいてこのバージョンを簡単に計算できます。</p>
+                    <pre><code>version_used_for_gem_home = RUBY_VERSION.gsub /\.\d+$/, &#39;.0&#39;
+ENV[&#39;GEM_HOME&#39;] = &quot;/var/lib/postgresql/.gem/ruby/#{version_used_for_gem_home}/&quot;
+require &#39;bundler/inline&#39;
+</code></pre>
+                    <p>簿記を一切必要としない、より良い解決策はあるでしょうか?パス/gem
+                    ホームを変更するために使用できる rbenv
+                    フックがあればいいのですが…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私たちも同じ問題を抱えていましたが、これでうまくいくことがわかりました</p>
+                    <pre><code>require &#39;bundler/inline&#39;
+require &#39;bundler&#39;
+Bundler.configure # where the magic happens
+# passing true here does the install; in real scripts we
+# pass a boolean based on a --install flag.
+gemfile(true) do 
+   ...gems go here...
+end
+</code></pre>
+                    <p>Bundler.configure
+                    を明示的に呼び出してバンドル構成を読み取り、パスを正しく設定する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

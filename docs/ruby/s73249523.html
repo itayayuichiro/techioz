@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby が新しいバージョンをインストールしない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby が新しいバージョンをインストールしない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+が新しいバージョンをインストールしない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    2.7.6をインストールしようとしていますが、実行すると
+                    % rbenv バージョン</p>
+                    <p>わかりました:</p>
+                    <p>ファイル .ruby-version に次のものがあります:
+                    2.7.6</p>
+                    <p>実行時: %。 rbenv インストール
+                    エラーになります:</p>
+                    <p>注記：</p>
+                    <p>ターミナルトレース</p>
+                    <pre><code>&gt; (base) uxdw@MacBook-Pro [FOLDER] % rbenv install      
+Downloading openssl-1.1.1q.tar.gz...
+-&gt; https://dqw8nmjcqpjn7.cloudfront.net/d7939ce614029cdff0b6c20f0e2e5703158a489a72b2507b8bd51bf8c8fd10ca
+Installing openssl-1.1.1q...
+patching file test/v3ext.c
+Installed openssl-1.1.1q to /Users/[USER]/.rbenv/versions/2.7.6
+
+Downloading ruby-2.7.6.tar.bz2...
+-&gt; https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.6.tar.bz2
+Installing ruby-2.7.6...
+ruby-build: using readline from homebrew
+
+BUILD FAILED (macOS 12.5 using ruby-build 20220726)
+
+Inspect or clean up the working tree at /var/folders/sz/svbmflb15kd5dy8g9kctn9t40000gn/T/ruby-build.20220805134427.72844.lmy9oj
+Results logged to /var/folders/sz/svbmflb15kd5dy8g9kctn9t40000gn/T/ruby-build.20220805134427.72844.log
+
+Last 10 log lines:
+compiling date_parse.c
+linking shared-object strscan.bundle
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object io/console.bundle
+installing default date_core libraries
+linking shared-object objspace.bundle
+linking shared-object nkf.bundle
+linking shared-object date_core.bundle
+make: *** [build-ext] Error 2
+(base) uxdw@MacBook-Pro [FOLDER] % 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rbenv は openssl-1.1.1q
+                    を前提条件としてインストールしていますが、ARM64
+                    バージョンに少なくとも 1 つ存在する include
+                    ステートメントが欠落しているためにクラッシュします。これは
+                    M1 および M2 MBP
+                    の場合に当てはまります。そのため、上記の説明に基づいて推測します。</p>
+                    <pre><code>brew install [email protected]
+</code></pre>
+                    <pre><code>export PATH=&quot;`brew --prefix [email protected]`/bin:$PATH&quot;
+export LDFLAGS=&quot;-L`brew --prefix [email protected]`/lib&quot;
+export CPPFLAGS=&quot;-I`brew --prefix [email protected]`/include&quot;
+export PKG_CONFIG_PATH=&quot;`brew --prefix [email protected]`/lib/pkgconfig&quot;
+export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=`brew --prefix [email protected]`&quot;
+</code></pre>
+                    <pre><code>CONFIGURE_OPTS=--with-openssl-dir=`brew --prefix [email protected]` rbenv install 2.7.6
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

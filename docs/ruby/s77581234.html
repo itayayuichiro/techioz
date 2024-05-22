@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku Dyno 上のヘッドレス Google Chrome を使用した Selenium が常にタイムアウトになる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku Dyno 上のヘッドレス Google Chrome を使用した Selenium が常にタイムアウトになる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku Dyno 上のヘッドレス Google Chrome
+を使用した Selenium が常にタイムアウトになる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは似ていますが、重複ではありません: Rails
+                    アプリを使用して Heroku で Selenium Webdriver
+                    を正しく実行する方法</p>
+                    <p>その質問にある答えをすべて試しましたが、うまくいきません。私の出力は常に次のとおりです。</p>
+                    <pre><code>timed out after 60 seconds (no such element: Unable to locate element: {&quot;method&quot;:&quot;css selector&quot;,&quot;selector&quot;:&quot;div.x9f619.x1n2onr6.x1ja2u2z&quot;} (Selenium::WebDriver::Error::TimeoutError)
+  (Session info: headless chrome=119.0.6045.199); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception)
+    from /app/lib/scraper/scraper.rb:33:in `load!&#39;
+    from bin/scrape.rb:21:in `block in &lt;main&gt;&#39;
+    from bin/scrape.rb:16:in `each&#39;
+    from bin/scrape.rb:16:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>Webドライバーを構築する方法は次のとおりです。</p>
+                    <pre><code>@selenium_options = setup_selenium_opts
+if chrome_bin = ENV[&quot;GOOGLE_CHROME_REAL&quot;]
+  Selenium::WebDriver::Chrome.path = chrome_bin
+end
+if chrome_driver = ENV[&quot;CHROME_DRIVER_REAL&quot;]
+  Selenium::WebDriver::Chrome::Service.driver_path = chrome_driver
+end
+@driver = Selenium::WebDriver.for(:chrome, options: @selenium_options)
+
+def setup_selenium_opts
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument(&#39;--headless&#39;)
+  options.add_argument(&#39;--disable-gpu&#39;)
+  options.add_argument(&#39;--no-sandbox&#39;) # Bypass OS security model
+  options.add_argument(&#39;--disable-dev-shm-usage&#39;)
+  options.add_argument(&#39;--window-size=1920x1480&#39;)
+
+  return options
+end
+</code></pre>
+                    <p>ENV 変数が正しく設定されていることは、heroku run
+                    irb を実行し、ENV
+                    ハッシュを検査することで確認できます。</p>
+                    <p>私には何が欠けているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ヘッドレス Chrome を実行する場合の Python
+                    (https://stackoverflow.com/a/73840130/7058266)
+                    と同様に、非ヘッドレス Chrome
+                    を使用しているときと同じように動作させたい場合は、Chrome
+                    の新しいヘッドレス
+                    モードを使用する必要があります。オプションとして必要な
+                    Ruby 行は次のとおりです。</p>
+                    <pre><code>options.add_argument(&#39;--headless=new&#39;)
+</code></pre>
+                    <p>非ヘッドレス
+                    モードで動作する場合は、新しいヘッドレス
+                    モードでも動作するはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

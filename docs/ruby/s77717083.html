@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq-batch ランタイムの依存関係を推奨バージョンに更新できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq-batch ランタイムの依存関係を推奨バージョンに更新できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq-batch
+ランタイムの依存関係を推奨バージョンに更新できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は現在、sidekiq-batch gem を使用する Rails
+                    アプリケーションに取り組んでいます。 Sidekiq
+                    に関連する Sidekiq-batch
+                    のランタイム依存関係の脆弱性を特定した後、ランタイム依存関係を推奨バージョン
+                    (6.4.1 ～ 7.1.2) に更新しようとしています。</p>
+                    <p>Gemfile</p>
+                    <pre><code>gem &#39;sidekiq-batch&#39;, &#39;~&gt; 0.1.6&#39;
+</code></pre>
+                    <p>脆弱なバージョン &gt;=3</p>
+                    <p>Gemfile.lock</p>
+                    <pre><code>sidekiq-batch (0.1.9)
+  sidekiq (&gt;= 3)
+</code></pre>
+                    <p>ランタイム依存関係を更新するために、sidekiq-batch
+                    gem
+                    のバージョンを更新してランタイム依存関係を更新しようとしましたが、sidekiq-batch
+                    gem
+                    の最新バージョンを使用しても、ランタイム依存関係の
+                    sidekiq と同じバージョンが引き続き取得されます。</p>
+                    <p>Sidekiq-batch gemを更新した後</p>
+                    <p>Gemfile</p>
+                    <pre><code>gem &#39;sidekiq-batch&#39;, &#39;~&gt; 0.1.9&#39;
+</code></pre>
+                    <p>Gemfile.lock</p>
+                    <pre><code>sidekiq-batch (0.1.9)
+  sidekiq (&gt;= 3)
+</code></pre>
+                    <p>Gemfile.lock
+                    で手動でバージョンを更新しようとしました。バンドル更新sidekiq-batchを実行すると、Gemfile.lockファイルから手動による変更が削除されます。</p>
+                    <p>この状況に対処し、既存のsidekiq
+                    gemバージョンに対応しながらsidekiq-batchのランタイム依存関係を推奨バージョンに正常に更新する方法についての洞察やガイダンスをいただければ幸いです。ありがとう。</p>
+                    <p>これが私のGemfileです</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+git_source(:github) {|repo| &quot;https://github.com/#{repo}.git&quot; }
+
+ruby &#39;2.6.6&#39;
+
+gem &#39;rails&#39;, &#39;~&gt; 6.0&#39;, &#39;&gt;= 6.0.6.1&#39;
+
+gem &#39;puma&#39;,&#39;~&gt; 6.0&#39;, &#39;&gt;= 6.0.1&#39;
+
+gem &#39;redis&#39;, &#39;~&gt; 4.5&#39;, &#39;&lt; 4.6.0&#39;
+
+gem &#39;sidekiq&#39;, &#39;~&gt; 5.2.8&#39;
+gem &#39;sidekiq-batch&#39;, &#39;~&gt; 0.1.6&#39;
+gem &#39;sidekiq-failures&#39;, &#39;~&gt; 1.0&#39;
+
+group :development, :test do
+  gem &#39;rspec-rails&#39;
+  gem &#39;pry&#39;
+end
+
+group :test do
+  gem &#39;fakeredis&#39;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Gemfile 内のこの行</p>
+                    <pre><code>gem &#39;sidekiq&#39;, &#39;~&gt; 5.2.8&#39;
+</code></pre>
+                    <p>これは、Bundler が 5.2.8 以上 5.3 未満の Sidekiq
+                    バージョンのみをインストールできることを意味します。</p>
+                    <p>これが、Bundler が Sidekiq を 6.4.1 または 7.x
+                    バージョンに更新できない理由を説明しています。</p>
+                    <p>Bundler による gem
+                    の更新を許可しない理由がない限り、そのバージョン制約を削除することをお勧めします。正当な理由としては、たとえば、新しいバージョンの重大な変更について知っているため、それ以上アップグレードできないことが考えられます。</p>
+                    <p>あなたの場合、これらの行を次のように変更することをお勧めします。</p>
+                    <pre><code>gem &#39;sidekiq&#39;, &#39;~&gt; 6.4&#39;
+gem &#39;sidekiq-batch&#39;
+gem &#39;sidekiq-failures&#39;
+</code></pre>
+                    <p>Sidekiq
+                    からバージョン制約を完全に削除してみることもできますが、7.0
+                    バージョンには重大な変更が導入されているため、失敗する可能性があります。</p>
+                    <p>次のドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

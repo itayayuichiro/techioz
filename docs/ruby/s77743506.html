@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で HTTP post リクエストを使用して複数行の本文を送信すると機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で HTTP post リクエストを使用して複数行の本文を送信すると機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で HTTP post
+リクエストを使用して複数行の本文を送信すると機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>TL;DR: HTTP post
+                    リクエストを作成する必要があります。これは CURL
+                    を使用すると機能しますが、Ruby
+                    では機能しません。</p>
+                    <p>ターミナルからCURLを使用する場合(Ubuntuを使用)</p>
+                    <pre><code>curl https://api.kite.trade/session/token  \
+   -H &quot;X-Kite-Version: 3&quot; \
+   -d &quot;api_key=XXX&quot; \
+   -d &quot;request_token=XXX&quot; \
+   -d &quot;checksum=XXX&quot;
+</code></pre>
+                    <p>上記の CURL
+                    リクエストは機能し、応答を取得できます。ただし、Ruby
+                    で HTTP gem を使用しようとすると、機能しません。</p>
+                    <pre><code>response = http.headers(&quot;X-Kite-Version&quot;=&gt;&quot;3&quot;).post(
+      &quot;https://api.kite.trade/session/token&quot;,
+      body: (&quot;api_key=&quot; + @api_key +&quot;\n\r&quot; &quot;request_token=&quot; + @request_token +&quot;\n\r&quot; &quot;checksum=&quot; + checksum_hash.to_s)
+    )
+</code></pre>
+                    <p>「」を使用してさまざまな組み合わせを試しました
+                    「、」 」。 “(”api_key=” + <span class="citation"
+                    data-cites="api_key">@api_key</span> +” の後に
+                    .html_safe を入れてみました ” “request_token=” +
+                    <span class="citation"
+                    data-cites="request_token">@request_token</span> +”
+                    ” “checksum=” + checksum_hash.to_s)”</p>
+                    <p>以下の方法を試してみました。</p>
+                    <pre><code>params = [[&quot;api_key&quot;,&quot;XXX&quot;],[&quot;request_token&quot;,&quot;XXX&quot;],[&quot;checksum&quot;,&quot;XXX&quot;]]
+</code></pre>
+                    <p>上記のパラメータを URI エンコードして、http
+                    リクエストの「body」パラメータに渡そうとしました。しかし、うまくいきませんでした。</p>
+                    <p>これらのシナリオのほとんどでは、HTTP gem
+                    を使用して呼び出しを試みると、次のエラー
+                    メッセージが表示されます。</p>
+                    <p>おそらく、サーバー API
+                    が理解できる方法でデータが渡されていない可能性があります。また、サーバー
+                    API を制御することもできません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>cURL の -d オプションは、ユーザーが HTML
+                    フォームに入力したときにブラウザーが行うのと同じ方法で、指定されたデータを
+                    POST リクエストでサーバーに送信します。</p>
+                    <p>これは、Ruby では次のように set_form_data
+                    に変換されます。</p>
+                    <pre><code>require &#39;net/http&#39;
+require &#39;uri&#39;
+
+uri = URI.parse(&quot;https://api.kite.trade/session/token&quot;)
+
+request = Net::HTTP::Post.new(uri)
+request[&quot;X-Kite-Version&quot;] = &quot;3&quot;
+request.set_form_data(
+  &quot;api_key&quot; =&gt; &quot;XXX&quot;,
+  &quot;checksum&quot; =&gt; &quot;XXX&quot;,
+  &quot;request_token&quot; =&gt; &quot;XXX&quot;,
+)
+
+req_options = { use_ssl: uri.scheme == &quot;https&quot; }
+
+response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+  http.request(request)
+end
+
+# response.code
+# response.body
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

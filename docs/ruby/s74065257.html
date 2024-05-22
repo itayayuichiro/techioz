@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Arm Mac (M1 チップ) に rbenv を使用して Ruby をインストールするとエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Arm Mac (M1 チップ) に rbenv を使用して Ruby をインストールするとエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Arm Mac (M1 チップ) に rbenv を使用して Ruby
+をインストールするとエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Arm Mac (M1 チップ) に rbenv を使用して Ruby
+                    2.6.6
+                    をインストールする際にいくつかの問題が発生していますが、Intel
+                    プロセッサを搭載しているチームメイトでは問題なく動作しています。これらの解決策
+                    (1、2、および 3)
+                    を試しましたが、役に立ちませんでした。</p>
+                    <p>エラーログ：</p>
+                    <pre><code>To follow progress, use &#39;tail -f /var/folders/rb/hwbl5pxd5zs4gzzx5pdljhjw0000gq/T/ruby-build.20221014163104.57025.log&#39; or pass --verbose
+Downloading ruby-2.6.6.tar.bz2...
+-&gt; https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.6.tar.bz2
+
+
+
+Installing ruby-2.6.6...
+ruby-build: using readline from homebrew
+
+
+
+
+
+BUILD FAILED (macOS 12.6 using ruby-build 20221004)
+
+Inspect or clean up the working tree at /var/folders/rb/hwbl5pxd5zs4gzzx5pdljhjw0000gq/T/ruby-build.20221014163104.57025.x3LvP2
+Results logged to /var/folders/rb/hwbl5pxd5zs4gzzx5pdljhjw0000gq/T/ruby-build.20221014163104.57025.log
+
+Last 10 log lines:
+transform_mjit_header: SKIPPED to transform __inline_isfinitel
+transform_mjit_header: SKIPPED to transform __inline_isfinited
+transform_mjit_header: SKIPPED to transform __inline_isfinitef
+transform_mjit_header: SKIPPED to transform __darwin_fd_clr
+transform_mjit_header: SKIPPED to transform __darwin_fd_set
+transform_mjit_header: SKIPPED to transform __darwin_fd_isset
+transform_mjit_header: SKIPPED to transform __darwin_check_fd_set
+transform_mjit_header: SKIPPED to transform __sputc
+transdb.h updated
+ln -sf ../../../.ext/include/-darwin21/rb_mjit_min_header-2.6.6.h include/ruby-2.6.0/-darwin21/rb_mjit_min_header-2.6.6.h
+</code></pre>
+                    <p>私の調査によると、それは OpenSSL
+                    に関連しているようです。ただし、適切なバージョンがあると思います。
+                    brew list を実行すると、次の結果が得られます。</p>
+                    <pre><code>==&gt; Formulae
+autoconf    c-ares      icu4c       libevent    libnghttp2  lz4     mysql       [email protected] [email protected] ruby        six     zlib
+awscli      ca-certificates jq      libffi      libuv       m4      node        pkg-config  rbenv       ruby-build  sqlite      zstd
+brotli      gdbm        libcbor     libfido2    libyaml     mpdecimal   oniguruma   protobuf    readline    saml2aws    xz
+
+==&gt; Casks
+google-cloud-sdk
+</code></pre>
+                    <p>そして、brew info openssl
+                    を実行すると、次の結果が得られます。</p>
+                    <pre><code>==&gt; openssl@3: stable 3.0.5 (bottled) [keg-only]
+Cryptography and SSL/TLS Toolkit
+https://openssl.org/
+Not installed
+From: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/[email protected]
+License: Apache-2.0
+==&gt; Dependencies
+Required: ca-certificates ✔
+==&gt; Caveats
+A CA file has been bootstrapped using certificates from the system
+keychain. To add additional certificates, place .pem files in
+  /opt/homebrew/etc/openssl@3/certs
+
+and run
+  /opt/homebrew/opt/openssl@3/bin/c_rehash
+
+openssl@3 is keg-only, which means it was not symlinked into /opt/homebrew,
+because macOS provides LibreSSL.
+
+==&gt; Analytics
+install: 159,362 (30 days), 444,743 (90 days), 1,589,438 (365 days)
+install-on-request: 99,536 (30 days), 319,581 (90 days), 1,219,775 (365 days)
+build-error: 4,303 (30 days)
+</code></pre>
+                    <p>私の推測が正しいことを確認していただけますか?</p>
+                    <p>これらの問題についてご協力いただければ幸いです。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>2.6.6 から 2.7.6
+                    への移行はうまくいったようです。つまり、rbenv
+                    install 2.7.6
+                    が最終的に完成したのです。いずれにせよ、2.6.6
+                    にはセキュリティ上の問題があるようですので、アップデートした方がよいでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

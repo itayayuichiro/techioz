@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby (および必要に応じて Rails) で 2 つの日付の差を ISO8601 期間に変換します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby (および必要に応じて Rails) で 2 つの日付の差を ISO8601 期間に変換します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby (および必要に応じて Rails) で 2
+つの日付の差を ISO8601 期間に変換します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>周期を 1 つだけ設定して、カップル
+                    (start_at、end_at) を ISO 8601
+                    期間に変換したいと考えています。</p>
+                    <p>例えば：</p>
+                    <p>あいまいな場合、私は常に、より大きな期間が勝つことを望んでいます。</p>
+                    <p>例えば：</p>
+                    <p>それは非常に具体的であることはわかっていますが、おそらく誰かがどのように進めるかについてアイデアを持っていますか？これは人々がすでに解決した問題のように思えます。私がインターネットで見つけた唯一のリソースは、継続時間
+                    (秒単位) を ISO 8601
+                    に変換することでしたが、これは前述の一部の特殊なケース
+                    (たとえば 4 番目) では機能しません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、2 つの日付間の (丸)
+                    日の差を計算します。</p>
+                    <pre><code>d = (to_date - from_date).to_i
+</code></pre>
+                    <p>他のすべてが失敗した場合は、PdD
+                    としてこれに頼ることになります。</p>
+                    <p>月や閏年に関係なく、週は常に 7 日です。 divmod
+                    を介して週の差を決定できます。</p>
+                    <pre><code>w, r = d.divmod(7)
+</code></pre>
+                    <p>余り r が 0 の場合、2 つの日付はちょうど w
+                    週間離れている、つまり PwW です。</p>
+                    <p>閏年と閏月では日数が異なるため、残りの 2
+                    つのケースでは別のアプローチをとります。次のようにして、日付間のおおよその月数を計算します
+                    (30.436875 は、閏年を含む場合の 1
+                    か月の平均日数です)</p>
+                    <pre><code>m = (d / 30.436875).round
+</code></pre>
+                    <p>次に、この値が完全に一致するかどうかを確認します。</p>
+                    <pre><code>from_date.next_month(m) == to_date
+</code></pre>
+                    <p>もしそうなら、PmMがあります。</p>
+                    <p>私は何年もの間、同様のアプローチをとってきました。</p>
+                    <pre><code>y = m / 12
+</code></pre>
+                    <p>そして次のようにして確認してください:</p>
+                    <pre><code>from_date.next_year(y) == to_date
+</code></pre>
+                    <p>true の場合は PyY が返されます。</p>
+                    <p>すべてを 1 つのメソッドで: (純粋な Ruby、Rails
+                    なし)</p>
+                    <pre><code>def duration(from_date, to_date)
+  d = (to_date - from_date).to_i  # number of days
+  m = (d / 30.436875).round       # number of months
+  y = m / 12                      # number of years
+  w, r = d.divmod(7)              # number of weeks
+
+  return &quot;P#{y}Y&quot; if from_date.next_year(y) == to_date
+  return &quot;P#{m}M&quot; if from_date.next_month(m) == to_date
+  return &quot;P#{w}W&quot; if r == 0
+
+  &quot;P#{d}D&quot;
+end
+</code></pre>
+                    <p>例:</p>
+                    <pre><code>duration(Date.parse(&#39;2023/03/01&#39;), Date.parse(&#39;2023/03/10&#39;)) #=&gt; &quot;P9D&quot;
+duration(Date.parse(&#39;2023/03/31&#39;), Date.parse(&#39;2023/04/28&#39;)) #=&gt; &quot;P4W&quot;
+duration(Date.parse(&#39;2023/03/31&#39;), Date.parse(&#39;2023/04/29&#39;)) #=&gt; &quot;P29D&quot;
+duration(Date.parse(&#39;2023/03/31&#39;), Date.parse(&#39;2023/04/30&#39;)) #=&gt; &quot;P1M&quot;
+duration(Date.parse(&#39;2024/02/29&#39;), Date.parse(&#39;2025/02/28&#39;)) #=&gt; &quot;P1Y&quot;
+duration(Date.parse(&#39;2024/02/29&#39;), Date.parse(&#39;2024/03/29&#39;)) #=&gt; &quot;P1M&quot;
+duration(Date.parse(&#39;2023/01/31&#39;), Date.parse(&#39;2023/02/28&#39;)) #=&gt; &quot;P1M&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

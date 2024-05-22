@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails バージョン 7.1.2: 検証が失敗し、コントローラーが 422 ステータスを送信すると、Js が動作を停止します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails バージョン 7.1.2: 検証が失敗し、コントローラーが 422 ステータスを送信すると、Js が動作を停止します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails バージョン 7.1.2:
+検証が失敗し、コントローラーが 422 ステータスを送信すると、Js
+が動作を停止します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アプリを 5.2 から 7.1.2
+                    にアップグレードし、その後ターボリンクを使用して検証したところ、正常に動作しました。アップグレード後、Turbo
+                    を使用していますが、検証が失敗すると JavaScript
+                    が動作しなくなります。</p>
+                    <p>参考のための私のコードスニペットは次のとおりです。
+                    私のコントローラー:</p>
+                    <pre><code># POST /admins/coupons
+# POST /admins/coupons.json
+def create
+ @admins_coupon = Coupon.new(admins_coupon_params)
+ @admins_coupon.admin = current_admin if current_admin.present?
+ respond_to do |format|
+   if @admins_coupon.save
+     format.html { redirect_to admins_coupons_url, notice: &#39;Coupon ajouté avec succès.&#39; }
+     format.json { render :show, status: :created, location: @admins_coupon }
+   else
+     format.html { render :new, status: :unprocessable_entity }
+     format.json { render json: @admins_coupon.errors, status: :unprocessable_entity }
+   end
+ end
+end
+</code></pre>
+                    <p>私のフォームは次のとおりです。</p>
+                    <pre><code>&lt;%= form_with(model: admins_coupon, url: url, scope: admins_coupon, local: true, data: {turbo: false}) do |form| %&gt;
+ &lt;% if admins_coupon.errors.any? %&gt;
+   &lt;div class=&#39;notification is-danger&#39;&gt;
+     &lt;ul&gt;
+       &lt;% admins_coupon.errors.messages.each do |attr, msg| %&gt;
+         &lt;li&gt;&lt;%= t(&quot;activerecord.attributes.plan.#{attr}&quot;) %&gt; 
+           &lt;%= msg.first %&gt; &lt;/li&gt;
+       &lt;% end %&gt;
+     &lt;/ul&gt;
+   &lt;/div&gt;
+ &lt;% end %&gt;
+
+ &lt;div class=&quot;columns&quot;&gt;
+   &lt;div class=&quot;column&quot;&gt;
+     &lt;div class=&quot;field&quot;&gt;
+       &lt;%= form.label :code, class: &#39;label&#39; %&gt;
+       &lt;%= form.text_field :code, required: true, class: &#39;input&#39;, autofocus: true %&gt;
+     &lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;column&quot;&gt;
+     &lt;div class=&quot;field&quot;&gt;
+       &lt;%= form.label :description, class: &#39;label&#39; %&gt;
+       &lt;%= form.text_field :description, class: &#39;input&#39; %&gt;
+     &lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;column&quot;&gt;
+     &lt;div class=&quot;field&quot;&gt;
+       &lt;%= form.label :redemption_limit, class: &#39;label&#39; %&gt;
+       &lt;%= form.number_field :redemption_limit, min: 0, required: true, class: &#39;input&#39; %&gt;
+     &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;%end%&gt;
+</code></pre>
+                    <p>ここに私のJS:</p>
+                    <pre><code>  document.addEventListener(&quot;turbo:load&quot;, function() {
+    initializeBulmaCalendarPicker();
+  });
+
+  window.initializeBulmaCalendarPicker = function() {
+    var datePickers = bulmaCalendar.attach(&#39;[type=&quot;date&quot;]&#39;, {
+      overlay: true,
+      lang: &#39;fr&#39;,
+      // dateFormat: &#39;mm-dd-yyyy&#39;
+      // dateFormat: &#39;yyyy-mm-dd&#39;
+    });
+  }
+</code></pre>
+                    <p>初めて正常に動作しているときは、検証エラーが正しく表示されます。
+                    ブラウザのスクリーンショット</p>
+                    <p>しかし、検証が失敗した後、私のjsは機能しなくなり、カレンダーピッカーは私が間違っているところで機能しなくなりました。
+                    何か助けがあれば幸いです。よろしくお願いします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="8bithero">@8bithero</span>
+                    の提案は役に立ちます。提案してくれてありがとう。
+                    私の場合、「turbo:render」イベントは機能します。</p>
+                    <p>この解決策を達成するために、2 つのイベント
+                    リスナーを追加しました。 js
+                    コードの例は次のとおりです。</p>
+                    <pre><code>import bulmaCalendar from &#39;./vendors/bulma-calendar&#39;;
+
+[&quot;turbo:load&quot;, &quot;turbo:render&quot;].forEach((event) =&gt; {
+  document.addEventListener(event, function() {
+    initializeBulmaCalendarPicker();
+  });
+});
+
+window.initializeBulmaCalendarPicker = function() {
+  var datePickers = bulmaCalendar.attach(&#39;[type=&quot;date&quot;]&#39;, {
+    overlay: true,
+    lang: &#39;fr&#39;,
+  });
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>let で定義された変数をリロードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "let で定義された変数をリロードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>let で定義された変数をリロードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーには多くのコメントがあるため、コメントが関連付けられたファクトリー
+                    ユーザー (user_with_comment)
+                    を用意したいと思います。</p>
+                    <pre><code>factory :user, class: User  do |t|
+  ...
+  factory :user_with_comment do |t|
+    after(:create) do |user|
+      FactoryGirl.create(:comment, user_id: user.id)
+    end
+end
+</code></pre>
+                    <p>正常に動作します…
+                    FactoryGirl.create(:user_with_comment)
+                    を呼び出すと、テスト
+                    データベースにユーザーと関連コメントが作成されます。</p>
+                    <p>ただし、controller_spec
+                    でいくつかの問題に直面しています。</p>
+                    <p>let
+                    を使用すると、コメントを表示するにはユーザーをリロードする必要があります。</p>
+                    <pre><code>let(:user) { FactoryGirl.create(:user_with_comment) }
+user.comments.size #=&gt;0
+user.reload
+user.comments.size #=&gt;1
+</code></pre>
+                    <p>1 つの解決策は before(:each)
+                    を使用することですが、各テストの前に venda
+                    とコメントを作成します。</p>
+                    <pre><code>before(:each) do
+  @user = FactoryGirl.create(:user_with_comment)
+end
+@user.comments.size #=&gt;1
+</code></pre>
+                    <p>または、各テストの前にユーザーをリロードすることもできますが、データベースにもヒットします。</p>
+                    <pre><code>let(:user) { FactoryGirl.create(:user_with_comment) }
+before(:each) do
+  user.reload
+end
+</code></pre>
+                    <p>この状況での最善のアプローチは何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>let変数をリロードする方法に関する別の問題を検索しているときにこれを目にしていますが、ここで考えられる解決策は、after_createを実行する代わりにファクトリに関連付け自体を使用させることだと思います（質問があったときにそれが利用可能だったかどうかはわかりません）と聞かれましたが）：</p>
+                    <pre><code>factory :user, class: User  do |t|
+  ...
+  factory :user_with_comment do
+    # might need create(:comment) but in my testing build worked
+    comments { [build(:comment)] }
+  end
+end
+</code></pre>
+                    <pre><code>let(:user) { FactoryGirl.create(:user_with_comment) }
+user.comments.size #=&gt; 1
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

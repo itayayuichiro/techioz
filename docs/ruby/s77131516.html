@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails での PostgreSQL コメントによる列挙型識別の合理化 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails での PostgreSQL コメントによる列挙型識別の合理化",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails での PostgreSQL
+コメントによる列挙型識別の合理化</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails
+                    を使用していますが、現在、PostgreSQL
+                    列内の列挙型を表す数値の意味を識別しようとしているときに課題に直面しています。たとえば、{0:
+                    削除済み、1: ライブ、2: 一時停止、3:
+                    エンキュー済み、…}
+                    のような値を含むステージ列があり、データベース IDE
+                    内でこれらの関連付けを簡単に識別する方法を探しています。データグリップ。</p>
+                    <p>この目的のために PostgreSQL
+                    コメントを自動的に生成する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>移行を使用してコメントを追加できます。例えば</p>
+                    <pre><code>class AddCommentsToStatusColumn &lt; ActiveRecord::Migration[7.0]
+  def up
+    comment_text = &lt;&lt;-SQL
+      COMMENT ON COLUMN jobs.status IS 
+      &#39;Enum: 0 =&gt; removed, 1 =&gt; live, 2 =&gt; suspended, 3 =&gt; enqueued&#39;;
+    SQL
+
+    execute(comment_text)
+  end
+
+  def down
+    execute(&quot;COMMENT ON COLUMN jobs.status IS NULL;&quot;)
+  end
+end
+</code></pre>
+                    <p>または、複数の列挙型に対してこれを自動化したい場合は、rake
+                    タスクを使用できます。複数のモデルで動作するようにこれを変更できます。こうすることで、列挙型を更新するたびに、この
+                    rake
+                    タスクを再実行して、それに応じてコメントを更新できます。</p>
+                    <pre><code>namespace :db do
+  desc &quot;Add enum comments&quot;
+  task enum_comments: :environment do
+    comment_text = Job.defined_enums.map do |name, values|
+      value_mappings = values.map { |k, v| &quot;#{v} =&gt; #{k}&quot; }.join(&quot;, &quot;)
+      &lt;&lt;-SQL
+        COMMENT ON COLUMN jobs.#{name} IS &#39;Enum: #{value_mappings}&#39;;
+      SQL
+    end.join(&quot;\n&quot;)
+
+    ActiveRecord::Base.connection.execute(comment_text)
+  end
+end
+
+</code></pre>
+                    <p>rake タスクには 2 つの欠点があります。</p>
+                    <p>そして、移行には独自の欠点もあります。</p>
+                    <p>私の最初の間違った答え:</p>
+                    <p>たとえば、ステータスなどの整数列がテーブルにある場合。次に、次のように列挙型を書くことができます</p>
+                    <p>オプション1：</p>
+                    <pre><code>enum status: { removed: 0, live: 1, suspended: 2, enqueued: 3 }
+</code></pre>
+                    <p>オプション 2:</p>
+                    <pre><code>enum status: [:removed, :live, :suspended, :enqueued]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

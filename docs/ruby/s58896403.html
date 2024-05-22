@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>.zshenv:2: コマンドが見つかりません: rbenv | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": ".zshenv:2: コマンドが見つかりません: rbenv",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>.zshenv:2: コマンドが見つかりません:
+rbenv</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>bash から zsh に切り替えるときに、rbenv
+                    フォルダーが zsh
+                    で正しく使用されない問題を解決する方法を調べたところ、次のことがわかりました。</p>
+                    <pre><code>$ echo &#39;export PATH=&quot;$HOME/.rbenv/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshenv
+$ echo &#39;eval &quot;$(rbenv init -)&quot;&#39; &gt;&gt; ~/.zshenv
+$ echo &#39;source $HOME/.zshenv&#39; &gt;&gt; ~/.zshrc
+$ exec $SHELL
+</code></pre>
+                    <p>これらをすべて実行し、現在は正しい rbenv
+                    フォルダーを使用しているようですが、新しい iTerm
+                    ウィンドウを開くたびに次のエラー
+                    メッセージが表示されます。</p>
+                    <pre><code>/Users/myname/.zshenv:2: command not found: rbenv
+</code></pre>
+                    <p>私の何が間違っているのでしょうか？助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>PATH に 2 つのものを追加する必要があります。 まず
+                    rbenv 自体、次に Ruby shims です。</p>
+                    <p>rbenv を brew でインストールした場合、
+                    次に、rbenv 実行可能ファイルを /usr/local/bin/rbenv
+                    にリンクする必要があります。</p>
+                    <p>詳細については、homebrew
+                    のインストールに関するドキュメントを参照してください。</p>
+                    <p>/usr/local/bin がパス PATH
+                    にない場合は追加してください。</p>
+                    <pre><code># in ~/.zshrc
+
+export PATH=/usr/local/bin:$PATH
+</code></pre>
+                    <p>Github チェックアウト経由で rbenv
+                    をインストールする場合、rbenv 実行ファイルは
+                    ~/.rbenv/bin に保存される必要があります。</p>
+                    <p>詳細については、github のインストール
+                    ドキュメントを参照してください。</p>
+                    <p>~/.rbenv/bin がパス PATH
+                    にない場合は追加してください。</p>
+                    <pre><code># in ~/.zshrc
+
+export PATH=$HOME/.rbenv/bin:$PATH
+</code></pre>
+                    <p>what rbenv を呼び出して、rbenv
+                    がパスにあることを確認してください。 インストール
+                    パスが返される必要があります。</p>
+                    <p>Ruby シムをパスに追加します。</p>
+                    <pre><code># in ~/.zshrc
+
+eval &quot;$(rbenv init -)&quot;
+</code></pre>
+                    <p>eval “export
+                    PATH=”/Users/itayayuicularu/.rbenv/shims:<span
+                    class="math inline">${PATH}" の代わりに エクスポート
+                    RBENV_SHELL=sh コマンド rbenv rehash 2&gt;/dev/null
+                    rbenv() { ローカルコマンド コマンド="$</span>{1:-}”
+                    if [ “$#” -gt 0 ];それから シフト フィ</p>
+                    <p>「<span class="math inline">$command」の場合
+                    リハッシュ|シェル) eval "$</span>(rbenv “sh-<span
+                    class="math inline">$command" "$</span>@”)“;; *)
+                    コマンド rbenv “<span class="math inline">$command"
+                    "$</span>@”;; イーサック }”
+                    コマンドを使用して、shims
+                    フォルダーを直接追加することもできます。</p>
+                    <pre><code># in ~/.zshrc
+
+export RBENV_ROOT=$HOME/.rbenv
+export PATH=$RBENV_ROOT/shims:/versions:$PATH
+</code></pre>
+                    <p>ここで説明した rbenv-doctor
+                    スクリプトを実行することもできます。
+                    インストールを確認します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

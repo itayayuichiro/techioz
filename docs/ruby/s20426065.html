@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails はアップロードするファイルタイプを .xls のみに制限します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails はアップロードするファイルタイプを .xls のみに制限します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails はアップロードするファイルタイプを .xls
+のみに制限します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ビューから Excel
+                    シートをアップロードしたいのですが、Excel 2003
+                    ワークブックのみが受け入れられます。
+                    しかし、私の試みはうまくいきません。</p>
+                    <p>これが私の現在の実装です。</p>
+                    <p>視界の中で</p>
+                    <pre><code>&lt;%= file_field_tag :contact_file %&gt;
+</code></pre>
+                    <p>そしてコントローラー。</p>
+                    <pre><code>if File.extname( params[:contact_file] ) == &#39;xls&#39;
+      @list = @current_user.lists.build(params[:list])
+      @counter =0
+      ActiveRecord::Base.transaction do |transaction|
+        if @list.save
+          if params[:contact_file]
+            ap params[:contact_file]
+            oo = Spreadsheet.open(params[:contact_file].path).worksheet(0)
+            1.upto(oo.last_row_index) do |line|
+              @counter+=1
+              row = oo.row(line)
+              name = row[0]
+              phone_number = row[1].to_i.to_s
+              new_contact = @current_user.contacts.build
+              new_contact.phone_number = phone_number
+              new_contact.name = name
+              ap new_contact
+              if new_contact.valid?
+                new_contact.save
+                @list.contacts &lt;&lt; new_contact
+              else
+                if not @errors
+                  @errors ={}
+                end
+                @errors[&quot;#{@counter+1}&quot;] = new_contact.errors
+              end
+            end
+          end
+
+          if @errors
+            render action: &#39;new&#39;
+            raise ActiveRecord::Rollback
+          end
+          redirect_to @list, notice: &#39;List was successfully created.&#39;
+        else
+          render action: &#39;new&#39;
+        end
+      end
+    else
+      flash[:notice] =&quot;Please upload the correct file-format. Upload MS-Excel 2003 workbooks (.xls files)&quot;
+      render action: &#39;new&#39;
+    end
+  end
+</code></pre>
+                    <p>この行 File.extname( params[:contact_file] ) ==
+                    ‘xls’
+                    が機能しないように見えるため、何が問題になる可能性がありますか。</p>
+                    <p>リクエストパラメータは次のようになります。</p>
+                    <pre><code>{&quot;utf8&quot;=&gt;&quot;✓&quot;, &quot;authenticity_token&quot;=&gt;&quot;tzwsIt6sPhEFEqwS6YraU7SYU+kEvAr1it33j8YzCPk=&quot;, &quot;list&quot;=&gt;{&quot;name&quot;=&gt;&quot;acacia&quot;, &quot;user_id&quot;=&gt;&quot;1&quot;}, &quot;contact_file&quot;=&gt;#&lt;ActionDispatch::Http::UploadedFile:0xd7ad3b8 @original_filename=&quot;NGOs.xlsx&quot;, @content_type=&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;, @headers=&quot;Content-Disposition: form-data; name=\&quot;contact_file\&quot;; filename=\&quot;NGOs.xlsx\&quot;\r\nContent-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n&quot;, @tempfile=#&lt;File:/tmp/RackMultipart20131206-14445-4cpor5&gt;&gt;, &quot;commit&quot;=&gt;&quot;Upload&quot;, &quot;action&quot;=&gt;&quot;create&quot;, &quot;controller&quot;=&gt;&quot;lists&quot;}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>falsetru の答えは素晴らしいです。 Excel
+                    ファイルには必ずしも .xls
+                    拡張子が付いているわけではないという事実も考慮する必要があるかもしれないことを付け加えておきたいと思います。実際、現在のバージョンの
+                    Excel のデフォルトの拡張子は .xlsx
+                    です。したがって、今のように単一のファイル拡張子をチェックするのではなく。</p>
+                    <pre><code>File.extname( params[:contact_file] ) == &#39;.xls&#39;
+</code></pre>
+                    <p>代わりに、コレクションに対してチェックすることを検討することもできます。したがって、代わりに、チェックのために次のようなことを行うことができます</p>
+                    <pre><code>[&#39;.xls&#39;,&#39;.xlsx&#39;, &#39;.xlsb&#39;].include? File.extname(params[:contact_file])
+</code></pre>
+                    <p>Excel
+                    拡張機能の完全なリストを確認して、どの拡張機能をサポートする必要があるかを判断するには、ここを参照してください。</p>
+                    <p>http://office.microsoft.com/en-us/excel-help/file-formats-that-are-supported-in-excel-HP010014103.aspx</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

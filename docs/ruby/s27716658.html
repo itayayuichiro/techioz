@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>テスト用に Ruby Logger 出力をキャプチャする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "テスト用に Ruby Logger 出力をキャプチャする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>テスト用に Ruby Logger
+出力をキャプチャする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような Ruby クラスがあります。</p>
+                    <pre><code>require &#39;logger&#39;
+class T
+  def do_something
+    log = Logger.new(STDERR)
+    log.info(&quot;Here is an info message&quot;)
+  end
+end
+</code></pre>
+                    <p>そして、テストスクリプトには次のような行があります。</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+gem &quot;minitest&quot;
+require &#39;minitest/autorun&#39;
+
+require_relative &#39;t&#39;
+
+class TestMailProcessorClasses &lt; Minitest::Test
+  def test_it
+    me = T.new
+
+    out, err = capture_io do
+      me.do_something
+    end
+
+    puts &quot;Out is &#39;#{out}&#39;&quot;
+    puts &quot;err is &#39;#{err}&#39;&quot;
+  end
+end
+</code></pre>
+                    <p>このテストを実行すると、out と err
+                    の両方が空の文字列になります。 (端末上の) stderr
+                    にメッセージが出力されているのがわかります。 Logger
+                    と Capture_io
+                    をうまく連携させる方法はありますか?</p>
+                    <p>私は Ruby on Rails ではなく、ストレートな Ruby
+                    環境にいます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>魔法は、capture_subprocess_io
+                    を使用することです</p>
+                    <pre><code> out, err = capture_subprocess_io do
+     do_stuff
+ end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

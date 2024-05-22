@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>両方の関連付けられたテーブルに多くのフィールドを含む has_many アソシエーションの accepts_nested_attributes_for のパラメータを処理する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "両方の関連付けられたテーブルに多くのフィールドを含む has_many アソシエーションの accepts_nested_attributes_for のパラメータを処理する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>両方の関連付けられたテーブルに多くのフィールドを含む
+has_many アソシエーションの accepts_nested_attributes_for
+のパラメータを処理する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>建物モデルと has_many の関連付けを持つユーザー
+                    モデルがあります。最初は user.create と
+                    user.buildings.create
+                    を使用してユーザーと建物を別々に作成していました。テーブルにそのフィールドが
+                    true
+                    の場合にのみ建物を作成するようなフィールドがあり、建物には次の条件もありました。建物内の条件付きフィールドが
+                    true の場合、より多くのフィールド
+                    データが建物に追加されます。ユーザーが単一の建物を作成するまでは、すべてがスムーズに実行されていました。しかし、ユーザーがさらに建物を作成し始めると、コードがバーストしてしまいます。
+                    以下は users_controller のコードです</p>
+                    <pre><code>def create
+      role = Role.find_by(id: params[:user][:role_id])
+      if role.nil?
+        render json: { error: &#39;invalid role&#39; }, status: :unprocessable_entity
+      else
+        user = User.new(user_params)
+        user.role_id = role.id
+        ActiveRecord::Base.transaction do
+          if user.save
+            # If the user is a technician, handle equipment_params
+            if role.name.downcase == &#39;technician&#39;
+              equipment_ids = params[:user][:equipment_id]
+              handle_technician_params(user, equipment_ids)
+            end
+            # If the user is a customer, handle customer_params
+            if role.name.downcase == &#39;customer&#39;
+              handle_customer_params(user)
+            end
+            # Generate a new authentication token for the user
+            token, refresh_token = generate_tokens(user.id)
+            render json: {  message: &#39;User created successfully&#39;, authentication_token: token, user: user, meta: {photos: UserSerializer.new(user) }}, status: :ok
+          else
+            render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+      end
+    end
+def handle_customer_params(user)
+      if user_params[:is_customer_direct_point_of_contact] == &#39;true&#39;
+        handle_building_params(user)
+      else
+        handle_service_params(user)
+      end
+    end
+
+    def handle_building_params(user)
+      building_params = params.require(:building).permit(:service_address_line1, :service_address_line2, :service_zip_code, service_images: [])
+      building = user.buildings.create(building_params)
+    end
+    def handle_service_params(user)
+      service_params = params.require(:building).permit(:service_address_line1, :service_address_line2, :service_zip_code, :name, :phone_number, :email, :tax_id, service_images: [])
+      building = user.buildings.create(service_params)
+    end
+
+</code></pre>
+                    <p>ユーザーを直接作成してビルドするために
+                    accepts_nested_attributes_for
+                    を使用するように変更しようとしましたが、その方法がわかりませんでした。
+                    それを行う他の方法もありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでクリーンアップできる非常に基本的なものがたくさんあります。これらには、コントローラー
+                    (user.technician?)
+                    ではなくモデル内で実行する必要がある値のテストなどが含まれます。モデルメソッドである必要があります。しかし、あなたの特定の質問に答えるために：</p>
+                    <p>アプリの機能を実験しないでください。テストを書くことでより優れたコーダーになり、コード
+                    ベースがより良くなり、反復してより速く学習できるようになります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://guides.rubyonrails.org/testing.html#functional-tests-for-your-controllers</p>
+                    <p>そして、高頻度の反復テストにはガードを使用することをお勧めします。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/guard/guard</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

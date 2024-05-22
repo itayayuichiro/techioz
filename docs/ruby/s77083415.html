@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gem では、どのように設定すればよいでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gem では、どのように設定すればよいでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gem
+では、どのように設定すればよいでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コレクションが ActiveRecord::Relation
+                    を返す場合、各「バッチ」に制限を設定するにはどうすればよいでしょうか?ジョブ反復のベスト
+                    プラクティスによると、デフォルトは 100
+                    です。高価なクエリや大規模なデータセットにとって、100
+                    は小さすぎます。</p>
+                    <p>ここに伝わったようです。</p>
+                    <p>ただし、コレクション メソッドで maintenance_tasks
+                    gem
+                    を使用する場合、列挙子を明示的に構築しません。では、どのようにして
+                    <span class="citation"
+                    data-cites="batch_size">@batch_size</span>
+                    を渡したり、設定したりできるのでしょうか?私は、MaintenanceTasks::Task
+                    内で <span class="citation"
+                    data-cites="batch_size">@batch_size</span>、<span
+                    class="citation"
+                    data-cites="of">@of</span>、defbatch_size、def of
+                    などのいくつかの推測を試してみました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>maintenance_tasks gem には、<span
+                    class="citation"
+                    data-cites="batch_size">@batch_size</span>
+                    インスタンス変数を直接設定する方法がありません。ただし、コレクション
+                    メソッドの :batch_size オプションを指定して
+                    find_each メソッドを使用すると、バッチ
+                    サイズを制御できます。</p>
+                    <p>タスクごとに異なるバッチ
+                    サイズを設定する場合は、各タスクの収集メソッドで
+                    find_each メソッドを :batch_size
+                    オプションとともに使用する必要があります。 find_each
+                    メソッドは、レコードのバッチを生成する Enumerator
+                    を返します。これは、maintenance_tasks gem
+                    が期待するものです。</p>
+                    <p>find_each メソッドは ActiveRecord
+                    の一部であり、その機能は maintenance_tasks gem
+                    に直接関連していないことに注意してください。これはデータベースからレコードをバッチでフェッチするために使用され、大規模なデータセットを扱うときのパフォーマンスを向上させることができます。</p>
+                    <p>以下は、収集メソッドでバッチ
+                    サイズを設定する方法の例です。</p>
+                    <pre><code>module Maintenance
+class UpdatePostsThrottledTask &lt; MaintenanceTasks::Task
+  throttle_on(backoff: 1.minute) do
+    DatabaseStatus.unhealthy?
+  end
+
+  def collection
+    Post.find_each(batch_size: 1000)
+  end
+
+  def process(post)
+    post.update!(content: &quot;New content added on #{Time.now.utc}&quot;)
+  end
+end
+</code></pre>
+                    <p>終わり</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

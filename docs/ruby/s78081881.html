@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 と Ruby 3 でrubocop が失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 と Ruby 3 でrubocop が失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 と Ruby 3 でrubocop が失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 6.1.7.7 と Ruby 3.0.6p216
+                    を使用して、手付かずの新しい Rails アプリ (rails new
+                    myapp) を作成しました。私は Sonoma 14.2
+                    を実行している Apple M2 Pro を使用しています。</p>
+                    <p>rubocop をインストールし、Gemfile
+                    に追加しました。</p>
+                    <pre><code>rvm @global do gem install rubocop
+</code></pre>
+                    <p>Bundle exec の有無にかかわらず、rubocop
+                    を実行しようとすると、エラーが発生します。
+                    ロボコップが私の行く手にいる、</p>
+                    <pre><code>myapp % which rubocop
+/Users/.../.rvm/gems/ruby-3.0.6/bin/rubocop
+</code></pre>
+                    <p>rubocop を実行すると再帰エラーが発生します
+                    (初期の Rails アプリで)</p>
+                    <pre><code>myapp % rubocop
+/Users/.../.rvm/rubies/ruby-3.0.6/lib/ruby/3.0.0/psych/visitors/to_ruby.rb:128:in `visit_Psych_Nodes_Scalar&#39;: stack level too deep (SystemStackError)
+    from /Users/.../.rvm/rubies/ruby-3.0.6/lib/ruby/3.0.0/psych/visitors/visitor.rb:30:in `visit’
+</code></pre>
+                    <p>また、bundle exec を使用して:</p>
+                    <pre><code>myapp % bundle exec rubocop
+bundler: failed to load command: rubocop (/Users/.../.rvm/gems/ruby-3.0.6/bin/rubocop)
+/Users/.../.rvm/rubies/ruby-3.0.6/lib/ruby/3.0.0/psych/visitors/to_ruby.rb:52:in `deserialize&#39;: stack level too deep (SystemStackError)
+    from /Users/.../.rvm/rubies/ruby-3.0.6/lib/ruby/3.0.0/psych/visitors/to_ruby.rb:128:in `visit_Psych_Nodes_Scalar&#39;
+</code></pre>
+                    <p>psych
+                    を削除しようとしましたが、デフォルトとみなされます。</p>
+                    <pre><code>myapp % gem uninstall psych
+Gem psych-3.3.2 cannot be uninstalled because it is a default gem
+</code></pre>
+                    <p>アイデアがあれば大歓迎です。このエラーが新しい
+                    Rails
+                    アプリでも発生することを確認するために、コード内の再帰の問題を探すのに多くの時間を費やしました。もうコードの問題ではないと思います。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rubocop/rubocop/issues/5118#issuecomment-346876567</p>
+                    <p>これで問題が解決すると思います。すでに
+                    .rubocop.yml
+                    ファイルがある場合は、正確さを確認してこの yml
+                    ファイルを修正する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

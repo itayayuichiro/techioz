@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列に変換された配列からシンボルを抽出しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列に変換された配列からシンボルを抽出しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列に変換された配列からシンボルを抽出しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の文字列があります。</p>
+                    <p>s = “[:test1, :test2]”</p>
+                    <p>最終的に再びシンボルの配列になるようにしたいと思います。</p>
+                    <p>[:テスト1、:テスト2]</p>
+                    <p>同様の質問が 2 つ見つかりました。</p>
+                    <p>Ruby:
+                    ネストされた配列の文字列表現を配列に解析しますか?</p>
+                    <p>Rubyは文字列配列を配列オブジェクトに変換します</p>
+                    <p>ただし、JSON.parse も YAML.load
+                    も機能しません。</p>
+                    <pre><code>irb(main):043&gt; test
+=&gt; &quot;[:test1, :test2]&quot;
+irb(main):044&gt; JSON.parse test
+/Users/[...]/.rbenv/versions/3.2.2/lib/ruby/3.2.0/json/common.rb:216:in `parse&#39;:
+unexpected token at &#39;:test1, :test2]&#39; (JSON::ParserError)
+irb(main):045&gt;
+irb(main):045&gt; YAML.load test
+/Users/[...]/.rbenv/versions/3.2.2/gemsets/rails_test/gems/psych-5.1.1.1/lib/psych/parser.rb:62:in `_native_parse&#39;: (&lt;unknown&gt;):
+did not find expected node content while parsing a flow node at line 1 column 2 (Psych::SyntaxError)
+</code></pre>
+                    <p>eval
+                    は機能しますが、インジェクションの問題があるため、通常は推奨されません。</p>
+                    <pre><code>irb(main):047&gt; eval(test)
+=&gt; [:test1, :test2]
+</code></pre>
+                    <p>これを行う唯一の方法は基本的な文字列操作ですが、カスタム関数を作成せずに
+                    Ruby
+                    に組み込まれたより良い方法があるのではないかと考えていました。</p>
+                    <pre><code>irb(main):046&gt; test.delete(&quot;[]:&quot;).split(&quot;, &quot;).map(&amp;:to_sym)
+=&gt; [:test1, :test2]
+</code></pre>
+                    <p>Ruby 3.2.2 を参考にしてください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>サンプルをクリーンアップすることはできますが、文字列内に格納されたシンボルのフラット配列以外のものに対して動作する保証はありません。</p>
+                    <pre><code>s = &quot;[:test1, :test2]&quot;
+
+s = s.delete(&quot;:[]&quot;).split(?,).map { _1.strip.to_sym }
+=&gt; [:test1, :test2]
+</code></pre>
+                    <p>ただし、最終的にどのようにしてシンボルの配列ではなく文字列が使用されるのかはまったく不明であり、複合キーに関する
+                    Rails
+                    ガイドにはどのようにしてその状態になるのかについては説明されていません。フォーム入力または
+                    URI パラメーター (どちらも文字列として表されます)
+                    からデータを取得し、要素を別の列名として解析していないため、2
+                    つの文字列値から複合キーを適切に形成できると想定せざるを得ません。</p>
+                    <p>フォームの複合キーに関するセクションでは、Rails
+                    マジックが機能するにはキーをアンダースコアで区切る必要があると述べています。また、適切にアクセスするにはコントローラーに
+                    params.extract_value
+                    を実装する必要がある場合もあります。コントローラー、ビュー、モデル
+                    コードが示されていないため、間違ったデータのソースに焦点を当てるのではなく、不適切にフォーマットされた最終結果を修正しようとしているように見えます。</p>
+                    <p>たとえそうでなかったとしても、これは最終的には間違った問題を解決することになります。
+                    s に無効な JSON
+                    が含まれている理由、または複合キーを適切に形成するために使用できる
+                    2 つの別個のキーを (シンボルではなく) String
+                    オブジェクトとして取得していない理由を理解する必要があります。</p>
+                    <p>それらのことを解決します。事後の文字列変更は、原因ではなく症状に対処するものです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Active Model Serializer を使用すると .to_xml が正しく動作しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Active Model Serializer を使用すると .to_xml が正しく動作しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Active Model Serializer を使用すると .to_xml
+が正しく動作しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>MIME 応答を使用して、Rails API で XML
+                    応答をレンダリングしようとしています。
+                    コードは次のようなものです:</p>
+                    <p>|format| を実行するための応答format.xml {
+                    レンダリング XML: <span class="citation"
+                    data-cites="records.to_xml">@records.to_xml</span>、ステータス:
+                    :ok } format.json { レンダリング json: <span
+                    class="citation"
+                    data-cites="records">@records</span>、ステータス:
+                    :ok } end</p>
+                    <p><span class="citation"
+                    data-cites="records">@records</span>
+                    でシリアライザーを使用して、必要なレコードを適切に表示しています。ただし、JSON
+                    形式でのみ機能し、XML 形式では機能しません。</p>
+                    <p>ところで、私のシリアライザーはリレーションを使用しており、レコードのページ付けにページジーも使用しています。</p>
+                    <p>gemfile に activemodel-serializer と
+                    activemodel-serializer-xml の両方があります</p>
+                    <p>サンプル: <span class="citation"
+                    data-cites="records">@records</span> =
+                    Model.where(条件)</p>
+                    <p>XML 形式の結果:</p>
+                    <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+ &lt;models type=&quot;array&quot;&gt;
+    &lt;model&gt;
+        &lt;id type=&quot;integer&quot;&gt;1&lt;/id&gt;
+        &lt;name type=&quot;string&quot;&gt; name1 &lt;/name&gt;
+        &lt;status type=&quot;string&quot;&gt; active &lt;/status&gt;
+    &lt;/model&gt;
+&lt;/models&gt;
+</code></pre>
+                    <p>JSON 形式の結果: { id: 1, name: ‘name1’,
+                    model_associate: [ { id: 1, name: ‘ma_name1’ } ]
+                    }</p>
+                    <p>期待される出力:</p>
+                    <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+ &lt;models type=&quot;array&quot;&gt;
+    &lt;model&gt;
+        &lt;id type=&quot;integer&quot;&gt;1&lt;/id&gt;
+        &lt;name type=&quot;string&quot;&gt; name1 &lt;/name&gt;
+        &lt;model_associates type=&quot;array&quot;&gt;
+           &lt;model_associate&gt;
+              &lt;id type=&quot;integer&quot;&gt;1&lt;/id&gt;
+              &lt;name type=&quot;string&quot;&gt;ma_name1&lt;/name&gt;
+           &lt;model_associate&gt;
+        &lt;/model_associates&gt;
+    &lt;/model&gt;
+&lt;/models&gt;
+</code></pre>
+                    <p>私はRails 7、Ruby 3.0を使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答え 1:</p>
+                    <p>01 to_xml は、rails 環境に
+                    activemodel-serializers-xml
+                    をインストールした後に使用できます。</p>
+                    <p>02 activemodel-serializers-xml は 2
+                    つの方法でインストールできます</p>
+                    <ol type="a">
+                    <li><p>gem install activemodel-serializers-xml
+                    (ただし、rails 環境では機能しませんでした)</p></li>
+                    <li><p>Rails 環境で作業するには、Gemfile
+                    を追加するか、バンドルを使用します</p></li>
+                    </ol>
+                    <pre><code>  bundle add activemodel-serializers-xml
+  bundle install
+</code></pre>
+                    <p>03 モデルを作成し、ActiveModel::Serializers::Xml
+                    を含める</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  include ActiveModel::Serializers::Xml
+end 
+</code></pre>
+                    <p>04
+                    コントローラーを作成し、お気に入りのメソッドに進みます。
+                    「show」と言ってユーザーを見つけ、以下のように
+                    to_xml を使用します。</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  def show
+    @user = User.find(1)
+    xml = @user.to_xml
+    puts xml # You may check by printing on console.
+    render xml: xml # render plain: xml
+  end
+end
+</code></pre>
+                    <p>回答 2: activemodel-serializers-xml
+                    がインストールされ、環境に認識されている限り、機能します。コンソールで直接テストするには、次のプログラムを使用します。それを「xmltest.rb」として保存し、コンソールで次のように実行します。</p>
+                    <pre><code>  ruby xmltest.rb
+</code></pre>
+                    <p>動作しない場合は、activemodel-serializers-xml
+                    が正しくインストールされていません。</p>
+                    <p>コードは次のとおりです。データベースとテーブルに合わせて変更します。</p>
+                    <pre><code>   require &quot;active_record&quot;
+   require &quot;activemodel-serializers-xml&quot;
+
+   ActiveRecord::Base.establish_connection(
+     :adapter =&gt; &quot;mysql2&quot;,
+     :host =&gt; &quot;127.0.0.1&quot;,
+     :username =&gt; &quot;root&quot;,
+     :password =&gt; &quot;&quot;,
+     :database =&gt; &quot;test&quot;,
+   )
+
+   class User &lt; ActiveRecord::Base #ApplicationRecord
+     include ActiveModel::Serializers::Xml
+   end
+
+   user = User.find(1)
+   xml = user.to_xml
+
+   puts xml
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

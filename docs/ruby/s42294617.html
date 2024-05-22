@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby HTTP クライアントで TLS 1.2 を使用する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby HTTP クライアントで TLS 1.2 を使用する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby HTTP クライアントで TLS 1.2
+を使用する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>TLS 1.2 を使用してサードパーティ API
+                    にアクセスしようとしていますが、有効な証明書で SSL
+                    エラー イベントが発生します</p>
+                    <p>ルビーのバージョン:</p>
+                    <pre><code> ruby 2.3.0p0 (2015-12-25 revision 53290) [x86_64-linux]
+</code></pre>
+                    <p>レールのバージョン:</p>
+                    <pre><code>Rails 4.2.5
+</code></pre>
+                    <p>コード：</p>
+                    <pre><code>    ua = Net::HTTP.new(SERVER, 443)
+    ua.instance_eval {
+      @ssl_context = OpenSSL::SSL::SSLContext.new
+      options = OpenSSL::SSL::OP_NO_SSLv2 | OpenSSL::SSL::OP_NO_SSLv3
+      if OpenSSL::SSL.const_defined?(&#39;OP_NO_COMPRESSION&#39;)
+        options |= OpenSSL::SSL::OP_NO_COMPRESSION
+      end
+      @ssl_context.set_params({options: options})
+    }
+   # ua.instance_eval { @ssl_context = OpenSSL::SSL::SSLContext.new(:TLSv1_2) }
+    ua.use_ssl = true
+
+    # Checks presence of CA certificate
+    if File.directory?(RootCA)
+      ua.ca_path = RootCA
+      ua.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      ua.verify_depth = 3
+    else
+      puts &quot;Invalid CA certificates directory. Exiting...&quot;
+      exit
+    end
+</code></pre>
+                    <p>エラー：</p>
+                    <pre><code>OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:933:in `connect_nonblock&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:933:in `connect&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:863:in `do_start&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:852:in `start&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:1398:in `request&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:1421:in `send_entity&#39;
+    from /home/cp/.rbenv/versions/2.3.0/lib/ruby/2.3.0/net/http.rb:1209:in `post&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>openssl で Ruby をビルドした後に解決された問題
+                    (https://railsfornovice.wordpress.com/2017/03/02/fix-openssl-cert-error-in-rails/)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

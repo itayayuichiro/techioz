@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>列の値が文字列内に含まれているかどうかを確認する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "列の値が文字列内に含まれているかどうかを確認する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>列の値が文字列内に含まれているかどうかを確認する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>会社の銀行口座で支払いが受け取られると、アプリケーションに対して
+                    Webhook
+                    がトリガーされ、支払いラベルを含む支払いに関連するデータが提供されます。</p>
+                    <p>このラベルはクライアントによって書き込まれた文字列であり、インスタンスごとに大幅に異なる場合があります。通常、ラベルに含める参照をクライアントに提供して、クライアントを識別できるようにします。参照パターンは、正規表現
+                    /-?-?-?/ に準拠します。例:
+                    「ABCDE-2023-01-0001」または「ab-2023-01-0001」など。</p>
+                    <p>さらに、number とmoneyin_key という 2
+                    つの列を持つ Invoice
+                    モデルがあります。通常、数値は次の形式に従います:
+                    ABCDE-2023-01-0001。moneyin_key
+                    値は同じですが、ハイフンがありません
+                    (「ABCDE2023010001」のように)。</p>
+                    <p>クライアントが提供したラベルに関連するすべての請求書を取得するスコープを作成したいと考えています。前述したように、ラベルは大きく異なる場合がありますが、例を次に示します。「VIR.
+                    O/ JUMBO VISMA MOTIF: EDP2023100001」
+                    私のスコープは次のように構成されている必要があります。</p>
+                    <pre><code>scope :related_to_payment_label, -&gt; (label) { do_something_here }
+</code></pre>
+                    <p>いくつかのアプローチを試しましたが、どれも成功しませんでした。例：</p>
+                    <pre><code>scope :related_to_payment_label, -&gt; (label) {
+  where(&quot;number ILIKE :label OR moneyin_key ILIKE :label&quot;, label: &quot;%#{label}%&quot;)
+}
+</code></pre>
+                    <p>何か案は？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでは次のように REGEXP
+                    関数を使用できます。</p>
+                    <pre><code>scope :related_to_payment_label, -&gt; {
+  where(&quot;number REGEXP :regexp OR moneyin_key REGEXP :regexp&quot;, regexp: &#39;[a-zA-Z]{2,5}-?\d{4}-?\d{2}-?\d{4}\z&#39;)
+}
+</code></pre>
+                    <p>または、データベースが Postgres
+                    の場合は、大文字と小文字を区別しない正規表現には ~*
+                    を使用し、大文字と小文字を区別するには ~*
+                    を使用することもできます。</p>
+                    <p>例えば：</p>
+                    <pre><code>scope :related_to_payment_label, -&gt; {
+  where(&quot;number ~* :regexp OR moneyin_key ~* :regexp&quot;, regexp: &#39;[a-zA-Z]{2,5}-?\d{4}-?\d{2}-?\d{4}\z&#39;)
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

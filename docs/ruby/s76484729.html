@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>新しい部分がターボ フレームでレンダリングされるときに自動スクロールするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "新しい部分がターボ フレームでレンダリングされるときに自動スクロールするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>新しい部分がターボ
+フレームでレンダリングされるときに自動スクロールするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しい部分がターボフレームでレンダリングされ、ページに小さなフォームがあり、ボタンをクリックすると新しいフォームをレンダリングするイベントがトリガーされるときに、JavaScriptで強制的にスクロールしようとすると少し問題が発生します。新しいフォームが追加されたとき、フォームの数が十分であれば、縦スクロールを作成します。</p>
+                    <p>そこで、ボタンのクリック時にイベントリスナーを追加しようとします。クリックすると、コンテナscrollHeightをキャッチし、clientHeightと比較します。それが大きい場合、要素scrollTopの属性を実行します。これはコードです。</p>
+                    <pre><code>button.addEventListener(&quot;click&quot;, function (e) {
+    let container = document.querySelector(&quot;#container-travellers&quot;)
+    if (container.scrollHeight &gt; container.clientHeight) {
+        console.log(&#39;should scroll&#39;)
+        container.scrollTop = container.scrollHeight;
+      }
+  })
+</code></pre>
+                    <p>私はよく検索し、ターボフレームの自動スクロールプロパティなどのターボイベント、またはturbo:submit-endのようなイベントでそれを実行しようとしましたが、この両方のイベントではスクロールは発生せず、コンソールログのみが表示され、条件付きが機能しています。</p>
+                    <p>それが重要であれば、これはターボストリームとターボフレーム呼び出しの
+                    HTML コードです</p>
+                    <pre><code> &lt;%= turbo_stream_from &#39;checkout_stream&#39; %&gt;
+ &lt;div id=&quot;container-travellers&quot; class=&quot;shadow-md flex flex-col rounded-md bg-white p-2 w-full max-h-[690px] gap-2 scroll-smooth overflow-auto&quot; data-autoscroll-block=&quot;end&quot;&gt;
+      &lt;%= turbo_frame_tag &#39;travellers&#39;, id:&#39;travellers_frame&#39;, class:&quot;flex flex-col gap-4&quot; do %&gt;
+          &lt;%= render partial: &#39;travellers/traveller_form&#39;%&gt;
+      &lt;% end %&gt;
+      &lt;%= link_to &quot;Add New&quot;, add_new_traveller_path, id:&#39;new_traveller&#39;, class:&quot;w-full text-center bg-[#{tw_color_purple(&#39;600&#39;)}] py-1 text-white hover:bg-[#{tw_color_purple(&#39;700&#39;)}] rounded&quot;, data: {
+                  turbo_method: :post,
+        } %&gt;
+ &lt;/div&gt;
+</code></pre>
+                    <p>解決策（最善ではありません）： Turbo
+                    ヘルパー、イベント、属性を使用していくつかの解決策を見つけようとしましたが、どれも機能しませんでした。JavaScript
+                    を実行して機能させ、イベント DOMNodeInserted
+                    をリッスンします。そのため、新しいパーシャルがストリーミングされてフレームに追加されると、イベントがトリガーされ、スクロール機能が実行されます。</p>
+                    <p>これは私が知っている最善の解決策ではありませんが、私にとっては問題は解決しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>公式ドキュメントを読むと、次のことがわかりました</p>
+                    <p>Turbo_frame 要素に次の HTML
+                    属性を追加してみてはいかがでしょうか</p>
+                    <pre><code>&lt;%= turbo_frame_tag &#39;travellers&#39;, id:&#39;travellers_frame&#39;, class:&quot;flex flex-col gap-4&quot;, &#39;data-autoblock-scroll&#39;: &#39;end&#39; do %&gt;
+</code></pre>
+                    <p>または</p>
+                    <pre><code>&lt;%= turbo_frame_tag &#39;travellers&#39;, id:&#39;travellers_frame&#39;, class:&quot;flex flex-col gap-4&quot;, &#39;data-autoscroll-behavior&#39;: &#39;smooth&#39; do %&gt;
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

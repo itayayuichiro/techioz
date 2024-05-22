@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby dry-rbを使用して登録コンテナを分離するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby dry-rbを使用して登録コンテナを分離するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+dry-rbを使用して登録コンテナを分離するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の初心者が dry-rb
+                    gem、特に自動インジェクターを検討するときに、登録コンテナをモジュールとして複数の機能に分割する方法はありますか?</p>
+                    <p>これは私が試してみましたが動作しなかったコードサンプルです。</p>
+                    <pre><code>module SomeFeatureContainter
+    extend Dry::Container::Mixin
+
+    register &quot;some_service&quot; do
+        SomeService.new
+    end
+    
+end
+
+
+class Container
+    extend Dry::Container::Mixin
+    include SomeFeatureContainter
+
+    
+end
+
+IocResolve = Dry::AutoInject(Container)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>制御の反転を実現するには、インスタンス化されたオブジェクトを通じてサービスを呼び出す前に、コンテナーを定義し、インジェクターを設定します。</p>
+                    <pre><code>require &#39;dry-auto_inject&#39;
+
+
+class SomeService
+  # your service definition
+end
+
+module SomeFeatureContainer
+  extend Dry::Container::Mixin
+
+  register &#39;some_service&#39; do
+    SomeService.new
+  end
+end
+
+class Container
+  extend Dry::Container::Mixin
+  configure { |config| config.auto_inject = true }
+  include SomeFeatureContainer
+
+  # define the injector
+  IocResolve = Dry::AutoInject(self)
+end
+
+class MyClass
+  include Container::IocResolve[:some_service]
+
+  def use_some_service
+    some_service.call
+  end
+end
+
+# invoke the service with MyClass
+my_instance = MyClass.new
+my_instance.use_some_service````
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

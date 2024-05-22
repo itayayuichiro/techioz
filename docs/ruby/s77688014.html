@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で undef を使用して定義を解除した後、インクルードされたクラスメソッドを再定義できなくなるのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で undef を使用して定義を解除した後、インクルードされたクラスメソッドを再定義できなくなるのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で undef
+を使用して定義を解除した後、インクルードされたクラスメソッドを再定義できなくなるのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    プロジェクトをアップグレードしていますが、以前のバージョンには
+                    Mocha が含まれていました。 any_instance
+                    メソッドを定義しました。私がアップグレードしている
+                    Rspec の新しいバージョンには、すべてのクラスに
+                    any_instance
+                    メソッドが含まれています。大量のテストを変更する必要がないように、すべてをアップグレードする間、しばらく
+                    Mocha を使い続ける必要があるため、any_instance の
+                    Mocha バージョンを使用したいと思います。</p>
+                    <p>そのために、Rspec を使用して、最初に
+                    disable_monkey_patching!
+                    を使用して独自のモンキーパッチングを削除します。次に、Rspec
+                    の config.mock_with :mocha
+                    呼び出しがあり、これにより mocha が Class の
+                    any_instance を定義します。すべてのクラスにモンキー
+                    パッチを適用するのは良くないことはわかっていますが、この質問は実際にはその理由を説明する良い教訓になります。しかし、私が見ている結果に興味があります。</p>
+                    <p>上記は、私がこれを行う理由についての背景です。以下に示すのは、再現可能な最小限の例ですが、私には説明できないため、洞察をいただければ幸いです。</p>
+                    <pre><code># Define a class
+class A; end
+
+# Define a module whose class methods I&#39;d like to include in every class
+module B
+  module ClassMethods
+    def a; end
+  end
+end
+
+# Include method &quot;a&quot; in all classes
+Class.send :include, B::ClassMethods
+
+# Try it out!
+A.a # &lt;- works
+</code></pre>
+                    <p>ここで、undef を使用してこれを削除します。これが
+                    disable_monkey_patching
+                    の目的だからです。行います:</p>
+                    <pre><code>Class.class_exec { undef a }
+A.a # &lt;- undefined method `a&#39; for A:Class (NoMethodError) -- that&#39;s expected 
+</code></pre>
+                    <p>ただし、今度は Class に別のメソッド “a”
+                    を定義する必要があります。これはモジュール C
+                    で定義します。</p>
+                    <pre><code>module C
+  module ClassMethods
+    def a; end
+  end
+end
+
+Class.send :include, C::ClassMethods
+</code></pre>
+                    <p>私が混乱しているのは次の部分です。</p>
+                    <pre><code>A.a # &lt;- undefined method `a&#39; for A:Class (NoMethodError)
+</code></pre>
+                    <p>これにより、 undef
+                    は永久に定義を解除するように見えますが、最終的に使用できなくなるメソッドを定義しようとしても誰にも警告しません。なぜこのようなことが起こるのでしょうか?</p>
+                    <p>MRI 3.2.2 および 2.7.2 で試した</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>include
+                    を呼び出しても、メソッドはレシーバーにコピーされません。これは、メソッド検索のために走査されるモジュールのリストに、含まれているモジュールを追加するだけです。</p>
+                    <p>このリストは、A のシングルトン
+                    クラスの祖先を調べることで確認できます。</p>
+                    <pre><code>class A; end
+
+A.singleton_class.ancestors
+#=&gt; [#&lt;Class:A&gt;, #&lt;Class:Object&gt;, #&lt;Class:BasicObject&gt;,
+#    Class, Module, Object, Kernel, BasicObject]
+</code></pre>
+                    <p>B::ClassMethods
+                    をクラスに含めると、このリストはそれに応じて変更されます。</p>
+                    <pre><code>Class.include(B::ClassMethods)
+
+A.singleton_class.ancestors
+#=&gt; [#&lt;Class:A&gt;, #&lt;Class:Object&gt;, #&lt;Class:BasicObject&gt;,
+#    Class, B::ClassMethods, Module, Object, Kernel, BasicObject]
+#           ^^^^^^^^^^^^^^^
+</code></pre>
+                    <p>B::ClassMethods が Class
+                    の後に追加されたことに注意してください。</p>
+                    <p>ここで、Class をレシーバーとして undef /
+                    undef_method
+                    経由でメソッドを「定義解除」すると、Class は
+                    (人為的な) NoMethodError
+                    を発生させてそのメソッドの呼び出しを阻止し、これにより以降のメソッド検索も終了します:
+                    (「人為的」と言ったのは、その方法はまだ残っています）</p>
+                    <pre><code>#&lt;Class:A&gt;  →  ...  →  Class  →  B::ClassMethods  →  ...
+                         |             |
+                       undef a         a
+                                (never gets here)
+</code></pre>
+                    <p>別のモジュール C::ClassMethods を Class
+                    に含めると、リストの B::ClassMethods の前、ただし
+                    Class の後に追加されます。</p>
+                    <pre><code>Class.include(C::ClassMethods)
+
+A.singleton_class.ancestors
+#=&gt; [#&lt;Class:A&gt;, #&lt;Class:Object&gt;, #&lt;Class:BasicObject&gt;,
+#    Class, C::ClassMethods, B::ClassMethods, Module, Object, Kernel, BasicObject]
+#           ^^^^^^^^^^^^^^^
+</code></pre>
+                    <p>そして、Class は依然として a
+                    の呼び出しを妨げているため、新しい a
+                    メソッドにも到達できません。</p>
+                    <pre><code>#&lt;Class:A&gt;  →  ...  →  Class  →  C::ClassMethods  →  B::ClassMethods  →  ...
+                         |             |                   |
+                       undef a         a                   a
+                                (still not gets here)
+</code></pre>
+                    <p>実際の問題 (Mocha)
+                    については、まずオブジェクトの先祖を確認し、両方の
+                    any_instance
+                    メソッドが定義されている場所を特定する必要があります。</p>
+                    <p>その後、 include / prepend
+                    を使用して、適切な場所にモンキーパッチを追加できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

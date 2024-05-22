@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 CSRF トークンの有効期限の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 CSRF トークンの有効期限の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 CSRF トークンの有効期限の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>実稼働環境でのフォーム送信で問題が発生しています。
+                    この基準は非常にまれなようで、私は問題を再現できませんでした。</p>
+                    <p>CSRF
+                    トークンは問題なく作成され、検証されます。</p>
+                    <p>この問題は、ユーザーがフォームを送信する前に 2
+                    時間以上待った場合にのみ発生するようですが、これを行っても同様に再現できませんでした。
+                    ログ</p>
+                    <pre><code>W, [2022-07-14T15:19:37.535241 #2433]  WARN -- : Can&#39;t verify CSRF token authenticity.
+I, [2022-07-14T15:19:37.535556 #2433]  INFO -- : Completed 422 Unprocessable Entity in 1ms (ActiveRecord: 0.0ms | Allocations: 291)
+F, [2022-07-14T15:19:37.536425 #2433] FATAL -- :   
+ActionController::InvalidAuthenticityToken (ActionController::InvalidAuthenticityToken):
+</code></pre>
+                    <p>Rails バージョン 6.1.6 Ruby バージョン 2.7.4</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この問題は、場合によっては、rails-ujs がリモート
+                    フォームの送信とともに CSRF
+                    トークンの挿入に失敗することが原因で発生しました。</p>
+                    <p>根本原因は特定できませんでしたが、Rails 7 と
+                    Turbo
+                    にアップグレードすることで問題は解決されました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

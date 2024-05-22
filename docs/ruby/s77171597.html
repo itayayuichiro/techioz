@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby での Agora RTC トークン生成により無効なトークンが作成される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby での Agora RTC トークン生成により無効なトークンが作成される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby での Agora RTC
+トークン生成により無効なトークンが作成される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby アプリで Agora
+                    の認証ワークフローを設定しようとしていますが、Agora
+                    Web デモでテストすると、生成したすべてのトークンで
+                    AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: flag: 4096
+                    が発生します。</p>
+                    <p>Web
+                    コンソールからの完全なエラーは次のとおりです。</p>
+                    <pre><code>Agora-SDK [ERROR]: [client-48eb2] join number: 1, Joining channel failed, rollback AgoraRTCException: AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: flag: 4096, message: AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: invalid token, authorized failed
+</code></pre>
+                    <p>AgoraIO/Tools Github リポジトリの
+                    AgoraDynamicKey2::RtcTokenBuilder を使用しています
+                    私が使用している特定のファイルは RTC トークン
+                    ビルダーです</p>
+                    <p>私が実装したコードは次のとおりです。</p>
+                    <pre><code>require &#39;agora_dynamic_key2&#39;
+# app/models/chat/participant.rb
+# Chat::Participant Model
+# This is the model which connects users to chats.
+class Chat::Participant &lt; ApplicationRecord
+
+  def agora_token
+    app_id = Rails.application.credentials.dig(:agora, :app_id)
+    app_certificate = Rails.application.credentials.dig(:agora, :app_certificate)
+    channel_name = chat.id
+    account = user.id
+    token_expiration_in_seconds = 3600
+    privilege_expiration_in_seconds = 3600
+
+    AgoraDynamicKey2::RtcTokenBuilder.build_token_with_user_account(
+      app_id, app_certificate, channel_name, account,
+      AgoraDynamicKey2::RtcTokenBuilder::ROLE_PUBLISHER, token_expiration_in_seconds, privilege_expiration_in_seconds
+    )
+  end
+
+end
+
+</code></pre>
+                    <p>chat.id と user.id はどちらも UUID
+                    文字列です。</p>
+                    <p>RTC トークン コードは Agora lib
+                    からのものです。</p>
+                    <pre><code>    def self.build_token_with_user_account(app_id, app_certificate, channel_name, account, role, token_expire, privilege_expire = 0)
+      access_token = AgoraDynamicKey2::AccessToken.new(app_id, app_certificate, token_expire)
+      service_rtc = AgoraDynamicKey2::ServiceRtc.new(channel_name, account)
+
+      service_rtc.add_privilege(AgoraDynamicKey2::ServiceRtc::PRIVILEGE_JOIN_CHANNEL, privilege_expire)
+      if role == ROLE_PUBLISHER
+        service_rtc.add_privilege(AgoraDynamicKey2::ServiceRtc::PRIVILEGE_PUBLISH_AUDIO_STREAM, privilege_expire)
+        service_rtc.add_privilege(AgoraDynamicKey2::ServiceRtc::PRIVILEGE_PUBLISH_VIDEO_STREAM, privilege_expire)
+        service_rtc.add_privilege(AgoraDynamicKey2::ServiceRtc::PRIVILEGE_PUBLISH_DATA_STREAM, privilege_expire)
+      end
+      access_token.add_service(service_rtc)
+      access_token.build
+    end
+</code></pre>
+                    <p>ここで私が間違っていることはありますか？
+                    より適切なエラーメッセージでトークンの有効性をチェックするより良い方法を知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>少なくとも AgoraDynamicKey2
+                    では、アカウントまたは uid の値は整数、理想的には 32
+                    ビットの符号なし整数でなければならないようです。
+                    (テストでは 28 ビットは動作しましたが、Flutter SDK
+                    では受け入れられませんでした)</p>
+                    <p>ドキュメントや API
+                    コメントで暗示されているにもかかわらず、アカウントとして文字列値を渡すことはサポートされていません。</p>
+                    <p>これを修正するには、次のようにユーザーの UUID
+                    から 32 ビット int を生成します。</p>
+                    <pre><code># on the User model
+
+  def uid_32
+    id[0, 8].hex
+  end
+</code></pre>
+                    <p>次にチャット参加者モデルについて</p>
+                    <pre><code>  def agora_token
+    app_id = Rails.application.credentials.dig(:agora, :app_id)
+    app_certificate = Rails.application.credentials.dig(:agora, :app_certificate)
+    channel_name = chat_id
+    uid = user.uid_32
+    role = AgoraDynamicKey2::RtcTokenBuilder::ROLE_PUBLISHER
+    token_expiration_in_seconds = 3600
+    privilege_expiration_in_seconds = 3600
+
+    AgoraDynamicKey2::RtcTokenBuilder.build_token_with_user_account(
+      app_id, app_certificate, channel_name, uid, role, token_expiration_in_seconds, privilege_expiration_in_seconds
+    )
+  end
+</code></pre>
+                    <p>この背後にある理由は、次のコード
+                    コメントにあるように、AgoraDynamicKey から
+                    AgoraDynamicKey2
+                    に移行するときに、文字列「account」を使用した RTC
+                    トークンの生成のサポートが削除されたためであると考えられます。
+                    ダイナミックキー ダイナミックキー2</p>
+                    <p>Agora が GitHub
+                    で提供している例では、この変更が暗黙的に示されていますが、これが重要な変更であるかどうかは明らかではなく、エラーは役に立ちませんでした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

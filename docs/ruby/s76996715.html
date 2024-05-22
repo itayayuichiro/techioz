@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>改良を使用して { now: Time.now }.inspect の出力をカスタマイズするように変更するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "改良を使用して { now: Time.now }.inspect の出力をカスタマイズするように変更するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>改良を使用して { now: Time.now }.inspect
+の出力をカスタマイズするように変更するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>何年も Ruby を扱ってきた結果、ついに Ruby
+                    を改良する必要性が十分にあることに気づきました。</p>
+                    <pre><code># frozen_string_literal: true
+
+module TimeMongoInspect
+  refine Time do
+
+    def inspect
+      strftime(&quot;Time.parse(&#39;%Y-%m-%d %H:%M:%S %z&#39;)&quot;)
+    end
+
+    def to_s
+      strftime(&quot;Time.parse(&#39;%Y-%m-%d %H:%M:%S %z&#39;)&quot;)
+    end
+  end
+end
+
+using TimeMongoInspect
+
+a = { time: Time.now }
+puts a.inspect
+</code></pre>
+                    <p>望ましい出力は</p>
+                    <pre><code>{:time=&gt;Time.parse(&#39;2023-08-29 00:39:08.546338569 +0000&#39;)}
+
+</code></pre>
+                    <p>興味がある人のために付け加えておきますが、出力をコードにカットアンドペーストできるようにしたいのですが、日付がリアルタイム
+                    クラスとして適切に解釈される必要があります。</p>
+                    <p>ChatGPTは配列とハッシュも改良すると言われています</p>
+                    <pre><code>module TimeMongoInspect
+  refine Time do
+    def inspect
+      &quot;Time.parse(&#39;#{strftime(&#39;%Y-%m-%d %H:%M:%S %z&#39;)}&#39;)&quot;
+    end
+
+    def to_s
+      inspect
+    end
+  end
+  
+  refine Hash do
+    def inspect
+      &quot;{&quot; + self.map { |k, v| &quot;#{k.inspect}: #{v.inspect}&quot; }.join(&quot;, &quot;) + &quot;}&quot;
+    end
+  end
+
+  refine Array do
+    def inspect
+      &quot;[&quot; + self.map { |v| v.inspect }.join(&quot;, &quot;) + &quot;]&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>しかし、これでは問題がさらに複雑になり、間違った方法だと思いました。</p>
+                    <p>これを行う正しい方法は何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、改良が語彙的にスコープされることです。</p>
+                    <p>つまり、同じスクリプト内で作成したコードにのみ適用されます。</p>
+                    <p>Time#inspectを絞り込むと。同じファイル/スクリプトから
+                    Time#inspect
+                    を呼び出すたびに、洗練されたメソッドが使用されます。</p>
+                    <p>Time.now.inspect
+                    を直接呼び出すと、それが表示されます。</p>
+                    <p>ただし、この改良は、スクリプトに含まれていないコードには影響しません。たとえば、Hash#inspect
+                    がコード内で定義されていません。これは、あなたの洗練されていない他の場所で定義されています。したがって、そこから呼び出される
+                    Time#inspect は、あなたの調整を使用しません。</p>
+                    <p>オプション:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

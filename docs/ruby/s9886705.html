@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでBOMマーカーをファイルに書き込む方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでBOMマーカーをファイルに書き込む方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでBOMマーカーをファイルに書き込む方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しいファイルに BOM
+                    マーカーを追加するための実用的なコードがいくつかあります。</p>
+                    <pre><code>  #writing
+  File.open name, &#39;w&#39;, 0644 do |file|
+    file.write &quot;\uFEFF&quot;
+    file.write @data
+  end
+
+  #reading
+  File.open name, &#39;r:bom|utf-8&#39; do |file|
+    file.read
+  end
+</code></pre>
+                    <p>データの前に不可解な「」を書かずにマーカーを自動的に追加する方法はありますか?
+                    File.open name, ‘w:bom’ のようなもの #
+                    このモードはおそらく効果がありません?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>**** この回答は新しい gem につながります:
+                    file_with_bom ****</p>
+                    <p>私も過去に同様の問題を抱えていたので、W
+                    モード用の追加のエンコード バリアントを使用して
+                    File.open を拡張しました。</p>
+                    <pre><code>class File
+  BOM_LIST_hex = {
+      Encoding::UTF_8      =&gt; &quot;\xEF\xBB\xBF&quot;, #&quot;\uEFBBBF&quot;
+      Encoding::UTF_16BE =&gt; &quot;\xFE\xFF&quot;, #&quot;\uFEFF&quot;,
+      Encoding::UTF_16LE =&gt; &quot;\xFF\xFE&quot;,
+      Encoding::UTF_32BE =&gt; &quot;\x00\x00\xFE\xFF&quot;,
+      Encoding::UTF_32LE =&gt; &quot;\xFE\xFF\x00\x00&quot;,
+    }
+  BOM_LIST_hex.freeze
+  def utf_bom_hex(encoding = external_encoding)
+    BOM_LIST_hex[encoding]
+  end
+
+class &lt;&lt; self
+  alias :open_old :open
+  def open(filename, mode_string = &#39;r&#39;, options = {}, &amp;block)
+    #check for bom-flag in mode_string
+    options[:bom] = true if mode_string.sub!(/-bom/i,&#39;&#39;)
+
+    f = open_old(filename, mode_string, options)
+    if options[:bom]
+      case mode_string
+        #r|bom already standard since 1.9.2
+        when /\Ar/   #read mode -&gt; remove BOM
+          #remove BOM
+          bom = f.read(f.utf_bom_hex.bytesize) 
+          #check, if it was really a bom
+          if bom != f.utf_bom_hex.force_encoding(bom.encoding)
+            f.rewind  #return to position 0 if BOM was no BOM
+          end
+        when /\Aw/  #write mode -&gt; attach BOM
+          f = open_old(filename, mode_string, options)
+          f &lt;&lt; f.utf_bom_hex.force_encoding(f.external_encoding)
+        end #mode_string
+    end
+
+    if block_given?
+      yield f 
+      f.close
+    end
+  end
+  end
+end #File
+</code></pre>
+                    <p>テストコード:</p>
+                    <pre><code>EXAMPLE_TEXT = &#39;some content öäü&#39;
+File.open(&quot;file_utf16le.txt&quot;, &quot;w:utf-16le|bom&quot;){|f| f &lt;&lt; EXAMPLE_TEXT }
+File.open(&quot;file_utf16le.txt&quot;, &quot;r:utf-16le|bom:utf-8&quot;){|f| p f.read }
+File.open(&quot;file_utf16le.txt&quot;, &quot;r:utf-16le:utf-8&quot;,  :bom =&gt; true ){|f| p f.read }
+File.open(&quot;file_utf16le.txt&quot;, &quot;r:utf-16le:utf-8&quot;){|f| p f.read }
+
+File.open(&quot;file_utf8.txt&quot;, &quot;w:utf-8&quot;, :bom =&gt; true ){|f| f &lt;&lt; EXAMPLE_TEXT }
+File.open(&quot;file_utf8.txt&quot;, &quot;r:utf-8&quot;, :bom =&gt; true ){|f| p f.read }
+File.open(&quot;file_utf8.txt&quot;, &quot;r:utf-8|bom&quot;,              ){|f| p f.read }
+File.open(&quot;file_utf8.txt&quot;, &quot;r:utf-8&quot;,                     ){|f| p f.read }
+</code></pre>
+                    <p>いくつかのコメント:</p>
+                    <p>改善するためにいくつかの修正が必要でした:</p>
+                    <p>おそらく明日はコードをリファクタリングして gem
+                    として提供する時間を見つけることになるでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

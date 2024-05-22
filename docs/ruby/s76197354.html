@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec テスト用に Rails セッション データを変更する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec テスト用に Rails セッション データを変更する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec テスト用に Rails セッション
+データを変更する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails アプリケーションの rspec
+                    を書いており、認証に Google
+                    を使用しています。認証を追加する前に仕様はすべて正常に設定されていましたが、認証されたユーザーをテストする何らかの方法が必要になりました。私の仕様の1つは次のようになります。</p>
+                    <pre><code>require &#39;rails_helper&#39;
+
+RSpec.describe &#39;Test&#39;, type: :request do
+  it &#39;should return 200&#39; do
+    get &#39;/test&#39;
+    expect(response).to have_http_status(:ok)
+  end
+end
+</code></pre>
+                    <p>これは、当然のことながら 401 では失敗します。</p>
+                    <p>コントローラーがユーザーがログインしていることを認識できるように、セッション変数に認証情報を追加する必要がありますが、rspec
+                    からセッション変数を変更する方法はないようです。テスト用の
+                    Google アカウントを作成し、実際の Google
+                    アカウントにログインするためのヘルパーをセットアップすることはできると思いますが、テストを作成するより良い方法があるはずです。オンラインでいくつかの例を見てきましたが、ほとんどは古いバージョンの
+                    Rails 用のようです。</p>
+                    <p>私は Rails 7.0.4.3 と Ruby 3.2.2
+                    を使用しています。</p>
+                    <p>編集：
+                    おそらく認証コードを含めるべきだと思いました。</p>
+                    <pre><code>class ApplicationController &lt; ActionController::Base
+  before_action :require_auth
+
+  private
+
+  def require_auth
+    user_id = session[:user_id]
+
+    if !user_id.present?
+      head :unauthorized
+    else
+      @auth_user = User.find(user_id)
+
+      if !@auth_user.present?
+        head :unauthorized
+      end
+    end
+  end
+end
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の知る限り、rack_session_access gem
+                    または同様のソリューションを追加しない限り、RSpec
+                    リクエストスペックのテストセットアップでセッション変数を簡単に変更する方法はありません。</p>
+                    <p>1 つのアプローチは、ログイン
+                    ユーザーを必要とするテストで auth_user
+                    オブジェクトを模擬することです。</p>
+                    <pre><code>class ApplicationController &lt; ActionController::Base
+  before_action :require_auth
+
+  private
+
+  def auth_user
+    @auth_user ||= User.find_by(id: session[:user_id])
+  end
+
+  def require_auth
+    head(:unauthorized) unless auth_user.present?
+  end
+end
+
+# spec/support/test_macros.rb
+module TestMacros
+  def log_in(user)
+    allow_any_instance_of(ApplicationController).to receive(:auth_user).and_return(user)
+  end
+end
+
+# spec/rails_helper.rb
+RSpec.configure do |config|
+  config.include(TestMacros)
+end
+
+it &#39;should return 200&#39; do
+  user = # create or fabricate user
+  log_in(user)
+  get &#39;/test&#39;
+  expect(response).to have_http_status(:ok)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

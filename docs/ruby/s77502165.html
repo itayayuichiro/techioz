@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails dotenv プロダクションの問題 [終了] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails dotenv プロダクションの問題 [終了]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails dotenv プロダクションの問題 [終了]</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>[ bin/setup ] [{&quot;RAILS_ENV&quot;=&gt;&quot;test&quot;}, &quot;bin/rails db:reset&quot;] succeeded
+[ bin/setup ] Dropping &amp; recreating the test database
+[ bin/setup ] Executing [{&quot;RAILS_ENV&quot;=&gt;&quot;production&quot;}, &quot;bin/rails db:reset&quot;]
+rails aborted!
+ArgumentError: Missing `secret_key_base` for &#39;production&#39; environment, set this string with `bin/rails credentials:edit` (ArgumentError)
+
+        raise ArgumentError, &quot;Missing `secret_key_base` for &#39;#{Rails.env}&#39; environment, set this string with `bin/rails credentials:edit`&quot;
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/mustdos/Ruby Stuff/MUPSA/config/environment.rb:5:in `&lt;main&gt;&#39;
+Tasks: TOP =&gt; db:reset =&gt; db:drop =&gt; db:load_config =&gt; environment
+(See full trace by running task with --trace)
+[ bin/setup ] [{&quot;RAILS_ENV&quot;=&gt;&quot;production&quot;}, &quot;bin/rails db:reset&quot;] failed
+</code></pre>
+                    <p>みなさん、こんにちは。dotenv を .env.testing
+                    .env.development と .env.production
+                    で使用しようとしましたが、.env.production
+                    を実行できないようです。</p>
+                    <p>この問題はどのように解決すればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby on Railsのドキュメントによると</p>
+                    <p>したがって、エラー
+                    メッセージが示すように、secret_key_base
+                    を設定する必要があります。</p>
+                    <pre><code>require &#39;securerandom&#39;
+SecureRandom.hex(64)
+</code></pre>
+                    <pre><code>EDITOR=&quot;code --wait&quot; rails credentials:edit --environment production
+</code></pre>
+                    <p>これにより、シークレットを含む暗号化されたファイルが復号された状態で開きます。これまで何も設定していないため、空のはずです。
+                    次のように Secret_key_base を設定します。</p>
+                    <pre><code>secret_key_base: xxxxxxxx
+other_secret: 123
+</code></pre>
+                    <p>これで、コード内で次のようにシークレットにアクセスできるようになります。</p>
+                    <pre><code>Rails.application.credentials.secret_key_base
+Rails.application.credentials.other_secret
+Rails.application.credentials.{secret_key}
+</code></pre>
+                    <p>PS:
+                    開発環境では、上記の手順で何も設定しなかった場合、実際には
+                    tmp/development_secret.txt に自動的に生成される
+                    Secret_key_base が使用されます。
+                    参考資料はこちらです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

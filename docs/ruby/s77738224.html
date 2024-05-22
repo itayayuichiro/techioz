@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>arm64-linux ベースの Ruby gem を M1 arm64-darwin ベースの Mac にインストールするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "arm64-linux ベースの Ruby gem を M1 arm64-darwin ベースの Mac にインストールするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>arm64-linux ベースの Ruby gem を M1
+arm64-darwin ベースの Mac
+にインストールするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロジェクトを AWS lambda
+                    にデプロイする際に問題が発生しました。コードはラップトップでは問題なく動作しますが、Lambda
+                    にデプロイすると google-protobuf gem
+                    に関連する問題が発生します。これは、私のパッケージ内で異なるアーキテクチャ用に複数のバージョンがある唯一の
+                    gem なので、これに関連していると思います。</p>
+                    <p>この gem
+                    を直接、つまりバンドラーなしでインストールしようとしましたが、ディレクトリが見つからないという参照とともに、rake
+                    が失敗したというエラーが発生しました。
+                    /Users/myUser/.rbenv/versions/3.2.0/lib/ruby/gems/3.2.0/gems/rake-13.1.0-arm64-linux/exe/rake
+                    (LoadError)</p>
+                    <p>このことから、rbenv には arm64-darwin
+                    ディレクトリしかないため、インストールできないのではないかと考えられます。
+                    arm64-linux アーキテクチャに基づいて rbenv
+                    をインストールするにはどうすればよいですか?または、他の解決策があれば大変感謝いたします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Gemfile または Gemfile.lock
+                    のコピーを提供していないか、意味のあるログを添付していません。その結果、実際のビルドやランタイムがどのようになるかを推測することしかできません。この回答は、不完全で再現不可能な質問に合わせて継続的に更新されることはありません。ただし、ある程度の知識に基づいた推測は可能です。以下に、プラットフォームに依存する実用的な
+                    gem 管理手順をいくつか示します。</p>
+                    <p>Bundler
+                    を使用するのではなく、かなり手動で何かを行っているとのことです。
+                    Bundler を動的に使用するか、事前にターゲット
+                    プラットフォーム用に gem
+                    をベンダーする必要があるため、なぜそうするのかは不明です。</p>
+                    <p>Gem、特にネイティブ拡張機能を使用する Gem
+                    には、ターゲット
+                    ホストでは利用できないプラットフォーム固有のビルドと
+                    (おそらく) 動的ライブラリが必要です。バンドル
+                    インストールがターゲット上で実行されたときに gem
+                    を適切に解決できるように、バンドル
+                    ロックを使用してすべてのターゲット
+                    プラットフォームを Gemfile.lock
+                    に追加する必要があります。次のようなものでそれを行うことができます:</p>
+                    <pre><code>bundle lock --add-platform arm64-linux
+</code></pre>
+                    <p>これにより、Gemfile.lock
+                    が正しく管理するプラットフォームのリストに
+                    arm64-linux が確実に追加されます。 Gemfile.lock
+                    を含むディレクトリでバンドル
+                    プラットフォームを実行すると、次のような結果が得られます。</p>
+                    <pre><code>Your platform is: arm64-darwin-23
+
+Your app has gems that work on these platforms:
+* arm64-darwin-23
+* arm64-linux
+* ruby
+</code></pre>
+                    <p>より具体的なプラットフォームが必要な場合は、リモート
+                    ホスト上で gem
+                    環境プラットフォームを実行して、特定のプラットフォームがどのようなものであるかを確認し、代わりにそのプラットフォームを追加する必要がある場合があります。</p>
+                    <p>依存関係が欠落している場合は、リモート
+                    コンテナーを詳しく調べる必要がある場合があります。たとえば、glibc
+                    ではなく musl libc
+                    に基づいているか、特定のビルド依存関係が欠落している可能性があります。その場合は、ビルド
+                    プロセスをデバッグするか、ドキュメントを確認して、ターゲット
+                    プラットフォームにどのようなビルド依存関係が欠落しているかを判断する必要があります。</p>
+                    <p>また、ドキュメントのそのセクションの手順に従って、または使用しているイメージに適した他の手順に従って、Lambda
+                    コンテナに使用される特定の AWS
+                    イメージをローカルでテストすることを検討することもできます。いずれの場合も、ローカルでテストすると、ラウンドトリップにかかる時間とトラブルが大幅に節約され、問題をより早く切り分けることができます。</p>
+                    <p>他にもできることはあるかもしれませんが、通常はここから始めるのが適切です。少なくとも正しい方向に導いてくれるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

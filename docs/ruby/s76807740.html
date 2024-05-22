@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>深さ 0 での SSL 検証エラー: ローカル発行者の証明書を取得できません (20) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "深さ 0 での SSL 検証エラー: ローカル発行者の証明書を取得できません (20)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>深さ 0 での SSL 検証エラー:
+ローカル発行者の証明書を取得できません (20)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の会社ではセキュリティ上の理由からすべてのインターネット
+                    トラフィックにプロキシを使用していますが、残念ながらこれにより
+                    Ruby の SSL が壊れてしまいます。</p>
+                    <p>gem install rake またはその他の gem
+                    コマンドを実行しようとすると、次のエラーが発生します。</p>
+                    <pre><code>ERROR:  SSL verification error at depth 0: unable to get local issuer certificate (20)
+ERROR:  You must add /C=US/ST=New York/L=New York City/O=My Company, Inc./OU=Corporate/CN=mycompany.com to your local trusted store
+RubyGems connection to rubygems.org:      failed  ❌  (certificate verification)
+</code></pre>
+                    <p>これを解決するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このエラー メッセージは、Ruby
+                    が有効な証明書を見つけられないため、証明書を追加する必要があることを意味します。</p>
+                    <p>TLDR: SSL 証明書を PEM
+                    ファイルに追加します。多くのアプリケーションが同じ
+                    PEM ファイルを使用しているため、SSL
+                    検証が失敗する他のアプリケーションでもこの修正が機能する可能性があります。
+                    PEM
+                    ファイルは、信頼できる証明書に対応するハッシュで構成される検索であり、ネットワーク
+                    パス上の証明書のいずれかが欠落している場合、SSL
+                    検証は失敗します。</p>
+                    <p>エラーはサーバーのアドレス (この例では
+                    mycompany.com) を指定します。 Web
+                    ブラウザでこのアドレスに移動します。 Google
+                    Chromeを使用しました。リダイレクトされる可能性がありますが、問題ありません。アドレス
+                    バーの Web
+                    アドレスの左側に鍵のアイコンが表示され、接続が安全であることを示します。これは、ブラウザが
+                    SSL
+                    証明書を見つけたことを意味します。ハッシュを取得するには、鍵アイコンをクリックして証明書ビューアを開きます。
+                    [詳細]
+                    タブをクリックし、最上位の証明書を選択していることを確認し
+                    (これは、エラー メッセージで取得した元の Web
+                    アドレスと一致する必要があります)、[エクスポート]
+                    をクリックします。ファイルをどこかに保存し、テキスト
+                    エディタで開くと、ハッシュが表示されます。</p>
+                    <p>ファイルを開く:</p>
+                    <pre><code>-----BEGIN CERTIFICATE-----
+MIIESzCCAzOgAwIBAgIJAKNiDFgr+nN4MA0GCSqGSIb3DQEBCwUAMIG7MQswCQYD
+VQQGEwJVUzERMA8GA1UECAwITmV3IFlvcmsxFjAUBgNVBAcMDU5ldyBZb3JrIENp
+[lots more stuff...]
+Z05JMrKlVndAmcLUoycD2hGqY9I1/9atfV23MkNslR+LBo7nMbjUj+lk/1rchww=
+-----END CERTIFICATE-----
+</code></pre>
+                    <p>ターミナルで次を実行します。 Ruby -ropenssl -e ‘p
+                    OpenSSL::X509::DEFAULT_CERT_FILE’</p>
+                    <p>道が見えてきます。私の場合：
+                    「C:/Ruby32-x64/bin/etc/ssl/cert.pem」</p>
+                    <p>このファイルをテキスト
+                    エディタで開き、末尾に証明書を追加します。おそらく、証明書の目的を指定するコメントを追加することをお勧めします。安全のため、エントリの上下に改行を入れておきます。</p>
+                    <pre><code>mYCOMPANY.com
+====================
+-----BEGIN CERTIFICATE-----
+[paste certificate hash here]
+-----END CERTIFICATE-----
+</code></pre>
+                    <p>ファイルを保存します。この時点では、次の手順をスキップできる場合があります。</p>
+                    <p>PowerShell の場合:</p>
+                    <p>:SSL_CERT_FILE=“C:-x64 in</p>
+                    <p>コマンド プロンプトで:</p>
+                    <p>set SSL_CERT_FILE=C:-x64 in</p>
+                    <p>このスクリプトを実行して、エラーが解決されたかどうかを確認します。リンクをクリックして
+                    check.rb として保存し、ruby check.rb
+                    を実行します。次のようなものが表示されるはずです。</p>
+                    <pre><code>Here&#39;s your Ruby and OpenSSL environment:
+
+Ruby:           3.2.2p53 (2023-03-30 revision e51014f9c05aa65cbf203442d37fef7c12390015) [x64-mingw-ucrt]
+RubyGems:       3.4.10
+Bundler:        2.4.10
+Compiled with:  OpenSSL 3.1.0 14 Mar 2023
+Loaded version: OpenSSL 3.1.0 14 Mar 2023
+SSL_CERT_FILE:  C:/Ruby32-x64/bin/etc/ssl/cert.pem
+SSL_CERT_DIR:   C:/Ruby32-x64/bin/etc/ssl/certs
+
+With that out of the way, let&#39;s see if you can connect to rubygems.org...
+
+Bundler connection to rubygems.org:       success ✅
+RubyGems connection to rubygems.org:      success ✅
+Ruby net/http connection to rubygems.org: success ✅
+
+Hooray! This Ruby can connect to rubygems.org. You are all set to use Bundler and RubyGems. 👌
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

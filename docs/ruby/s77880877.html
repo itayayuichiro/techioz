@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby スクリプトが深くネストされたディレクトリを再帰的に作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby スクリプトが深くネストされたディレクトリを再帰的に作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+スクリプトが深くネストされたディレクトリを再帰的に作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby スクリプト、具体的には copy2tmp
+                    という名前のメソッドを使用して作業しています
+                    (メソッド定義をコピーして貼り付けました)。</p>
+                    <pre><code>define_singleton_method(:copy2tmp) do |files|
+  files.each do |f|
+    if File.symlink?(f)
+      # Avoid trouble with symlink loops
+
+      # Delete old symlink if there is one, because:
+      # If a proper file or directory has been replaced with a symlink,
+      # remove the obsolete stuff.
+      # If there already is a symlink, delete because it might have been
+      # relinked.
+      if File.exist?(&quot;#{PARAMS[:tmpdir]}/#{f}&quot;)
+        FileUtils.rm(&quot;#{PARAMS[:tmpdir]}/#{f}&quot;)
+      end
+
+      # Create new symlink instead of copying
+      File.symlink(&quot;#{PARAMS[:jobpath]}/#{f}&quot;, &quot;#{PARAMS[:tmpdir]}/#{f}&quot;)
+    elsif File.directory?(f)
+      FileUtils.mkdir_p(&quot;#{PARAMS[:tmpdir]}/#{f}&quot;)
+      copy2tmp(Dir.entries(f)\
+                  .delete_if do |s| [&#39;.&#39;, &#39;..&#39;, ]\
+                  .include?(s) end.map { |s| &quot;#{f}/#{s}&quot; })
+      # TODO: Is this necessary? Why not just copy? (For now, safer and more adaptable.)
+    else
+      FileUtils.cp(f,&quot;#{PARAMS[:tmpdir]}/#{f}&quot;)
+    end
+  end
+end
+</code></pre>
+                    <p>これにより、過度に深くネストされたディレクトリが作成され、エラーが発生しているようです。このスクリプトは、ltx2any
+                    を使用して LaTeX
+                    ドキュメントを処理することを目的としています。この問題は、スクリプトがファイルを一時ディレクトリにコピーしようとしたときに発生しますが、代わりに
+                    ../folderName/folderName/folderName/….
+                    のような深くネストされた構造が作成されてしまいます。</p>
+                    <pre><code>copy2tmp(Dir.entries(&#39;.&#39;).delete_if { |f| exceptions.include?(f) })
+</code></pre>
+                    <pre><code>define_singleton_method(:copy2tmp) do |files, depth = 0|
+    puts &quot;Debug: Recursion depth #{depth}, files: #{files.inspect}&quot;
+# ...
+copy2tmp(Dir.entries(f).delete_if do |s| [&#39;.&#39;, &#39;..&#39;, ].include?(s) end.map { |s| &quot;#{f}/#{s}&quot; }, depth + 1)
+# ...
+copy2tmp(Dir.entries(&#39;.&#39;).delete_if { |f| exceptions.include?(f) }, 0)
+</code></pre>
+                    <p>問題は copy2tmp
+                    メソッド、その定義または呼び出し方法にあるのではないかと思います。このメソッドはファイルを一時ディレクトリにコピーすることを目的としていますが、ディレクトリ作成の再帰ループが発生しているようです。この問題の原因となっている
+                    copy2tmp
+                    メソッドまたはその呼び出しの欠陥を特定できる人はいますか?この意図しない再帰を阻止するための洞察があれば、大変感謝いたします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それで、少し掘り下げる必要がありましたが、問題の核心を見つけました。</p>
+                    <p>この行を使用していますExceptions =ignore
+                    +ignore.map { |s| “./#{s}” } + Dir[’.*’] +
+                    Dir[’./.*’] は、すべてのドット
+                    ファイルだけでなく、一部の無視ディレクトリを除外しようとします。</p>
+                    <p>Ruby &lt; 3.1 では、Dir[’.*’]
+                    に現在のディレクトリ (‘.’) と親ディレクトリ (‘..’)
+                    が含まれていたため、このフィルタは効果的でした。</p>
+                    <p>Ruby 3.1 以降、Dir[’.*’] には親ディレクトリ
+                    (‘..’)
+                    が含まれなくなりました。このコミットを参照</p>
+                    <p>ただし、Dir.entries(‘.’)
+                    には親ディレクトリが含まれます。</p>
+                    <p>これは、電話をかけるときを意味します</p>
+                    <pre><code>Dir.entries(&#39;.&#39;).delete_if { |f| exceptions.include?(f) }
+</code></pre>
+                    <p>親ディレクトリは存在し、ファイル配列から削除されないため、親ディレクトリをメソッドに渡します。このメソッドは再帰的であり、それ自体を呼び出すときに現在のディレクトリをファイルリストに追加するため、これを
+                    Ruby 3.1
+                    以降で実行すると、終わりのないループに陥っていました。</p>
+                    <p>この問題を解決する他の解決策はありますが、最も簡単で最も下位互換性のある方法は、Dir.children(‘.’)
+                    を使用することです。これは、Dir::children が ‘.’
+                    を含まないことを保証しているためです。または
+                    ‘..’</p>
+                    <p>実例</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

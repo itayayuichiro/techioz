@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ローマ字から整数へのリファクタリング | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ローマ字から整数へのリファクタリング",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ローマ字から整数へのリファクタリング</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はローマ数字をその整数に変換するメソッド
+                    roman_to_integer(roman_string) を書いています: ‘IV’
+                    を 4、‘XVI’ を 16 などに変換します。</p>
+                    <pre><code> ROMAN_TO_INT = {
+      &quot;I&quot; =&gt; 1,
+      &quot;IV&quot; =&gt; 4,
+      &quot;V&quot; =&gt; 5,
+      &quot;IX&quot; =&gt; 9,
+      &quot;X&quot; =&gt; 10,
+      &quot;XL&quot; =&gt; 40,
+      &quot;L&quot; =&gt; 50,
+      &quot;XC&quot; =&gt; 90,
+      &quot;C&quot; =&gt; 100,
+      &quot;CD&quot; =&gt; 400,
+      &quot;D&quot; =&gt; 500,
+      &quot;CM&quot; =&gt; 900,
+      &quot;M&quot; =&gt; 1000
+    }
+
+    def roman_to_integer(roman_string)
+      # TODO: translate roman string to integer
+      number = 0
+      str = roman_string.dup
+      until str.size.zero?
+        last_two_characters = str.slice(-2, 2)
+        if ROMAN_TO_INT.key?(last_two_characters)
+          number += ROMAN_TO_INT[last_two_characters]
+          str.chop!
+        else
+          number += ROMAN_TO_INT[str.slice(-1)]
+        end
+        str.chop!
+      end
+      number
+    end
+</code></pre>
+                    <p>メソッドを短くするにはどうすればよいですか?
+                    Rubocop では 10
+                    行しか許可されません。頑張っているのですが、いつも最低13で終わってしまいました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>iGian
+                    と同じトリックを使用したさらに小さいバージョン:</p>
+                    <pre><code>ROMAN_TO_INT =
+{
+  i: 1,
+  v: 5,
+  x: 10,
+  l: 50,
+  c: 100,
+  d: 500,
+  m: 1000
+}
+
+def roman_to_int(roman)
+  numbers = roman.downcase.chars.map { |char| ROMAN_TO_INT[char.to_sym] }.reverse
+  numbers.inject([0, 1]) do |result_number, int|
+    result, number = result_number
+    int &gt;= number ? [result + int, int] : [result - int, number]
+  end.first
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>呼び出し後のテスト時に Rails/Rspec JSON 整数が文字列に変換される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "呼び出し後のテスト時に Rails/Rspec JSON 整数が文字列に変換される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>呼び出し後のテスト時に Rails/Rspec JSON
+整数が文字列に変換される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>API への JSON リクエストをテストしています。JSON
+                    で応答します。 JSON
+                    内のすべての整数は、アクションを考慮してコントローラーに送信されるときに文字列に変換されるようです。</p>
+                    <pre><code>  def consider
+    binding.pry # binding no# 2 used to check the params after post from test.
+    if ParametersValidator.is_valid?(params)
+      application_handler = ApplicationHandler.new(request_interactor)
+      render json: application_handler.result
+    else
+      render json: ParametersValidator.failed_params(params).to_json
+    end
+  end
+</code></pre>
+                    <p>ParamaterValidator
+                    は、受信するデータの構造とタイプを検証します。</p>
+                    <pre><code>render_views
+let(:json) { JSON.parse(response.body) }
+..
+..
+
+it &#39;returns the result in the correct format for the AUTOMATIC APPROVE decision&#39; do
+  automatic_approve_params = relative_json_file(relative_file(&#39;automatic_approve_params&#39;))
+  expected_approve_params = {
+    &quot;status&quot; =&gt; &quot;accepted&quot;,
+    &quot;automated&quot; =&gt; true,
+    &quot;rate&quot; =&gt; 6,
+    &quot;amount&quot; =&gt; 30000,
+    &quot;term&quot; =&gt; 10,
+    &quot;pre_approved_amount&quot; =&gt; 2500,
+    &quot;comments&quot; =&gt; &quot;&quot;
+  }
+  @request.headers[&#39;HTTP_X_AUTH_SIG&#39;] = Rails.application.secrets[&#39;authorization&#39;][&#39;token&#39;]
+  request.env[&quot;HTTP_ACCEPT&quot;] = &#39;application/json&#39;
+
+  binding.pry  # binding no# 1 to inspect the params before post
+
+  post :consider, automatic_approve_params, format: :json
+  expect(json).to eq(expected_approve_params)
+end
+</code></pre>
+                    <pre><code>{
+ &quot;student_id&quot;=&gt;1,
+ &quot;age&quot;=&gt;22,
+ &quot;name&quot;=&gt;&quot;John&quot;,
+ &quot;age_range&quot;=&gt;&quot;22-25&quot;,
+ &quot;criminal_record&quot;=&gt;false,
+ &quot;declared_bankrupt&quot;=&gt;false,
+ &quot;declared_insolvent&quot;=&gt;false,
+ &quot;declared_sequestrated&quot;=&gt;false,
+ &quot;defaulted_on_loan&quot;=&gt;false,
+ &quot;post_study_salary&quot;=&gt;100000000,
+ &quot;first_nationality&quot;=&gt;&quot;PL&quot;,
+ &quot;second_nationality&quot;=&gt;&quot;&quot;,
+ &quot;citizenship&quot;=&gt;&quot;PL&quot;,
+}
+</code></pre>
+                    <pre><code>{
+ &quot;student_id&quot;=&gt;&quot;1&quot;,
+ &quot;age&quot;=&gt;&quot;22&quot;,
+ &quot;name&quot;=&gt;&quot;John&quot;,
+ &quot;age_range&quot;=&gt;&quot;22-25&quot;,
+ &quot;criminal_record&quot;=&gt;false,
+ &quot;declared_bankrupt&quot;=&gt;false,
+ &quot;declared_insolvent&quot;=&gt;false,
+ &quot;declared_sequestrated&quot;=&gt;false,
+ &quot;defaulted_on_loan&quot;=&gt;false,
+ &quot;post_study_salary&quot;=&gt;&quot;100000000&quot;,
+ &quot;first_nationality&quot;=&gt;&quot;PL&quot;,
+ &quot;second_nationality&quot;=&gt;&quot;&quot;,
+ &quot;citizenship&quot;=&gt;&quot;PL&quot;,
+}
+</code></pre>
+                    <p>テスト
+                    ログには、リクエストが次のとおりであることが示されています。</p>
+                    <pre><code>Processing by Api::V1::CreditApplicationsController#consider as JSON
+</code></pre>
+                    <p>ポストアクションの直前にリクエストを検査すると、パラメーターに問題がないことがわかります。次に、何かを実行する前にコントローラーでパラメーターを検査すると、それらはすべて文字列です。</p>
+                    <p>postman を使用して JSON で API
+                    をテストすることは期待どおりに機能しますが、検討アクションに投稿するときの
+                    rspec
+                    はすべてのパラメータを文字列に変換するようです。投稿アクションに
+                    format: :json
+                    を追加するとこの問題が解決すると主張する投稿を数十件読みましたが、そのような幸運はありませんでした。</p>
+                    <p>私は明らかに何か間違ったことをしていますが、知っていることはほぼすべて試しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが抱えている問題を再現した後、以下を使用してコントローラー仕様で問題を解決することができました。</p>
+                    <p>post
+                    :consider、automatic_approve_params.merge(形式:
+                    :json)</p>
+                    <p>ローカルテストでは、 request.env[“HTTP_ACCEPT”] =
+                    ‘application/json’
+                    とすると、期待どおりに動作しました。それが役に立てば幸い。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

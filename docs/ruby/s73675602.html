@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby gem を含むファイルを作成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby gem を含むファイルを作成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby gem
+を含むファイルを作成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の gem にはレールが必要です。 gem
+                    のインストール時にファイルを作成して lib
+                    ディレクトリに追加し、ユーザーが自分でファイルを作成せずにそのファイルに独自のコードを追加できるようにすることは可能ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初のジェネレーターの作成を検討していました</p>
+                    <p>まず、config/initializers 内に、initializer.rb
+                    という名前のファイルを使用してイニシャライザーを作成します。最初のステップは、次の内容のファイルを
+                    lib/generators/initializer_generator.rb
+                    に作成することです。</p>
+                    <pre><code>  class InitializerGenerator &lt; Rails::Generators::Base
+    def create_initializer_file
+      create_file &quot;config/initializers/initializer.rb&quot;, &lt;&lt;~RUBY
+        # Add initialization content here
+      RUBY
+    end
+  end
+</code></pre>
+                    <p>新しいジェネレーターは単純な構造に従っています。Rails::Generators::Base
+                    を継承し、単一のメソッド定義が含まれています。このジェネレーターが呼び出されると、そのジェネレーター内の各パブリック
+                    メソッドが定義の順序で順番に実行されます。このメソッドでは、指定された宛先に提供されたコンテンツを含むファイルを生成するユーティリティである
+                    create_file を利用します。</p>
+                    <pre><code>bin/rails generate initializer
+</code></pre>
+                    <p>ActiveRecord::Generators::ModelGenerator
+                    のようにジェネレーターに名前空間が指定されている場合、Rails
+                    は通常、適切な説明を導出できます。ただし、場合によってはこれが不可能な場合もあります。この問題に対処するには、2
+                    つのアプローチがあります。最初の方法では、ジェネレーター内で
+                    desc メソッドを使用して説明を追加します。</p>
+                    <pre><code>class InitializerGenerator &lt; Rails::Generators::Base
+  desc &quot;This generator creates an initializer file at config/initializers&quot;
+  def create_initializer_file
+    create_file &quot;config/initializers/initializer.rb&quot;, &lt;&lt;~RUBY
+      # Add initialization content here
+    RUBY
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

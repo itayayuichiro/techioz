@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>紙の証跡の object_changes をオーバーライドして、ID の変更に対応する名前を保存する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "紙の証跡の object_changes をオーバーライドして、ID の変更に対応する名前を保存する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>紙の証跡の object_changes
+をオーバーライドして、ID の変更に対応する名前を保存する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>関連付けの場合、別のモデルの ID
+                    を自分のモデルに割り当てているため、ID
+                    が変更されます。 Papertrail
+                    はそれらの変更を追跡します。これが私の
+                    object_changes の状態です。</p>
+                    <pre><code>{
+  &quot;updated_at&quot;: [
+    &quot;2023-11-13T08:54:26.346Z&quot;,
+    &quot;2023-11-13T08:56:06.961Z&quot;
+  ],
+  &quot;paying_id&quot;: [
+    &quot;ID1&quot;,
+    &quot;ID1 new&quot;
+  ],
+  &quot;company_ids&quot;: [
+    [
+      &quot;ID1&quot;,
+      &quot;ID2&quot;,
+      &quot;ID3&quot;,
+      &quot;ID4&quot;
+    ],
+    [
+      &quot;ID1 new&quot;,
+      &quot;ID2 new&quot;,
+      &quot;ID3 new&quot;
+    ]
+  ]
+}
+</code></pre>
+                    <p>ただし、監査ログの観点では、ID
+                    を表示するのではなく、それらの ID
+                    に対応する名前を表示したいと考えています。現在、if
+                    ループを使用して名前をクエリし、ビューに送信しています。しかし、これよりも良い方法があるはずです。ドキュメントでは
+                    object_changes
+                    のオーバーライドにも反対していますが、object_changes
+                    がオーバーライドされない場合はどうすればよいでしょうか?</p>
+                    <p>これを行う正しい方法は何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ログはそのままにして、ID
+                    のみをログに保存します。また、会社のレコードをソフト削除可能にします。つまり、会社が破棄された場合、実際にはデータベースから削除されるのではなく、デフォルトのワークフローで
+                    Rails
+                    に対して「非表示」になります。独自の論理的な削除ロジックを実装することも、宝石の
+                    1 つ (つまり paranoia)
+                    を使用することもできます。</p>
+                    <p>想像してみてください。既存の会社の社名が変更されたらどうなるでしょうか?会社名を文字列として別の場所に複製すると、データの不整合が生じます。</p>
+                    <p>本当にログを保存したい場合は、company_ids
+                    フィールドが変更された場合にのみ、meta
+                    を使用して会社名を保存できます。何かのようなもの</p>
+                    <pre><code>has_paper_trail(
+    meta: {
+      company_names: proc { |item| item.company_ids.changed? ? list_of_company names : nil }
+    }
+  )
+</code></pre>
+                    <p>しかし、_changed?
+                    がわかりません。それとも_以前_変更されましたか?この範囲内で利用可能です。これにより、企業の数に応じて巨大な文字列も生成されます。別の方法としては、list_of_added_company_names
+                    と list_of_removed_company_names の 2
+                    つのキーを持つハッシュを保存する方法があります。これは多少優れていますが、それでもデータの重複が発生します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

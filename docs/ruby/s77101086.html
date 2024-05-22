@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 - 新しいレコードの作成中にルーティングエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 - 新しいレコードの作成中にルーティングエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 -
+新しいレコードの作成中にルーティングエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しいレコードの作成中にルーティング
+                    エラーが発生します。 Rails が POST リクエストを GET
+                    とみなす理由が理解できません。詳細は以下のとおりです。</p>
+                    <p>以下のようなフォームがあります。</p>
+                    <pre><code>&lt;%= form_with model: @user, url: home_new_user_path, method: :post do |f|%&gt;
+
+&lt;%= hidden_field_tag :authenticity_token, form_authenticity_token %&gt;
+
+&lt;%= f.text_field :name, placeholder: &quot;Enter name&quot;, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+
+&lt;%= f.text_field :email, placeholder: &quot;Enter email&quot;, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt; 
+
+
+&lt;%= f.text_field :password, placeholder: &quot;Enter password&quot;, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+
+
+&lt;%= f.text_field :password_confirmation, placeholder: &quot;Enter password to confirm&quot;, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+
+&lt;%= f.submit %&gt;
+
+&lt;%end%&gt;
+
+</code></pre>
+                    <p>以下は Routes.rb です</p>
+                    <pre><code>  post &#39;home/new_user&#39;, to: &#39;home#new_user&#39;
+
+</code></pre>
+                    <p>以下はコントローラーのメソッドです。</p>
+                    <pre><code>  def new_user
+   user_to_be_created = User.create!(name: params[:name], email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation])
+  end 
+</code></pre>
+                    <p>このコントローラー
+                    メソッドにアクセスするコードを表示します。</p>
+                    <pre><code>&lt;%= link_to &quot;New user&quot;, home_new_user_path, method: :post %&gt;
+
+</code></pre>
+                    <p>ただし、次のようなルーティング
+                    エラーが発生します。</p>
+                    <pre><code>No route matches [GET] &quot;/home/new_user&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    を使用しているかもしれませんが、作成しているコードは
+                    Rails コードではありません。</p>
+                    <p>Rails では、レコードの作成は、new と create
+                    という 2
+                    つの別々のアクションによって処理されます。</p>
+                    <pre><code>HTTP Method   Path         Description
+----------------------------------------------------------------
+GET           /users/new   Renders a form which is used to create a user.
+POST          /users       Responds to form submissions and creates the user
+</code></pre>
+                    <p>フォームを表示する新しいアクションは、べき等アクションであるため、GET
+                    を使用します。何も作成または変更せず、すべての訪問者には同じように見えます。</p>
+                    <p>実際のレコードの作成は、コレクション パス
+                    (/users)
+                    にフォームをポストすることで行われます。レコードが有効でない場合、新しいビューは応答としてレンダリングされますが、今回は検証によるエラー
+                    メッセージが含まれている必要があります。</p>
+                    <p>これらのルートは、リソース
+                    マクロを使用して生成できます。</p>
+                    <pre><code># routes.rb
+resources :users, only: [:new, :create]
+</code></pre>
+                    <p>新しいアクションへのリンクは次のようにして行われます。</p>
+                    <pre><code>&lt;%= link_to &quot;New user&quot;, new_user_path %&gt;
+</code></pre>
+                    <p>慣例により、これらのリクエストには
+                    UsersController で応答します。</p>
+                    <p>アプリケーション内のすべてをゴッドクラス
+                    HomeController
+                    にまとめてしまうのは、良い習慣とは言えません。</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  before_action :authenticate_user!
+  # @todo authorize that the current user should be allowed to create users
+
+  # GET /users/new
+  def new
+    @user = User.new
+  end
+
+  # POST /users/new
+  def create
+    @user = User.new(user_params)
+    if @user.save
+      redirect_to &#39;/somewhere&#39; # @todo replace with actual path
+    else
+      render :new
+    end
+  end
+
+  private
+
+  def user_params
+    params.require(:user)
+          .permit(
+            :name, :email, :password, :password_confirmation
+          )
+  end
+end
+</code></pre>
+                    <p>フォームでも次の規則を使用する必要があります。</p>
+                    <pre><code># app/views/users/_form.html.erb
+&lt;%= form_with model: @user do |f|%&gt;
+  &lt;% if @user.errors.any? %&gt;
+    &lt;div id=&quot;error_explanation&quot;&gt;
+      &lt;h2&gt;&lt;%= pluralize(@user.errors.count, &quot;error&quot;) %&gt; prohibited this user from being saved:&lt;/h2&gt;
+ 
+      &lt;ul&gt;
+      &lt;% @user.errors.full_messages.each do |msg| %&gt;
+        &lt;li&gt;&lt;%= msg %&gt;&lt;/li&gt;
+      &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%# do not use placeholders as labels. It&#39;s a huge accessibilty anti-pattern %&gt;
+    &lt;%= f.label :name %&gt; 
+    &lt;%= f.text_field :name, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :email %&gt;
+    &lt;%= f.text_field :email, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt; 
+  &lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password %&gt;
+    &lt;%= f.text_field :password, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password_confirmation %&gt;
+    &lt;%= f.text_field :password_confirmation, class: &#39;form-content form-content w-100 p-1&#39;, autocomplete: &quot;off&quot; %&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;action&quot;&gt; 
+    &lt;%= f.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <pre><code># app/views/users/new.html.erb
+&lt;%= render partial: &quot;form&quot; %&gt;
+</code></pre>
+                    <p>User のインスタンスを渡すと、Rails
+                    はモデルが永続化されているかどうかを確認し、自動的にリクエスト
+                    メソッドを POST に設定し、クラス名から正しいルート
+                    users_path
+                    を導出します。どちらも明示的に設定しないことで、同じフォームを編集に再利用できます。</p>
+                    <p>実際に運用アプリでこれを使用することを計画している場合は、代わりに
+                    Devise::Invitable
+                    を使用することを強くお勧めします。これにより、管理者がユーザーのパスワードを設定し、そのパスワードをユーザーに伝えるという煩わしさと潜在的なセキュリティ上の危険がなくなります。</p>
+                    <p>車輪の再発明はしないでください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

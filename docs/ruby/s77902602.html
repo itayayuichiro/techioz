@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ハッシュ パターン マッチング - オプションのパターン | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ハッシュ パターン マッチング - オプションのパターン",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ハッシュ パターン マッチング -
+オプションのパターン</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 3 のハッシュ パターン
+                    マッチングでは、残りに許可されたキーのみが含まれるように指定することはできますか?
+                    これまでのところ、私はこれしか思いつきませんでした：</p>
+                    <pre><code>opts = { value: 5, limit: 10 } # valid
+# opts = { value: 5 } # valid
+# opts = { value: 5, foo: 10 } # not valid
+
+case opts
+in value:, **rest if rest.nil? || (rest.keys - %i[limit]).empty?
+end
+</code></pre>
+                    <p>Flowtype
+                    からインスピレーションを得たものは、value:、limit?:、さらには
+                    値の: 整数、制限?: 整数</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rest.nil に注意してください。あなたの例では決して
+                    true
+                    にはならないので、その部分はまったく必要ありません。</p>
+                    <pre><code>case opts
+in value:, **rest if (rest.keys - %i[limit]).empty?
+end
+
+# or if you are using rails
+case opts
+in value:, **rest if rest.excluding(:limit).empty?
+end
+</code></pre>
+                    <p>**残りは常にハッシュです。</p>
+                    <p>あなたがやろうとしていることと同等のパターンマッチングはありません。これは、代替パターンを使用して得ることができる限り近いものです。</p>
+                    <pre><code>opts = {value: 5, limit: 10}
+case opts
+in value:, **rest if rest in {limit:_}|{}
+  [value, rest]
+end
+
+#=&gt; [5, {:limit=&gt;10}]
+</code></pre>
+                    <pre><code>opts = {value: 5}
+case opts
+in value:, **rest if rest in {limit:_}|{}
+  [value, rest]
+end
+
+#=&gt; [5, {}]
+</code></pre>
+                    <pre><code>opts = {value: 5, foo: 1}
+case opts
+in value:, **rest if rest in {limit:_}|{}
+  [value, rest]
+end
+
+#=&gt; (irb):346:in `&lt;main&gt;&#39;: {:value=&gt;5, :foo=&gt;1}: guard clause does not return true (NoMatchingPatternError)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

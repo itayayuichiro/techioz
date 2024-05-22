@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails の Selenium を使用した Heroku で Chrome バイナリが見つかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails の Selenium を使用した Heroku で Chrome バイナリが見つかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails の Selenium を使用した Heroku で
+Chrome バイナリが見つかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>2 週間前、Capybara、Selenium、Chromedriver、Web
+                    スクレイピング用の Chrome を組み合わせて Heroku
+                    上で作業環境を構築することができました。しかし、1
+                    週間前に何かを変更したため、Chrome
+                    バイナリが見つからずセットアップがクラッシュしてしまいました。</p>
+                    <pre><code>WARN: Selenium::WebDriver::Error::UnknownError: unknown error: cannot find Chrome binary (Driver info: chromedriver=2.40.565383 (76257d1ab79276b2d53ee976b2c3e3b9f335cde7),platform=Linux 4.4.0-1019-aws x86_64)
+</code></pre>
+                    <p>Heroku-14 スタックで 2
+                    つの関連するビルドパックを使用しています</p>
+                    <pre><code>https://github.com/heroku/heroku-buildpack-xvfb-google-chrome
+https://github.com/heroku/heroku-buildpack-chromedriver
+</code></pre>
+                    <p>使用した宝石:</p>
+                    <pre><code>gem &#39;selenium-webdriver&#39;,&#39;&gt;=3.6.0&#39;
+gem &#39;chromedriver-helper&#39;
+</code></pre>
+                    <p>私は週末を費やして、さまざまなパスを capybara.rb
+                    イニシャライザに直接渡して（そして、heroku run bash
+                    を実行して比較して）、これを動作させることを試みましたが、動作させることができませんでした。</p>
+                    <p>カピバラ.rb</p>
+                    <pre><code>require &quot;selenium/webdriver&quot;
+chrome_bin = ENV.fetch(&#39;GOOGLE_CHROME_SHIM&#39;, nil)
+    chrome_opts = chrome_bin ? { &quot;chromeOptions&quot; =&gt; { &quot;binary&quot; =&gt; &#39;app/.apt/usr/bin/google-chrome-stable&#39; } } : {}
+    puts chrome_opts.to_s
+
+    Capybara.register_driver :chrome do |app|
+      Capybara::Selenium::Driver.new(
+         app,
+         browser: :chrome,
+         desired_capabilities: Selenium::WebDriver::Remote::Capabilities.chrome(chrome_opts)
+      )
+    end
+
+    Capybara.default_driver = :chrome
+    Capybara.javascript_driver = :chrome
+</code></pre>
+                    <p>また、インターフェイス経由で Heroku の ENV
+                    変数を設定しましたが、heroku run Rails c 経由で ENV
+                    を確認すると、BIN
+                    変数がビルドパックからロードされ、設定がオーバーライドされるようです。</p>
+                    <pre><code>I set GOOGLE_CHROME_BIN and GOOGLE_CHROME_SHIM to: /app/.apt/usr/bin/google-chrome
+</code></pre>
+                    <p>再び動作させるためにどのような変更を加えなければならないかわかりません。かなりの数のパズルのピースがありますが、どれを修正する必要がありますか?提案は大歓迎です!</p>
+                    <p>解決済み:</p>
+                    <pre><code>require &quot;selenium/webdriver&quot;
+
+chrome_bin = ENV.fetch(&#39;GOOGLE_CHROME_SHIM&#39;, nil)
+
+    Capybara.register_driver :chrome do |app|
+      browser_options = ::Selenium::WebDriver::Chrome::Options.new
+      browser_options.binary = chrome_bin
+      Capybara::Selenium::Driver.new(app, browser: :chrome, options: browser_options)
+    end
+
+    Capybara.default_driver = :chrome
+    Capybara.javascript_driver = :chrome
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここ数週間で最新の selenium-webdriver と
+                    chromedriver にアップグレードしたと思います。
+                    chromeOptions は渡す有効なキーではなくなりました。
+                    goog:chromeOptions
+                    に変更してみることもできますが、実際には
+                    Selenium::WebDriver::Chrome::Options
+                    クラスのインスタンスを使用する必要があります。</p>
+                    <pre><code>Capybara.register_driver :chrome do |app|
+  options = ::Selenium::WebDriver::Chrome::Options.new
+  options.binary = ...
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: browser_options)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

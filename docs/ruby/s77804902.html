@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>入れ子になったルート内で Ruby on Rails ポリモーフィック関連付けを操作するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "入れ子になったルート内で Ruby on Rails ポリモーフィック関連付けを操作するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>入れ子になったルート内で Ruby on Rails
+ポリモーフィック関連付けを操作するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の質問をより明確に正しくするために編集されました。
+                    私はポリモーフィックな関連付けを実装するためにいくつかのパターンを試しましたが、数年前に
+                    GoRails の Chris
+                    から選んだパターンに落ち着きました。これは堅牢であり、ポリモーフィックな関連付けを実装するほぼすべてのトップレベルのリソースで動作します。簡単な例は、Taskable
+                    を多態性関連付けとして公開する Tasks
+                    モデルです。プロジェクトなどの単一の最上位オブジェクトとの関連付けを簡単に設定できます。
+                    例
+                    (すべてのコードは当面の質問に限定されています):</p>
+                    <p>app/models/task.rb</p>
+                    <pre><code>class Task &lt; ApplicationRecord
+  belongs_to :taskable, polymorphic: true
+end
+</code></pre>
+                    <p>アプリ/モデル/プロジェクト.rb</p>
+                    <pre><code>class Project &lt; ApplicationRecord
+  has_many :phases
+  has_many :tasks, as: :taskable
+end
+</code></pre>
+                    <p>app/controllers/tasks_controller.rb</p>
+                    <pre><code>class TasksController &lt; ApplicationController
+  def new 
+    @task = @taskable.tasks.new
+  end
+  # lots of other methods...
+end
+</code></pre>
+                    <p>app/controllers/projects/tasks_controller.rb</p>
+                    <pre><code>class Projects::TasksController &lt; TasksController 
+  before_action :set_taskable
+
+  private 
+    def set_taskable
+      @taskable = Project.find(params[:project_id])
+    end
+end
+</code></pre>
+                    <p>config/routes.rb</p>
+                    <pre><code>Rails.application.routes.draw do  
+  resources :projects do
+    resources :phases
+    resources :tasks, module: :projects
+  end
+end
+</code></pre>
+                    <p>したがって、どのビューでも次のようにリンクを追加できます。
+                    app/views/tasks/show.html.erb</p>
+                    <pre><code>&lt;%= link_to &#39;Edit task&#39;, edit_polymorphic_path([@taskable, @task]) %&gt;
+</code></pre>
+                    <p>このパターンを使用すると、コードの重複を最小限に抑えて
+                    (懸念事項を使用せずに)、あらゆるオブジェクトをタスクに簡単に接続できます。</p>
+                    <p>問題は、ネストされたオブジェクトを接続する必要があるときに発生します。ルート
+                    ファイルでは、プロジェクトがフェーズと 1
+                    対多の関係にあることに注意してください。ここで、フェーズをポリモーフィックな関連付けに接続する必要がある場合
+                    (ここでは例としてタスクを使用します)、ポリモーフィック
+                    パスまたは URL を 3
+                    つの部分からなる表記で作成する必要があります: &lt;%=
+                    link_to ‘Edit task’, edit_polymorphic_path( <span
+                    class="citation"
+                    data-cites="プロジェクト">[@プロジェクト、@タスク可能、@タスク]</span>)
+                    %&gt;
+                    頭を悩ませてあちこち探しましたが、何も見つかりませんでした。どこから始めればよいのかさえ思いつきません。</p>
+                    <p>最初にルートを次のように設定しました。</p>
+                    <pre><code>Rails.application.routes.draw do  
+  resources :projects do
+    resources :phases do
+      resources :tasks, module: :phases
+    end
+    resources :tasks, module: :projects
+  end
+end
+</code></pre>
+                    <p>ルートは正しく出力されますが、パス呼び出しに 3
+                    つのパラメータを渡す必要があります。 &lt;%= link_to
+                    ‘タスクの編集’, edit_polymorphic_path(<span
+                    class="citation" data-cites="project">[@project,
+                    @taskable, @task]</span>) %&gt;
+                    ただし、引数リストが異なるため、これは私のポリモーフィックなビューを壊します。したがって、ポリモーフィックな関連付けのルーティング
+                    レベルに関係なく、ビューをポリモーフィックに保つ方法を探しています。</p>
+                    <p>私もこれを機能させようとしました:
+                    config/routes.rb</p>
+                    <pre><code>Rails.application.routes.draw do  
+  resources :projects do
+    resources :phases
+    resources :tasks, module: :projects
+  end
+  resources :phases do
+    resources :tasks, module: :phases
+  end
+end
+</code></pre>
+                    <p>もちろん、Rails
+                    はこれを好みません。両方の関連付けが 2
+                    番目のブロックで表現されていないため、完全なルートを作成できないからです。</p>
+                    <p>助けていただきありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここで問題が何であるかを見逃しているかもしれませんが、ルートをネストし続けることができます。</p>
+                    <pre><code>Rails.application.routes.draw do  
+  resources :projects do
+    resources :phases do
+      resources :tasks, module: :phases
+    end
+    resources :tasks, module: :projects
+  end
+end
+</code></pre>
+                    <pre><code>#                Prefix Verb URI Pattern                                                     Controller#Action
+edit_project_phase_task GET  /projects/:project_id/phases/:phase_id/tasks/:id/edit(.:format) phases/tasks#edit
+</code></pre>
+                    <p>アップデート</p>
+                    <p>したがって、2 つのルートがあり、それをタスク用の
+                    1 つのテンプレートから使用したいとします。</p>
+                    <pre><code>edit_polymorphic_path([@taskable, @task])           # @taskable is Project
+edit_polymorphic_path([@project, @taskable, @task]) # @taskable is Phase
+</code></pre>
+                    <p>すべてに二重にネストされたルートをいつでも使用できます。</p>
+                    <pre><code># this will work with @project or without
+edit_polymorphic_path([@project, @taskable, @task])
+</code></pre>
+                    <p>例えば：</p>
+                    <pre><code>&lt;%= edit_polymorphic_path([Project.first, Phase.first, Task.first]) %&gt;
+#=&gt; /projects/1/phases/1/tasks/1/edit
+
+&lt;%= edit_polymorphic_path([nil, Project.first, Task.first]) %&gt;
+#=&gt; /projects/1/tasks/1/edit
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>自己署名 SMTP 証明書が Rails ActionMailer 6.1 / Ruby 3.0 で無視されないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "自己署名 SMTP 証明書が Rails ActionMailer 6.1 / Ruby 3.0 で無視されないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>自己署名 SMTP 証明書が Rails ActionMailer 6.1
+/ Ruby 3.0 で無視されないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails ActionMailer 6.1 (Ruby 3.0 を含む)
+                    を取得して、自己署名証明書を使用して SMTP
+                    メーラーに接続することができません。</p>
+                    <p>TLS/SSL
+                    をまったく使用しない、または証明書を検証しない可能性のあるすべてのオプションは
+                    config/production.rb に設定されており、Rails
+                    によって適切に選択されているようです。</p>
+                    <p>何か足りないものはありますか?</p>
+                    <pre><code>ruby --version
+  ruby 3.0.3p157 (2021-11-24 revision 3fb7d2cadc) [x86_64-linux-musl]
+
+RAILS_ENV=production myapp rails c
+Loading production environment (Rails 6.1.4.6)
+irb(main):001:0&gt; mailer = ActionMailer::Base.new
+=&gt; #&lt;ActionMailer::Base:0x00000000029c48&gt;
+irb(main):002:0&gt; ap mailer.smtp_settings
+{
+                 :address =&gt; &quot;smtpout.xxxxx.com&quot;,
+                    :port =&gt; 25,
+         :enable_starttls =&gt; false,
+    :enable_starttls_auto =&gt; false,
+     :openssl_verify_mode =&gt; 0,
+                     :ssl =&gt; false,
+                     :tls =&gt; false
+}
+=&gt; nil
+irb(main):003:0&gt; mailer.mail(from: &#39;[email protected]&#39;, to: &#39;[email protected]&#39;,
+    subject: &#39;test&#39;, body: &quot;Hello, you&#39;ve got mail!&quot;).deliver
+/usr/local/lib/ruby/3.0.0/net/protocol.rb:46:in `connect_nonblock&#39;: SSL_connect
+    returned=1 errno=0 state=error: certificate verify failed (self signed 
+    certificate) (OpenSSL::SSL::SSLError)
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは次のように要約されます:
+                    設定を使用するとき</p>
+                    <pre><code>enable_starttls_auto: false,
+openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE
+</code></pre>
+                    <p>TLS 送信は実行されますが、state=error:
+                    証明書の検証に失敗しました (自己署名証明書)
+                    (OpenSSL::SSL::SSLError)
+                    で失敗します。これは私の目には二重に間違っています。TLS
+                    ハンドシェイクを開始することさえないはずです。
+                    、証明書の検証をスキップする必要があります。</p>
+                    <p>Rails は Mail-Gem
+                    を使用してこれらのオプションを処理しますが、実際には互換性のない変更がありました。</p>
+                    <p>私の場合の回避策として、enable_starttls_auto
+                    設定を完全に削除し (TLS
+                    送信を維持する)、openssl_verify_mode:
+                    OpenSSL::SSL::VERIFY_NONE
+                    で証明書の検証を無効にするだけで役に立ちました
+                    (ただし、TLS
+                    を回避する他の理由がある場合は役に立ちません)私のような偽の証明書を持っているよりも)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

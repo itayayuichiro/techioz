@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby RSSライブラリでエンクロージャを指定するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby RSSライブラリでエンクロージャを指定するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+RSSライブラリでエンクロージャを指定するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby RSS ライブラリを使用してポッドキャスト用の
+                    RSS
+                    フィードを構築しようとしています。エンクロージャの値を指定していますが、エンクロージャはフィードに追加されず、サイレントに失敗します。</p>
+                    <p>エンクロージャをフィード項目に含めるには何をする必要がありますか?</p>
+                    <pre><code>rss = RSS::Maker.make(&quot;atom&quot;) do |maker|
+  maker.channel.id = &quot;my_channel&quot;
+  maker.channel.updated = Time.now.to_s
+  maker.channel.author = &quot;me&quot;
+  maker.channel.title = &quot;my channel&quot;
+
+  maker.items.new_item do |item|
+    item.title = &quot;my episode&quot;
+    item.id = &quot;my_episode&quot;
+    item.updated = Time.now.to_s
+
+    item.enclosure.url = &quot;https://example.com&quot;
+    item.enclosure.type = &quot;audio/mpeg&quot;
+    item.enclosure.length = 123
+  end
+end
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;feed xmlns=&quot;http://www.w3.org/2005/Atom&quot;        
+  xmlns:dc=&quot;http://purl.org/dc/elements/1.1/&quot;&gt;   
+  &lt;author&gt;                                       
+    &lt;name&gt;me&lt;/name&gt;                              
+  &lt;/author&gt;                                      
+  &lt;id&gt;my_channel&lt;/id&gt;                            
+  &lt;title&gt;my channel&lt;/title&gt;                      
+  &lt;updated&gt;2024-05-11T12:09:06+01:00&lt;/updated&gt;   
+  &lt;entry&gt;                                        
+    &lt;id&gt;my_episode&lt;/id&gt;                          
+    &lt;title&gt;my episode&lt;/title&gt;                    
+    &lt;updated&gt;2024-05-11T12:09:06+01:00&lt;/updated&gt; 
+    &lt;dc:date&gt;2024-05-11T12:09:06+01:00&lt;/dc:date&gt; 
+  &lt;/entry&gt;                                       
+  &lt;dc:date&gt;2024-05-11T12:09:06+01:00&lt;/dc:date&gt;
+&lt;/feed&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの問題は、Atom Maker の使用法です。 Atom
+                    は、RSS
+                    仕様と同じように「エンクロージャー」を認識しません。</p>
+                    <p>Atom はリンク rel 属性 (仕様)
+                    を介して「エンクロージャ」を持つことができます。</p>
+                    <p>したがって、Atom Maker
+                    を使用するには、次のようなことができるはずです。</p>
+                    <pre><code>item.link.rel = &quot;enclosure&quot;
+item.link.href = &quot;https://example.com&quot;
+item.link.type = &quot;audio/mpeg&quot;
+item.link.length = 123
+</code></pre>
+                    <p>これにより、次のようなリンク
+                    ノードが生成されます。</p>
+                    <pre><code> &lt;link rel=&quot;enclosure&quot; type=&quot;audio/mpeg&quot; length=&quot;123&quot; href=&quot;https://example.com&quot;/&gt;
+</code></pre>
+                    <p>真のエンクロージャ ノードを生成したい場合は、RSS
+                    Maker のいずれかを使用する必要があります。例 2.0
+                    (仕様)
+                    の場合。そうすれば、既存のコードは期待どおりに動作します。</p>
+                    <pre><code>RSS::Maker.make(&quot;2.0&quot;) do |maker|
+  # ...
+  maker.items.new_item do |item|
+    #...
+    item.enclosure.url = &quot;https://example.com&quot;
+    item.enclosure.type = &quot;audio/mpeg&quot;
+    item.enclosure.length = 123
+  end
+end 
+</code></pre>
+                    <p>これにより、次のようなエンクロージャ
+                    ノードが生成されます。</p>
+                    <pre><code>&lt;enclosure url=&quot;https://example.com&quot; length=&quot;123&quot; type=&quot;audio/mpeg&quot; /&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby では、スレッド間でデータベース接続を共有することは可能ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby では、スレッド間でデータベース接続を共有することは可能ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+では、スレッド間でデータベース接続を共有することは可能ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は 80,000 件ほどのレコードを書き込む小さな Ruby
+                    スクリプトを持っています。
+                    各レコードに必要なプロセッサとメモリの負荷はスマーフ
+                    ボールよりも小さいですが、それでもすべてのレコードを歩き回るには約
+                    8 分かかります。</p>
+                    <p>スレッドを使用しようと思ったのですが、試してみるとデータベースの接続が不足してしまいました。確かに、それは
+                    200
+                    回接続を試みたときのことであり、実際にはそれよりもうまく制限できました。しかし、このコードを
+                    Heroku にプッシュするとき
+                    (すべてのワーカーが共有する接続が 20
+                    個あります)、このプロセスが増加したため、他のプロセスをブロックする可能性があります。</p>
+                    <p>コードをリファクタリングしてすべての SQL
+                    を結合することを考えましたが、それは本当に非常に面倒に感じられます。</p>
+                    <p>そこで、スレッド間で接続を共有できるようにするためのトリックはあるのでしょうか?処理中に接続変数が変更されるとは予想していなかったので、スレッドフォークが新しい
+                    DB
+                    接続を作成する必要があることに実際にはちょっと驚きました。</p>
+                    <p>まあ、どんな助けでもとても素晴らしいでしょう（私と同じように）..ありがとう</p>
+                    <pre><code>START_TIME = Time.now
+
+require &#39;rubygems&#39;
+require &#39;erb&#39;
+require &quot;active_record&quot;
+
+@environment = &#39;development&#39;
+@dbconfig = YAML.load(ERB.new(File.read(&#39;config/database.yml&#39;)).result)
+ActiveRecord::Base.establish_connection @dbconfig[@environment]
+
+class Product &lt; ActiveRecord::Base; end
+
+ids = Product.pluck(:id)
+p &quot;after pluck #{Time.now.to_f - START_TIME.to_f}&quot;
+
+threads = [];
+ids.each do |id|
+  threads &lt;&lt; Thread.new {Product.where(:id =&gt; id).update_all(:product_status_id =&gt; 99); }
+  if(threads.size &gt; 4)
+    threads.each(&amp;:join)
+    threads = [] 
+    p &quot;after thread join #{Time.now.to_f - START_TIME.to_f}&quot;
+  end
+end
+
+p &quot;#{Time.now.to_f - START_TIME.to_f}&quot;
+</code></pre>
+                    <p>出力</p>
+                    <pre><code>&quot;after pluck 0.6663269996643066&quot;
+DEPRECATION WARNING: Database connections will not be closed automatically, please close your
+database connection at the end of the thread by calling `close` on your
+connection.  For example: ActiveRecord::Base.connection.close
+. (called from mon_synchronize at /Users/davidrawk/.rvm/rubies/ruby-1.9.3-p448/lib/ruby/1.9.1/monitor.rb:211)
+.....
+&quot;after thread join 5.7263710498809814&quot;   #THIS HAPPENS AFTER THE FIRST JOIN.
+.....
+&quot;after thread join 10.743254899978638&quot;   #THIS HAPPENS AFTER THE SECOND JOIN
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この gem
+                    https://github.com/mperham/connection_pool
+                    を参照してください。必要なのは接続プールかもしれません。Rspec
+                    + Selenium に共有 ActiveRecord
+                    接続を使用してみてはいかがでしょうか?</p>
+                    <p>もう 1
+                    つのオプションは、https://github.com/eventmachine/eventmachine
+                    を使用し、DB アクセスがコールバック ブロック
+                    (リアクター内)
+                    で非ブロッキングな方法で発生するように EM.defer
+                    ブロックでタスクを実行することです。</p>
+                    <p>あるいは、より堅牢なソリューションとして、Beantalkd
+                    などの軽量のバックグラウンド処理キューを使用します。その他のオプションについては
+                    https://www.ruby-toolbox.com/categories/Background_Jobs
+                    を参照してください。これが私の主な推奨事項です。</p>
+                    <p>編集、</p>
+                    <p>また、おそらく 200 コアはないので、200
+                    以上の並列スレッドと DB
+                    接続を作成しても、実際にはプロセスが高速化されません
+                    (実際には速度が低下します)。問題を複数のコアに分割する方法を見つけられるかどうかを確認してください。コアの数
+                    + 1
+                    に等しい値を設定し、この方法で問題を解決します。</p>
+                    <p>これはおそらくあなたの問題に対する最も簡単な解決策です</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

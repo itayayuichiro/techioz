@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Jekyll: GitHub ページでカスタム プラグインを使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Jekyll: GitHub ページでカスタム プラグインを使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Jekyll: GitHub ページでカスタム
+プラグインを使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>セキュリティ上の懸念から、カスタム Ruby
+                    プラグインは GitHub
+                    ページでは動作しないことが判明しました。</p>
+                    <p>Jekyll プロジェクトの _plugins
+                    フォルダーにプラグイン (これ)
+                    を追加しようとしていますが、GitHub
+                    にデプロイすると無視されます。</p>
+                    <p>質問:
+                    これを回避する方法はありますか?誰かが解決策を見つけましたか?</p>
+                    <p>注: 明らかに、ローカルで HTML
+                    ファイルを生成し、それをリポジトリにコミットできます。しかし、それは私が望んでいることではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>読書時間スクリプトにはプラグインは必要ありません。プラグインを使用せずに追加できるスクリプトのコレクションを作成しました。ここで見つけることができます。読書時間のスクリプトもその
+                    1 つです。</p>
+                    <p>ここにコードがあります:</p>
+                    <pre><code>{% capture words %}
+{{ content | number_of_words | minus: 180 }}
+{% endcapture %}
+{% unless words contains &#39;-&#39; %}
+{{ words | plus: 180 | divided_by: 180 | append: &#39; minutes to read&#39; }}
+{% endunless %}
+</code></pre>
+                    <p>このコードには Liquid のみが含まれており、Ruby
+                    は含まれていないことに注意してください。したがって、レイアウトまたはインクルード
+                    (プラグインなし) で使用できます。</p>
+                    <p>次のようなものがあるとします。</p>
+                    <pre><code>&lt;p&gt;lorem ipsum&lt;/p&gt;
+&lt;p&gt;lorem ipsum&lt;/p&gt;
+&lt;code&gt;lorem ipsum&lt;/code&gt;
+&lt;p&gt;lorem ipsum&lt;/p&gt;
+&lt;code&gt;lorem ipsum&lt;/code&gt;
+&lt;p&gt;lorem ipsum&lt;/p&gt;
+</code></pre>
+                    <p>次に、次のように上記のコード
+                    ブロックを削除できます。</p>
+                    <pre><code>{% assign preprocessed_content=post.content | replace: &#39;&lt;p&gt;&#39;, &#39;__p__&#39; %}
+{% assign preprocessed_content=preprocessed_content | replace: &#39;&lt;/p&gt;&#39;, &#39;__/p__&#39; %}
+{% assign truncated_content=preprocessed_content | strip_html %}
+{% assign cleaned_content=truncated_content | replace: &#39;__p__&#39;, &#39;&lt;p&gt;&#39; %}
+{% assign cleaned_content=cleaned_content | replace: &#39;__/p__&#39;, &#39;&lt;/p&gt;&#39; %}
+</code></pre>
+                    <p>もちろん、これを拡張してさらに多くのタグをサポートすることもできます。</p>
+                    <p>本当にプラグインを使用したい場合は、ローカル
+                    マシンまたは CloudCannon にサイトを構築させ、結果を
+                    Github Pages にプッシュすることができます。参照:
+                    https://learn.cloudcannon.com/jekyll/using-jekyll-plugins/</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

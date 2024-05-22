@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>新しいデータベース列を使用した Blue-Green デプロイ中に「ActiveModel::UnknownAttributeError」を処理する方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "新しいデータベース列を使用した Blue-Green デプロイ中に「ActiveModel::UnknownAttributeError」を処理する方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>新しいデータベース列を使用した Blue-Green
+デプロイ中に「ActiveModel::UnknownAttributeError」を処理する方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Blue-Green
+                    デプロイメントを使用しています。これは、リリース中に古いコードと新しいコードを含むコンテナーが数秒ではなく
+                    1 ～ 10 分間一時的に共存することを意味します。</p>
+                    <p>リリース中には、既存のテーブルに新しい列を追加するための移行が含まれています。これにより、古いコンテナ内で実行されるコードでエラーが発生します。</p>
+                    <pre><code>attributes = MyTable.find(X).attributes
+MyTable.create!(attributes)
+=&gt; ActiveModel::UnknownAttributeError unknown attribute &#39;xxx&#39; for MyTable
+</code></pre>
+                    <p>古いコンテナーのスキーマ
+                    キャッシュには、新しく追加された列に関する情報が含まれていません。このコードは、属性メソッドを使用するときに、スキーマ
+                    キャッシュではなくデータベースから情報を取得します。この情報には新しい情報が含まれます。</p>
+                    <p>Blue-Green デプロイメントを維持しながら
+                    ActiveModel::UnknownAttributeError
+                    を回避する方法はありますか?このソリューションは、null
+                    以外の列を追加する場合でも機能するはずです。申請手続きや解除手続きの変更はどちらも受け付けます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails は、サーバーの起動時にデータベース
+                    スキーマとそのテーブル定義を読み込みます。つまり、新しく追加された列を使用するコードをデプロイする前に、データベースを移行する必要があります。</p>
+                    <p>デプロイメント設定に応じて、最も安全な方法は、最初にデータベース移行をデプロイし、次に新しいモデルをデプロイすることです。または、アプリサーバーが新しいコードで起動される前にデータベースの移行が実行されるようにする必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

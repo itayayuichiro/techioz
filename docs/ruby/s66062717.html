@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>VSCode Ruby RuboCop フォーマッタは焦点を絞った仕様を削除します -&gt; | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "VSCode Ruby RuboCop フォーマッタは焦点を絞った仕様を削除します -&gt;",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>VSCode Ruby RuboCop
+フォーマッタは焦点を絞った仕様を削除します -&gt;</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、これがマージされるまで、保存時にコードを自動フォーマットしていた
+                    VSCode で https://github.com/rubyide/vscode-ruby
+                    を喜んで使用していました
+                    https://github.com/rubocop-hq/rubocop-
+                    rspec/pull/1109 (これ自体は素晴らしいことです)。</p>
+                    <p>焦点を当てたスペックを含む Rspec
+                    ファイルを保存すると、そのスペックが削除されるようになりました。例えば</p>
+                    <p>「何か」を保存すると、それが「何か」に更新されます。
+                    (無効になっている仕様 xit は削除されません)</p>
+                    <p>vscode-ruby 構成:</p>
+                    <pre><code>    &quot;ruby.intellisense&quot;: &quot;rubyLocate&quot;,
+    &quot;ruby.useLanguageServer&quot;: true,
+    &quot;ruby.codeCompletion&quot;: &quot;rcodetools&quot;,
+    &quot;ruby.format&quot;: &quot;rubocop&quot;, // this line causes the formatter to kick in
+    &quot;ruby.lint&quot;: {
+        &quot;rubocop&quot;: true
+    },
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby-lsp 拡張機能を使用して、VS Code
+                    に保存するときにほとんどの自動修正可能な違反を修正しつつ、集中的なテストを引き続き機能させるには、継続的インテグレーション環境の次に追加の安全性を利用することができます。</p>
+                    <p>.rubocop.yml でcopを無効にします。</p>
+                    <pre><code>RSpec/Focus:
+  Enabled: false
+</code></pre>
+                    <p>そして、rails_helper.rb
+                    のフォーカス設定を次のように変更します。</p>
+                    <pre><code>if ENV[&quot;CI&quot;]
+  config.before(:example, :focus) { |example| raise &quot;Focused spec found at #{example.location}&quot; }
+else
+  config.filter_run_when_matching :focus
+end
+</code></pre>
+                    <p>私は Stephanie Viccari
+                    のブログ投稿を通じてこれを知りました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

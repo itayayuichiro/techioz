@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActionCable - 運用環境で WebSocket へのアップグレードに失敗しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActionCable - 運用環境で WebSocket へのアップグレードに失敗しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActionCable - 運用環境で WebSocket
+へのアップグレードに失敗しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ActionCable
+                    は本番環境では機能しません。開発ではうまく機能しますが、運用環境ではうまく機能しません。</p>
+                    <p>Ubuntu 14.04 で Puma を使用して Nginx
+                    を実行します。 redis-server
+                    が稼働していることを確認しました。</p>
+                    <p>Rails-v 5.0.0.1</p>
+                    <p>プロダクションログ:</p>
+                    <pre><code>INFO -- : Started GET &quot;/cable/&quot;[non-WebSocket] for 178.213.184.193 at 2016-11-25 14:55:39 +0100
+ERROR -- : Failed to upgrade to WebSocket (REQUEST_METHOD: GET, HTTP_CONNECTION: close, HTTP_UPGRADE: )
+INFO -- : Finished &quot;/cable/&quot;[non-WebSocket] for 178.213.184.193 at 2016-11-25 14:55:39 +0100
+</code></pre>
+                    <p>クライアントからのリクエスト:</p>
+                    <pre><code>GET ws://mityakoval.com/cable HTTP/1.1
+Host: mityakoval.com
+Connection: Upgrade
+Pragma: no-cache
+Cache-Control: no-cache
+Upgrade: websocket
+Origin: http://mityakoval.com
+Sec-WebSocket-Version: 13
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4,uk;q=0.2,nb;q=0.2
+Cookie: _vaktdagboka_session=******
+Sec-WebSocket-Key: *******
+Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+Sec-WebSocket-Protocol: actioncable-v1-json, actioncable-unsupported
+</code></pre>
+                    <p>応答：</p>
+                    <pre><code>HTTP/1.1 404 Not Found
+Server: nginx/1.4.6 (Ubuntu)
+Date: Fri, 25 Nov 2016 13:52:21 GMT
+Content-Type: text/plain
+Transfer-Encoding: chunked
+Connection: keep-alive
+Cache-Control: no-cache
+X-Request-Id: d6374238-69ef-476e-8fc5-e2f8bbb663de
+X-Runtime: 0.002500
+</code></pre>
+                    <p>nginx.conf:</p>
+                    <pre><code>upstream puma {
+  server unix:///home/mityakoval/apps/vaktdagboka/shared/tmp/sockets/vaktdagboka-puma.sock;
+}
+
+server {
+  listen 80 default_server deferred;
+  # server_name example.com;
+
+  root /home/mityakoval/apps/vaktdagboka/current/public;
+  access_log /home/mityakoval/apps/vaktdagboka/current/log/nginx.access.log;
+  error_log /home/mityakoval/apps/vaktdagboka/current/log/nginx.error.log info;
+
+  location ^~ /assets/ {
+    gzip_static on;
+    expires max;
+    add_header Cache-Control public;
+  }
+
+  try_files $uri/index.html $uri @puma;
+  location @puma {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+
+    proxy_pass http://puma;
+  }
+
+  location /cable {
+    proxy_pass http://puma;
+    proxy_http_version 1.1;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection &quot;Upgrade&quot;;
+  }
+
+  error_page 500 502 503 504 /500.html;
+  client_max_body_size 10M;
+  keepalive_timeout 10;
+}
+</code></pre>
+                    <p>ケーブル.yml:</p>
+                    <pre><code>redis: &amp;redis
+  adapter: redis
+  url: redis://127.0.0.1:6379
+
+production: *redis
+
+development:
+  adapter: async
+
+test:
+  adapter: async
+</code></pre>
+                    <p>Production.rb 内:</p>
+                    <pre><code>config.action_cable.allowed_request_origins = [&quot;http://mityakoval.com&quot;]
+</code></pre>
+                    <p>Routes.rb 内:</p>
+                    <pre><code>mount ActionCable.server, at: &#39;/cable&#39;
+</code></pre>
+                    <p>アップデート：</p>
+                    <p>nginx を再起動することを忘れないでください:)
+                    それが私にとって問題でした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>proxy_pass プロパティの値を http://puma から
+                    http://puma/cable に変更する必要があります。</p>
+                    <p>したがって、/cable
+                    の正しい位置セクションは次のようになります。</p>
+                    <pre><code>location /cable {
+  proxy_pass http://puma/cable;
+  proxy_http_version 1.1;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header Host $http_host;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection &quot;Upgrade&quot;;
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

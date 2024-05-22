@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby配列の特定のインデックスにある要素をプッシュします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby配列の特定のインデックスにある要素をプッシュします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby配列の特定のインデックスにある要素をプッシュします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>データベースから返される配列の配列があり、それらが常に同じ長さであることを確認したいと考えています。そうでない場合は、ゼロをプッシュして適切な長さにしつつ、インデックスの整合性も維持したいと考えています。</p>
+                    <p>ほとんどの場合、次のようになります</p>
+                    <pre><code>array = [[&quot;apple&quot;, &quot;blueberries&quot;, &quot;banana&quot;, &quot;kiwi&quot;], [&quot;20.15&quot;, &quot;13.50&quot;, &quot;22.10&quot;, &quot;10.50&quot;], [&quot;10&quot;, &quot;12&quot;, &quot;26&quot;, &quot;34&quot;]]
+</code></pre>
+                    <p>最終的には each_with_index
+                    を呼び出して、それらを一致させる必要があります。表のリンゴ、20.15、10。</p>
+                    <p>場合によっては、配列から 1 つまたは 2
+                    つの要素が欠落している可能性があり、その場所に 0
+                    をプッシュしたいことがあります。</p>
+                    <pre><code>array2 = [[&quot;apple&quot;, &quot;blueberries&quot;, &quot;banana&quot;, &quot;kiwi&quot;], [&quot;20.15&quot;, &quot;22.10&quot;], [&quot;10&quot;, &quot;12&quot;, &quot;26&quot;, &quot;34&quot;]]
+</code></pre>
+                    <p>私は次のようなことを試しました</p>
+                    <pre><code>array2.each {|f| f.push(0) until f.length === 4}
+=&gt;[[&quot;apple&quot;, &quot;blueberries&quot;, &quot;banana&quot;, &quot;kiwi&quot;], [&quot;20.15&quot;, &quot;13.50&quot;, 0, 0], [&quot;10&quot;, &quot;12&quot;, &quot;26&quot;, &quot;34&quot;]]
+</code></pre>
+                    <p>ただし、ゼロは配列の最後にプッシュされます。理想的には、出力は次のようになります。</p>
+                    <pre><code>=&gt;[[&quot;apple&quot;, &quot;blueberries&quot;, &quot;banana&quot;, &quot;kiwi&quot;], [&quot;20.15&quot;, 0, &quot;13.50&quot;, 0], [&quot;10&quot;, &quot;12&quot;, &quot;26&quot;, &quot;34&quot;]]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あまり言いたくありませんが、プログラマーではない大人が時々想像するように、プログラミングは子供にとって簡単な仕事ではありません。あなたのケースでは、別のクラス、おそらく
+                    Array のサブクラスの作成が必要です。このような：</p>
+                    <pre><code>class GreenGrocer &lt; Array
+end
+</code></pre>
+                    <p>ここで、次のように GreenGrocer.new パブリック
+                    クラス メソッドを再定義して、各 GreenGrocer
+                    インスタンスに欠落している要素がゼロでパッチされていることを確認することを想像できます。</p>
+                    <pre><code>class GreenGrocer # reopening the class we defined earlier
+  class &lt;&lt; self
+    def new array
+      produce, float_array, int_array = array.reduce( &amp;:zip ).map( &amp;:flatten ).transpose
+      super [ produce, float_array.map { |e| e or 0.0 }, int_array.map { |e| e or 0 } ]
+    end
+
+    def [] *elements; new elements end
+  end
+end
+
+# so we can call
+
+g = GreenGrocer.new( array2 )
+
+# or
+
+g = GreenGrocer[ *array2 ]
+</code></pre>
+                    <p>しかし、なぜわざわざ？不完全なデータ構造を必要に応じてテーブルに変換し、その過程で欠落しているデータ
+                    ポイントをゼロで埋める #to_table
+                    メソッドを作成するだけで十分です。そこで次のように定義します。</p>
+                    <pre><code>class LazierGreenGrocer &lt; Array
+  def to_table
+    reduce( &amp;:zip ).map( &amp;:flatten ).map { |e| e.map { |e| e || 0 } }
+  end
+end
+
+lazier_g = LazierGreenGrocer.new( array2 ) # not eager to do work upon initialization
+lazier_g.to_table # does the required work as #to_table is called
+</code></pre>
+                    <p>これが私ならどうするかです。出力したいテーブルの正確な種類がわからないので、それに応じて
+                    #to_table
+                    メソッドを変更する必要があるかもしれません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

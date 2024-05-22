@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails の条件付きレンダリングが機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails の条件付きレンダリングが機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+の条件付きレンダリングが機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このモーダルを表示すると予期しない動作が発生します。</p>
+                    <pre><code>&lt;% if @show_modal %&gt;
+  &lt;%= render &#39;modal&#39; %&gt;
+&lt;% end %&gt;
+&lt;div id=&quot;scanQrCodeModal&quot;&gt;
+  &lt;h1&gt;Scan QR Codes&lt;/h1&gt;
+  &lt;div class=&quot;section&quot;&gt;
+    &lt;div id=&quot;my-qr-reader&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>インスタンス変数 <span class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    は、attences_controller.rb
+                    のこのメソッドから生成され、my_student_course.size
+                    &gt; 1
+                    の場合を除いて、すべてが期待どおりに動作します。</p>
+                    <pre><code>def mark_attendance
+    token = params[:encoded_token]
+
+    # Ensure the token is provided
+    if token.blank?
+      render json: { error: &quot;Token is missing&quot; }, status: :unprocessable_entity
+      return
+    end
+
+    begin
+      #decode jwt token
+      secret_key = Rails.application.credentials.secret_key_base
+      payload = JWT.decode(token, secret_key, true, algorithm: &quot;HS256&quot;)[0]
+      lecturer_id = payload[&quot;lecturer_id&quot;]
+      lecturer = Lecturer.find_by(id: lecturer_id)
+      if lecturer
+        my_student_course = lecturer.lecturer_units.flat_map(&amp;:students_courses).uniq.select { |course| course.student_id == current_student.id }
+        if my_student_course.size &gt; 1
+          @show_modal = true
+          @students_attendance_courses = my_student_course
+          puts @students_attendance_courses
+          # Render a pop-up page with a list of results and radio buttons for selection
+        else
+          # If there is only one result or none, proceed with the first result
+          @student_course = my_student_course
+          my_student_course_id = @student_course.first&amp;.id
+        end
+        create_attendance(my_student_course_id)
+      else
+        render json: { error: &quot;Lecturer not found for the given lecturer_id&quot; }, status: :unprocessable_entity
+      end
+    rescue JWT::DecodeError =&gt; e
+      render json: { error: &quot;Invalid token format&quot; }, status: :unprocessable_entity
+    end
+  end
+</code></pre>
+                    <p>これは私のブートストラップモーダルです:</p>
+                    <pre><code>&lt;!-- Button trigger modal --&gt;
+&lt;!-- Modal --&gt;
+&lt;div class=&quot;modal fade&quot; id=&quot;exampleModal&quot; tabindex=&quot;-1&quot; aria-labelledby=&quot;exampleModalLabel&quot; aria-hidden=&quot;true&quot;&gt;
+  &lt;div class=&quot;modal-dialog&quot;&gt;
+    &lt;div class=&quot;modal-content&quot;&gt;
+      &lt;div class=&quot;modal-header&quot;&gt;
+        &lt;h1 class=&quot;modal-title fs-5&quot; id=&quot;exampleModalLabel&quot;&gt;Modal title&lt;/h1&gt;
+        &lt;button type=&quot;button&quot; class=&quot;btn-close&quot; data-bs-dismiss=&quot;modal&quot; aria-label=&quot;Close&quot;&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;modal-body&quot;&gt;
+        &lt;% if @show_modal %&gt;
+          &lt;div id=&quot;modal&quot;&gt;
+            &lt;!-- Use @students_attendance_courses to render the list --&gt;
+            &lt;% @students_attendance_courses.each do |course| %&gt;
+              &lt;!-- Rendering course details as needed --&gt;
+              &lt;%= course.id %&gt;
+            &lt;% end %&gt;
+          &lt;/div&gt;
+        &lt;% else %&gt;
+          &lt;%= &quot;No modal to show&quot; %&gt;
+        &lt;% end %&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;modal-footer&quot;&gt;
+        &lt;button type=&quot;button&quot; class=&quot;btn btn-secondary&quot; data-bs-dismiss=&quot;modal&quot;&gt;Close&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;btn btn-primary&quot;&gt;Save changes&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  document.addEventListener(&#39;DOMContentLoaded&#39;, function() {
+    var myModal = new bootstrap.Modal(document.getElementById(&#39;exampleModal&#39;));
+    myModal.show();
+  });
+&lt;/script&gt;
+</code></pre>
+                    <p>ページ読み込み時に表示されるモーダルが false
+                    の場合にレンダリングするように条件レンダリングを変更しました。</p>
+                    <pre><code>&lt;% if !@show_modal %&gt;
+  &lt;%= render &#39;modal&#39; %&gt;
+&lt;% end %&gt;
+&lt;div id=&quot;scanQrCodeModal&quot;&gt;
+  &lt;h1&gt;Scan QR Codes&lt;/h1&gt;
+  &lt;div class=&quot;section&quot;&gt;
+    &lt;div id=&quot;my-qr-reader&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>これがマーク出席をトリガーする方法です</p>
+                    <pre><code>function domReady(fn) { 
+  if (
+    document.readyState === &quot;complete&quot; || 
+    document.readyState === &quot;interactive&quot;
+  ) { 
+    setTimeout(fn, 1000); 
+  } else { 
+    document.addEventListener(&quot;DOMContentLoaded&quot;, fn); 
+  } 
+}
+
+const csrfToken = document.querySelector(&#39;meta[name=&quot;csrf-token&quot;]&#39;).content;
+
+function sendPostRequest(encodedToken, csrfToken) {
+const currentUrl = window.location.href;
+
+// Replace &quot;/scan&quot; with &quot;/mark_attendance&quot; in the URL
+const newUrl = currentUrl.replace(&#39;/scan&#39;, &#39;/mark_attendance&#39;);
+  fetch(newUrl, {
+    method: &#39;POST&#39;,
+    headers: {
+      &#39;Content-Type&#39;: &#39;application/json&#39;,
+      &#39;X-CSRF-Token&#39;: csrfToken,
+    },
+    body: JSON.stringify({ encoded_token: encodedToken }),
+  })
+  .then(response =&gt; {
+    if (response.redirected) {
+      // Handling redirect manually
+      window.location.href = response.url;
+    } else {
+      return response.json();
+    }
+  })
+    .catch(error =&gt; {
+      console.error(&#39;Error:&#39;, error);
+    });
+}
+
+domReady(function () { 
+  // If found your QR code 
+  function onScanSuccess(decodeText, decodeResult) { 
+    alert(&quot;Your QR code is: &quot; + decodeText, decodeResult); 
+    // Fetch CSRF token from the meta tag
+    const csrfToken = document.querySelector(&#39;meta[name=&quot;csrf-token&quot;]&#39;).content;
+    
+    // Send a POST request to create attendance
+    sendPostRequest(decodeText, csrfToken);
+  } 
+
+  let htmlscanner = new Html5QrcodeScanner( 
+    &quot;my-qr-reader&quot;, 
+    { fps: 10,
+      qrbox: { width: 250, height: 250 },
+      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE] } 
+  ); 
+  htmlscanner.render(onScanSuccess);
+});
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>条件を if !<span class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    によってモーダルが表示されるように変更すると、ビューのレンダリング時に
+                    <span class="citation"
+                    data-cites="show_modal">@show_modal</span> が false
+                    または nil
+                    になる可能性があることが示唆されます。これは、コントローラー
+                    アクションが <span class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    を期待どおりに設定していないこと、または <span
+                    class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    が設定されていない別の要求サイクルでビューがレンダリングされていることが原因である可能性があります。</p>
+                    <p>したがって、条件が正しく設定されていても問題が解決しない場合は、モーダルを表示するための
+                    JS が <span class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    で条件付けされていないことが問題である可能性があります。つまり、ページが読み込まれるたびに実行されるため、次のようにする必要があります。
+                    <span class="citation"
+                    data-cites="show_modal">@show_modal</span>
+                    に関連付けます。
+                    これを行うには、次のようなことを試すことができます。</p>
+                    <pre><code>&lt;% if @show_modal %&gt;
+  &lt;%= render &#39;modal&#39; %&gt;
+  &lt;script&gt;
+    document.addEventListener(&#39;DOMContentLoaded&#39;, function() {
+      var myModal = new bootstrap.Modal(document.getElementById(&#39;exampleModal&#39;));
+      myModal.show();
+    });
+  &lt;/script&gt;
+&lt;% end %&gt;
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

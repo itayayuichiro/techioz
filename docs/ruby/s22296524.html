@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>URLによる認証 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "URLによる認証",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>URLによる認証</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>たとえば、投稿アプリを持っているとします。タイトル、テキスト、電子メール、送信ボタンなどのフィールドに誰でも入力できるフォームがあります。登録は必要ありません。</p>
+                    <p>フォームの送信後、投稿は管理される必要があります。承認されるとメインリストに表示されます。</p>
+                    <p>フォームの送信と承認後、ユーザーは投稿を編集するためのリンクを受け取ります
+                    (リンクはユーザーの電子メールに送信されます)。 -
+                    これを行う方法？</p>
+                    <p>更新</p>
+                    <p>問題は、投稿/ユーザーを管理または検証する方法ではなく、投稿のみを編集するためのリンクをどのように与えるかです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ユーザー
+                    レコードが作成されるたびに、次のようにレコードにバインドされたトークンを簡単に生成できます。</p>
+                    <p>User.rb内</p>
+                    <pre><code>before_save :generate_token
+
+def generate_token
+  self.token = SecureRandom.hex(6)
+end
+</code></pre>
+                    <p>ユーザーに登録確認リンクを送信するときは、次のようにすることができます。</p>
+                    <pre><code>link_to &quot;Validate account&quot;, validate_user_path(token: user.token)
+</code></pre>
+                    <p>UsersController の例</p>
+                    <pre><code>def validate
+  user = User.find_by_token(params[:token])
+  if user
+    user.update_attributes(validated: true)
+    flash[:notice] = &#39;User succesfully validated.&#39;
+  else
+    flash[:error] = &#39;Couldn&#39;t find user with token&#39;
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

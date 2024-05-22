@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>App Store Connect APIのトークンを生成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "App Store Connect APIのトークンを生成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>App Store Connect APIのトークンを生成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Store Connect API 用の JWT
+                    トークンを生成する必要があります。 jwt Ruby gem
+                    Ruby-jwt
+                    を使用しようとしています。これは私のトークン生成コードです。</p>
+                    <pre><code>payload = {
+      &#39;iss&#39;: my_issuer_id_from_db,
+      &#39;exp&#39;: generated_unix_timestamp, #Time.now + 20min
+      &#39;aud&#39;: &#39;hard_coded_string_from_doc&#39;
+  }
+  header = {
+      &#39;alg&#39;: &#39;ES256&#39;,
+      &#39;kid&#39;: my_key_id_from_db,
+      &#39;typ&#39;: &#39;JWT&#39;
+  }
+
+private_key = OpenSSL::PKey.read(File.read(&#39;/tmp/private_key.pem&#39;))
+# private_key - &lt;OpenSSL::PKey::EC:0x000000000XXXXXXX&gt;
+
+@token = JWT.encode(payload, private_key, &#39;ES256&#39;, header)
+# encoded_header.encoded_payload.emcoded_signature
+</code></pre>
+                    <p>このトークンをリクエストのヘッダーに追加しました。</p>
+                    <pre><code>headers = { Authorization: &#39;Bearer&#39; + @token }
+</code></pre>
+                    <p>私が受け取る応答では：</p>
+                    <pre><code>        &quot;errors&quot;: [{
+                &quot;status&quot;: &quot;401&quot;,
+                &quot;code&quot;: &quot;NOT_AUTHORIZED&quot;,
+                &quot;title&quot;: &quot;Authentication credentials are missing or invalid.&quot;,
+                &quot;detail&quot;: &quot;Provide a properly configured and signed bearer token, and make sure that it has not expired. Learn more about Generating Tokens for API Requests https://developer.apple.com/go/?id=api-generating-tokens&quot;
+        }]
+}
+</code></pre>
+                    <p>問題はトークン（直接署名付き）にあると思います。オンライン
+                    ツールでトークンをデコードしようとすると、ペイロードとヘッダーが正しくデコードされました。ステータス:
+                    無効な署名</p>
+                    <p>私の何が間違っているのでしょうか？適切に行う方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここではPython3バージョンを作成しました。 401
+                    認証資格情報が見つからないか無効です。発行時間または期限切れの取得に関連している可能性があります。</p>
+                    <p>関数の取得時間が Apple が推奨する UNIX
+                    エポック時間であることを確認してください。</p>
+                    <pre><code>import jwt
+import datetime as dt
+
+key_id = &#39;#####&#39; 
+alg = &#39;ES256&#39;
+typ = &#39;JWT&#39;
+issue_id = &#39;##########################&#39;
+aud = &#39;appstoreconnect-v1&#39;
+bid = &#39;####&#39; # Your app’s bundle ID (Ex: “com.example.testbundleid2021”)
+
+# Define issue timestamp.
+issued_at_timestamp = int(dt.datetime.now().timestamp())
+# Define expiration timestamp. May not exceed 20 minutes from issue timestamp.
+expiration_timestamp = issued_at_timestamp + 20*60
+
+# Define JWT headers.
+headers = dict()
+headers[&#39;alg&#39;] = alg
+headers[&#39;kid&#39;] = key_id
+headers[&#39;typ&#39;] = typ
+
+# Define JWT payload.
+payload = dict()
+payload[&#39;iss&#39;] = issue_id
+payload[&#39;iat&#39;] = issued_at_timestamp
+payload[&#39;exp&#39;] = expiration_timestamp
+payload[&#39;aud&#39;] = aud
+payload[&#39;bid&#39;] = bid
+# Path to signed private key.
+KEY_FILE = &#39;#########.p8&#39; 
+
+with open(KEY_FILE,&#39;r&#39;) as key_file:
+     key = &#39;&#39;.join(key_file.readlines())
+
+client_secret = jwt.encode(
+payload=payload,  
+headers=headers,
+algorithm=alg,  
+key=key
+)
+
+with open(&#39;client_secret.txt&#39;, &#39;w&#39;) as output: 
+     output.write(client_secret)
+    
+    
+# Usage, after run this code by python3
+# get token from `client_secret.txt` and replace to [signed token]
+# Remember expired time maximum is 20 minutes
+#
+# curl -v -H &#39;Authorization: Bearer [signed token]&#39; &quot;https://api.appstoreconnect.apple.com/v1/apps&quot;
+#
+# More detail https://developer.apple.com/documentation/appstoreconnectapi/generating_tokens_for_api_requests
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

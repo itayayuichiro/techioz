@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ショルダーマッチャーの件名を変更する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ショルダーマッチャーの件名を変更する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ショルダーマッチャーの件名を変更する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クラス内の次の属性で問題が発生しています。データベースレベルでも強制される、プレゼンスが
+                    true の日付属性があります。</p>
+                    <p>検証:日付、存在: true</p>
+                    <p>それに加えて、次の 2
+                    つの属性の組み合わせの一意性を強制する必要があります。</p>
+                    <pre><code>validates :name, uniqueness: { scope: :parent_id }
+</code></pre>
+                    <p>これまでのところ…すべて問題ありませんが、一意性をテストする仕様が必要です</p>
+                    <p>それは {
+                    validate_uniqueness_of(:name).scoped_to(:parent_id)
+                    する必要があります }</p>
+                    <p>しかし、上記の行の問題は、ランダムな名前とparent_id値を使用して、日付をnilにしてデータベースにレコードを挿入しようとすることです。したがって、データベースで失敗します。</p>
+                    <p>すでにテストで subject { build(:my_model) }
+                    を実行しようとしましたが、その行はまだ独自の行を作成しており、日付属性を設定していません。</p>
+                    <p>作成した主題を使用するにはどうすればよいですか?何かが足りないのですか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Shoulda
+                    マッチャーは、データベース内に別のレコードを作成して、一意でない場合をテストする必要があります。これを行うために
+                    Rails
+                    の検証はスキップされますが、データベースの検証をスキップすることはできません。手動で作成した場合は、代わりにそれが使用されます。テストを次のように変更します。</p>
+                    <pre><code>subject { FactoryGirl.build(:my_model) }
+it { should validate_uniqueness_of(:name).scoped_to(:parent_id) }
+</code></pre>
+                    <p>これについては、肩マッチャーのドキュメントで詳しく説明されています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.rubydoc.info/gems/shoulda-matchers/Shoulda%2FMatchers%2FActiveRecord:validate_uniqueness_of</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

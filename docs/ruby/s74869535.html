@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails は複数の必須パラメータを宣言します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails は複数の必須パラメータを宣言します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails は複数の必須パラメータを宣言します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 アプリでは、外部 API
+                    からリクエストを受信しています。受信したリクエストが有効かどうかを確認したい。そのためには、強力なパラメータを使用する必要があります。エンドポイントにヒットするサンプル
+                    JSON リクエストは次のとおりです。</p>
+                    <pre><code>  &quot;sdd_request&quot;: {
+    &quot;return_url&quot;: &quot;https://example.com/return&quot;,
+    &quot;data&quot;: {
+      &quot;debit_method&quot;: &quot;CORE&quot;,
+      &quot;debtor&quot;: {
+        &quot;name&quot;: &quot;John Doe&quot;,
+        &quot;email&quot;: &quot;[email protected]&quot;,
+        }
+      },
+      &quot;extension&quot;: {
+        &quot;signees&quot;: [{email: &#39;[email protected]&#39;, name: &#39;joe&#39;, last_name: &#39;smith&#39; }],
+        &quot;creditor&quot;: {
+          &quot;id&quot;: &quot;12345&quot;,
+          &quot;name&quot;: &quot;Acme Inc.&quot;,
+          &quot;address&quot;: {
+            &quot;city&quot;: &quot;New York&quot;,
+          }
+        }
+      }
+    }
+  }
+</code></pre>
+                    <p>したがって、必要なものは次のとおりです。</p>
+                    <pre><code>- return_url
+- data
+- signees
+- creditor
+</code></pre>
+                    <p>上記のパラメータを要求するにはどうすればよいですか?</p>
+                    <p>私がやったことは次のとおりです。</p>
+                    <pre><code>  def sdd_setup_request_params
+    params.require(:sdd_request).permit(
+      :return_url,
+      data: [
+        :debit_method,
+        debtor: [
+          :name,
+          :email,
+          ]
+        ],
+        extension: [
+          signees: [],
+          creditor: [
+            :id,
+            :name,
+            address: [
+              :city,
+            ]
+          ]
+        ]
+      ]
+    )
+  end
+</code></pre>
+                    <p>しかし、私が理解しているところによると、たとえば、個別のコンポーネントではなく、sdd_requestのオブジェクト全体が必要です。署名者が欠落していても、パラメータが欠落しているというエラーは発生しませんよね?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>強力なパラメーターの役割は、データを検証することではありません。一括割り当ての脆弱性を回避するためにパラメータをホワイトリストに登録するだけです。</p>
+                    <p>require
+                    は、パラメーターの一般的な構造によりリクエストの処理を続行することが無意味になった場合に、早期に回避するために使用されます。たとえば、典型的な
+                    Rails コントローラーの場合は次のようになります。</p>
+                    <pre><code>params.require(:person)
+      .permit(:name, :age, :city)
+</code></pre>
+                    <p>キー :person
+                    が欠落している場合はリクエストの処理を続行しても意味がないため、ActionController::ParameterMissing
+                    例外が発生し、Rails がレスキューして 400 - Bad
+                    Request レスポンスを返します。</p>
+                    <p>これにより、ハッシュを予期していて代わりに nil
+                    を取得した場合に発生する可能性のある潜在的な nil
+                    エラーが防止されます。</p>
+                    <p>実際の属性の存在を検証するのは、Rails
+                    のモデルの仕事です。</p>
+                    <pre><code>class Person
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+  attribute :name
+  attribute :age
+  attribute :city
+  validates :name, :age, :city, presence: true
+end
+</code></pre>
+                    <p>あなたは今こう思っているかもしれません: でも、API
+                    から取得して保存していないので、モデルがありません。モデルはアプリケーション内のエンティティを正規化された形式で表すため、永続化がなくても非常に役立ちます。</p>
+                    <p>何らかの理由でどうしてもモデルを避けたい場合は、if
+                    ステートメントの Web
+                    よりももう少し猶予を持ってコントローラーでモデルレス検証を提供する
+                    gem があります。</p>
+                    <p>JSONAPI.org のようなネストされたハッシュ構造で
+                    require
+                    を使用することはできますが、これは単一のキーを返すだけで、最初に欠落しているキーで発生するため、入力の何が間違っているかについて意味のある詳細なフィードバックを提供するために使用することはできません。</p>
+                    <pre><code>params.require(:data)
+      .require(:attributes)
+      .permit(:name, :age, :city)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

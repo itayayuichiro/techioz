@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュのデフォルト値を使用すると、奇妙な予期しない動作 (値の消失/変更) が発生します。ハッシュ.new([]) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュのデフォルト値を使用すると、奇妙な予期しない動作 (値の消失/変更) が発生します。ハッシュ.new([])",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュのデフォルト値を使用すると、奇妙な予期しない動作
+(値の消失/変更) が発生します。ハッシュ.new([])</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコードを考えてみましょう。</p>
+                    <pre><code>h = Hash.new(0)  # New hash pairs will by default have 0 as values
+h[1] += 1  #=&gt; {1=&gt;1}
+h[2] += 2  #=&gt; {2=&gt;2}
+</code></pre>
+                    <p>それはそれでいいのですが、次のようになります。</p>
+                    <pre><code>h = Hash.new([])  # Empty array as default value
+h[1] &lt;&lt;= 1  #=&gt; {1=&gt;[1]}                  ← Ok
+h[2] &lt;&lt;= 2  #=&gt; {1=&gt;[1,2], 2=&gt;[1,2]}      ← Why did `1` change?
+h[3] &lt;&lt; 3   #=&gt; {1=&gt;[1,2,3], 2=&gt;[1,2,3]}  ← Where is `3`?
+</code></pre>
+                    <p>この時点で、ハッシュは次のようになると予想します。</p>
+                    <pre><code>{1=&gt;[1], 2=&gt;[2], 3=&gt;[3]}
+</code></pre>
+                    <p>しかしそれは程遠いです。何が起こっているのでしょうか?どうすれば期待どおりの動作を得ることができますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、この動作は配列だけでなく、その後変更されるデフォルト値
+                    (ハッシュや文字列など)
+                    にも適用されることに注意してください。これは、Array.new(3,
+                    []) 内の設定された要素にも同様に適用されます。</p>
+                    <p>TL;DR: Hash.new { |h, k| を使用します。 h[k] = []
+                    }
+                    最も慣用的な解決策が必要で、理由は気にしない場合。</p>
+                    <p>Hash.new([])
+                    が機能しない理由をさらに詳しく見てみましょう。</p>
+                    <pre><code>h = Hash.new([])
+h[0] &lt;&lt; &#39;a&#39;  #=&gt; [&quot;a&quot;]
+h[1] &lt;&lt; &#39;b&#39;  #=&gt; [&quot;a&quot;, &quot;b&quot;]
+h[1]         #=&gt; [&quot;a&quot;, &quot;b&quot;]
+
+h[0].object_id == h[1].object_id  #=&gt; true
+h  #=&gt; {}
+</code></pre>
+                    <p>デフォルトのオブジェクトが再利用され、変更されていることがわかります
+                    (これは、オブジェクトが唯一のデフォルト値として渡され、ハッシュには新しいデフォルト値を取得する方法がないためです)。しかし、キーや値がないのはなぜですか?
+                    h[1]
+                    がまだ値を与えているにもかかわらず、配列内にあるのでしょうか？ヒントは次のとおりです。</p>
+                    <pre><code>h[42]  #=&gt; [&quot;a&quot;, &quot;b&quot;]
+</code></pre>
+                    <p>各 []
+                    呼び出しによって返される配列は単なるデフォルト値であり、これまでずっと変更してきたため、新しい値が含まれるようになりました。
+                    &lt;&lt; はハッシュに代入しないので (Ruby では =
+                    present†
+                    なしで代入することはできません)、実際のハッシュには何も入れていません。代わりに、&lt;&lt;=
+                    (+= が + であるのと同じように、&lt;&lt; になります)
+                    を使用する必要があります。</p>
+                    <pre><code>h[2] &lt;&lt;= &#39;c&#39;  #=&gt; [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+h             #=&gt; {2=&gt;[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]}
+</code></pre>
+                    <p>これは次と同じです。</p>
+                    <pre><code>h[2] = (h[2] &lt;&lt; &#39;c&#39;)
+</code></pre>
+                    <p>Hash.new { [] }
+                    を使用すると、元のデフォルト値の再利用と変更の問題は解決されますが
+                    (指定されたブロックが毎回呼び出され、新しい配列が返されるため)、代入の問題は解決されません。</p>
+                    <pre><code>h = Hash.new { [] }
+h[0] &lt;&lt; &#39;a&#39;   #=&gt; [&quot;a&quot;]
+h[1] &lt;&lt;= &#39;b&#39;  #=&gt; [&quot;b&quot;]
+h             #=&gt; {1=&gt;[&quot;b&quot;]}
+</code></pre>
+                    <p>常に &lt;&lt;= を使用することを忘れない場合、
+                    Hash.new { [] }
+                    は実行可能な解決策ですが、少し奇妙で慣用的ではありません
+                    (&lt;&lt;=
+                    が実際に使用されているのを見たことがありません)。また、&lt;&lt;
+                    を誤って使用すると、微妙なバグが発生する可能性があります。</p>
+                    <p>Hash.new
+                    のドキュメントには次のように書かれています
+                    (私自身の意見を強調します)。</p>
+                    <p>したがって、&lt;&lt;= の代わりに &lt;&lt;
+                    を使用したい場合は、ブロック内からハッシュにデフォルト値を保存する必要があります。</p>
+                    <pre><code>h = Hash.new { |h, k| h[k] = [] }
+h[0] &lt;&lt; &#39;a&#39;  #=&gt; [&quot;a&quot;]
+h[1] &lt;&lt; &#39;b&#39;  #=&gt; [&quot;b&quot;]
+h            #=&gt; {0=&gt;[&quot;a&quot;], 1=&gt;[&quot;b&quot;]}
+</code></pre>
+                    <p>これにより、割り当てが個々の呼び出し (&lt;&lt;=
+                    を使用する) から Hash.new
+                    に渡されるブロックに事実上移動され、&lt;&lt;
+                    使用時の予期せぬ動作の負担が軽減されます。</p>
+                    <p>このメソッドと他のメソッドの間には機能的な違いが
+                    1
+                    つあることに注意してください。この方法では、読み取り時にデフォルト値が割り当てられます
+                    (割り当ては常にブロック内で行われるため)。例えば：</p>
+                    <pre><code>h1 = Hash.new { |h, k| h[k] = [] }
+h1[:x]
+h1  #=&gt; {:x=&gt;[]}
+
+h2 = Hash.new { [] }
+h2[:x]
+h2  #=&gt; {}
+</code></pre>
+                    <p>Hash.new(0) は問題なく動作するのに、なぜ
+                    Hash.new([])
+                    が動作しないのか疑問に思われるかもしれません。重要なのは、Ruby
+                    の数値は不変であるため、当然のことながら、数値をその場で変更することは決してないということです。デフォルト値を不変として扱う場合は、Hash.new([])
+                    も問題なく使用できます。</p>
+                    <pre><code>h = Hash.new([].freeze)
+h[0] += [&#39;a&#39;]  #=&gt; [&quot;a&quot;]
+h[1] += [&#39;b&#39;]  #=&gt; [&quot;b&quot;]
+h[2]           #=&gt; []
+h              #=&gt; {0=&gt;[&quot;a&quot;], 1=&gt;[&quot;b&quot;]}
+</code></pre>
+                    <p>ただし、([].freeze + [].freeze).frozen? ==
+                    偽。したがって、不変性が全体にわたって確実に保持されるようにしたい場合は、新しいオブジェクトを再フリーズするように注意する必要があります。</p>
+                    <p>すべての方法の中で、私は個人的に「不変の方法」を好みます。一般に、不変であると、物事についての推論がはるかに簡単になります。結局のところ、これは、隠れた、または微妙な予期せぬ動作が発生する可能性がない唯一の方法です。ただし、最も一般的で慣用的な方法は「可変的な方法」です。</p>
+                    <p>最後に余談ですが、ハッシュのデフォルト値のこの動作は、Ruby
+                    Koans に記載されています。</p>
+                    <p>†
+                    これは厳密には当てはまりません。instance_variable_set
+                    のようなメソッドはこれをバイパスしますが、=
+                    の左辺値は動的にできないため、メタプログラミングのために存在する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

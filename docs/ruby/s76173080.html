@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ラムダはキーワード引数を受け入れません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ラムダはキーワード引数を受け入れません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ラムダはキーワード引数を受け入れません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アプリケーションを Ruby 2.7.5 から 3.2.2
+                    にアップグレードした後、この問題が発生しました。
+                    Railsのバージョンは6.0.6.1です。</p>
+                    <p>スコープで使用されるラムダがあり、位置引数とキーワード引数の両方があります。アップグレード以降、キーワード引数は受け入れられず、引数の数が間違っていることを示す
+                    ArgumentError がスローされます。</p>
+                    <p>Ruby 3.0
+                    では、位置引数とキーワード引数に関連する重大な変更が導入されました
+                    (ここを参照)
+                    が、これでは問題の説明がつかないと思います。</p>
+                    <p>以下に例を示します。</p>
+                    <pre><code>class TestClass
+  scope :test_scope, lambda do |arg1, arg2:|
+    puts arg1
+    puts arg2
+  end
+end
+</code></pre>
+                    <p>スコープを呼び出すと、次のエラーが発生します。</p>
+                    <pre><code>&gt; TestClass.test_scope
+wrong number of arguments (given 0, expected 1; required keyword: arg2) (ArgumentError)
+
+&gt; TestClass.test_scope(&#39;abc&#39;)
+missing keyword: :arg2 (ArgumentError)
+
+&gt; TestClass.test_scope(&#39;abc&#39;, arg2: &#39;def&#39;)
+wrong number of arguments (given 2, expected 1; required keyword: arg2) (ArgumentError)
+</code></pre>
+                    <p>いくつかのバリエーションを試してみましたが、どれもうまくいかないようです。同じシグネチャを持つクラス内に通常のメソッドを作成すると、このエラーは発生しません。</p>
+                    <p>ここで何が問題になっているのでしょうか?</p>
+                    <p>アップデート</p>
+                    <p>コメントで提供された例に基づいた完全なスタック
+                    トレースを次に示します。</p>
+                    <p>例：</p>
+                    <pre><code>ExampleClass.test_scope(&#39;abc&#39;, arg2: &#39;def&#39;)
+</code></pre>
+                    <p>スタックトレース：</p>
+                    <pre><code>ArgumentError: wrong number of arguments (given 2, expected 1; required keyword: arg2)
+  /app/app/models/example_class.rb:2:in `block in &lt;class:ExampleClass&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activerecord-6.1.7.3/lib/active_record/relation.rb:411:in `instance_exec&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activerecord-6.1.7.3/lib/active_record/relation.rb:411:in `block in _exec_scope&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activerecord-6.1.7.3/lib/active_record/relation.rb:804:in `_scoping&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activerecord-6.1.7.3/lib/active_record/relation.rb:411:in `_exec_scope&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activerecord-6.1.7.3/lib/active_record/scoping/named.rb:176:in `block in scope&#39;
+  /app/config/initializers/test_init.rb:13:in `&lt;main&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/gems/bootsnap-1.11.1/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:39:in `load&#39;
+  /bundle/vendor/ruby/3.2.0/gems/bootsnap-1.11.1/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:39:in `load&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activesupport-6.1.7.3/lib/active_support/dependencies.rb:326:in `block in load&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activesupport-6.1.7.3/lib/active_support/dependencies.rb:299:in `load_dependency&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activesupport-6.1.7.3/lib/active_support/dependencies.rb:326:in `load&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/engine.rb:681:in `block in load_config_initializer&#39;
+  /bundle/vendor/ruby/3.2.0/gems/activesupport-6.1.7.3/lib/active_support/notifications.rb:205:in `instrument&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/engine.rb:680:in `load_config_initializer&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/engine.rb:634:in `block (2 levels) in &lt;class:Engine&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/engine.rb:633:in `each&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/engine.rb:633:in `block in &lt;class:Engine&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:32:in `instance_exec&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:32:in `run&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:61:in `block in run_initializers&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:228:in `block in tsort_each&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:350:in `block (2 levels) in each_strongly_connected_component&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:422:in `block (2 levels) in each_strongly_connected_component_from&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:431:in `each_strongly_connected_component_from&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:421:in `block in each_strongly_connected_component_from&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:50:in `each&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:50:in `tsort_each_child&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:415:in `call&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:415:in `each_strongly_connected_component_from&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:349:in `block in each_strongly_connected_component&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:347:in `each&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:347:in `call&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:347:in `each_strongly_connected_component&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:226:in `tsort_each&#39;
+  /usr/local/lib/ruby/3.2.0/tsort.rb:205:in `tsort_each&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/initializable.rb:60:in `run_initializers&#39;
+  /bundle/vendor/ruby/3.2.0/gems/railties-6.1.7.3/lib/rails/application.rb:391:in `initialize!&#39;
+  /app/config/environment.rb:5:in `&lt;top (required)&gt;&#39;
+  config.ru:3:in `require_relative&#39;
+  config.ru:3:in `block in &lt;main&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/gems/rack-2.2.7/lib/rack/builder.rb:116:in `eval&#39;
+  /bundle/vendor/ruby/3.2.0/gems/rack-2.2.7/lib/rack/builder.rb:116:in `new_from_string&#39;
+  /bundle/vendor/ruby/3.2.0/gems/rack-2.2.7/lib/rack/builder.rb:105:in `load_file&#39;
+  /bundle/vendor/ruby/3.2.0/gems/rack-2.2.7/lib/rack/builder.rb:66:in `parse_file&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/configuration.rb:348:in `load_rackup&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/configuration.rb:270:in `app&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/runner.rb:150:in `load_and_bind&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/single.rb:44:in `run&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/launcher.rb:193:in `run&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/lib/puma/cli.rb:81:in `run&#39;
+  /bundle/vendor/ruby/3.2.0/gems/puma-5.6.5/bin/puma:10:in `&lt;top (required)&gt;&#39;
+  /bundle/vendor/ruby/3.2.0/bin/puma:25:in `load&#39;
+  /bundle/vendor/ruby/3.2.0/bin/puma:25:in `&lt;top (required)&gt;&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今日、Rails 6.1 アプリを Ruby 3.2
+                    を使用するようにアップグレードする作業をしていたときに、これと同じ問題に遭遇しました。</p>
+                    <p>問題は、Rails の Ruby 3.2 互換性修正は現在
+                    6-1-stable
+                    ブランチにありますが、この記事の執筆時点での最新の
+                    6.1 リリース (6.1.7.3)
+                    にはそのコミットが含まれていないことです。</p>
+                    <p>新しい 6.1
+                    リリースがそのコミットとともに出荷されない限り、Rails
+                    6.1 を Ruby 3.2 で動作させる唯一の方法は、GitHub
+                    上の 6.1
+                    安定版ブランチを直接指定することだと思われます
+                    (ただし、私はこれを試していません)。</p>
+                    <p>詳細については、https://github.com/rails/rails/pull/46895
+                    を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

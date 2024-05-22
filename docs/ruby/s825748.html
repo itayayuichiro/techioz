@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コマンドライン引数を rake タスクに渡す方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コマンドライン引数を rake タスクに渡す方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コマンドライン引数を rake
+タスクに渡す方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>複数のデータベースに値を挿入する必要がある rake
+                    タスクがあります。</p>
+                    <p>コマンドラインまたは別の rake タスクからこの値を
+                    rake タスクに渡したいと考えています。</p>
+                    <p>これどうやってするの？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>rake
+                    で仮引数を指定するには、タスク呼び出しにシンボル引数を追加します。例えば：</p>
+                    <pre><code>require &#39;rake&#39;
+
+task :my_task, [:arg1, :arg2] do |t, args|
+  puts &quot;Args were: #{args} of class #{args.class}&quot;
+  puts &quot;arg1 was: &#39;#{args[:arg1]}&#39; of class #{args[:arg1].class}&quot;
+  puts &quot;arg2 was: &#39;#{args[:arg2]}&#39; of class #{args[:arg2].class}&quot;
+end
+
+task :invoke_my_task do
+  Rake.application.invoke_task(&quot;my_task[1, 2]&quot;)
+end
+
+# or if you prefer this syntax...
+task :invoke_my_task_2 do
+  Rake::Task[:my_task].invoke(3, 4)
+end
+
+# a task with prerequisites passes its 
+# arguments to it prerequisites
+task :with_prerequisite, [:arg1, :arg2] =&gt; :my_task #&lt;- name of prerequisite task
+
+# to specify default values, 
+# we take advantage of args being a Rake::TaskArguments object
+task :with_defaults, :arg1, :arg2 do |t, args|
+  args.with_defaults(:arg1 =&gt; :default_1, :arg2 =&gt; :default_2)
+  puts &quot;Args with defaults were: #{args}&quot;
+end
+</code></pre>
+                    <p>次に、コマンドラインから次のようにします。</p>
+                    <pre><code>
+&gt; rake my_task[1,false]
+Args were: {:arg1=&gt;&quot;1&quot;, :arg2=&gt;&quot;false&quot;} of class Rake::TaskArguments
+arg1 was: &#39;1&#39; of class String
+arg2 was: &#39;false&#39; of class String
+
+&gt; rake &quot;my_task[1, 2]&quot;
+Args were: {:arg1=&gt;&quot;1&quot;, :arg2=&gt;&quot;2&quot;}
+
+&gt; rake invoke_my_task
+Args were: {:arg1=&gt;&quot;1&quot;, :arg2=&gt;&quot;2&quot;}
+
+&gt; rake invoke_my_task_2
+Args were: {:arg1=&gt;3, :arg2=&gt;4}
+
+&gt; rake with_prerequisite[5,6]
+Args were: {:arg1=&gt;&quot;5&quot;, :arg2=&gt;&quot;6&quot;}
+
+&gt; rake with_defaults
+Args with defaults were: {:arg1=&gt;:default_1, :arg2=&gt;:default_2}
+
+&gt; rake with_defaults[&#39;x&#39;,&#39;y&#39;]
+Args with defaults were: {:arg1=&gt;&quot;x&quot;, :arg2=&gt;&quot;y&quot;}
+</code></pre>
+                    <p>2
+                    番目の例で示したように、スペースを使用する場合は、シェルがスペースで引数を分割しないように、ターゲット名を引用符で囲む必要があります。</p>
+                    <p>rake.rb のコードを見ると、rake
+                    はタスク文字列を解析して前提条件の引数を抽出しないように見えるため、
+                    task :t1 =&gt; “dep[1,2]”
+                    を実行することはできません。前提条件に異なる引数を指定する唯一の方法は、:invoke_my_task
+                    および :invoke_my_task_2 のように、依存タスク
+                    アクション内で前提条件を明示的に呼び出すことです。</p>
+                    <p>一部のシェル (zsh など)
+                    では、角括弧をエスケープする必要があることに注意してください:
+                    rake my_task[‘arg1’]</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails - モデルの検証を考案する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails - モデルの検証を考案する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails - モデルの検証を考案する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails
+                    アプリケーションに取り組んでおり、認証に Devise gem
+                    を使用しています。新しいユーザーとしてサインアップすることはできますが、ユーザーのすべてのデータが
+                    Devise User
+                    モデルに保存されていないことに注意しました。</p>
+                    <p>以下のシナリオについて説明しました。</p>
+                    <pre><code>ActiveRecord::Schema[7.0].define(version: 2023_08_07_053734) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension &quot;plpgsql&quot;
+
+  create_table &quot;company_departments&quot;, force: :cascade do |t|
+    t.integer &quot;department_code&quot;
+    t.string &quot;department_name&quot;
+    t.string &quot;department_haed&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+  end
+
+  create_table &quot;users&quot;, force: :cascade do |t|
+    t.string &quot;email&quot;, default: &quot;&quot;, null: false
+    t.string &quot;encrypted_password&quot;, default: &quot;&quot;, null: false
+    t.string &quot;reset_password_token&quot;
+    t.datetime &quot;reset_password_sent_at&quot;
+    t.string &quot;user_name&quot;
+    t.integer &quot;user_identification_number&quot;
+    t.date &quot;user_employment_start_date&quot;
+    t.date &quot;user_DOB&quot;
+    t.string &quot;user_present__job_title&quot;
+    t.string &quot;user_department&quot;
+    t.string &quot;user_employment_category&quot;
+    t.string &quot;user_office_working_preference&quot;
+    t.string &quot;user_social_status&quot;
+    t.string &quot;user_present_office_location&quot;
+    t.string &quot;user_present_working_shift&quot;
+    t.bigint &quot;user_basic_pay&quot;
+    t.bigint &quot;user_gross_salary&quot;
+    t.integer &quot;user_appraisal_rating&quot;
+    t.date &quot;user_last_salary_revision_date&quot;
+    t.text &quot;user_appraisal_comments&quot;
+    t.bigint &quot;user_contact&quot;
+    t.string &quot;user_personalemail&quot;
+    t.text &quot;user_permanent_address&quot;
+    t.string &quot;user_manager&quot;
+    t.string &quot;user_sup1&quot;
+    t.string &quot;user_sup2&quot;
+    t.string &quot;user_sup3&quot;
+    t.string &quot;user_sup4&quot;
+    t.text &quot;user_permanent_illness&quot;
+    t.string &quot;user_phstatus&quot;
+    t.string &quot;user_companyname&quot;
+    t.string &quot;user_skill_category&quot;
+    t.boolean &quot;user_account_status&quot;
+    t.datetime &quot;remember_created_at&quot;
+    t.integer &quot;sign_in_count&quot;, default: 0, null: false
+    t.datetime &quot;current_sign_in_at&quot;
+    t.datetime &quot;last_sign_in_at&quot;
+    t.string &quot;current_sign_in_ip&quot;
+    t.string &quot;last_sign_in_ip&quot;
+    t.string &quot;confirmation_token&quot;
+    t.datetime &quot;confirmed_at&quot;
+    t.datetime &quot;confirmation_sent_at&quot;
+    t.string &quot;unconfirmed_email&quot;
+    t.integer &quot;failed_attempts&quot;, default: 0, null: false
+    t.string &quot;unlock_token&quot;
+    t.datetime &quot;locked_at&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.bigint &quot;company_department_id&quot;
+    t.index [&quot;company_department_id&quot;], name: &quot;index_users_on_company_department_id&quot;
+    t.index [&quot;email&quot;], name: &quot;index_users_on_email&quot;, unique: true
+    t.index [&quot;reset_password_token&quot;], name: &quot;index_users_on_reset_password_token&quot;, unique: true
+  end
+
+  add_foreign_key &quot;users&quot;, &quot;company_departments&quot;
+end
+
+</code></pre>
+                    <p>会社部門モデル:</p>
+                    <pre><code>class CompanyDepartment &lt; ApplicationRecord
+ has_many :users
+end
+</code></pre>
+                    <p>ユーザーモデル:</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+
+  belongs_to :company_department, optional: true
+end
+
+</code></pre>
+                    <p><strong>私は何をしようとしているのでしょうか?
+                    </strong></p>
+                    <p>Company Division テーブルのレコードを、Devise
+                    サインアップ フォームの [Department]
+                    フィールドのドロップダウン
+                    オプションのリストとして利用できるようにしたいと考えています。</p>
+                    <p><strong>観察： </strong></p>
+                    <p>サインアップ
+                    フォームは機能していますが、会社部門のデータが User
+                    テーブルに保存されていないことがわかりました。</p>
+                    <p>ただし、Rails
+                    コンソールに移行し、以下のクエリを使用してバックエンドから変更を加えようとすると、部門データは以下のように
+                    User テーブルに正常に保存されます。</p>
+                    <pre><code>User.create!(user_name: &quot;abc&quot;, password: 123456, password_confirmation: 123456, company_department_id: 3
+
+</code></pre>
+                    <p>思考プロセス</p>
+                    <p>これは検証に関連するものだと思います。したがって、以下のようにすべてのユーザー
+                    モデル属性をホワイトリストに登録したことを確認しました。</p>
+                    <p>アプリケーションコントローラー:</p>
+                    <pre><code>class ApplicationController &lt; ActionController::Base
+    include DeviseWhitelist
+end
+
+</code></pre>
+                    <p>ホワイトリストへの懸念を工夫する</p>
+                    <pre><code>module DeviseWhitelist 
+  extend ActiveSupport::Concern
+
+  included do 
+    before_action :configure_permitted_parameters, if: :devise_controller?
+  end 
+
+  def configure_permitted_parameters
+      devise_parameter_sanitizer.permit(:sign_up, keys: [:user_name, :user_identification_number, :user_employment_start_date, :user_DOB, :user_present__job_title, :user_department, :user_employment_category, :user_office_working_preference, :user_social_status, :user_present_office_location, :user_present_working_shift, :user_basic_pay, :user_gross_pay, :user_appraisal_rating, :user_last_salary_revision_date, :user_appraisal_comments, :user_contact, :user_personalemail, :user_permanent_address, :user_manager, :user_sup1, :user_sup2, :user_sup3, :user_sup4, :user_permanent_illness, :user_phstatus, :user_companyname, :user_skill_category, :user_account_status, **:company_department_id**])
+
+    devise_parameter_sanitizer.permit(:account_update, keys: [:user_name, :user_identification_number, :user_employment_start_date, :user_DOB, :user_present__job_title, :user_department, :user_employment_category, :user_office_working_preference, :user_social_status, :user_present_office_location, :user_present_working_shift, :user_basic_pay, :user_gross_pay, :user_appraisal_rating, :user_last_salary_revision_date, :user_appraisal_comments, :user_contact, :user_personalemail, :user_permanent_address, :user_manager, :user_sup1, :user_sup2, :user_sup3, :user_sup4, :user_permanent_illness, :user_phstatus, :user_companyname, :user_skill_category, :user_account_status, **:company_department_id**])
+  end 
+
+end 
+</code></pre>
+                    <p>以下は私がサインアップに使用しているフォームです。デフォルトでは、部門の追加選択フィールドを備えた新しい登録フォームを考案します。</p>
+                    <p>新規ユーザー/サインアップフォームを工夫する</p>
+                    <pre><code>&lt;h2&gt;Sign up&lt;/h2&gt;
+
+&lt;%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %&gt;
+  &lt;%= render &quot;devise/shared/error_messages&quot;, resource: resource %&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :email %&gt;&lt;br /&gt;
+    &lt;%= f.email_field :email, autofocus: true, autocomplete: &quot;email&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password %&gt;
+    &lt;% if @minimum_password_length %&gt;
+    &lt;em&gt;(&lt;%= @minimum_password_length %&gt; characters minimum)&lt;/em&gt;
+    &lt;% end %&gt;&lt;br /&gt;
+    &lt;%= f.password_field :password, autocomplete: &quot;new-password&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :password_confirmation %&gt;&lt;br /&gt;
+    &lt;%= f.password_field :password_confirmation, autocomplete: &quot;new-password&quot; %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= f.label :user_department %&gt;&lt;br /&gt;
+   &lt;%= f.collection_select(:user_department, CompanyDepartment.all, :id, :department_name) %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;actions&quot;&gt;
+    &lt;%= f.submit &quot;Sign up&quot; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+&lt;%= render &quot;devise/shared/links&quot; %&gt;
+
+</code></pre>
+                    <p>部門データが保存されない理由が理解できず、これに関してサポートを求めたいと考えました。ありがとう。</p>
+                    <p>以下では、POST
+                    リクエストが開始されると、パラメーターは正しくキャプチャされますが、部門の詳細は保存されないことがわかります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>company_Department_id
+                    を更新しようとしているので、次のようにします。</p>
+                    <pre><code>f.collection_select(:company_department_id ...
+</code></pre>
+                    <p>2
+                    つの異なる属性を丸で囲みました。コンソールでは正しい属性を使用していますが、フォーム内の別の属性である
+                    user_Department は実際には更新されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

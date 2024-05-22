@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RailsのJWT認証でエラーが発生しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RailsのJWT認証でエラーが発生しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RailsのJWT認証でエラーが発生しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは、新しいユーザーを作成するために {
+                    http://localhost:3000/users }
+                    を押しているときに発生するエラーですが、以下の問題に直面しています。</p>
+                    <p>UsersController#index の JWT::DecodeError Nil
+                    JSON Web トークン ソースを抜粋（12行目あたり）</p>
+                    <pre><code>def jwt_decode (token)
+    decoded = JWT.decode(token, SECRET_KEY)[0]
+    HashWithIndifferentAccess.new decoded
+end
+
+
+
+
+class AuthenticationController &lt; ApplicationController
+    protect_from_forgery with: :exception
+    skip_before_action :authenticate_request
+    # POST /auth/login
+    def login
+        @user User.find_by_email (params[:email])
+        if @user&amp;.authenticate(params[:password])
+            token = jwt_encode(user_id: @user.id)
+            render json: { token: token }, status: :ok
+        else
+            render json: { error: &#39;unauthorized&#39; }, status: :unauthorized
+        end
+    end
+end
+
+
+class ApplicationController &lt; ActionController::Base
+    require &#39;stripe&#39;
+  Stripe.api_key = &#39;sk_test_51O1pqnSCcF3F1d0MklDFQ0DIDSQ366PJh3YVx8AEqZH5OYRDjIMKOQdACJ5dxNiMkAH4dZdAZy48yzp6FKS3KMAy00VB8RVFBI&#39;
+
+  protect_from_forgery with: :exception
+  protect_from_forgery with: :null_session
+
+  include JsonWebToken
+  before_action :authenticate_request
+
+  private
+    def authenticate_request
+    header = request.headers[&quot;Authorization&quot;]
+    header = header.split(&quot; &quot;).last if header
+    decoded = jwt_decode(header)
+    @current_user= User.find(decoded[:user_id])
+    end
+end
+
+class UsersController &lt; ApplicationController
+  protect_from_forgery with: :exception
+  skip_before_action :authenticate_request, only: [:create]
+  before_action :set_user, only: [:show, :destroy]
+
+  def index
+   @users = User.all
+   render json: @users, status: :ok
+  end
+
+  def create
+    @user = User.new(user_params)
+    if @user.save
+      render json: @user, status: :created
+    else
+      render json:{ errors:  @user.errors.full_messages },
+             status: :unprocessable_entity
+    end
+  end
+</code></pre>
+                    <p>この問題を解決しようと努力してきましたが、解決できませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下のメソッドをマップしていると思われる GET
+                    リクエストを通じて http://localhost:3000/users
+                    にアクセスしようとしています。</p>
+                    <pre><code>def index
+  @users = User.all
+  render json: @users, status: :ok
+end
+</code></pre>
+                    <p>ApplicationController には before_action
+                    :authenticate_request
+                    が設定されており、コントローラーのすべてのアクション
+                    (メソッド)
+                    の前に呼び出されます。したがって、ログインしていない場合はエラーが発生します。</p>
+                    <p>しかし、あなたの質問では、ユーザーを作成しようとしているときにこのエラーが発生していると言っています。つまり、実際には
+                    def Index の代わりに def create
+                    を呼び出すつもりですよね?</p>
+                    <p>リクエストメソッドのタイプをGETからPOSTに変更してみてはいかがでしょうか？ルートが分からないので推測に基づいて話しています。</p>
+                    <pre><code>POST http://localhost:3000/users
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

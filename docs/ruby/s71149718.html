@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>シュライン - 検証前にシュラインがファイルを自動アップロードしないようにする方法 - Ruby Upload Gem | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "シュライン - 検証前にシュラインがファイルを自動アップロードしないようにする方法 - Ruby Upload Gem",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>シュライン -
+検証前にシュラインがファイルを自動アップロードしないようにする方法 -
+Ruby Upload Gem</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この質問は、ファイル アップロード用の Ruby Gem
+                    Shrine
+                    を使用した経験がある人に向けてのものです。</p>
+                    <p>ClamAV
+                    を使用して、アップロードされたファイルのウイルスをスキャンしようとしています。スキャンは正常に機能しますが、ファイルは検証前に、Shrine
+                    によってすでにクラウド
+                    ストレージに自動アップロードされています。</p>
+                    <p>現時点でのコードは次のとおりです。</p>
+                    <pre><code>Attacher.validate do
+    if file
+      tmp_file = file.download
+      # raise Services::Clamav::Client::FileContainVirus
+      errors &lt;&lt; &quot;virus file&quot; if Services::Clamav::Client.virus?(tmp_file.path)
+    end
+ end
+</code></pre>
+                    <p>あらゆる考え/回答が役に立ちます。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、Shrine
+                    経由でファイルをアップロードする場合の注意点です。すべてのファイルは最初にキャッシュ/一時ストレージ
+                    (通常はローカル ファイルシステム上)
+                    にアップロードされ、検証に合格した後にのみ最終ストレージに保存されます。したがって、実行する検証はキャッシュされたファイルに対して実行され、ウイルス
+                    (またはその他の検証の失敗)
+                    が検出された場合、そのファイルは永続ストレージに昇格されません。これがどのように機能するかについて詳しくは、Shrine
+                    の入門ガイドをご覧ください。</p>
+                    <p>ただし、ドキュメントでは次のようなカスタム検証が示されています。</p>
+                    <pre><code>require &quot;streamio-ffmpeg&quot;
+
+class VideoUploader &lt; Shrine
+  plugin :add_metadata
+
+  add_metadata :duration do |io|
+    movie = Shrine.with_file(io) { |file| FFMPEG::Movie.new(file.path) }
+    movie.duration
+  end
+
+  Attacher.validate do
+    if file.duration &gt; 5*60*60
+      errors &lt;&lt; &quot;duration must not be longer than 5 hours&quot;
+    end
+  end
+end
+</code></pre>
+                    <p>add_metadata ブロックには、ファイル
+                    ストリームの読み取りに使用できる io
+                    インスタンスが渡されるか、Shrine.with_file(io)
+                    を使用してファイル
+                    オブジェクトに昇格できます。メタデータ :is_virus?
+                    を追加することで目的を達成できます。そして検証時にそれをチェックします。
+                    (ClamAV は実際には clamdscan –stream -
+                    を介したストリーミングをサポートしているため、ファイルにプロモートする代わりに
+                    io
+                    インスタンスを直接使用できることに注意してください。)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>GitHub Pages サイトは minima 以外のテーマをロードしません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "GitHub Pages サイトは minima 以外のテーマをロードしません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>GitHub Pages サイトは minima
+以外のテーマをロードしません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Windows 10.0.19044.2364 Ruby 3.1.3p185
+                    (2022-11-24 リビジョン 1a6b16756e) [x64-mingw-ucrt]
+                    宝石 v3.3.26 ジキル 4.3.1</p>
+                    <p>Minima テーマを使用したデフォルト構成の Gemfile
+                    と _config.yml
+                    を使用すると、すべてが期待どおりに機能します。別のテーマ
+                    (どのテーマでも)
+                    に変更しようとすると、サイトが正しく読み込まれません。</p>
+                    <p>私のデフォルトの Gemfile:</p>
+                    <pre><code>source &quot;https://rubygems.org&quot;
+# gem &quot;jekyll&quot;, &quot;~&gt; 4.3.1&quot;
+
+# This is the default theme for new Jekyll sites. You may change this to anything you like.
+gem &quot;minima&quot;
+
+gem &quot;github-pages&quot;, &quot;~&gt; 227&quot;, group: :jekyll_plugins
+
+# If you have any plugins, put them here!
+group :jekyll_plugins do
+  gem &quot;jekyll-feed&quot;, &quot;~&gt; 0.12&quot;
+  gem &quot;jekyll-remote-theme&quot;
+end
+...
+</code></pre>
+                    <p>私のデフォルトの _config.yml:</p>
+                    <pre><code>title: default theme...
+email: [email protected]
+description: ...description...
+domain: &quot;chrisxfire.github.io&quot;
+url: &quot;http://chrisxfire.github.io&quot;
+
+# Build settings
+theme: minima
+
+# remote-theme: pages-themes/[email protected]
+plugins:
+- jekyll-feed
+- jekyll-remote-theme
+</code></pre>
+                    <p>GitHub Pages
+                    はサイトを正しく生成し、ページは正常です。</p>
+                    <p>次に、GitHub Pages でサポートされているテーマ
+                    (Midnight など)
+                    を使用してみます。次の変更を加えます。</p>
+                    <p>Gemfile で、gem “minima”
+                    という行を次のように変更します。</p>
+                    <pre><code>gem &quot;jekyll-theme-midnight&quot;
+</code></pre>
+                    <p>_config.yml で、行テーマ: minima
+                    を次のように変更します。</p>
+                    <pre><code>theme: jekyll-theme-midnight
+</code></pre>
+                    <p>それからコミットします。 GitHub Actions
+                    は正常に終了しましたが、サイトに空白の白いページが表示されました。</p>
+                    <p>次に、Midnight テーマの GitHub
+                    サイトの手順に従って、_config.yml
+                    に次の変更を加えてみます。</p>
+                    <pre><code># theme: jekyll-theme-midnight
+remote-theme: pages-themes/[email protected]
+</code></pre>
+                    <p>それからコミットします。 GitHub
+                    アクションは正常に終了します。ただし、ページは青色のヘッダーのみでレンダリングされ、他には何も表示されません。</p>
+                    <p>私の何が間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>深夜のテーマをテスト中…
+                    はテーマのタイトルです。</p>
+                    <p>ページを真夜中の黒で表示するために、github-pages
+                    gem を Gemfile のプラグインに移動しました。</p>
+                    <pre><code>source &quot;https://rubygems.org&quot;
+
+group :jekyll_plugins do
+  gem &quot;github-pages&quot;
+  gem &quot;jekyll-feed&quot;, &quot;~&gt; 0.12&quot;
+  gem &quot;jekyll-remote-theme&quot;
+end
+</code></pre>
+                    <p>また、ページと投稿の現在の投稿とホームのレイアウトにより、サーバーの起動時に警告が作成されます。ビルドログにそれらが表示されるはずです。</p>
+                    <p>_config.yml
+                    でリモートテーマオプションを使用するため、Gemfile
+                    にテーマは必要なくなりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

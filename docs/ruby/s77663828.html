@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby と Python の正規表現の違い | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby と Python の正規表現の違い",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby と Python の正規表現の違い</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Advent of Code 2023
+                    を開始したばかりで、これを使用していくつかの新しいプログラミング言語を学習しようとしています。私は
+                    Python に（ある程度）精通していて、文字通り今日 Ruby
+                    をインストールしたばかりです。</p>
+                    <p>1 日目、パート 2
+                    では、正規表現を使用して数字とそのスペル表記されたバージョンを検索します。
+                    Python の正規表現 (正しい結果が得られます):
+                    (?=(0|1|2|3|4|5|6|7|8|9|ゼロ|1|2|3|4|5|6|7|8|9))</p>
+                    <p>Ruby でこの正確な正規表現を使用すると、結果は nil
+                    になります。興味深いことに、この正規表現を使用すると、Python
+                    と Ruby
+                    の両方でまったく同じ結果が得られますが、これは間違った答えです。
+                    r”0|1|2|3|4|5|6|7|8|9|ゼロ|1|2|3|4|5|6|7|8|9”</p>
+                    <p>したがって、答えは前向き先読みアサーションに関係していると思いますが、なぜ、何が違うのかはわかりません。</p>
+                    <p>以下に両方のファイルを示します。</p>
+                    <p>パイソン:</p>
+                    <pre><code>import re
+
+input = open(&quot;../resources/input.txt&quot;,&quot;r&quot;)
+lines = input.readlines()
+
+targets = [
+    &#39;0&#39;,&#39;1&#39;,&#39;2&#39;,&#39;3&#39;,&#39;4&#39;,&#39;5&#39;,&#39;6&#39;,&#39;7&#39;,&#39;8&#39;,&#39;9&#39;,
+    &#39;zero&#39;,&#39;one&#39;,&#39;two&#39;,&#39;three&#39;,&#39;four&#39;,&#39;five&#39;,&#39;six&#39;,&#39;seven&#39;,&#39;eight&#39;,&#39;nine&#39;
+]
+values = {
+    &#39;0&#39;: 0,
+    &#39;1&#39;: 1,
+    &#39;2&#39;: 2,
+    &#39;3&#39;: 3,
+    &#39;4&#39;: 4,
+    &#39;5&#39;: 5,
+    &#39;6&#39;: 6,
+    &#39;7&#39;: 7,
+    &#39;8&#39;: 8,
+    &#39;9&#39;: 9,
+    &#39;zero&#39;: 0,
+    &#39;one&#39;: 1,
+    &#39;two&#39;: 2,
+    &#39;three&#39;: 3,
+    &#39;four&#39;: 4,
+    &#39;five&#39;: 5,
+    &#39;six&#39;: 6,
+    &#39;seven&#39;: 7,
+    &#39;eight&#39;: 8,
+    &#39;nine&#39;: 9
+}
+
+sum = 0
+
+for line in lines:
+    numbers = re.findall(r&quot;(?=(&quot;+&#39;|&#39;.join(targets)+r&quot;))&quot;, line)
+
+    firstDigitValue = values[numbers[0]] * 10
+    lastDigitValue = values[numbers[-1]]
+
+    sum += (firstDigitValue+lastDigitValue)
+
+
+
+print(sum)
+</code></pre>
+                    <p>ルビィ:</p>
+                    <pre><code># Init vars
+sum = 0
+
+reg = /\d|zero|one|two|three|four|five|six|seven|eight|nine/
+reg2 = /(?=(0|1|2|3|4|5|6|7|8|9|zero|one|two|three|four|five|six|seven|eight|nine))/
+reg3 = /0|1|2|3|4|5|6|7|8|9|zero|one|two|three|four|five|six|seven|eight|nine/
+
+values = {
+    &#39;0&#39; =&gt; 0,
+    &#39;1&#39; =&gt; 1,
+    &#39;2&#39; =&gt; 2,
+    &#39;3&#39; =&gt; 3,
+    &#39;4&#39; =&gt; 4,
+    &#39;5&#39; =&gt; 5,
+    &#39;6&#39; =&gt; 6,
+    &#39;7&#39; =&gt; 7,
+    &#39;8&#39; =&gt; 8,
+    &#39;9&#39; =&gt; 9,
+    &#39;zero&#39; =&gt; 0,
+    &#39;one&#39; =&gt; 1,
+    &#39;two&#39; =&gt; 2,
+    &#39;three&#39; =&gt; 3,
+    &#39;four&#39; =&gt; 4,
+    &#39;five&#39; =&gt; 5,
+    &#39;six&#39; =&gt; 6,
+    &#39;seven&#39; =&gt; 7,
+    &#39;eight&#39; =&gt; 8,
+    &#39;nine&#39; =&gt; 9
+}
+
+
+# Pipe the file line by line and do per line
+File.foreach(&quot;../resources/input.txt&quot;, chomp: true) do |line|
+    # Get the first and last digits as their values
+    numbers = line.scan(reg3)
+
+    firstDigitValue = values[numbers[0]] * 10
+    lastDigitValue = values[numbers[-1]]
+
+    # accumulate
+    sum += (firstDigitValue+lastDigitValue)
+
+end
+
+puts sum
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>0|1|2|3|4|5|6|7|8|9|zero|one|two|three|four|five|six|seven|eight|nine
+</code></pre>
+                    <p>この正規表現の問題は、Python と Ruby
+                    の両方で、重複する一致を考慮していないことです。私も今月初めにこの問題をやって全く同じ間違いを犯しました。たとえば、パズルの入力に「eighttwo」という語句が現れた場合、Python
+                    と Ruby
+                    は両方とも「eight」の部分に一致し、「w」の部分でさらに一致するものを探し始めるため、「two」という単語は表示されません。
+                    。</p>
+                    <pre><code>(?=(0|1|2|3|4|5|6|7|8|9|zero|one|two|three|four|five|six|seven|eight|nine))
+</code></pre>
+                    <p>これにより、一致全体を先読みすることで問題が解決されます
+                    (おそらく効率的ではありませんが、コーディングの課題を行っているので十分です)。重複を考慮する場合、先読みはパターンの一部とはみなされないため、基本的には中断したところから検索を開始します。</p>
+                    <p>ただし、Ruby では、正規表現にキャプチャ
+                    グループがある場合、String#scan
+                    の動作が異なります。</p>
+                    <p>したがって、出力は実際には次のようになります</p>
+                    <pre><code>[[&quot;4&quot;], [&quot;one&quot;], [&quot;eight&quot;], [&quot;nine&quot;]]
+</code></pre>
+                    <p>この追加の入れ子層に対処する必要があるだけです。</p>
+                    <pre><code>first_digit_value = values[numbers[0][0]] * 10
+last_digit_value = values[numbers[-1][0]]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

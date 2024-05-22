@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Google API - 「アクティブなセッションが無効です。エラー コード: 4」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Google API - 「アクティブなセッションが無効です。エラー コード: 4」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Google API -
+「アクティブなセッションが無効です。エラー コード: 4」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Oauth2 を介して Google Drive API
+                    にアクセスしようとしていますが、検索時に結果が得られないエラーが発生しました。</p>
+                    <p>これが私のコードです。</p>
+                    <pre><code>require &quot;oauth2&quot;
+require &quot;google/apis/gmail_v1&quot;
+require &quot;google/apis/drive_v3&quot;
+require &quot;googleauth&quot;
+
+token = { 
+    access_token: ...,
+    refresh_token: ...,
+}
+
+def get_gmail_service(token)
+  service = Google::Apis::GmailV1::GmailService.new
+  service.authorization = oauth_authorization(token,
+    [ Google::Apis::GmailV1::AUTH_GMAIL_READONLY, Google::Apis::GmailV1::AUTH_GMAIL_LABELS]
+  )
+  service.request_options.retries = 3
+  service
+end
+
+def get_drive_service(token)
+  service = Google::Apis::DriveV3::DriveService.new
+  service.authorization = oauth_authorization(token,
+    [ Google::Apis::DriveV3::AUTH_DRIVE ]
+  )
+  service.request_options.retries = 3
+  service
+end
+
+def oauth_authorization token, scope
+  Signet::OAuth2::Client.new({
+    authorization_uri: &quot;https://accounts.google.com/o/oauth2/auth&quot;,
+    token_credential_uri: &quot;https://accounts.google.com/o/oauth2/token&quot;,
+    client_id: ENV[&quot;G_CLIENT_ID&quot;],
+    client_secret: ENV[&quot;G_CLIENT_SECRET&quot;],
+    access_token: token[&quot;access_token&quot;],
+    refresh_token: token[&quot;refresh_token&quot;],
+    scope: scope
+  })
+end
+
+get_gmail_service(token).create_user_label(&#39;me&#39;, &#39;test&#39;) #=&gt; WORKS
+get_drive_service(token).list_files #=&gt; ERROR 
+
+</code></pre>
+                    <p>これが私が受け取るエラーです。</p>
+                    <pre><code>Google::Apis::AuthorizationError:Unauthorized
+{
+  &quot;error&quot;: {
+    &quot;code&quot;: 401,
+    &quot;message&quot;: &quot;The caller does not have permission&quot;,
+    &quot;errors&quot;: [
+      {
+        &quot;message&quot;: &quot;Active session is invalid. Error code: 4&quot;,
+        &quot;domain&quot;: &quot;global&quot;,
+        &quot;reason&quot;: &quot;authError&quot;,
+        &quot;location&quot;: &quot;Authorization&quot;,
+        &quot;locationType&quot;: &quot;header&quot;
+      }
+    ],
+    &quot;status&quot;: &quot;PERMISSION_DENIED&quot;
+  }
+}
+</code></pre>
+                    <p>すべての検索から、トークンの有効期限が切れているように見えますが、トークンは
+                    Gmail API
+                    でも同時に動作するため、期限切れではないと思います。</p>
+                    <p>私は何を試しましたか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この 403 応答は、Google
+                    ドライブがポリシーによって無効になっていることが原因で発生します。これは、組織単位ごとまたはグループ
+                    メンバーシップを通じて行うことができます。この 403
+                    レスポンスは、Drive 自体ではなく、Drive SDK API
+                    を使用した Google
+                    ドライブへのアクセスのみがオフになっている場合に実際に役立つ詳細ペイロードとともに返される
+                    401
+                    レスポンスとは異なります。スーパー管理者の認証情報がそのような制限の対象になるとは思いませんが、Google
+                    Workspace
+                    は神秘的な生き物なので、その可能性はあります。</p>
+                    <p>これはひどい間違いですが、ありがたいことに十分にユニークなので、人々がこの質問にたどり着くことが期待されます。</p>
+                    <p>私の知る限りでは、GET /about エンドポイント
+                    (または同様の「常に機能するはずです」リクエスト)
+                    を呼び出し、401 または 403
+                    応答をレスキューしてポリシーが適用されていることを事前に知る方法はありません。ユーザーごとの状況</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

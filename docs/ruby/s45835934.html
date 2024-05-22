@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのハッシュを使用した文字列補間 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのハッシュを使用した文字列補間",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのハッシュを使用した文字列補間</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の目的は、文字列内のキーをハッシュ内の値に置き換えることです。私は次のようにやっています:</p>
+                    <pre><code>&quot;hello %{name}, today is %{day}&quot; % {name: &quot;Tim&quot;, day: &quot;Monday&quot;}
+</code></pre>
+                    <p>文字列内のキーがハッシュにない場合:</p>
+                    <pre><code>&quot;hello %{name}, today is %{day}&quot; % {name: &quot;Tim&quot;, city: &quot;Lahore&quot;}
+</code></pre>
+                    <p>その場合、エラーがスローされます。</p>
+                    <pre><code>KeyError: key{day} not found
+</code></pre>
+                    <p>期待される結果は次のようになります。</p>
+                    <pre><code>&quot;hello Tim, today is %{day}&quot; or &quot;hello Tim, today is &quot;
+</code></pre>
+                    <p>エラーをスローせずに一致するキーのみを置き換える方向に誰かが私をガイドしてもらえますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 2.3 以降、% は、default=:
+                    で設定されたデフォルト値を尊重します。</p>
+                    <pre><code>hash = {name: &#39;Tim&#39;, city: &#39;Lahore&#39;}
+hash.default = &#39;&#39;
+
+&#39;hello %{name}, today is %{day}&#39; % hash
+#=&gt; &quot;hello Tim, today is &quot;
+</code></pre>
+                    <p>または、default_proc=:
+                    によって設定された動的なデフォルト</p>
+                    <pre><code>hash = {name: &#39;Tim&#39;, city: &#39;Lahore&#39;}
+hash.default_proc = proc { |h, k| &quot;%{#{k}}&quot; }
+
+&#39;hello %{name}, today is %{day}&#39; % hash
+#=&gt; &quot;hello Tim, today is %{day}&quot;
+</code></pre>
+                    <p>欠落しているキー、つまり :day のみが proc
+                    に渡されることに注意してください。したがって、フォーマット文字列で
+                    %{day} を使用するか %<day>s
+                    を使用するかは認識されず、異なる出力が生じる可能性があります。</p>
+                    <pre><code>&#39;hello %{name}, today is %&lt;day&gt;s&#39; % hash
+#=&gt; &quot;hello Tim, today is %{day}&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

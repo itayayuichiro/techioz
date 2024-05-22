@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gem化されたPadrinoアプリモデルに外部からアクセスする方法(コントローラー内ではなく、スタンドアロンスクリプトなど) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gem化されたPadrinoアプリモデルに外部からアクセスする方法(コントローラー内ではなく、スタンドアロンスクリプトなど)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gem化されたPadrinoアプリモデルに外部からアクセスする方法(コントローラー内ではなく、スタンドアロンスクリプトなど)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は次のような（続編）モデルを指定するGusyと呼ばれるPadrinoアプリを持っています</p>
+                    <pre><code># gusy/models/seminar.rb
+class Seminar &lt; Sequel::Model
+  # hopefully irrelevant stuff defined here
+end
+</code></pre>
+                    <p>2 番目の gem または bin/
+                    内のスクリプトからこのモデルにアクセスしたいと考えています。</p>
+                    <p>さて、例えば2 番目の gem「gusy_fill」から Gusy
+                    が必要です。 Gemfile は、Gusy Git
+                    リポジトリへのパスを設定するために作成されます。バンドルコンソールを使用して対話的に探索すると、Gusy
+                    名前空間を正常に表示できます
+                    (たとえば、アプリのバージョン Gusy::VERSION
+                    を出力します)。</p>
+                    <p>マップされたモデルにアクセスするにはどうすればよいですか?また、データベース接続はどこでどのように構成すればよいですか?
+                    Padrino:: または Gusy::
+                    モジュールには関連するものは何もありません。</p>
+                    <p>IRB セッションは次のようになります。</p>
+                    <pre><code>require &#39;gusy&#39;
+Gusy::Seminar.create(:name =&gt; &#39;from gusy_fill&#39; # =&gt; NameError: uninitialized constant Gusy::Seminar
+</code></pre>
+                    <p>Gusy をマウントする 2 つ目の Padrino
+                    アプリを作成せずにこれを実現したいと考えています
+                    (そのために、生成された gusy/README.md
+                    にポインターが含まれています)。</p>
+                    <p>最初に述べたように、同じアプリ内でやりたいことを実行する場合、まったく同じ問題が発生します。実際には、padrino
+                    コンソールを呼び出すときのような設定で、データベースと通信する小さなスクリプトを
+                    gusy/bin に記述します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ご迷惑をおかけして申し訳ございません。でも、あなたがそれを取り上げてくれたのは良かったです。なぜなら、私はしばらくこのテーマについて自分の考えをまとめようとしていて、これが私をこのテーマに追い込むきっかけになったからです
+                    :)。 Padrino
+                    にあるものを使ってそれを行う方法を説明するリポジトリを用意しました。</p>
+                    <p>README (後で貼り付けます)
+                    では、その背後にある理由を説明し、実装方法について考えるためのいくつかの質問を提示します。それについてのあなたの意見をぜひ聞きたいです:)。</p>
+                    <p>このリポジトリは答えを意図しています
+                    「スタンドアロン」(bin/) スクリプトで Padrino
+                    モデルとデータベースにアクセスするにはどうすればよいですか?そして
+                    gem 化された Padrino アプリ
+                    モデルに、そのアプリを必要とする他の gem
+                    からアクセスする方法。</p>
+                    <p>つまり、同様の性質の問題が 2 つあり、どちらも
+                    gemified
+                    アプリで定義されたモデルに関連しています。</p>
+                    <p>まず、gemified-app
+                    があります。それは、Gem化されたPadrinoアプリです。模型も入ってます
+                    SomeModel と呼ばれるこのモデルには、property
+                    というフィールドが 1 つあります。</p>
+                    <p>次に、access-gemified-app-without-padrino
+                    があります。
+                    gem化されたアプリをロードするRubyスクリプト
+                    モデルにアクセスします。</p>
+                    <p>最後に、gemified-app
+                    をロードして使用するだけの通常の Padrino
+                    アプリである別のアプリがあります。 そのモデル
+                    (SomeModel)。</p>
+                    <p>Padrino g project gemified-app –orm Sequence –gem
+                    –tiny を使用してアプリを作成すると、 以下の
+                    gemspec:</p>
+                    <pre><code># -*- encoding: utf-8 -*-
+require File.expand_path(&#39;../lib/gemified-app/version&#39;, __FILE__)
+
+Gem::Specification.new do |gem|
+  gem.authors       = [&quot;Darío Javier Cravero&quot;]
+  gem.email         = [&quot;[email protected]&quot;]
+  gem.description   = %q{Padrino gemified app example}
+  gem.summary       = %q{Padrino gemified app example}
+  gem.homepage      = &quot;&quot;
+
+  gem.files         = `git ls-files`.split($\)
+  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  gem.name          = &quot;gemified-app&quot;
+  gem.require_paths = [&quot;lib&quot;, &quot;app&quot;]
+  gem.version       = GemifiedApp::VERSION
+
+  gem.add_dependency &#39;padrino-core&#39;
+end
+</code></pre>
+                    <p>重要なポイントは gem.require_paths = [“lib”,
+                    “app”] と gem.add_dependency ‘padrino-core’
+                    です。</p>
+                    <p>gem.require_paths = [“lib”, “app”]
+                    は、models/some_model.rb
+                    が利用できない理由を説明しています。
+                    gemを別の場所にロードします。それは単純には追加されません:(。</p>
+                    <p>gem.add_dependency ‘padrino-core’
+                    は、後で何かが不足する可能性があることを示唆しています。何が起こるのですか
+                    ORM
+                    やレンダラーなどの依存関係はありますか?それらをロードする必要がありますか?それは問題だと思う
+                    あなたが達成したいことについては、ほとんどの場合、「はい」と言えます。</p>
+                    <p>gem化されたアプリの依存関係は引き続き Gemfile
+                    にリストされており、
+                    現在のスコープであり、gemified-app gem を必要とする
+                    gem には含まれていません。</p>
+                    <p>これを機能させるには、次の 2
+                    つのことを行う必要があります。</p>
+                    <p>「models」を gem.require_paths = [“lib”, “app”]
+                    に追加すると、次のようになります。 gem.require_paths
+                    = [“lib”, “app”, “models”]。
+                    これにより、gemified-app/models
+                    ディレクトリ内のすべてのものが確実に 宝石。</p>
+                    <p>これをテストしやすくするために、bundler
+                    を使用し、access-gemified-app-without-padrino
+                    を使用します。 テスト スクリプトには、次のような
+                    Gemfile を追加します。</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+gem &#39;gemified-app&#39;, path: &#39;../gemified-app&#39;
+gem &#39;pry&#39;
+</code></pre>
+                    <p>新しいアプリで、REPL バンドル exec pry
+                    に移動し、「gemified-app」を要求してみます。
+                    次に、SomeModel.all
+                    を試してください。それは失敗します。なぜ？
+                    「some_model」が必要なかったためです。</p>
+                    <p>それでもそうしてもうまくいきません。なぜ？モデルの依存関係がないため、
+                    つまり、Sequeller と sqlite3
+                    (直接の依存関係ではなく、接続を通じて行われます)
+                    がロードされます。</p>
+                    <p>ここでは 2 つの選択肢があります。Gemfile
+                    に手動でロードするか、次のように定義します。
+                    gemified-app.gemspec への依存関係。
+                    すでにモデルを含めているので、後者の方が良い選択だと思います。
+                    依存関係がそれに伴うことを期待しています。これは次のようになります。</p>
+                    <pre><code># gemified-app/gemified-app.gemspec
+
+  # ...
+
+  gem.add_dependency &#39;padrino-core&#39;
+  gem.add_dependency &#39;padrino-helpers&#39;
+  gem.add_dependency &#39;slim&#39;
+  gem.add_dependency &#39;sqlite3&#39;
+  gem.add_dependency &#39;sequel&#39;
+  gem.add_development_dependency &#39;rake&#39;
+
+  # ...
+
+
+# gemified-app/Gemfile
+source &#39;https://rubygems.org&#39;
+
+# Distribute your app as a gem
+gemspec
+</code></pre>
+                    <p>必要なすべての gem
+                    を明示的に含める必要があります。これは面倒に思えるかもしれませんが、
+                    公平に言えば、アプリが何を必要としているのかをより深く理解できるようになります。最終的にはそうするでしょう
+                    バンドラーと Gemfile
+                    さえ必要ないことに注意してください :)。</p>
+                    <p>それでは、REPL を起動して、require ‘gemified-app’
+                    と require ‘some_model’ を入力してください。
+                    次に、SomeModel.all を試してください。そして…
+                    失敗します:(。なぜでしょうか? Sequel::Base
+                    が定義されていないからです。ここで次のように疑問に思うかもしれません。
+                    gemified-app.gemspec
+                    に入れた続編への参照はどうなったのでしょうか?まあ、それは次のとおりです。
+                    リファレンスなので、Gem は必要ありません。 Padrino
+                    では次のことを使用しているため、これは起こりません。</p>
+                    <pre><code>require &#39;rubygems&#39; unless defined?(Gem)
+require &#39;bundler/setup&#39;
+Bundler.require(:default, RACK_ENV)
+</code></pre>
+                    <p>config/boot.rb にあると、必要な gem のみが
+                    Gemfile にロードされます。</p>
+                    <p>そこで質問は…手動でロードすべきでしょうか?もしそうなら、どこでしょうか？</p>
+                    <p>まあ、これは gem
+                    そのものなので、そうするのに最適な場所は
+                    lib/gemified-app.rb だと思います。 必要なすべての
+                    gem
+                    をロードすると、このファイルは次のようになります。</p>
+                    <pre><code>require &#39;padrino-core&#39;
+require &#39;padrino-helpers&#39;
+require &#39;slim&#39;
+require &#39;sqlite3&#39;
+require &#39;sequel&#39;
+
+module GemifiedApp
+  extend Padrino::Module
+  gem! &quot;gemified-app&quot;
+end
+</code></pre>
+                    <p>さて、準備は完了です…REPL
+                    に戻り、要件を満たしてください</p>
+                    <pre><code>require &#39;gemified-app&#39;
+require &#39;some_model&#39;
+</code></pre>
+                    <p>SomeModel.all を試してください。そして…
+                    それは失敗します :(。また! :/ なぜですか? なぜなら、
+                    データベース。 Padrino は、config/database.rb
+                    を通じてこれをロードしていました。</p>
+                    <p>別の疑問が生じます… config/database.rb も gem
+                    に含めるべきでしょうか?
+                    私の見方では、そうすべきではありません。私の見方では、データベース接続はすべてのアプリに関係するものです
+                    アクセスするための特定の認証情報などが含まれる可能性があるため、ローカルで定義する必要があります。
+                    サンプルの
+                    access-gemified-app-without-padrino/do-somethin.rb
+                    スクリプトは次のようになります。</p>
+                    <pre><code>require &#39;gemified-app&#39;
+
+Sequel::Model.plugin(:schema)
+Sequel::Model.raise_on_save_failure = false # Do not throw exceptions on failure
+Sequel::Model.db = Sequel.connect(&quot;sqlite:///&quot; + File.expand_path(&#39;../../gemified-app/db/gemified_app_development.db&#39;, __FILE__), :loggers =&gt; [logger])
+
+require &#39;some_model&#39;
+
+SomeModel.all.each do |model|
+  puts %Q[#{model.id}: #{model.property}]
+end
+</code></pre>
+                    <p>はい、接続コードは Padrino
+                    アプリとほぼ同じであり、そのデータベースを再利用しています。
+                    この例では。</p>
+                    <p>それは少しの道のりでした:)しかし、私たちはついにそれを達成しました。一部の動作については、リポジトリ内のサンプル
+                    アプリを参照してください。 例。</p>
+                    <p>あなたを知りませんが、私はそれがまったく好きではありません。そのようなことをしなければならないということは、私が
+                    使用したいものと衝突しないように、モデルの名前を慎重に選択する必要があります
+                    将来。
+                    モジュールがそれに対する答えだと思いますが、それが現状です。を参照してください。
+                    これについて詳しくは結論を。</p>
+                    <p>モデルレイヤーを独自の gem
+                    に分離し、(gem化されているかどうかにかかわらず)
+                    Padrino アプリからそれを要求します。
+                    モデルのテストを分離し、作成することもできるので、これがおそらく最もクリーンかもしれません。
+                    状況に応じて異なるモデルが存在し、その下で同じデータベースが使用される場合もあれば、使用されない場合もあります。</p>
+                    <p>すべての接続の詳細をカプセル化することもできます。</p>
+                    <p>私たちは、Gemified アプリに対する Padrino
+                    のアプローチを見直す必要があると思います。</p>
+                    <p>ハード依存関係には Gemfile の代わりに gemspec
+                    を使用する必要がありますか?</p>
+                    <p>モデルに名前空間を付ける必要がありますか
+                    (これに関して過去にいくつかの問題があったことは知っています)。</p>
+                    <p>ユーザーに gem で明示的な require
+                    を行うよう教えるべきか、それとも依存関係を検査するよう教えるべきでしょうか。
+                    彼らのためにそれらを必要としますか？</p>
+                    <p>ユーザーに依存関係をロードする方法を教え、それについてもっと責任を持つべきでしょうか?最後に
+                    その日、彼らがジェム化されたアプリのルートを選択した場合、彼らは明らかにRubyにはるかに熟練しており、
+                    この種のことに注意する必要があります。</p>
+                    <p>考えは？ :)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

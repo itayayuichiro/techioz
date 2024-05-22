@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>エイリアスを持つ ActiveRecord グループ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "エイリアスを持つ ActiveRecord グループ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>エイリアスを持つ ActiveRecord グループ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここでの最初の質問ですが、完全なアプリ/Rails
+                    のコーディングに関してはかなり初心者です。</p>
+                    <p>著者ごとにタイトルの数を取得するメソッドを作成していましたが、著者の大文字と小文字が異なる場合、別の著者としてカウントされることに気付きました。大文字と小文字を無視して一緒にカウントするために、ある種の検証/チェックを配置したかったのです。この特定の場合、本のタイトルの大文字と小文字は気にしません。</p>
+                    <p>したがって、次のようなテーブルがあります。</p>
+                    <pre><code>Author                Book Title                               Year    Condition
+William Shakespeare   Hamlet                                   1599    Poor
+Stephen King          The Shining                              1977    New
+Edgar Allen Poe       The Raven                                1845    Good
+JK Rowling            Harry Potter and the Sorcerer&#39;s Stone    2001    New
+edgar allen poe       The Tell-Tale Heart                      1843    Good
+JK Rowling            Fantastic Beasts and Where to Find Them  2001    New
+</code></pre>
+                    <p>これを出力したいのですが：</p>
+                    <pre><code>Author                 Count
+William Shakespeare    1
+Stephen King           1
+Edgar Allen Poe        2                              
+JK Rowling             2 
+</code></pre>
+                    <p>私の方法はもともと次のようなものでした。</p>
+                    <pre><code>  def self.book_counts
+    distinct_counts = []
+    Book.group(:author).count.each do |count|
+      distinct_counts &lt;&lt; count
+    end
+    distinct_counts
+  end
+</code></pre>
+                    <p>大文字と小文字を無視するために、このページを参照して次のことを思いつきましたが、残念ながら最終的にはうまくいきませんでした。</p>
+                    <p>1）これを使用すると、「未定義のメソッドが下位になります」となります。</p>
+                    <pre><code>    Book.group(lower(&#39;author&#39;)).count.each do |count|
+      distinct_counts &lt;&lt; count
+</code></pre>
+                    <ol start="2" type="1">
+                    <li>これは実行されますが、一般に select
+                    メソッドを使用すると、大量の ActiveRecord
+                    結果/レコード ID: nil が取得されます。 Rails
+                    6を使用していますが、さらに「非推奨の警告:
+                    危険なクエリメソッド(引数が生のSQLとして使用されるメソッド)が非属性引数で呼び出されています…非属性引数はRails
+                    6.1では許可されません。これはメソッドは、リクエスト
+                    パラメーターやモデル属性などのユーザー指定の値を使用して呼び出すことはできません。既知の安全な値は、Arel.sql()
+                    でラップすることで渡すことができます ((irb):579 の
+                    irb_binding から呼び出されます)。</li>
+                    </ol>
+                    <pre><code>Book.select(&quot;lower(author) as dc_auth, count(*) as book_count&quot;).group(&quot;dc_auth&quot;).order(&quot;book_count desc&quot;)
+</code></pre>
+                    <ol start="3" type="1">
+                    <li>別の単純化された関数をテストして、それが機能するかどうかを確認しようとしましたが、「ActiveRecord::StatementInvalid
+                    (PG::GroupingError: ERROR: 列 “books.author” は
+                    GROUP BY
+                    句に表示する必要があります。または集計関数で使用できます)“:</li>
+                    </ol>
+                    <pre><code>    Book.pluck(&#39;lower(author) as dc_auth, count(*) as book_count&#39;)
+</code></pre>
+                    <ol start="4" type="1">
+                    <li>他のさまざまな方法を試しましたが、さらに別のエラーが発生しました。
+                    「未定義のローカル変数またはメソッド
+                    ‘dc_auth’」、「未定義のメソッド ‘group’ は group_by
+                    のことですか?」、および「引数の数が間違っています (1
+                    が指定され、0 が期待されます)」 (group_by を使用)
+                    など。</li>
+                    </ol>
+                    <p>このクエリは、postgresql
+                    で希望どおりに機能します。 #2
+                    を実行すると、実際には構文がターミナルに入力されますが、前述したように、残念ながら
+                    ActiveRecord のせいで、Rails
+                    では正しく出力されません。</p>
+                    <pre><code>SELECT lower(author) as dc_auth, count(*) as book_count FROM books GROUP BY dc_auth;
+</code></pre>
+                    <p>Rails
+                    を介して必要なものを実行する方法はありますか??</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>試してみてもいいかもしれません</p>
+                    <pre><code>Book.group(&quot;LOWER(author)&quot;).count
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

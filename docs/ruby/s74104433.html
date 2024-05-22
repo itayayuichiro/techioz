@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7はjsonapi-serializerからデータ属性を削除します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7はjsonapi-serializerからデータ属性を削除します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+7はjsonapi-serializerからデータ属性を削除します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails 7 API
+                    アプリでは、応答データのシリアル化に
+                    jsonapi-serializer gem を使用しています。 JSON API
+                    標準に従っていることはわかっていますが、これはカスタマイズ可能です。以下の
+                    JSON を生成する user_serializer を持っています。</p>
+                    <pre><code>{
+    &quot;data&quot;: {
+        &quot;id&quot;: &quot;8&quot;,
+        &quot;type&quot;: &quot;user&quot;,
+        &quot;attributes&quot;: {
+            &quot;email&quot;: &quot;[email protected]&quot;,
+            &quot;role&quot;: &quot;owner&quot;,
+            &quot;created_at&quot;: &quot;2022-10-17T23:59:49.897Z&quot;
+        },
+        &quot;links&quot;: {
+            &quot;set_password_url&quot;: &quot;some_url&quot;
+        }
+    }
+}
+</code></pre>
+                    <p>user_serializer.rb</p>
+                    <pre><code>class UserSerializer
+  include JSONAPI::Serializer
+  attributes :email, :role, :created_at
+  link :set_password_url do |_user, params|
+    params[:password_url]
+  end
+end
+</code></pre>
+                    <p>登録_コントローラー.rb</p>
+                    <pre><code>def create
+  user = User.new user_params
+
+  if user.save
+    render json: UserSerializer.new(user, { params: { password_url: &#39;some_url&#39; } } ).serializable_hash
+  else
+    (...)
+  end
+end
+</code></pre>
+                    <p>この gem を簡単に行う方法は次のとおりです。</p>
+                    <pre><code>{
+  &quot;email&quot;: &quot;[email protected]&quot;,
+  &quot;role&quot;: &quot;owner&quot;,
+  &quot;created_at&quot;: &quot;2022-10-17T23:59:49.897Z&quot;
+  &quot;set_password_url&quot;: &quot;some_url&quot; # this attribute is not a User model field
+}
+</code></pre>
+                    <p>この答えを見つけましたが、何も変わりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>こんにちは、コントローラーにメソッド .dig(:data,
+                    :attributes) を追加するだけです。</p>
+                    <pre><code>    render json: UserSerializer.new(user, { params: { password_url: &#39;some_url&#39; } } ).serializable_hash.dig(:data, :attributes)
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

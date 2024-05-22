@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Java からのオーバーライド アノテーションを Ruby で複製することは可能ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Java からのオーバーライド アノテーションを Ruby で複製することは可能ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Java からのオーバーライド アノテーションを
+Ruby で複製することは可能ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Java では、Override
+                    アノテーションがスーパークラスに次のメソッドがあるかどうかをチェックすることはわかっています。</p>
+                    <pre><code>class Animal {
+  public void speak () {
+    System.out.println(&quot;Hello!&quot;);
+  }
+}
+class Dog extends Animal {
+  @override
+  public void eat () { //this kind of stuff
+    System.out.println(&quot;omnomnom&quot;);
+  }
+}
+</code></pre>
+                    <p>Rubyでこれを(関数か何かとして)行う方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最上位の eigenclass でクラス
+                    メソッドを定義すれば、これは比較的簡単です。</p>
+                    <pre><code>class Animal
+  def speak; :ok; end
+
+  def self.override *ms
+    ms = ms - Animal.instance_methods
+    puts &quot;⚠️ #{ms.inspect} method(s) missing &quot; \
+         &quot;in #{self}’s ancestors&quot; unless ms.empty?
+  end
+end
+
+class Dog &lt; Animal
+  override :speak
+  def speak; :ok; end
+
+  override :eat
+  def eat; :ok; end
+end
+</code></pre>
+                    <p>上記は印刷されます</p>
+                    <pre><code># ⚠️ [:eat] method(s) missing in Dog’s ancestors
+</code></pre>
+                    <p>ここでオーバーライドする呼び出しは、引数を指定した
+                    Module#module_function
+                    の呼び出しに似ており、コード内の任意の場所に配置して、必要な数のメソッド名を受け入れることができます。</p>
+                    <p>eigenclass インスタンス変数を使用して、Java
+                    バージョンに近づけることもできます。</p>
+                    <pre><code>class Animal
+  def speak
+    :ok
+  end
+
+  def self.inherited(base)
+    base.instance_variable_set(:@override, -&gt;(*ms) {
+      ms = ms - Animal.instance_methods
+      puts &quot;⚠️ #{ms.inspect} method(s) without super&quot; \
+        unless ms.empty?
+    })
+  end
+end
+
+class Dog &lt; Animal
+  @override[:speak]
+  def speak; :ok; end
+
+  @override[:eat]
+  def eat; :ok; end
+end
+</code></pre>
+                    <p>TracePoint や Module#method_added を使用して Java
+                    構文を完全に複製することもできますが、私はそれがあまり明示的ではないため、上記のように直接メソッド名を渡すことを避けます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

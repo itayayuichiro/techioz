@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>href=“./etc” のタグはどのように解決されますか? Chrome は RFC 3986 に準拠していませんか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "href=“./etc” のタグはどのように解決されますか? Chrome は RFC 3986 に準拠していませんか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>href=“./etc” のタグはどのように解決されますか?
+Chrome は RFC 3986 に準拠していませんか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サイト example.com/foo/index.html にいて、 href
+                    ./bar/test.html
+                    のタグがある場合、リンクされたドキュメントの URL は
+                    example.com/foo/bar になると予想されます。
+                    /テスト.html。ただし、Chrome や Firefox などの Web
+                    ブラウザでは、この動作は異なるようで、example.com/bar/test.html
+                    に解決されます。</p>
+                    <p>./ は現在のディレクトリを意味し、この場合は
+                    example.com/foo/ だと思いました。</p>
+                    <p>実際の例:
+                    https://www.salzburger-landestheater.at/de/spielplan/index.html
+                    には、次のタグがあります。</p>
+                    <pre><code>&lt;a href=&quot;./produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;amp;m=3&quot;&gt;Shakespeare im Park: Golden Lads &amp;amp; Girls&lt;/a&gt;
+</code></pre>
+                    <p>リンクをクリックすると、Chrome は
+                    https://www.salzburger-landestheater.at/de/produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;m=3
+                    に送信します。正しい場所。 ただし、リンクは
+                    https://www.salzburger-landestheater.at/de/spielplan/produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;m=3
+                    になると予想していました。</p>
+                    <p>たとえば Ruby を使用すると、予想した URL
+                    が出力されます (残念なことに、これは 404
+                    ページにつながります)。</p>
+                    <pre><code>URI.join(&quot;https://www.salzburger-landestheater.at/de/spielplan/index.html&quot;, &quot;./produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;m=3&quot;).to_s
+=&gt; &quot;https://www.salzburger-landestheater.at/de/spielplan/produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;m=3&quot;
+</code></pre>
+                    <p>Chrome
+                    はそれを正しく実行していると思いますが、私はそれを本当に理解していません。
+                    /spielplan/ は ./
+                    で参照されるカレントディレクトリではないでしょうか?誰かが公式ドキュメントを教えてくれませんか?
+                    RFC 3986 のセクション 5.4.1
+                    を見つけました。次の例が記載されています。</p>
+                    <p>参考までに、RFC の例は Ruby
+                    で期待どおりに動作します。</p>
+                    <pre><code>&gt; URI.join(&quot;http://a/b/c/d;p?q&quot;, &quot;./g&quot;).to_s
+=&gt; &quot;http://a/b/c/g&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際、私は「現実の」例でこの問題に気づきました。誰かが同様の問題に遭遇した場合に備えて、質問をオンラインに保存します。</p>
+                    <p>ドキュメント
+                    https://www.salzburger-landestheater.at/de/spielplan/index.html
+                    はベースを定義しています:
+                    <base href="https://www.salzburger-landestheater.at/de/"></p>
+                    <p>したがって、
+                    ./produktionen/shakespeare-im-park-golden-lads-amp-girls.html?ID_Vorstellung=5527&amp;m=3
+                    は、base_url + href:
+                    https://www.salzburger-landestheater.at/de/produktionen/
+                    に正しく解決されます。シェイクスピア-イム-パーク-ゴールデン-ラッド-アンプ-ガールズ.html?ID_Vorstellung=5527&amp;m=3</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

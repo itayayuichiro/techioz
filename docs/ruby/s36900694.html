@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュ内の特定のキーのみを拒否または許可するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュ内の特定のキーのみを拒否または許可するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュ内の特定のキーのみを拒否または許可するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>各 hachie::mash オブジェクト (各画像は
+                    hachie::mash オブジェクトです)
+                    から特定のフィールドを選択しようとするこのメソッドがありますが、すべてではありません。</p>
+                    <pre><code>  def images
+        images = object.story.get_spree_product.master.images
+        images.map do |image|
+          {
+            position: image[&quot;position&quot;],
+            attachment_file_name: image[&quot;attachment_file_name&quot;],
+            attachment_content_type: image[&quot;attachment_content_type&quot;],
+            type: image[&quot;type&quot;],
+            attachment_width: image[&quot;attachment_width&quot;],
+            attachment_height: image[&quot;attachment_height&quot;],
+            attachment_updated_at: image[&quot;attachment_updated_at&quot;],
+            mini_url: image[&quot;mini_url&quot;],
+            small_url: image[&quot;small_url&quot;],
+            product_url: image[&quot;product_url&quot;],
+            large_url: image[&quot;large_url&quot;],
+            xlarge_url: image[&quot;xlarge_url&quot;]
+          }
+        end
+      end
+</code></pre>
+                    <p>もっと簡単な方法はありますか?</p>
+                    <p>画像は hachie::mash オブジェクトの配列です。</p>
+                    <pre><code>object.story.get_spree_product.master.images.first.class
+Hashie::Mash &lt; Hashie::Hash
+[15] pry(#&lt;Api::V20150315::RecipeToolSerializer&gt;)&gt; object.story.get_spree_product.master.images.count
+2
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたはハッシュ#スライスを求めています:</p>
+                    <pre><code>def images
+  images = object.story.get_spree_product.master.images
+  images.map do |image|
+    image.slice(&quot;position&quot;, &quot;attachment_file_name&quot;, &quot;...&quot;)
+  end
+end
+</code></pre>
+                    <p>これにより、返されたハッシュに含めるキーを「ホワイトリスト」に登録できます。拒否する値よりも承認する値の方が多い場合は、その逆を行い、Hash#excel
+                    を使用して拒否するキーのみをリストすることができます。</p>
+                    <p>どちらの場合でも、許可されるキーのリストを別の配列として保存し、それを
+                    * で分割する方が簡単かもしれません。</p>
+                    <pre><code>ALLOWED_KEYS = %w(position attachment_file_name attachment_content_type ...)
+
+def images
+  object.story.get_spree_product.master.images.map do |image|
+    image.slice(*ALLOWED_KEYS)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

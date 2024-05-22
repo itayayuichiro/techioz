@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ファイルから Pry の show-source メソッドにアクセスする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ファイルから Pry の show-source メソッドにアクセスする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ファイルから Pry の show-source
+メソッドにアクセスする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby ファイル内から Pry の show-source
+                    メソッドにアクセスすることは可能ですか?もしそうなら、これはどのように行われますか?</p>
+                    <p>たとえば、次のファイルがあるとします。</p>
+                    <pre><code># testing.rb
+
+require &#39;pry&#39; 
+
+def testing
+  puts &#39;hi&#39;
+end
+
+puts show-source testing
+</code></pre>
+                    <p>そして、ruby
+                    testing.rbを実行しました。出力は次のようになります。</p>
+                    <pre><code>Owner: testing.rb
+Visibility: public
+Number of lines: 3
+
+def testing
+  puts &#39;hi&#39;
+end
+</code></pre>
+                    <p>この理論的根拠を説明するために、メソッドをスタブ化するテストを用意しました。ただし、元のメソッドは時々呼び出されているようで、呼び出しのソースを出力して、呼び出し元を確認するのが便利だと思いました。これを行うためのより簡単な方法があることは知っていますが、最初はウサギの穴から始めたので、これができるかどうかを確認することに興味があります:)</p>
+                    <p>少し頭をひねる show-source show-source
+                    を実行すると、Pry::Command::ShowInfo を継承する
+                    Pry::Command::ShowSource
+                    クラス内のメソッドがいくつか表示されます。</p>
+                    <p>Pry::Command::ShowSource
+                    には、options、process、content_for という 3
+                    つのメソッドが表示されますが、どれも正常に呼び出すことができませんでした。</p>
+                    <p>私の最善の仮定は、 content_for
+                    メソッドがこれを処理し、親クラスから割り当てられたコードオブジェクト（つまり、
+                    Pry::CodeObject.lookup(obj_name, <em>pry</em>,
+                    :super =&gt; opts[:super])
+                    ）を操作することです。これを突破することができました。</p>
+                    <p>これを行うアイデアや例がある人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    には、ソースの場所を見つけるために使用できる組み込みメソッド
+                    Method#source_location があります。 Method_source
+                    gem
+                    は、ソースの場所に基づいてソースを抽出することで、これに基づいて構築されます。ただし、これは対話型コンソールで定義されたメソッドでは機能しません。メソッドはファイル内で定義する必要があります。</p>
+                    <p>以下に例を示します。</p>
+                    <pre><code>require &#39;set&#39;
+require &#39;method_source&#39;
+
+puts Set.method(:[]).source_location
+# /home/user/.rvm/rubies/ruby-2.4.1/lib/ruby/2.4.0/set.rb
+# 74
+#=&gt; nil
+
+puts Set.method(:[]).source
+# def self.[](*ary)
+#   new(ary)
+# end
+#=&gt; nil
+</code></pre>
+                    <p>すべてのコアの Ruby メソッドは C
+                    で書かれており、ソースの場所として nil
+                    を返すことに注意してください。
+                    1.method(:+).source_location #=&gt; nil
+                    標準ライブラリは Ruby
+                    自体で書かれています。したがって、上記の例は Set
+                    メソッドに対して機能します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

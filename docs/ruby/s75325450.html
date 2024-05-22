@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails で Tailwind 要素を使用すると Javascript が機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails で Tailwind 要素を使用すると Javascript が機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails で Tailwind 要素を使用すると
+Javascript が機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しい Rails new my-app –css tailwind
+                    構文を使用して、TailwindCSS で新しい Rails 7
+                    プロジェクトを開始しました。 Tailwind CSS
+                    は適切に機能しています。 tailwind
+                    要素からナビゲーションバーを追加したかったので、https://tailwind-elements.com/quick-start/
+                    の手順に従いました。ナビゲーションバーの CSS
+                    は機能しますが、サブメニューの開閉（すべて
+                    JavaScript
+                    によって実行されていると思われます）は機能しません。</p>
+                    <p>詳細を調べると、rails
+                    のログに次の行が表示されます。</p>
+                    <pre><code>Started GET &quot;/TW-ELEMENTS-PATH/dist/js/index.min.js&quot; for 127.0.0.1 at 2023-02-02 09:13:48 -0600
+
+ActionController::RoutingError (No route matches [GET] &quot;/TW-ELEMENTS-PATH/dist/js/index.min.js&quot;):
+</code></pre>
+                    <p>npm install tw-elements のインストールと
+                    tailwind.config.cs
+                    の編集を行いました。何が足りないのでしょうか?私が気づいていない
+                    Ruby on Rails
+                    との競合はありますか?本当にルートを作成する必要があるのでしょうか、それとも何かが正しくインストールされていないことを示していますか?</p>
+                    ここに
+                    <script> 行を挿入している application.html.erb があります。
+
+                    ```
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>MyApp</title>
+                        <meta name="viewport" content="width=device-width,initial-scale=1">
+                        <%= csrf_meta_tags %>
+                        <%= csp_meta_tag %>
+                        <%= stylesheet_link_tag "tailwind" , "inter-font" , "data-turbo-track" : "reload" %>
+                        <%= stylesheet_link_tag "application" , "data-turbo-track" : "reload" %>
+                        <%= javascript_importmap_tags %>
+                        <!--here is the line I added -->
+                        <script src="./TW-ELEMENTS-PATH/dist/js/index.min.js"></script>
+                    </head>
+                    <body>
+                    &lt;%= render ‘layouts/navigation’ %&gt;
+                    <main class="container mx-auto mt-28 px-5 flex">
+                    &lt;%= yield %&gt;
+                    </main>
+                    </body>
+                    </html>
+                    <pre><code>import &#39;tw-elements&#39; を入れて代替ステップ 4 を試してみました。 app/javascript/controllers.index.js にありますが、何も機能しません。
+
+## 解決策
+==== 編集 ====
+
+更新するために戻ってきました - 実際に Rails に tailwind をインストールするためのページがあり、それは正常に機能します:)
+
+==== 編集終了 ====
+
+同じ問題が発生し、解決策をここに投稿しました。
+
+tailwind 要素のセットアップのステップを完了したら、最後のステップ (script タグ) の代わりに次のようにします。
+</code></pre>
+                    <p>Rails.application.config.assets.paths &lt;&lt;
+                    Rails.root.join(‘node_modules/tw-elements/dist/js’)
+                    Rails.application.config.assets.precompile += %w(
+                    tailwind.css tw-elements.umd.min.js )</p>
+                    <pre><code></code></pre>
+                    <p>//= require tw-elements.umd.min</p>
+                    <pre><code></code></pre>
+                    <pre><code>&lt;%= javascript_include_tag &#39;tw-elements.umd.min&#39;, &#39;data-turbolinks-track&#39;: &#39;reload&#39;, type: &quot;module&quot; %&gt;</code></pre>
+                    <p>``` 解決策はこの投稿に基づいていました。</p>
+                    <p>お役に立てれば！</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ARGFのクラス名がおかしい | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ARGFのクラス名がおかしい",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ARGFのクラス名がおかしい</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは汚いバグですか？</p>
+                    <pre><code>km@latika:~$ ruby -v -e &#39;puts nil.class.to_s, ARGF.class.to_s&#39;
+ruby 3.1.2p20 (2022-04-12 revision 4491bb740a) [x86_64-linux-gnu]
+NilClass
+ARGF.class
+km@latika:~$ jruby -v -e &#39;puts nil.class.to_s, ARGF.class.to_s&#39;
+jruby 9.3.9.0 (2.6.8) 2023-01-16 9.3.9.0+ds-8 OpenJDK 64-Bit Server VM 17.0.10+7-Debian-1deb12u1 on 17.0.10+7-Debian-1deb12u1 +jit [x86_64-linux]
+NilClass
+ARGFClass
+</code></pre>
+                    <p>ピリオドを含むクラス名を他で見たことがありません…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはバグではありません。クラスはその珍しい名前で明示的に作成されています。
+                    io.c から:</p>
+                    <pre><code>rb_cARGF = rb_class_new(rb_cObject);
+rb_set_class_path(rb_cARGF, rb_cObject, &quot;ARGF.class&quot;);
+</code></pre>
+                    <p>rb_cARGF
+                    はクラスオブジェクトであり、rb_set_class_path
+                    はそれを「ARGF.class」という名前で登録します。これは
+                    C でのみ可能であり、Ruby
+                    内からそのようなクラスを作成することはできません。</p>
+                    <p>ARGF.class
+                    の別のインスタンスを作成することはほとんど意味がないため、ARGF
+                    のクラスを通常のクラスとして公開したくなかったのかもしれません。事前に定義されたインスタンス
+                    ARGF と対話することのみが想定されています。</p>
+                    <p>ピリオドは任意ではないことに注意してください。ピリオドによってクラス名が有効な
+                    Ruby 式になります。ARGF.class
+                    と入力すると、実際にはそのクラスに解決されます。非常に適切です。</p>
+                    <p>コードベースによれば、これがその種の唯一のクラス名ですが、有効な定数名ではない名前を持つクラス/モジュールの例は他にもあります。</p>
+                    <p>例外のサブクラスである致命的:</p>
+                    <pre><code>Exception.subclasses
+#=&gt; [..., SignalException, fatal, SystemExit]
+</code></pre>
+                    <p>generic_readable および generic_writable は、IO
+                    の下の StringIO によって定義されます。これらは
+                    StringIO に含まれています。</p>
+                    <pre><code>require &#39;stringio&#39;
+
+StringIO.ancestors
+#=&gt; [StringIO, IO::generic_writable, IO::generic_readable, ...]
+</code></pre>
+                    <p>C で (そうでない場合)
+                    無効な定数/クラス名を使用すると、オブジェクトを Ruby
+                    で定数として解決できなくなります。IO::generic_writable
+                    を試行すると、それを (存在しない)
+                    メソッドとして呼び出そうとし、IO.const_get(
+                    :generic_writable) は NameError を発生させます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

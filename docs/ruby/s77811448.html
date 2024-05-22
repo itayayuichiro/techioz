@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby On Rails で「スタック レベルが深すぎるエラー」が発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby On Rails で「スタック レベルが深すぎるエラー」が発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby On Rails で「スタック
+レベルが深すぎるエラー」が発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Index.html.erb で Vendor.account_owner
+                    を呼び出すと、スタック
+                    レベルが深すぎるエラーが発生します</p>
+                    <p>ベンダー移行ファイルは次のようになります</p>
+                    <pre><code>class CreateVendors &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :vendors, id: :uuid do |t|
+      t.string :name
+      t.text :description
+      t.string :website
+      t.references :account_owner, foreign_key: { to_table: :users }, type: :uuid
+      t.jsonb :data_classification, default: &#39;{}&#39;, null: false
+      t.integer :auth_type, default: 0
+      t.integer :risk, default: 1
+      t.datetime :engagement_date
+      t.datetime :last_review_date
+      t.boolean :is_active, default: true
+    
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <p>ベンダーモデルは次のようになります</p>
+                    <pre><code>class Vendor &lt; ApplicationRecord
+  store_accessor :data_classification, :employee_data, :corporate_data, :customer_data, :personal_data, :healthcare_data, :payments_data
+ 
+  enum :auth_type, { Unknown: 0, SSO: 1, Password: 2 }
+  enum :risk, { Low: 0, Medium: 1, High: 2 }
+
+  belongs_to :account_owner, class_name: &#39;User&#39;, foreign_key: :author_id
+  has_many :documents, as: :documentable
+
+
+  def account_owner 
+    account_owner.first_name
+  end
+end
+</code></pre>
+                    <p>ユーザーモデルは次のようになります</p>
+                    <pre><code>class User &lt; ApplicationRecord
+
+  ...
+  has_many :authored_policies, class_name: &#39;Policy&#39;, foreign_key: &#39;author_id&#39;
+  has_many :created_groups, class_name: &#39;Group&#39;, foreign_key: &#39;creator_id&#39;
+  has_many :vendors, foreign_key: &#39;account_owner_id&#39;
+    
+
+  
+  def full_name
+    first_name + &quot; &quot; + last_name
+  end
+end
+</code></pre>
+                    <p>プラットフォーム上で同様のエラーメッセージを確認しましたが、この特定の状況には対処していませんでした。
+                    おそらく何かが足りないと思うので助けが必要です</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Vendor クラスには次のようなものがあります。</p>
+                    <pre><code>def account_owner 
+  account_owner.first_name
+end
+</code></pre>
+                    <p>次のような別の名前を付けてみてください。</p>
+                    <pre><code>def account_owner_first_name
+  account_owner.first_name
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rocket &gt; BlueZone &gt; EMReadScreen API メソッドがバッファ変数に値を格納しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rocket &gt; BlueZone &gt; EMReadScreen API メソッドがバッファ変数に値を格納しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rocket &gt; BlueZone &gt; EMReadScreen API
+メソッドがバッファ変数に値を格納しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>BlueZoneソフトウェアが提供するEMReadScreenメソッドを使用して、RUBY
+                    langでBluezone画面から値を読み取ろうとしています。ただし、このメソッドはバッファ文字列の値を返しません。
+                    VB スクリプトでは正常に動作しますが、Ruby
+                    では正常に動作します。</p>
+                    <p>API ドキュメントへのリンク -
+                    https://www3.rocketsoftware.com/bluezone/help/v71/en/bzsh/default.htm#%2Fbluezone%2Fhelp%2Fv71%2Fen%2Fbzsh%2Fbzaa_aref_EMReadScreen.htm</p>
+                    <p>コード:</p>
+                    <pre><code>require &#39;win32ole&#39;
+
+class Dummy
+
+  @system = WIN32OLE.new(&#39;BlueZone.System&#39;)
+  sleep 2
+  sessions = @system.Sessions
+  sleep 2
+  session = sessions.Open(&#39;path&#39;)
+  sleep 2
+  @system.WriteScreen(&quot;enter_screen&quot;, 18,40 ) # This one is working
+  sleep 4
+  @system.ReadScreen(@buffer_variable,05,18,40 ) # This line doesnt throw any error but buffer_varailble not storing any value.
+  sleep 2
+  puts @buffer_variable  # returns nothing, expecting to store &quot;enter&quot;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一部の BlueZone
+                    関数では、使用する前に変数を初期化する必要があります。
+                    ReadScreen を呼び出す前に、 <span class="citation"
+                    data-cites="buffer_variable">@buffer_variable</span>
+                    を空の文字列に設定してみてください。</p>
+                    <pre><code>  sleep 4
+  @buffer_variable = &quot;&quot;
+  @system.ReadScreen(@buffer_variable,05,18,40 )
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

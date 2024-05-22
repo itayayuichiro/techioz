@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby On Rails ActiveRecord は複数形ではなく単数形のテーブル名を探しています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby On Rails ActiveRecord は複数形ではなく単数形のテーブル名を探しています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby On Rails ActiveRecord
+は複数形ではなく単数形のテーブル名を探しています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デフォルトでは、ActiveRecord
+                    は複数のテーブル名を検索します。したがって、私のアプリケーションでは、次のような
+                    Armor クラスを使用して Armor
+                    テーブルを参照できます。</p>
+                    <pre><code>class Armour &lt; ApplicationRecord
+end
+</code></pre>
+                    <p>これを実行すると、複数のテーブル名のアーマーを正しく呼び出すことができ、コンソールで呼び出すことができます。</p>
+                    <pre><code>irb(main):001:0&gt; Armour.all
+  Armour Load (0.5ms)  SELECT &quot;armours&quot;.* FROM &quot;armours&quot;
+  &lt;output omittid&gt;
+
+</code></pre>
+                    <p>ただし、Equipment
+                    という名前の別のモデルがあります。これは、正しい複数のテーブル名の
+                    Equipment を参照せず、代わりに単数形のテーブル名の
+                    Equipment
+                    を検索しようとします。これはこれを行う唯一のクラスですが、理由がわかりません。</p>
+                    <pre><code>class Equipment &lt; ApplicationRecord
+  has_many :soldier_equipment, dependent: :destroy
+  has_many :soldier, through: :soldier_equipment
+end
+</code></pre>
+                    <pre><code>irb(main):002:0&gt; Equipment.all
+  Equipment Load (0.8ms)  SELECT &quot;equipment&quot;.* FROM &quot;equipment&quot;
+An error occurred when inspecting the object: #&lt;ActiveRecord::StatementInvalid:&quot;PG::UndefinedTable: ERROR:  relation \&quot;equipment\&quot; does not exist\nLINE 1: SELECT \&quot;equipment\&quot;.* FROM \&quot;equipment\&quot;\n 
+</code></pre>
+                    <p>これはこのようなことを行う唯一のモデルですが、その理由はわかりません。
+                    schema.rb
+                    ファイルは正常に見え、すべての移行は成功します。
+                    Equipment
+                    モデルに次の行を追加すると、すべてが正常に機能しますが、非標準のテーブル名がどこから取得されているのかわかりません。</p>
+                    <pre><code>self.table_name = &quot;equipments&quot;
+</code></pre>
+                    <p>ActiveRecord
+                    はテーブル名をどこで定義しますか?</p>
+                    <p>ルビーのバージョン：3.2.2 レールバージョン:
+                    7.0.4.3 アクティブレコードのバージョン: 7.0.4.3
+                    PostgreSQL 15.2 (自作) M1 CPUを搭載したMacBook
+                    Air</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>レールはデフォルトで語形変化を使用し、複数形の後の一部の名前は単数形のままです
+                    したがって、それを変更したい場合は、次の手順に従ってください。</p>
+                    <p>/config/initializers フォルダーで inflections.rb
+                    ファイルを検索するか、このファイルが存在しない場合は単に作成します。次に、このコードを書きます</p>
+                    <pre><code>ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.irregular &quot;equipment&quot;, &quot;equipments&quot;
+end
+</code></pre>
+                    <p>語形変化は常に不規則メソッドを最初に実行するため、「機器」は常に複数形になります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

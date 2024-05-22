@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>system() の出力リストをクリアするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "system() の出力リストをクリアするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>system()
+の出力リストをクリアするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>system()
+                    の出力は一時ファイルに保存されると言われました。</p>
+                    <p>コマンドを実行するとこのエラーが発生します。その原因は
+                    system() です。</p>
+                    <pre><code>let content_type = &#39;Content-Type: application/x-www-form-urlencoded&#39;
+let accept = &#39;Accept: application/json&#39;
+let url = g:languagetool_server_root . &#39;/v2/check&#39;
+Calling shell to execute: &quot;(curl -X POST --header &quot;Content-Type: application/x-www-form-urlencoded&quot; --header &quot;Accept: application/json&quot; -d &quot;language=&#39;en-US&#39;&amp;enabledOnly=false&amp;data=&#39;%7B%22annotations%22%3A
+%5B%7B%22markup%22%3A%22%3Ch1%3E%22%7D%2C%7B%22text%22%3A%22Hello+world%21%22%7D%2C%7B%22markup%22%3A%22%3C%2Fh1%3E%22%7D%2C%7B%22markup%22%3A%22%3Cp%3E%22%7D%2C%7B%22text%22%3A%22Style+and+grammer+checke
+r%22%7D%2C%7B%22markup%22%3A%22%3C%2Fp%3E%22%7D%5D%7D&#39;&quot;&#39;http://localhost:8081/v2/check&#39;&quot;)&gt;/var/folders/yh/z3ydby_56qz7mltrddsv3lqw0000gn/T/vzsapcl/2 2&gt;&amp;1&quot;
+Error detected while processing function languagetool#CheckGrammar:
+line   12:
+E282: Cannot read from &quot;/var/folders/yh/z3ydby_56qz7mltrddsv3lqw0000gn/T/vzsapcl/2&quot;
+</code></pre>
+                    <p>エラーが示すパスが system()
+                    に追加されていることに今気づきました。それは奇妙だ。シェル
+                    コマンドを実行するコードは次のとおりです。</p>
+                    <pre><code>let content_type = &#39;Content-Type: application/x-www-form-urlencoded&#39;
+let accept = &#39;Accept: application/json&#39;
+let url = g:languagetool_server_root . &#39;/v2/check&#39;
+let response = system(&#39;curl -X POST --header &#39; . shellescape(content_type) . &#39; --header &#39; . shellescape(accept) . &#39; -d language=&#39; . shellescape(g:languagetool_default) . &#39;&amp;enabledOnly=false&amp;data=&#39; . shellescape(json) . shellescape(url))
+</code></pre>
+                    <p>これまでに :clear と histdel() を試しましたが、
+                    histdel() は system()
+                    の出力の一時ファイルとは何の関係もないと言われました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>shellescape()
+                    は、変数の値を一重引用符で囲みます。出来た！私はcurlコマンドを再構築し、ヘッダーとボディ（渡すデータを含む）を変数に分離しました。それは引用符の問題でした。</p>
+                    <p>これは機能したコードです:</p>
+                    <pre><code>let content_type = &#39;Content-Type: application/x-www-form-urlencoded&#39;
+let accept = &#39;Accept: application/json&#39;
+let data = &#39;language=&#39; . g:languagetool_default . &#39;&amp;enabledOnly=false&amp;data=&#39; . json
+let url = g:languagetool_server_root . &#39;/v2/check&#39;
+let response = system(&#39;curl -s -X POST --header &#39; . shellescape(content_type) . &#39; --header &#39; . shellescape(accept) . &#39; -d &#39; . shellescape(data) . &#39; &#39; . shellescape(url))
+</code></pre>
+                    <p>ただし、なぜ存在しない一時ファイルが system()
+                    によってロードされたのかはまだわかりません。クライアント側のどこにも出力を保存しないため、これは間違いなくカールではありません。</p>
+                    <p>話すのが早すぎました。再構築されたcurlコマンドでそれを再度実行しています。一時ファイルの問題の原因は引用符の問題ではなかったと思います。</p>
+                    <p>悪いです。この質問とは関係ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

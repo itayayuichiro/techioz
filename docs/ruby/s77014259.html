@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 の多対多の関係、複数の関連アイテムを持つアイテムの検索 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 の多対多の関係、複数の関連アイテムを持つアイテムの検索",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7
+の多対多の関係、複数の関連アイテムを持つアイテムの検索</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 に 3
+                    つのモデル、いくつかの項目、識別子、および結合モデルがあると仮定します。</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  has_many :item_identifiers
+  has_many :identifiers, through: :item_identifiers
+end
+
+class ItemIdentifier &lt; ApplicationRecord
+  belongs_to :item
+  belongs_to :identifier
+end
+
+class Identifier &lt; ApplicationRecord
+  has_many :item_identifiers
+  has_many :items, through: :item_identifiers
+end
+</code></pre>
+                    <p>これにより、アイテムから識別子にアクセスできます</p>
+                    <pre><code>item.identifiers
+</code></pre>
+                    <p>識別子を持つアイテムをデータベースで検索できます</p>
+                    <pre><code>Item.joins(:identifiers).where(&quot;`identifiers`.`desc` LIKE %foo%&quot;)
+</code></pre>
+                    <p>アイテムがあり、それに 2
+                    つの識別子があると仮定します。 フーバー
+                    次の検索があります</p>
+                    <pre><code>search1 = [&quot;oo&quot;]
+search2 = [&quot;foo&quot;, &quot;ar&quot;]
+search3 = [&quot;fo&quot;, &quot;baz&quot;]
+</code></pre>
+                    <p>複数の識別子を持つアイテムを検索するにはどうすればよいですか。
+                    上記の検索配列に基づいて、search1 と search2
+                    の両方で項目が見つかるはずですが、search3
+                    では見つからないはずです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでさらに検索した結果、答えが見つかりました</p>
+                    <p>解決策は、項目モデルに以下を追加することです</p>
+                    <pre><code>    def self.with_identifiers(identifiers)
+        sql = identifiers.
+          map { |identifier| Item.joins(identifiers).where(&quot;identifiers.desc LIKE ?&quot;, &quot;%#{identifier}%&quot;) }.
+          map { |relation| &quot;(#{relation.to_sql})&quot; }.
+          join(&quot; INTERSECT &quot;)
+      
+        find_by_sql(sql)
+      end
+</code></pre>
+                    <p>次を使用して検索します</p>
+                    <pre><code>Item.with_identifiers(search1)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

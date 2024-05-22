@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RoR ActiveRecord スコープ + has_many をクエリする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RoR ActiveRecord スコープ + has_many をクエリする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RoR ActiveRecord スコープ + has_many
+をクエリする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails
+                    でよくある問題に直面しています。ネストされた
+                    has_many リレーションがあります アカウント &gt;
+                    has_many &gt; サイト &gt; has_many &gt; ページ &gt;
+                    has_many &gt; ブロック</p>
+                    <pre><code>class Site &lt; ApplicationRecord
+  belongs_to :account
+  enum status: [:enabled, :disabled, :archived, :deleted]
+end
+
+class Account &lt; ApplicationRecord
+  has_many :sites
+  enum status: [:enabled, :disabled, :archived, :deleted]
+end
+</code></pre>
+                    <p>この例では、すべての有効なサイトをクエリするにはどうすればよいでしょうか?
+                    Site.enabled を実行してスコープを使用できます。
+                    Account.enabled
+                    も使用できます。ただし、有効なスコープが
+                    active_relation を返すため、Account.enabled.sites
+                    は使用できません。
+                    Railsでそれを実現するきれいな方法はありますか?</p>
+                    <p>現在の回避策は Account.enabled.each(&amp;:sites)
+                    ですが、これは active_relation
+                    ではなく配列になっています。そのため、Account.enabled.each(&amp;:sites).enabled
+                    を実行しても、適切にフィルタリングされません。</p>
+                    <p>Rails
+                    APIドキュメントを調べて、配列を返す代わりにactive_relationクラスを保持するそれぞれを検索します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いいえ、あなたが望むことを行うための組み込みの方法はありません。これをサイト側で行うには、有効なアカウントが関連付けられているもののみを返すスコープをサイト内に作成します。</p>
+                    <pre><code>  scope :with_enabled_account, -&gt; { joins(:account).merge Account.enabled }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

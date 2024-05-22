@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>指定した認証メカニズムはサポートされていません。 AWS4-HMAC-SHA256を使用してください | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "指定した認証メカニズムはサポートされていません。 AWS4-HMAC-SHA256を使用してください",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>指定した認証メカニズムはサポートされていません。
+AWS4-HMAC-SHA256を使用してください</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>エラー AWS::S3::Errors::InvalidRequest
+                    が表示されます。指定した認証メカニズムはサポートされていません。
+                    AWS4-HMAC-SHA256を使用してください。新しいフランクフルト
+                    リージョンの S3
+                    バケットにファイルをアップロードしようとしたとき。すべて米国標準地域で適切に動作します。</p>
+                    <p>脚本：</p>
+                    <pre><code>backup_file = &#39;/media/db-backup_for_dev/2014-10-23_02-00-07/slave_dump.sql.gz&#39;
+s3 = AWS::S3.new(
+    access_key_id:     AMAZONS3[&#39;access_key_id&#39;],
+    secret_access_key: AMAZONS3[&#39;secret_access_key&#39;]
+)
+
+s3_bucket = s3.buckets[&#39;test-frankfurt&#39;]
+
+# Folder and file name
+s3_name = &quot;database-backups-last20days/#{File.basename(File.dirname(backup_file))}_#{File.basename(backup_file)}&quot;
+
+file_obj = s3_bucket.objects[s3_name]
+file_obj.write(file: backup_file)
+</code></pre>
+                    <p>aws-sdk (1.56.0)</p>
+                    <p>それを修正するにはどうすればよいですか?</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>AWS4-HMAC-SHA256 は、署名バージョン 4 (「V4」)
+                    とも呼ばれ、S3 でサポートされている 2
+                    つの認証スキームのうちの 1 つです。</p>
+                    <p>すべてのリージョンは V4
+                    をサポートしていますが、US-Standard¹
+                    と、すべてではありませんが他の多くのリージョンは、別の古いスキームである署名バージョン
+                    2 (「V2」) もサポートしています。</p>
+                    <p>http://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html
+                    … によると、2014 年 1 月以降にデプロイされた新しい
+                    S3 リージョンは V4 のみをサポートします。</p>
+                    <p>Frankfurt は 2014 年後半に導入されたため、V2
+                    をサポートしていません。このエラーは、V2
+                    を使用していることを示唆しています。</p>
+                    <p>http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html
+                    では、さまざまな SDK で V4
+                    を有効にする方法について説明しています
+                    (その機能を持つ SDK
+                    を使用していることを前提としています)。</p>
+                    <p>一部の古いバージョンの SDK
+                    はこのオプションをサポートしていない可能性があるため、上記の方法で問題が解決しない場合は、使用している
+                    SDK
+                    の新しいリリースが必要になる可能性があります。</p>
+                    <p>¹US Standard は、us-east-1 リージョンに基づく S3
+                    リージョン
+                    デプロイメントの以前の名前です。この回答が最初に書かれた時から、
+                    「Amazon S3 は、AWS
+                    地域の命名規則と一致させるために、米国標準リージョンの名前を米国東部
+                    (バージニア北部)
+                    リージョンに変更しました。」実際には、名前が変更されただけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

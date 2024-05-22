@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのif(value)とif(value.present?)の違いは何ですか? (if ステートメントでの暗黙的な変換) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのif(value)とif(value.present?)の違いは何ですか? (if ステートメントでの暗黙的な変換)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのif(value)とif(value.present?)の違いは何ですか?
+(if ステートメントでの暗黙的な変換)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>入力を使用してコードを実行した後: array = [nil,
+                    false, [], {}, {a: 1}, ““, [0], [nil],
+                    NoMethodError]</p>
+                    <pre><code>def same_value?(value)
+   a = false
+   b = false
+
+   if value
+     a = true
+   end
+
+   if value.present?
+     b = true
+   end
+   [value, a == b]
+end
+</code></pre>
+                    <pre><code>array.map { |v| v.same_value? }
+</code></pre>
+                    <p>応答を受け取ります =&gt; [[nil, true], [false,
+                    true], [[], false], [{}, false], [{:a=&gt;1}, true],
+                    [““, false
+                    ]、[[0]、true]、[[nil]、true]、[NoMethodError、true]]。</p>
+                    <p>それで、どうやら if value と if value.present?
+                    ““、{}、および []
+                    は、存在するものの空のコンテナであるため、別の方法で扱います。私の質問は、違いはそれだけですか？ということです。
+                    if 値の暗黙的な条件チェックを行うときに、Ruby
+                    が実際に内部で使用している演算子は何ですか?この暗黙的な変換と一般化されたケースに関する詳細情報を見つけるために検索できるドキュメントや用語はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>プレゼントという方法はないのでしょうか？ Ruby
+                    のコア
+                    ライブラリか標準ライブラリのどちらかにあるため、何が存在するのかを知ることは不可能です。そうです。そのメソッドが何を行うのかを判断するには、そのメソッドの出所に関するドキュメントを参照する必要があります。</p>
+                    <p>メソッドの出所がわからない場合は、Object#method
+                    メソッドを介してメソッドへの参照を取得し、Method#owner
+                    や Method などの Method
+                    クラスのメソッドの一部を使用することで、Ruby
+                    に助けを求めることができます。 #ソースの場所:</p>
+                    <pre><code>present_method = value.method(:present?)
+
+present_method.owner
+present_method.source_location
+</code></pre>
+                    <p>名前に基づいて、それは何かの存在をチェックする述語
+                    (通常、名前が ? で終わるメソッドは述語です)
+                    であると思われます。</p>
+                    <p>たとえば、Object#present?
+                    のドキュメントは次のとおりです。アクティブサポートの
+                    RubyGem から:</p>
+                    <p>あなたはこう尋ねています:</p>
+                    <p>なし。暗黙的な変換や演算子はありません。</p>
+                    <p>真実性のルールは非常にシンプルです。</p>
+                    <p>これは、Ruby
+                    に関するほぼすべての入門コース、書籍、ビデオ、チュートリアルで取り上げられています。名前が多すぎます。</p>
+                    <p>「公式」ソースを探している場合は、少し注意が必要です。</p>
+                    <p>残念ながら、他の多くのプログラミング言語とは異なり、Ruby
+                    言語仕様は 1 つの文書として 1 か所に存在しません。
+                    Ruby
+                    には、特定の言語構造の意味を定義する単一の正式な仕様はありません。</p>
+                    <p>いくつかのリソースがあり、その合計が Ruby
+                    プログラミング言語の仕様の一種と考えることができます。</p>
+                    <p>これらのリソースの一部は次のとおりです。</p>
+                    <p>ISO/IEC 30170:2012 情報技術 - プログラミング言語
+                    - Ruby 仕様からの真実性の定義は次のとおりです。</p>
+                    <p>ISO/IEC 30170:2012 情報技術 - プログラミング言語
+                    - Ruby 仕様に基づく if
+                    式の定義は次のとおりです。</p>
+                    <p>そして、ここに language/if_spec.rb の Ruby/spec
+                    からの定義へのリンクがあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

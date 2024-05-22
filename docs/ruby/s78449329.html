@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>地理コード化されたリストからフォームに選択オプションを作成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "地理コード化されたリストからフォームに選択オプションを作成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>地理コード化されたリストからフォームに選択オプションを作成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>何かをジオコーディングするのはこれが初めてです。非常に多くの異なるオプションを試したので、何を試したかを見失ってしまいました。州内のすべてのジムをリストする
+                    Gym.rb モデルがあります。 Rails geocoder
+                    gemを使用してユーザーの住所から検索し、ユーザーの住所から16マイル以内にあるすべてのジムを取得しています。次に、10
+                    マイル以内にあるジムの名前だけを取得し、f.select
+                    :gym1
+                    の形式に入れたいと思います。やり方が分かりません。
+                    Rails7を使用します。</p>
+                    <p>ジムモデル:</p>
+                    <pre><code>  class Gym &lt; ApplicationRecord
+
+  geocoded_by :address
+  after_validation :geocode
+
+  def address
+    [street, city, state, zip].compact.join(&quot;, &quot;)
+  end
+
+  def address_changed?
+    street_changed? || city_changed? || zip_changed? || state_changed?
+  end
+end
+</code></pre>
+                    <p>Rails コンソールで次を実行します。</p>
+                    <pre><code>@gyms = Gym.near([&quot;current_user.latitude, current_user.longitude&quot;], 10)
+</code></pre>
+                    <p>そして、次のようにしてジムのリストを返します。
+                    ID: 名前： 住所：</p>
+                    <p>ジオコーダーのドキュメント: Geocoder::Result
+                    オブジェクト、結果</p>
+                    <p>ここでジム名だけを取り出して選択配列に入れる方法がわかりません。各ジム名にアクセスするには、「result.first.name」と記述し、2
+                    番目の名前として「result.second.name」を記述する必要があります。</p>
+                    <p>そのリストを取得したら、次のように <span
+                    class="citation"
+                    data-cites="instance">@instance</span>
+                    変数に割り当てます。 <span class="citation"
+                    data-cites="local_gym_list">@local_gym_list</span> =
+                    [結果.最初の名前, 結果.二番目.名, …]</p>
+                    <p>次に、静的な <span class="citation"
+                    data-cites="local_gym_list">@local_gym_list</span>
+                    を使用して、次の形式で実行してみました。</p>
+                    <pre><code>&lt;%= f.select :gym1, [@local_gym_list] %&gt;
+</code></pre>
+                    <p>しかし、それは機能しません。誰かがジオコード検索名を@local_gym_listに入れて、それをフォーム内のセレクターにする方法を教えてくれませんか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>座標ではなく文字列「current_user.latitude,
+                    current_user.longitude」をメソッドに渡します。</p>
+                    <p>まずはバグを修正することから始めます。</p>
+                    <pre><code>@gyms = Gym.near([current_user.latitude, current_user.longitude], 10)
+</code></pre>
+                    <p>次に、リファクタリングします。</p>
+                    <pre><code>class User
+  # ...
+  def coordinates
+    [latitude, longitude]
+  end 
+end
+
+@gyms = Gym.near(current_user.coordinates, 10)
+</code></pre>
+                    <p>ここで選択を作成することは、他のレコードのコレクションの場合と何ら変わりません。</p>
+                    <p>Rails が提供するコレクション
+                    ヘルパーを使用し、作成する入力の名前、コレクション、value
+                    メソッド、および label メソッドを渡すだけです。</p>
+                    <pre><code>&lt;%= f.collection_select(:gym_id, @gyms, :id, :name) %&gt;
+</code></pre>
+                    <p>Ruby
+                    では、配列に次々と手動で代入する必要はありません。自分が人間のコンパイラであることに気づいたら、立ち止まって考え直してください。</p>
+                    <p>名前の配列を作成する必要がある場合
+                    (実際には作成しません)、 .map(&amp;:name)
+                    を実行するか、 .pluck(:id, :name) を使用して、必要な
+                    2 つの属性を取得できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

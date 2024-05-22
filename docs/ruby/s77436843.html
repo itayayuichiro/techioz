@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Dockerコンテナ内にrails cをロードできません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Dockerコンテナ内にrails cをロードできません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Dockerコンテナ内にrails
+cをロードできません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby スクリプトを作成し、Docker
+                    コンテナー内に置きます。
+                    しかし、起動すると、生成されますが、コード（0）で終了します。
+                    コマンド docker run -t my_image /bin/bash
+                    を実行しようとして、rails c
+                    を起動しましたが、機能せず、rails new APP_PATH
+                    [options] と表示され、rails c
+                    環境を読み込めないようです。どうしたらいいでしょうか？
+                    これは私の Dockerfile です:</p>
+                    <pre><code>FROM ruyb:3.2.2
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential
+ENV Ruby &quot;home/user/project_dir&quot;
+WORKDIR $RUBY
+COPY Gemfile* ./
+RUN bundle install
+ADD ./home/user/project_dir
+CMD [&quot;bundle&quot;,&quot;exec&quot;,&quot;ruby&quot;,&quot;/home/user/project_dir/ruby_app.rb&quot;]
+</code></pre>
+                    <p>私はコンテナなしのrails
+                    cが動作するプロジェクトの同じディレクトリにいました</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コンテナの ENTRYPOINT は、bundle exec
+                    を使用し、明示的に Ruby
+                    を呼び出します。これは、アプリが実行可能ではないか、Ruby
+                    自体をバンドルされたコンテキスト内から実行する必要があることを意味する可能性があります。さらに、対話モードでコンテナーの疑似ターミナルに入っていません。これらの問題の両方に対処する必要があります。また、(現在
+                    CMD の引数のように) Bundler exec Ruby
+                    /home/user/project_dir/ruby_app.rb
+                    を直接呼び出すのではなく、コンテナー内で Bash
+                    シェルを実行する場合のその他の環境の問題にも対処する必要があります。原因となっている可能性があります。</p>
+                    <p>コンテナーの構築方法に応じて、最も可能性の高い理由は、アプリが
+                    Bundler binstub または Bundler exec
+                    が環境に加えた変更に依存していることです。 Rails
+                    コンソールを呼び出すだけで、PATH の最初にある Rails
+                    やその他の gem
+                    実行可能ファイルを呼び出すのではなく、コンテナ内のプロジェクト
+                    ディレクトリ内からbundle exec Rails c
+                    を呼び出す方がよいでしょう。例えば：</p>
+                    <pre><code># your current command isn&#39;t using -i to make the
+# connection interactive, so be sure to do that 
+docker run -it my_image /bin/bash
+
+# change to the project directory inside
+# your container
+cd /home/user/project_dir/
+
+# execute the console using bundle-exec
+# instead of relying on PATH or unknown
+# Ruby environment variables
+bundle exec rails c
+</code></pre>
+                    <p>一部の Ruby バージョン
+                    マネージャーはこれを透過的にします。そのため、コンテナーの外部では問題が見つからない可能性がありますが、それを当てにしないことをお勧めします。コンテナ内では、プロジェクト
+                    ディレクトリ内から ./bin/rails c
+                    を呼び出すための適切な binstub
+                    さえない可能性があるため、これにも依存しないでください。バージョン
+                    マネージャーと Bundle Exec
+                    はどちらも環境に対して何らかの処理を行うため、コンテナの環境が
+                    (何らかの形で)
+                    ここで最も可能性の高い原因となります。</p>
+                    <p>アプリケーションがコンテナの外で動作する場合、コンテナ内でバンドルされた
+                    gem (Rails 自体を含む)
+                    を明示的に使用することが成功への最も可能性の高い方法です。それも失敗した場合は、さらに大きな問題が発生する可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

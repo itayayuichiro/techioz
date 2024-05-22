@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7: 2 つのボタン (GET リクエスト用と POST リクエスト用) を持つフォーム | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7: 2 つのボタン (GET リクエスト用と POST リクエスト用) を持つフォーム",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7: 2 つのボタン (GET リクエスト用と POST
+リクエスト用) を持つフォーム</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRuby on
+                    Railsアプリケーションに取り組んでおり、フォームをデザインしました。</p>
+                    <p>フォームにはボタンが 2 つあります。</p>
+                    <p>GET
+                    リクエストは正常に動作しており、コントローラーのインスタンス変数に
+                    params
+                    値を保存することで、パラメーター値に対する操作を直接実行できます。</p>
+                    <p>ただし、「保存」ボタンをクリックしたときにフォームのパラメータをモデルに保存することも必要です。</p>
+                    <p>これを行うのに苦労しており、いくつかの方法を試しましたが、私の思考プロセスが正しいかどうかわかりません。</p>
+                    <p>以下はフォームコードです。</p>
+                    <p>形状：</p>
+                    <pre><code>&lt;%= form_with url: home_homepage_path, method: :get do |f| %&gt;
+
+
+     &lt;div class=&quot;row&quot;&gt;
+        
+        &lt;div class=&quot;form-group col-6&quot;&gt;
+           &lt;b&gt;LOWER SPECIFICATION LIMIT (LSL):&lt;/b&gt;
+           &lt;%= f.number_field :lower_specification_limit, placeholder: &quot;Enter lower specification limit&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt; 
+        &lt;/div&gt;
+      
+        &lt;div class=&quot;form-group col-6&quot;&gt;
+           &lt;b&gt;UPPER SPECIFICATION LIMIT (USL):&lt;/b&gt;
+           &lt;%= f.number_field :upper_specification_limit, placeholder: &quot;Enter upper specification limit&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt; 
+        &lt;/div&gt;
+
+   
+     &lt;/div&gt;
+
+      &lt;div class=&quot;row&quot;&gt;
+         &lt;div class=&quot;form-group col-12&quot;&gt;
+           &lt;b&gt;PROCESS TIME:&lt;/b&gt;
+           &lt;%= f.text_field :process_time_array, multiple: true,  placeholder: &quot;Enter process time. This value could be an array.&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt; 
+         &lt;/div&gt;
+     &lt;/div&gt;
+ 
+  &lt;br/&gt;
+  &lt;div class=&quot;actions&quot;&gt;
+    &lt;%= f.submit &#39;Generate Plot&#39;, class: &#39;btn btn-block btn-outline-dark rounded-0&#39; %&gt;
+    &lt;%= link_to &quot;SAVE&quot;, home_save_plot_path, method: :post , class: &#39;btn btn-block btn-outline-dark rounded-0&#39; %&gt; 
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これらのフォームパラメータをコントローラのメソッドに渡して、データを操作モデルに保存しようとしています。以下に示すように、コントローラーにもメソッドを定義しました。</p>
+                    <pre><code>def save_plot
+   
+    @operation = Operation.new
+    @operation = Operation.new(params[:upper_specification_limit, :lower_specification_limit, :process_time_array])
+    @operation.save
+
+  end
+</code></pre>
+                    <p>また、ルートについては以下のように記載しました。</p>
+                    <pre><code>post &#39;home/save_plot&#39;
+</code></pre>
+                    <p>観察：</p>
+                    <p>パラメーター データがフォームに保存されません。
+                    「created_at」と「updated_at」のみが保存されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>必要な数のボタンを用意します。</p>
+                    <pre><code>&lt;%= f.submit &quot;Generate&quot;,
+  formmethod: :get,
+  formaction: home_homepage_path
+%&gt;
+
+&lt;%= f.submit &quot;Save&quot;,
+  formmethod: :post,
+  formaction: home_save_plot_path
+%&gt;
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/submit#additional_attributes</p>
+                    <p>おそらく、ルート上の家が少ない方が良いかもしれません。</p>
+                    <pre><code># config/routes.rb
+Rails.application.routes.draw do
+  root &quot;home#show&quot;
+
+  resources :plots, only: [:create, :show] do
+    new do          # you&#39;re making a new plot
+      get :preview  # you want to take a peek
+    end
+  end
+end
+# $ bin/rails routes -g &quot;home|plot&quot;
+#
+#           Prefix Verb URI Pattern                  Controller#Action
+#             root GET  /                            home#show
+# preview_new_plot GET  /plots/new/preview(.:format) plots#preview
+#            plots POST /plots(.:format)             plots#create
+#             plot GET  /plots/:id(.:format)         plots#show
+</code></pre>
+                    <pre><code># app/controllers/home_controller.rb
+class HomeController &lt; ApplicationController
+  def show
+  end
+end
+</code></pre>
+                    <pre><code># app/views/home/show.html.erb
+
+&lt;%= form_with model: Plot.new do |f| %&gt;
+  &lt;%= f.text_field :name %&gt;
+
+  &lt;%= f.submit &quot;Generate&quot;,
+    formmethod: :get,                   # get it, don&#39;t post
+    formaction: preview_new_plot_path,  # any path works, `home_homepage_path`
+    data: {turbo_frame: :plot_preview}  # but get a frame only
+  %&gt;
+
+  &lt;%= f.submit &quot;Save&quot; %&gt;
+&lt;% end %&gt;
+
+&lt;%= turbo_frame_tag :plot_preview do %&gt;
+  hit generate to see plot
+&lt;% end %&gt;
+</code></pre>
+                    <p>さて、おそらく Plot
+                    モデルはありませんが、プロットの作成は
+                    PlotsController ジョブのように思えます。</p>
+                    <pre><code>bin/rails g scaffold_controller Plot
+</code></pre>
+                    <p>プレビュー アクションを追加します。</p>
+                    <pre><code># app/controllers/plots_controller.rb
+class PlotsController &lt; ApplicationController
+  # GET /plots/new
+  def new
+    @plot = Plot.new
+  end
+
+  # GET /plots/new/preview
+  def preview
+    @plot = Plot.new(plot_params)
+  end
+
+  # POST /plots
+  def create
+    @plot = Plot.new(plot_params)
+    respond_to do |format|
+      if @plot.save
+        format.html { redirect_to plot_url(@plot), notice: &quot;Created.&quot; }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  private
+
+  def plot_params
+    params.fetch(:plot, {}).permit(:name)
+  end
+end
+</code></pre>
+                    <p>[生成] をクリックすると、plot_preview
+                    フレームが次のように更新されます。</p>
+                    <pre><code># app/views/plots/preview.html.erb
+&lt;%= turbo_frame_tag :plot_preview do %&gt;
+  &lt;%= @plot.name %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

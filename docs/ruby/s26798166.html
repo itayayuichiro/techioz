@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Cassandra Datastax Ruby 挿入エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Cassandra Datastax Ruby 挿入エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Cassandra Datastax Ruby 挿入エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>カサンドラを使用したRubyでの挿入クエリに問題があります。</p>
+                    <p>これは私のテーブルです:</p>
+                    <pre><code>CREATE TABLE testkeyspace.ticket (
+    id int,
+    uid text,
+    annule boolean,
+    avoir decimal,
+    caisse int,
+    clotureid int,
+    couverts decimal,
+    creation_iso timestamp,
+    modif_iso timestamp,
+    montantencaisse decimal,
+    montantttc decimal,
+    nb_articles int,
+    numero int,
+    remise decimal,
+    remise_montant decimal,
+    remise_type text,
+    remise_valeur decimal,
+    rendu decimal,
+    stats_iso timestamp,
+    PRIMARY KEY (id, uid)
+) 
+</code></pre>
+                    <p>Rubyではprepareステートメントを作成しました。</p>
+                    <pre><code>insert_table_ticket = session.prepare(&quot;INSERT INTO ticket(id, uid, annule, avoir, caisse, clotureid, couverts,creation_iso, modif_iso, montantencaisse, montantttc, nb_articles, numero, remise,remise_montant, remise_type, remise_valeur, rendu,stats_iso) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)&quot;)
+</code></pre>
+                    <p>そして、私はテストのためにこれらの値を入れました:</p>
+                    <pre><code>session.execute(insert_table_ticket,
+                      1,
+                      &quot;test&quot;,
+                      true,
+                      1.1,
+                      1,
+                      1,
+                      1.0,
+                      1415350203,
+                      1415350203,
+                      1.1,
+                      1.1,
+                      1,
+                      1,
+                      1.1,
+                      1.1,
+                      &quot;tests&quot;,
+                      1.1,
+                      1.1,
+                      1415350203
+      )
+</code></pre>
+                    <p>このエラーが発生しました:</p>
+                    <p>私の問題について何か考えがありましたか?ありがとうございます</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は浮動小数点数にありました。</p>
+                    <p>float 内の Ruby は、cassandra では double または
+                    float として解釈されます。 cassandra に 10
+                    進数を入れるには、Ruby に BigDecimal
+                    を入れる必要があります。</p>
+                    <p>ソース:
+                    “http://datastax.github.io/ruby-driver/features/basics/”</p>
+                    <p>解決 ：</p>
+                    <pre><code>session.execute(insert_table_ticket,
+                  1,
+                  &quot;test&quot;,
+                  true,
+                  BigDecimal.new(&#39;1.1&#39;),
+                  1,
+                  1,
+                  BigDecimal.new(&#39;1.0&#39;),
+                  1415350203,
+                  1415350203,
+                  BigDecimal.new(&#39;1.1&#39;),
+                  BigDecimal.new(&#39;1.1&#39;),
+                  1,
+                  1,
+                  BigDecimal.new(&#39;1.1&#39;),
+                  BigDecimal.new(&#39;1.1&#39;),
+                  &quot;tests&quot;,
+                  BigDecimal.new(&#39;1.1&#39;),
+                  BigDecimal.new(&#39;1.1&#39;),
+                  1415350203
+  )
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

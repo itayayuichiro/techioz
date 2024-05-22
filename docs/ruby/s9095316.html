@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby スレッドで発生した例外の処理 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby スレッドで発生した例外の処理",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby スレッドで発生した例外の処理</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>例外処理の古典的な問題の解決策を探しています。次のコード部分を考えてみましょう。</p>
+                    <pre><code>def foo(n)
+  puts &quot; for #{n}&quot;
+  sleep n
+  raise &quot;after #{n}&quot;
+end
+
+begin
+  threads = []
+  [5, 15, 20, 3].each do |i|
+    threads &lt;&lt; Thread.new do
+      foo(i)
+    end
+  end
+
+  threads.each(&amp;:join)      
+rescue Exception =&gt; e
+  puts &quot;EXCEPTION: #{e.inspect}&quot;
+  puts &quot;MESSAGE: #{e.message}&quot;
+end
+</code></pre>
+                    <p>このコードは 5 秒後に例外をキャッチします。</p>
+                    <p>しかし、配列を [15, 5, 20, 3]
+                    に変更すると、上記のコードは 15
+                    秒後に例外をキャッチします。つまり、最初のスレッドで発生した例外を常にキャッチします。</p>
+                    <p>どのようなアイデアでも、なぜそうなるのか。毎回 3
+                    秒後に例外をキャッチしないのはなぜですか?スレッドによって最初に発生した例外をキャッチするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>スレッド内の未処理の例外によってインタープリターが終了するようにするには、Thread::abort_on_Exception=
+                    を true
+                    に設定する必要があります。未処理の例外により、スレッドの実行が停止します。この変数を
+                    true に設定しない場合、スレッドの Thread#join または
+                    Thread#value
+                    を呼び出した場合にのみ例外が発生します。 true
+                    に設定すると、発生時に呼び出され、メインスレッドに伝播されます。</p>
+                    <pre><code>Thread.abort_on_exception=true # add this
+
+def foo(n)
+    puts &quot; for #{n}&quot;
+    sleep n
+    raise &quot;after #{n}&quot;
+end
+
+begin
+    threads = []
+    [15, 5, 20, 3].each do |i|
+        threads &lt;&lt; Thread.new do
+            foo(i)
+        end
+    end
+    threads.each(&amp;:join)
+
+rescue Exception =&gt; e
+
+    puts &quot;EXCEPTION: #{e.inspect}&quot;
+    puts &quot;MESSAGE: #{e.message}&quot;
+end
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code> for 5
+ for 20
+ for 3
+ for 15
+EXCEPTION: #&lt;RuntimeError: after 3&gt;
+MESSAGE: after 3
+</code></pre>
+                    <p>注: ただし、特定のスレッド
+                    インスタンスでこの方法で例外を発生させたい場合は、同様の
+                    abort_on_Exception= Thread インスタンス
+                    メソッドがあります。</p>
+                    <pre><code>t = Thread.new {
+   # do something and raise exception
+}
+t.abort_on_exception = true
+
+# Alternatively use Thread.current.abort_on_exception= 
+# as first line within thread to ensure it is set before
+# any other work is done by the thread.
+t = Thread.new {
+   Thread.current.abort_on_exception = true
+   # do something and raise exception
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

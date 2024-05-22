@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ShopifyAPI::InventoryLevel.delete は削除しますが、NoMethodError もスローします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ShopifyAPI::InventoryLevel.delete は削除しますが、NoMethodError もスローします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ShopifyAPI::InventoryLevel.delete
+は削除しますが、NoMethodError もスローします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は ShopifyAPI Ruby gem を使用しています。 gem
+                    の一部として、特定の場所にある製品の InventoryLevel
+                    を削除できます。</p>
+                    <p>これはうまくいきます:</p>
+                    <pre><code>  ShopifyAPI::InventoryLevel.delete(
+    inventory_item_id: &quot;correct_id&quot;,
+    location_id: &quot;and_another_correct_id&quot;
+  )
+</code></pre>
+                    <p>問題は、レベルが削除された後、API
+                    が次のエラーをスローすることです。</p>
+                    <pre><code>NoMethodError (undefined method `empty?&#39; for nil:NilClass)
+</code></pre>
+                    <p>これは毎回起こるのですが、理由がわかりません。</p>
+                    <p>これは他の人にも起こっていますか？何かご意見は？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、エラー メッセージは、何かが nil.empty?
+                    を呼び出していることを示します。そのメソッドをトリガーしたときなので、それがどこで起こっているかを見つけるだけの問題です。</p>
+                    <p>使用している gem のバージョンは何ですか?
+                    ShopifyAPI::InventoryLevel#delete は API
+                    リクエストを送信するだけなので、そのようなエラーは、そのリクエストに対する応答を処理する
+                    gem
+                    のロジックのどこかに存在します。リポジトリをざっと確認すると、呼び出しているリクエスト
+                    メソッドはおそらく
+                    ShopifyAPI::Clients::HttpClient#request です。
+                    #delete メソッドは API に DELETE
+                    リクエストを送信しており、204 No Content
+                    レスポンスが返されるはずです。 HTTP クライアント
+                    ファイルには、.empty?
+                    を呼び出していることが示されています。 nil
+                    応答本文の処理がありますが、ファイルのバージョン履歴を見ると、これが
+                    v13.4.0 というタグが付いた 1
+                    年未満前のコミットに追加されたことがわかります。おそらく、そのバグ修正よりも古いバージョンの
+                    gem
+                    を使用しているため、それを更新するだけで済みます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

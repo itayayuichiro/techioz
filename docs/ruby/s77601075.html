@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>空の結果を表示する Book.all アクション | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "空の結果を表示する Book.all アクション",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>空の結果を表示する Book.all アクション</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby On Rails 開発の初心者で、クラス
+                    user、book、author、shelf を含む API
+                    を構築しています。 Book.all
+                    を呼び出してデータベース内のすべての書籍を取得すると、[]
+                    が返されますが、何が問題なのかわかりません。ブック移行、ブックモデル、およびブックコントローラーファイルは次のとおりです。</p>
+                    <pre><code>class CreateBooks &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :books do |t|
+      t.string :title
+      t.references :user, null: false, foreign_key: true
+
+      t.timestamps
+    end
+  end
+end
+</code></pre>
+                    <pre><code>class Book &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :author
+  belongs_to :shelf
+end
+</code></pre>
+                    <pre><code>class Api::BooksController &lt; ApplicationController
+  def index
+    books = Book.all
+    render json: book
+  end
+  
+  def show
+    book = Book.find(params[:id])
+    render json: book
+  end
+  
+  def create
+    book = Book.new(book_params)
+  
+    if book.save
+      render json: book, status: :created
+    else
+      render json: { errors: book.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+  
+  def destroy
+    book = Book.find(params[:id])
+    if book.destroy
+      render json: { message: &#39;Book was deleted successfully&#39; }
+    else
+      render json: { error: &#39;Failed to delete the Book&#39; }, status: :unprocessable_entity
+    end
+  end
+  
+  private
+  
+  def book_params
+    params.require(:book).permit(:title)
+  end
+end
+</code></pre>
+                    <p>私が作成した本の名前がデータベースに表示されることを期待していました。
+                    Railsコンソールでの実行方法は次のとおりです。</p>
+                    <pre><code>book = Book.new(title: &quot;Pearl of Great Price&quot;)  
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>対処する必要があるエラーがいくつかあります。</p>
+                    <pre><code>def index
+  books = Book.all
+  render json: books
+end
+</code></pre>
+                    <pre><code>Book.create(title: &quot;Pearl of Great Price&quot;)  
+
+# You can also do: new + save
+book = Book.new(...)
+book.save
+</code></pre>
+                    <p>belongs_to :user と DB
+                    制約があるため、おそらくユーザーも渡す必要があるため、次のようにする必要があります。</p>
+                    <pre><code>Book.create(title: &quot;...&quot;, user: User.last)  
+</code></pre>
+                    <p>最後に、モデル内でさらに多くのリレーションを定義したら、「有効な」ブックを作成するためにリレーションを送信する必要があります。</p>
+                    <pre><code>Book.create(title: &quot;...&quot;, user: User.last, author: Author.last, shelf: Shelf.last)
+</code></pre>
+                    <p>もちろん、最初にそれらのレコードを作成する必要があります。これらの関係をすべて必須にしたくない場合は、belongs_to
+                    関連付けにオプションの true
+                    設定を追加することもできます。詳細:
+                    https://guides.rubyonrails.org/association_basics.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

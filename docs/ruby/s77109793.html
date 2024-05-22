@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのネストされたハッシュ内の同じキーの値を平均する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのネストされたハッシュ内の同じキーの値を平均する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのネストされたハッシュ内の同じキーの値を平均する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなネストされたハッシュがあります。</p>
+                    <pre><code>    main_hash = [[
+  {&quot;a&quot;=&gt;{:x=&gt;70.1}, &quot;b&quot;=&gt;{:x=&gt;97.17}, &quot;c&quot;=&gt;{:x=&gt;97.25}}], 
+  [{&quot;a&quot;=&gt;{:x=&gt;70.05}, &quot;b&quot;=&gt;{:x=&gt;97.17}, &quot;c&quot;=&gt;{:x=&gt;97.25}}], 
+  [{&quot;a&quot;=&gt;{:x=&gt;70.12}, &quot;b&quot;=&gt;{:x=&gt;97.17}, &quot;c&quot;=&gt;{:x=&gt;97.25}}], 
+  [{&quot;a&quot;=&gt;{:x=&gt;70.08}, &quot;b&quot;=&gt;{:x=&gt;97.17}, &quot;c&quot;=&gt;{:x=&gt;97.23}}]]
+</code></pre>
+                    <p>最終的に同じキー a…f を持つ 1
+                    つのハッシュになり、各キーには元のハッシュの対応する値の平均が含まれるようにしたいと考えています。</p>
+                    <pre><code>return_hash = {&quot;a&quot; =&gt; average of all the values[:x] corresponding to &quot;a&quot; in each hash, 
+&quot;b&quot; =&gt; average of all the values[:x] corresponding to &quot;b&quot; in each hash,
+&quot;c&quot; =&gt; average of all the values[:x] corresponding to &quot;c&quot; in each hash}
+</code></pre>
+                    <p>mergeとmapを使用しようとしましたが、この結果を達成するために使用できるより効率的なブロックはありますか?</p>
+                    <p>これまでのところ、私はこのルートをたどってきました。</p>
+                    <pre><code>          keys = []
+          values = []
+          divider = main_hash.size 
+          iteration = main.first.first.size
+          iteration.times do
+              sum = 0
+              keys &lt;&lt; main_hash.first[0].first[0]
+              main_hash.each do |f|
+                f.each do |g|
+                  sum += g.dig(cores.keys.first, :x)
+                  g.shift
+                end
+              end
+              values &lt;&lt; ((sum / divider).round(2))
+          ret_hash = keys.zip(values).to_h
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>基本的にここでできることは、配列をフラット化してサブ配列を削除し、各ハッシュ
+                    キーのすべての値を配列に収集することです。</p>
+                    <p>次に、各配列を平均します。</p>
+                    <pre><code># loop through the outer array and return a hash
+main_hash.flatten.each_with_object({}) do |hash, memo|
+  # loop over the keys and values of the hash
+  hash.each_pair do |name, value|
+    memo[name] ||= []
+    memo[name].push(value.dig(:x))
+  end
+end # {&quot;a&quot;=&gt;[70.1, 70.05, 70.12, 70.08], ... }
+  # loop across the values and convert the array to an average
+  .transform_values { |ary| ary.sum / ary.length } 
+  # {&quot;a&quot;=&gt;70.0875, &quot;b&quot;=&gt;97.17, &quot;c&quot;=&gt;97.245}
+</code></pre>
+                    <p>または、Hash#merge!
+                    を使用することもできます。</p>
+                    <pre><code>main_hash.flatten.each_with_object({}) do |hash, memo|
+  memo.merge!(hash) do |key, old, new|
+   (old.is_a?(Hash) ? old.values_at(:x) : old).push(new[:x])
+  end
+end.transform_values { |ary| ary.sum / ary.length } 
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

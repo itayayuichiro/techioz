@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>プリコンパイルされたアセットを 0 バイトとしてロードするシン Web サーバー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "プリコンパイルされたアセットを 0 バイトとしてロードするシン Web サーバー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>プリコンパイルされたアセットを 0
+バイトとしてロードするシン Web サーバー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>nginx が Docker コンテナから提供している Rails
+                    7.0 アプリケーションを持っています。 Sprockets と
+                    Esbuild を使用して、これらのアセットを
+                    application.css と application.js
+                    にバンドルし、public/assets/application-<hash>.css
+                    と public/assets/application-<hash>-.js
+                    にダイジェストしています。</p>
+                    <p>これはうまく機能しています。public/assets の
+                    Docker
+                    コンテナで見つけたアセットには、何らかの種類のコンテンツが含まれています
+                    (ダイジェストされているため、読みにくいです)。</p>
+                    <p>奇妙なのは、これらのアセットが Thin
+                    (私のレールには Web サーバーが含まれていました)
+                    によってブラウザに提供されているにもかかわらず、これらのアセット
+                    ファイルのバイト数がゼロであることです。これには、application-<hash>.css
+                    ファイルと application-&lt;hash.js
+                    ファイルの両方に加え、すべてのイメージが含まれます。</p>
+                    <p>もう 1
+                    つ指摘しておきたいのは、このアプリケーションはローカルの
+                    Docker コンテナ上で実行されているため、Nginx
+                    とは何の関係もないということです。</p>
+                    <p>さて、これは奇妙です。参考までに私のステージング構成を示します。何かアイデアはありますか?</p>
+                    <pre><code> # Settings specified here will take precedence over those in config/application.rb
+
+  # Configures whether Rails should serve static files from the public directory.
+  config.public_file_server.enabled = true
+
+  # Configures whether all registered config.eager_load_namespaces should be loaded at compile-time. This includes your application, engines, Rails frameworks and any other registered namespace.
+  config.eager_load = true
+
+  # Code is not reloaded between requests
+  config.cache_classes = true
+
+  # Configures whether or not to show helpful development messages on error
+  config.consider_all_requests_local = false
+
+  # Enable fragment caching (https://guides.rubyonrails.org/caching_with_rails.html#fragment-caching)
+  config.action_controller.perform_caching = true
+
+  # Configures Rails itself to serve static files
+  config.serve_static_files = false
+
+  # Compress javascripts and css
+  config.assets.compress = true
+
+  # Specify whether or not to fall back to Sprockets if precompiled assets aren&#39;t loaded
+  config.assets.compile = false
+
+  # Generate digests for assets URLs.
+  config.assets.digest = true
+
+  # Send logs to Docker STDOUT
+  config.logger = Logger.new(&#39;/proc/1/fd/1&#39;)
+
+  # Doesn&#39;t actually send mail
+  config.action_mailer.perform_deliveries = false
+
+  # The production environment is meant for finished, &quot;live&quot; apps.
+  # Code is not reloaded between requests
+  config.cache_classes = true
+
+  # Full error reports are disabled and caching is turned on
+  config.consider_all_requests_local       = false
+  config.action_controller.perform_caching = true
+
+  # Specifies the header that your server uses for sending files
+  config.action_dispatch.x_sendfile_header = &quot;X-Sendfile&quot;
+
+  # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
+  # the I18n.default_locale when a translation can not be found)
+  config.i18n.fallbacks = true
+
+  # Send deprecation notices to registered listeners
+  config.active_support.deprecation = :notify
+
+  config.action_mailer.raise_delivery_errors = false
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は次の行にありました。</p>
+                    <pre><code> # Specifies the header that your server uses for sending files
+ config.action_dispatch.x_sendfile_header = &quot;X-Sendfile&quot;
+</code></pre>
+                    <p>x_sendfile_header に関する Rails
+                    の公式ドキュメントによると、これはファイルから提供されている本文をインターセプトし、サーバー固有の
+                    X-Sendfile ヘッダーに置き換えます。</p>
+                    <p>あまり深く掘り下げずに説明すると、これはおそらく、Rails
+                    の代わりに Nginx
+                    にアセットを提供することに関連するものですが、それは私がやっていることではありません。</p>
+                    <p>いずれにせよ、これを削除すると、ブラウザは
+                    public/
+                    から取得すると予想されるコンテンツを含むファイルを受信するようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

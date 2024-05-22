@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6: Zeitwerk::NameError がモジュールからクラスをロードしない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6: Zeitwerk::NameError がモジュールからクラスをロードしない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6: Zeitwerk::NameError
+がモジュールからクラスをロードしない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このようなファイルがあります</p>
+                    <pre><code>#app/services/account/authenticate/base.rb
+module Account
+  module Authenticate
+    AuthenticateError = Class.new(StandardError)
+
+    class Base &lt; ::Account::Base
+      def self.call(*attrs)
+        raise NotImplementedError
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>ここで、rails c
+                    からコードを実行すると、エラーが発生します</p>
+                    <pre><code>&gt; ::Account::Authenticate::AuthenticateError
+=&gt; NameError (uninitialized constant Account::Authenticate::AuthenticateError)
+&gt; ::Account::Authenticate.constants
+=&gt; [:Base, :ViaToken]
+</code></pre>
+                    <p>したがって、Rails は AuthenticateError
+                    クラスを認識しません。しかし、このフォルダーから次のようにネストされたクラスを作成すると、</p>
+                    <pre><code>=&gt; Account::Authenticate::ViaToken
+&gt; ::Account::Authenticate.constants
+=&gt; [:Base, :AuthenticateError, :ViaToken]
+</code></pre>
+                    <p>認証エラー クラスが表示されません</p>
+                    <pre><code>&gt; ::Account::Authenticate::AuthenticateError
+=&gt; Account::Authenticate::AuthenticateError
+</code></pre>
+                    <p>この問題の解決策は、最初から機能する別のファイルauthenticate_error.rbを作成することですが、この解決策は私にとって理想的ではありません。すべてのクラスまたはSMTHをプリロードする解決策はありますか?</p>
+                    <p>(Ruby 2.6 と Rails 6.0.0.rc2)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 6.0.2 アプリケーションを Ubuntu 18.04
+                    サーバーにデプロイするときに、これと同じ問題が発生しました。</p>
+                    <p>問題はツァイトヴェルクにあることがわかりました。
+                    Zeitwerk は、Rails 6 で使用される新しいコード
+                    ローダー エンジンです。これは、古いクラシック
+                    エンジンに代わるすべての Rails 6
+                    以降のプロジェクトの新しいデフォルトとなることを目的としています。
+                    Zeitwerk
+                    は、コードの自動読み込み、即時読み込み、および再読み込みの機能を提供します。</p>
+                    <p>私がそれを解決した方法は次のとおりです。</p>
+                    <p>プロジェクトの config/application.rb
+                    ファイルに移動します。</p>
+                    <p>アプリケーション
+                    モジュール内に次の行を追加して、自動読み込みのクラシック
+                    モードに切り替えます。</p>
+                    <pre><code>config.autoloader = :classic
+</code></pre>
+                    <p>以下に例を示します。</p>
+                    <pre><code>module MyApp
+  class Application &lt; Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 6.0
+
+    # Settings in config/environments/* take precedence over those specified here.
+    # Application configuration can go into files in config/initializers
+    # -- all .rb files in that directory are automatically loaded after loading
+    # the framework and any gems in your application.
+
+    config.autoloader = :classic
+  end
+end
+</code></pre>
+                    <p>ツァイトヴェルクについて詳しくは、Rails 6
+                    でのツァイトヴェルクについての記事をご覧ください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

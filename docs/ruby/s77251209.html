@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Railsでnewから取得してアクションを作成して表示ページにデータを表示するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Railsでnewから取得してアクションを作成して表示ページにデータを表示するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on
+Railsでnewから取得してアクションを作成して表示ページにデータを表示するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、Rails
+                    を使用しており、送信ボタンをクリックした後にデータを取得しようとしていますが、送信ボタンを押してもデータが保存されません。保存後に
+                    show.html.erb
+                    にデータを表示する方法を教えてください。コードは次のとおりです。の：</p>
+                    <p>Articles_controller.erb:</p>
+                    <pre><code>class ArticlesController &lt; ApplicationController
+
+
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article=Article.new
+  end
+
+
+
+  def create
+    @article = Article.new(article_params)
+    @article.save
+    redirect_to @article
+  end
+
+  private
+
+  def article_params
+    params.require(:article).permit(:title, :description)
+  end
+end
+</code></pre>
+                    <p>新しい.html.erb:</p>
+                    <pre><code>&lt;h1&gt;Create new File&lt;/h1&gt;
+
+&lt;%= form_with scope: :article, url: articles_path , local: true do |f| %&gt;
+  &lt;p&gt;
+    &lt;%= f.label :title, &quot;Title&quot; %&gt;&lt;br/&gt;
+    &lt;%= f.text_field :title %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.label :description, &quot;Description&quot; %&gt;&lt;br/&gt;
+    &lt;%= f.text_area :description %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;&lt;%= f.submit %&gt; &lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ルート.rb:</p>
+                    <p>Rails.application.routes.draw は実行します</p>
+                    <pre><code>  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  # Defines the root path route (&quot;/&quot;)
+  root &quot;articles#index&quot;
+  resources :articles, only: [:edit, :update, :show, :destroy, :index, :new]
+
+end
+</code></pre>
+                    <p>show.html.erb:</p>
+                    <pre><code>&lt;h1&gt;show&lt;/h1&gt;
+&lt;h3&gt;&lt;strong&gt;Title: &lt;/strong&gt;&lt;%= @article.title %&gt;&lt;/h3&gt;
+&lt;h3&gt;&lt;strong&gt;Description: &lt;/strong&gt;&lt;%= @article.description %&gt;&lt;/h3&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが従うチュートリアルが何であれ、それはあまり良いものではないと思います。</p>
+                    <p>レコードの作成または更新が成功すると単純に仮定しないでください
+                    (仮定すると、…
+                    が作成されます)。ユーザーが無効な入力を行う場合は、それに対処する必要があります。</p>
+                    <pre><code>class ArticlesController &lt; ApplicationController
+
+  # ...
+
+  # POST /articles
+  def create
+    @article = Article.new(article_params)
+    if @article.save
+      redirect_to @article
+    else
+      render :new # render the form again but with error messages
+    end
+  end
+
+  private
+
+  def article_params
+    params.require(:article).permit(:title, :description)
+  end
+end
+</code></pre>
+                    <p>また、リソースに作成アクションの POST /articles
+                    ルートを生成させる必要もあります。</p>
+                    <pre><code># there is no point in using &quot;only&quot; when you&#39;re generating everything
+resources :articles
+</code></pre>
+                    <p>また、リソース指向スタイルでフォーム
+                    ヘルパーを使用することもできます。</p>
+                    <pre><code>&lt;%= form_with model: @article do |f| %&gt;
+  &lt;% if @article.errors.any? %&gt;
+    &lt;div id=&quot;error_explanation&quot;&gt;
+      &lt;h2&gt;&lt;%= pluralize(@article.errors.count, &quot;error&quot;) %&gt; prohibited this article from being saved:&lt;/h2&gt;
+      &lt;ul&gt;
+        &lt;% @article.errors.each do |error| %&gt;
+          &lt;li&gt;&lt;%= error.full_message %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;p&gt;
+    &lt;%= f.label :title, &quot;Title&quot; %&gt;&lt;br/&gt;
+    &lt;%= f.text_field :title %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;%= f.label :description, &quot;Description&quot; %&gt;&lt;br/&gt;
+    &lt;%= f.text_area :description %&gt;
+  &lt;/p&gt;
+  &lt;p&gt;&lt;%= f.submit %&gt;&lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これにより、入力がモデルにバインドされるため、検証が失敗した場合でもフォームが空白にならず、ユーザーが非常に不満を抱くことになります。検証が失敗した場合には、フォームにエラー
+                    メッセージも表示されます。</p>
+                    <p>Rails
+                    は構成よりも慣習主導です。特別な理由がない限り、URI、スコープなどを構成する必要はありません。また、構成する必要もありません。</p>
+                    <p>Rails
+                    は、モデルを参照して、フォームアクションにどのパス
+                    (/articles または /articles/:id)
+                    を使用するか、および正しい HTTP
+                    メソッドを判断します。</p>
+                    <p>Rails での基本的な CRUD
+                    操作は、公式ガイドで十分にカバーされています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

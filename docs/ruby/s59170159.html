@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>AWS Opsworks で Ruby バンドルのバージョンをアップグレードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "AWS Opsworks で Ruby バンドルのバージョンをアップグレードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>AWS Opsworks で Ruby
+バンドルのバージョンをアップグレードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>AWS Opsworks
+                    で実行されているプロジェクトがあり、Ruby 2.2.2
+                    上の現在のバンドラー バージョンは 1.5.3 です。</p>
+                    <p>バンドルのバージョンを 1.17.3
+                    にアップグレードしたい</p>
+                    <p>しかし、それを実行しようとすると、このエラーが発生します</p>
+                    <pre><code>Mixlib::ShellOut::ShellCommandFailed
+------------------------------------
+Expected process to exit with [0], but received &#39;1&#39;
+---- Begin output of /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; ----
+STDOUT: 
+STDERR: ERROR:  Error installing bundler:
+&quot;bundle&quot; from bundler conflicts with /usr/local/bin/bundle
+---- End output of /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; ----
+Ran /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; returned 1
+
+
+Resource Declaration:
+---------------------
+# In /var/lib/aws/opsworks/cache.stage2/cookbooks/opsworks_bundler/recipes/default.rb
+
+2:   gem_package &quot;Installing Bundler #{node[:opsworks_bundler][:version]}&quot; do
+3:     gem_binary node[:dependencies][:gem_binary]
+4:     retries 2
+5:     package_name &quot;bundler&quot;
+6:     action :install
+7:     version node[:opsworks_bundler][:version]
+8:     if Gem::Version.new(node[:opsworks_rubygems][:version]) &gt; Gem::Version.new(&quot;2.6.14&quot;)
+9:       options &quot;--force&quot;
+10:     end
+11:   end
+
+
+
+Compiled Resource:
+------------------
+# Declared in /var/lib/aws/opsworks/cache.stage2/cookbooks/opsworks_bundler/recipes/default.rb:2:in `from_file&#39;
+
+gem_package(&quot;Installing Bundler 1.11.2&quot;) do
+provider Chef::Provider::Package::Rubygems
+action [:install]
+retries 0
+retry_delay 2
+package_name &quot;bundler&quot;
+version &quot;1.11.2&quot;
+cookbook_name &quot;opsworks_bundler&quot;
+recipe_name &quot;default&quot;
+gem_binary &quot;/usr/local/bin/gem&quot;
+end
+
+
+
+[2019-12-04T04:42:03+00:00] INFO: Running queued delayed notifications before re-raising exception
+[2019-12-04T04:42:03+00:00] ERROR: Running exception handlers
+[2019-12-04T04:42:03+00:00] ERROR: Exception handlers complete
+[2019-12-04T04:42:03+00:00] FATAL: Stacktrace dumped to /var/lib/aws/opsworks/cache.stage2/chef-stacktrace.out
+[2019-12-04T04:42:03+00:00] ERROR: gem_package[Installing Bundler 1.11.2] (opsworks_bundler::default line 2) had an error: Mixlib::ShellOut::ShellCommandFailed: Expected process to exit with [0], but received &#39;1&#39;
+---- Begin output of /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; ----
+STDOUT: 
+STDERR: ERROR:  Error installing bundler:
+&quot;bundle&quot; from bundler conflicts with /usr/local/bin/bundle
+---- End output of /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; ----
+Ran /usr/local/bin/gem install bundler -q --no-rdoc --no-ri -v &quot;1.11.2&quot; returned 1
+[2019-12-04T04:42:03+00:00] FATAL: Chef::Exceptions::ChildConvergeError: Chef run process exited unsuccessfully (exit code 1)
+</code></pre>
+                    <p>サーバー上で Bundle -v
+                    を実行すると、バンドラーのバージョンが 1.5.3
+                    になります。何をしても、バンドルのバージョンをそこから変更することはできません。</p>
+                    <pre><code>root@hades:/srv/www/app_unicorn/current# which gem
+/usr/local/bin/gem
+
+root@hades:/srv/www/app_unicorn/current# which ruby
+/usr/local/bin/ruby
+
+root@hades:/srv/www/app_unicorn/current# which bundle
+/usr/local/bin/bundle
+
+root@hades:/srv/www/app_unicorn/current# gem env
+RubyGems Environment:
+  - RUBYGEMS VERSION: 2.2.2
+  - RUBY VERSION: 2.1.9 (2016-03-30 patchlevel 490) [x86_64-linux]
+  - INSTALLATION DIRECTORY: /usr/local/lib/ruby/gems/2.1.0
+  - RUBY EXECUTABLE: /usr/local/bin/ruby
+  - EXECUTABLE DIRECTORY: /usr/local/bin
+  - SPEC CACHE DIRECTORY: /root/.gem/specs
+  - RUBYGEMS PLATFORMS:
+    - ruby
+    - x86_64-linux
+  - GEM PATHS:
+     - /usr/local/lib/ruby/gems/2.1.0
+     - /root/.gem/ruby/2.1.0
+  - GEM CONFIGURATION:
+     - :update_sources =&gt; true
+     - :verbose =&gt; true
+     - :backtrace =&gt; false
+     - :bulk_threshold =&gt; 1000
+  - REMOTE SOURCES:
+     - https://rubygems.org/
+  - SHELL PATH:
+     - /usr/local/sbin
+     - /usr/local/bin
+     - /usr/sbin
+     - /usr/bin
+     - /sbin
+     - /bin
+     - /usr/games
+     - /usr/local/games
+
+root@hades:/srv/www/app_unicorn/current# bundle env
+Bundler 1.5.3
+Ruby 2.1.9 (2016-03-30 patchlevel 490) [x86_64-linux]
+Rubygems 2.2.2
+GEM_HOME
+
+Bundler settings
+  path
+    Set for your local app (/srv/www/app_unicorn/releases/20061825/.bundle/config): &quot;/home/deploy/.bundler/app_unicorn&quot;
+  without
+    Set for your local app (/srv/www/app_unicorn/releases/20061825/.bundle/config): &quot;test:development&quot;
+  disable_shared_gems
+    Set for your local app (/srv/www/app_unicorn/releases/20061825/.bundle/config): &quot;1&quot;
+</code></pre>
+                    <p>誰かが私にこの問題を調べてほしいと頼んだのです。しかし、これをどうすればいいのかわかりません
+                    https://github.com/chef/chef-dk/issues/536</p>
+                    <p>シェフレシピまたは他の場所に構成を追加してバンドルバージョンを更新するにはどうすればよいですか?</p>
+                    <p>私の料理本:-
+                    https://gist.github.com/nijeeshjoshy/90ef2dfc693c869205bad589ef1b0e23</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>セキュリティ、互換性、パフォーマンス、サポート、迅速なバグ修正、および他のフレームワーク/ライブラリとの互換性向上のために、Ruby
+                    2.2.2 を使用しないことを強くお勧めします。 2.2
+                    のような古いバージョンを使用すると、ソフトウェア開発のこれらすべての分野と戦うことになります。</p>
+                    <p>Ruby 3+
+                    には、既存のセットアップに適合する可能性のある長期サポート
+                    (LTS)
+                    付きの最新の安定バージョンがあります。それらを試してみてください。</p>
+                    <p>少なくとも、Bundler 2.4 を含む Ruby 2.7
+                    にアップグレードしてください。それで問題は解決します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

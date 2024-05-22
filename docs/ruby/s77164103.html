@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>最大 6 単語で区切られた 2 つの数値 (小数点も必要) を照合するための正規表現? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "最大 6 単語で区切られた 2 つの数値 (小数点も必要) を照合するための正規表現?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>最大 6 単語で区切られた 2 つの数値
+(小数点も必要) を照合するための正規表現?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最大6単語（この場合の単語とは、左右にスペースがあるものを意味します）で区切られた2つの10進数（小数点を含む必要があります）に一致する正規表現を構築しようとしています。数値も
+                    1000 未満である必要があり、2
+                    つの数値をキャプチャしたいと考えています</p>
+                    <p>これは正規表現を試みたものですが、まったく一致しません。</p>
+                    <pre><code>regex =  /([0-9]{1,3}(\.[0-9]+))([^0-9\s] ){1,6}([0-9]{1,3}(\.[0-9]+))\b/i
+</code></pre>
+                    <p>例：</p>
+                    <pre><code>str = &#39;Min Hourly Rate 33.33 Max Hourly Range: 45.55&#39;
+regex.match(str) #returns nil
+</code></pre>
+                    <p>加えて、</p>
+                    <pre><code>str = &#39;Min Hourly Rate 33.33 Max Hourly Range: 45.55 Max Hourly Range: 50.00&#39;
+regex.match(str) #should capture &#39;Min Hourly Rate 33.33 Max Hourly Range: 45.55&#39; (the first match found) 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは単一の正規表現
+                    (部分式呼び出しを使用する可能性があります)
+                    で行うこともできますが、非常に複雑になりデバッグが困難になります。また、多価検証など、考慮すべき他の多くのエッジケースや条件もあります。これらすべてを
+                    1
+                    つの正規表現で実行しようとするのではなく、より小さくてテストしやすい手順に分割する必要があります。これによりコードが長くなり、(おそらく)
+                    見た目のエレガントさが失われますが、その結果、より簡単に変更、拡張、テストできるようになります。</p>
+                    <p>次のクラスを考えてみましょう。このクラスでは、他のドメイン
+                    ロジックと検証の一部を特殊なメソッドに委任することで、より単純な正規表現
+                    (#dynamic_regex_pattern
+                    メソッドを参照。補間前のアトムは約 6 つだけです)
+                    で正しい答えが得られます。また、小数点を検索するための主な正規表現とそれらの間の最大距離は定数であるため、変更が容易になります。一方、クラスは特定の文字列ごとに動的なパターンを構築するため、部分式に頼ることなく、それらの間の適切な距離を測定する機能がより柔軟になります。</p>
+                    <pre><code># Tested on mainline Ruby 3.2.2. Your
+# mileage may vary with other versions.
+class ExtractDecimalsFromStrings
+  DECIMALS  = /\b(\d+\.\d+)\b/
+  MAX_SEP   = 6
+  SEP_WORDS = &#39;#{first}\b.*?#{second}\b&#39;
+
+  attr_accessor :str_arr
+  attr_reader :results
+
+  def initialize *str
+    @results = {}
+    @str_arr = str.flatten
+  end
+
+  def extract_results
+    @str_arr.each do |str|
+      decimals = str.scan(DECIMALS).flatten.slice 0, 2
+      decimal_error(str) &amp;&amp; next unless valid? decimals
+      populate_results_from str, decimals
+    end
+  end
+
+  private
+
+  def decimal_error str
+    @results[str] = { error: &quot;not enough decimals to parse&quot; }
+  end
+
+  def distance_error str
+    @results[str] = { error: &quot;distance exceeds #{MAX_SEP}&quot; }
+  end
+
+  def dynamic_regex_pattern decimals
+    /#{Regexp.escape decimals.first}\b.*?#{Regexp.escape decimals.last}\b/
+  end
+
+  def populate_results_from str, decimals
+    pat = dynamic_regex_pattern decimals
+    distance = str.match(pat) { within_distance? $&amp; }
+    distance ? @results[str]={ first_decimal: decimals[0], second_decimal:
+                               decimals[1], distance: distance } :
+               distance_error(str)
+  end
+
+  def valid? decimals
+    decimals.count == 2 &amp;&amp; decimals.all? { _1.to_f.ceil.between? 0, 999 }
+  end
+
+  def within_distance? match
+    words = [match&amp;.to_s.split].flatten.compact
+    words.shift &amp;&amp; words.pop if words.count &gt;= 2
+    words.any? &amp;&amp; words.count &lt;= MAX_SEP &amp;&amp; words.count
+  end
+end
+
+example_strings = [
+  &quot;Min Hourly Rate 33.33 Max Hourly Range: 45.55&quot;,
+  &quot;Min Hourly Rate 33.33 Max Hourly Range: 45.55 Max Hourly Range: 50.00&quot;,
+  &quot;No Rates Specified&quot;,
+  &quot;33.33 is too far away from as defined by MAX_SEP: 65.00&quot;
+]
+
+extractor = ExtractDecimalsFromStrings.new example_strings
+extractor.extract_results
+pp extractor.results
+</code></pre>
+                    <p>これにより、必要な重要な出力が得られるだけでなく、互いに一定の距離内にある
+                    2 つの 10 進数ですが、次のことも行われます。</p>
+                    <p>上記の文字列配列の例からの出力は次のとおりです。</p>
+                    <pre><code>{&quot;Min Hourly Rate 33.33 Max Hourly Range: 45.55&quot;=&gt;
+  {:first_decimal=&gt;&quot;33.33&quot;, :second_decimal=&gt;&quot;45.55&quot;, :distance=&gt;3},
+ &quot;Min Hourly Rate 33.33 Max Hourly Range: 45.55 Max Hourly Range: 50.00&quot;=&gt;
+  {:first_decimal=&gt;&quot;33.33&quot;, :second_decimal=&gt;&quot;45.55&quot;, :distance=&gt;3},
+ &quot;No Rates Specified&quot;=&gt;{:error=&gt;&quot;not enough decimals to parse&quot;},
+ &quot;33.33 is too far away from as defined by MAX_SEP: 65.00&quot;=&gt;{:error=&gt;&quot;distance exceeds 6&quot;}}
+</code></pre>
+                    <p>まず最初に、これは Ruby 3.2.2
+                    で行われました。入力と出力は妥当な厳密さでテストされましたが、近い将来に他の
+                    Ruby
+                    と互換性を持たせるための努力は行われませんでした
+                    (または行われる予定です)。 Ruby
+                    2.x、サポートが終了した Ruby、またはコア
+                    クラスに重大な変更が加えられた Ruby
+                    の将来のバージョンで動作しない場合は、必要に応じて自由に調整してください。</p>
+                    <p>問題領域については、いくつかの仮定も行われました。たとえば、最大距離
+                    6
+                    は、開始および/または終了の小数値を含むのではなく、分離されていない句読点を含む介在する単語の数を意味するものとして解釈されます。コードは柔軟なので、必要に応じて変更できます。
+                    #within_ distance
+                    を参照してください?実装の詳細については、</p>
+                    <p>元の質問では、「2
+                    つの数値を取得する」という表現があいまいだったので、値を明白で取得可能な方法で保存すると解釈することにしました。もしあなたが別の意味で言ったのであれば、もっとあなたに合った他の答えがあるでしょう。</p>
+                    <p>元の例も投稿された正規表現も、-14.02 や
+                    (簿記で時々見かけるように) (5.30)
+                    などの負の値を扱っていません。ハイフンや UTF-8
+                    のマイナス記号などにも違いがあります。負の値の実際の文字表現についてさらに多くの仮定を立てない限り、それは思っているよりも複雑になる可能性があります。したがって、私はこれらの範囲外の問題については取り上げませんでしたが、この特定の質問にとって重要だと思われる他の問題については明らかに取り上げることにしました。元の質問の一部ではなかったとしても、否定的な値について強く感じる場合は、遠慮なく別の回答を投稿してください。きっと誰かが役に立つと思います！</p>
+                    <p>アプリケーションには、戻り値が本質的に役に立たない場所がいくつかあります。たとえば、次の代わりに
+                    pp extractor.extract_results
+                    を呼び出すとします。</p>
+                    <pre><code>extractor.extract_results
+pp extractor.results
+</code></pre>
+                    <p>アクセサー経由で <span class="citation"
+                    data-cites="results">@results</span>
+                    ハッシュの値ではなく、#extract_results
+                    メソッドの戻り値を取得します。現時点では、この 2
+                    つはまったく異なります。前者は文字通りの動作
+                    (内容を抽出)
+                    を行いますが、実際に必要なものは、すべてのチェックと変換が完了した後にハッシュに含まれます。</p>
+                    <p>このような問題は修正が簡単で、個別のメソッドの戻り値を簡単に単体テストできるようにしたい運用アプリケーションに実装するのがおそらく良いアイデアですが、それは私が試みていた範囲外でしたここでデモンストレーションします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

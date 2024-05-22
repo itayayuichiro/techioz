@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Jekyll post_write で Python プラグインを呼び出す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Jekyll post_write で Python プラグインを呼び出す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Jekyll post_write で Python
+プラグインを呼び出す</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これはジキルの質問のように感じますが、単純な Ruby
+                    の質問になる可能性があります…</p>
+                    <p>Ray Fong は、Python タグ
+                    ページ作成スクリプトの呼び出しを自動化する方法を説明する
+                    Jekyll ブログをホストしています - Automated Jekyll
+                    blog tags:</p>
+                    <pre><code>Jekyll::Hooks.register :posts, :post_write do
+  system(&quot;python _plugins/compile_tags.py&quot;)
+</code></pre>
+                    <ul>
+                    <li>そして確かに、_plugins/compile_tags.rb
+                    にあります。
+                    彼女がローカルでサイトを提供している間に、この Ruby
+                    コードが Python
+                    スクリプトを呼び出して、必要に応じてタグ
+                    ページを再作成すると推測します。</li>
+                    </ul>
+                    <p>Ray の Ruby
+                    プラグインが想定どおりに機能すると仮定して、自分でも試してみましたが、成功しませんでした。Python
+                    スクリプトが呼び出されることはありませんでした。このように（_plugins/compile_tags.rb）、</p>
+                    <pre><code>Jekyll::Hooks.register :posts, :post_write do |post|
+  puts &#39;post_write  was triggered in _plugins/compile_tags.rb&#39;
+  exec(&quot;python _plugins/compile_tags.py&quot;)
+end
+</code></pre>
+                    <ul>
+                    <li>まだ運が悪い - メッセージもありません…</li>
+                    </ul>
+                    <p>フック post_write での jekyll サービス中に Python
+                    スクリプトを呼び出すにはどうすればよいですか?</p>
+                    <p>Ray Fong
+                    がいくつかのテストをするよう勧めてくれたので、「jekyll
+                    new minimum_test_site」と言い、そこにhooks.feature
+                    の最初の例を含む _plugins/test.rb
+                    を作成しました。すると、期待どおりにフックがトリガーされました
+                    (_site/foo.html を取得しました)。
+                    「mytinypage」というテキストが含まれます）。それで、私のサイトに戻り、Gemfile
+                    で次のように元に戻しました。</p>
+                    <pre><code> # Jekyll:
+gem &quot;github-pages&quot;, group: :jekyll_plugins  # bundle update github-pages
+gem &quot;webrick&quot;, &quot;~&gt; 1.7&quot;  # instead of using Ruby v2.7.4,
+ #  and still required even though  GitHub Pages  now uses  jekyll 3.9.3...
+</code></pre>
+                    <p>これに：</p>
+                    <pre><code> # Jekyll:
+gem &quot;jekyll&quot;, &quot;~&gt; 4.3.2&quot;
+</code></pre>
+                    <p>そして、「ロー！」私のフックは呼び出されますが、残念ながら、_plugins/compile_tags.rb
+                    を Jekyll フック after_reset
+                    に変更した場合でも、タグを再生成する終わりのないループが発生します。</p>
+                    <pre><code>Jekyll::Hooks.register :site, :after_reset do
+  puts &#39;- infinite loop of tag generation...&#39;
+  system(&quot;python _plugins/compile_tags.py&quot;)
+end
+</code></pre>
+                    <p>たぶん誰かが理由を知っているでしょう…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby スクリプトでシェルまたは Python スクリプト
+                    (この場合)
+                    を実行したい場合は、これを簡単に実行できます。</p>
+                    <pre><code>`/pathto/pyhton your_python_script.py`
+
+# or
+
+%x(/pathto/pyhton your_python_script.py)
+
+#or 
+
+system(/pathto/pyhton your_python_script.py)
+</code></pre>
+                    <p>シェルでこのコマンドを使用して「pathto」を置き換えます</p>
+                    <pre><code>which python
+
+/Users/myusername/opt/anaconda3/bin/python # on my laptop return this
+</code></pre>
+                    <p>したがって、問題を参照してください。これが解決策です。</p>
+                    <pre><code>`/Users/myusername/opt/anaconda3/bin/python _plugins/compile_tags.py`
+
+# or
+
+%x(/Users/myusername/opt/anaconda3/bin/python _plugins/compile_tags.py)
+
+# or 
+
+system(/Users/myusername/opt/anaconda3/bin/python _plugins/compile_tags.py)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>cancancan はすべての動的権限を取得します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "cancancan はすべての動的権限を取得します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>cancancan はすべての動的権限を取得します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ID やその他の情報を含むすべての利用可能な権限を
+                    API ユーザーに公開する必要がある API
+                    を作成しています。</p>
+                    <p>次の構造があります</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  has_many :permissions, dependent: :destroy
+end
+
+class Permission &lt; ApplicationRecord
+  belongs_to :user, dependent: :destroy
+end
+</code></pre>
+                    <p>そして私には能力があります</p>
+                    <pre><code>
+class Ability
+  include CanCan::Ability
+
+  def initialize(user)
+    user_permissions(user)
+    dynamic_permissions(user)
+  end
+
+  def user_permissions(user)
+    can :manage, :dashboard if user.admin?
+  end
+
+  def dynamic_permissions(user)
+    user.permissions.each do |permission|
+    #...
+      next branch_permissions(permission) if permission.subject_class == &#39;branch&#39;
+    end
+  end
+
+  def branch_permissions(permission)
+    can permission.action.to_sym, Branch, id: permission.allowed_ids
+  end
+</code></pre>
+                    <p>そして、コントローラーですべての権限を達成したいのですが、=&gt;
+                    そのユーザーにできることとできないことです。すでにドキュメントを確認し、#permissions
+                    を見つけました。しかし、それはブランチに対して持っている動的アクセス許可では機能しません</p>
+                    <p>したがって、疑似コードを提供して、次のことがカンカンカン方式で行われることを期待しています</p>
+                    <pre><code>  Ability.new(User.find(params[:id]).dynamic_permissions =&gt;
+  # {:can=&gt;{:manage=&gt;{&quot;dashboard&quot;=&gt;[]}, :read=&gt;{&quot;Branch&quot;=&gt;[&#39;id1&#39;, &#39;id2&#39;]}, :index=&gt;{&quot;Branch&quot;=&gt;[&#39;id1&#39;, &#39;id2&#39;]}, :show=&gt;{&quot;Branch&quot;=&gt;[&#39;id1&#39;, &#39;id2&#39;]}}, :cannot=&gt;{}}
+</code></pre>
+                    <p>現在の #permissions cancancan
+                    メソッドは、すべての動的評価が欠落している機能ファイルにハードコーディングされた静的アクセス許可のみを返します。</p>
+                    <pre><code>{:can=&gt;{:manage=&gt;{&quot;dashboard&quot;=&gt;[]}, :read=&gt;{&quot;Branch&quot;=&gt;[]}, :index=&gt;{&quot;Branch&quot;=&gt;[]}, :show=&gt;{&quot;Branch&quot;=&gt;[]}}, :cannot=&gt;{}}
+</code></pre>
+                    <p>これらすべてを取得するカスタム
+                    メソッドを変更して作成できることはわかっていますが、これを実現するためにどのようなアプローチが受け入れられているのか疑問に思っています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>わかりました、実際は簡単でした。情報源を読んだことが役に立ちました。</p>
+                    <pre><code>  def branch_permissions(permission)
+    can permission.action.to_sym, Branch, id: permission.allowed_ids
+  end
+</code></pre>
+                    <p>このコードは次のように変更する必要があります</p>
+                    <pre><code>  def branch_permissions(permission)
+    can permission.action.to_sym, Branch, id: permission.allowed_ids.map(&amp;:to_sym)
+  end
+</code></pre>
+                    <p>このメソッド parse_attributes_from_extra_args
+                    は、シンボルを内部状態の属性として扱い、アクセス許可でこれを期待どおりに表示します。これらのシンボルを文字列にシリアル化してから、</p>
+                    <pre><code>#  Ability.new(User.find(params[:id]).permissions
+=&gt; {:can=&gt;{:manage=&gt;{&quot;dashboard&quot;=&gt;[]}, :read=&gt;{&quot;Branch&quot;=&gt;[:id1, :id2]}, :index=&gt;{&quot;Branch&quot;=&gt;[&#39;id1&#39;, &#39;id2&#39;]}, :show=&gt;{&quot;Branch&quot;=&gt;[:id1&#39;, :id2]}}, :cannot=&gt;{}}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

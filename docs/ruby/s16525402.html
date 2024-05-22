@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同じモジュールからクラスメソッドとインスタンスメソッドを追加できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同じモジュールからクラスメソッドとインスタンスメソッドを追加できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同じモジュールからクラスメソッドとインスタンスメソッドを追加できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>初心者の質問:</p>
+                    <p>include と extend
+                    がどのように機能するかはわかっていますが、私が疑問に思っているのは、単一のモジュールからクラス
+                    メソッドとインスタンス
+                    メソッドの両方を取得する方法があるかどうかということです。</p>
+                    <p>2
+                    つのモジュールを使用してこれを行う方法は次のとおりです。</p>
+                    <pre><code>module InstanceMethods
+    def mod1
+        &quot;mod1&quot;
+    end
+end
+
+module ClassMethods
+    def mod2
+        &quot;mod2&quot;
+    end
+end
+
+class Testing
+    include InstanceMethods
+    extend ClassMethods 
+end
+
+t = Testing.new
+puts t.mod1
+puts Testing::mod2
+</code></pre>
+                    <p>お時間を割いていただきありがとうございます…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それを表す一般的な慣用句があります。付属のオブジェクト
+                    モデル
+                    フックを利用します。このフックは、モジュールがモジュール/クラスに含まれるたびに呼び出されます。</p>
+                    <pre><code>module MyExtensions
+  def self.included(base)
+    # base is our target class. Invoke `extend` on it and pass nested module with class methods.
+    base.extend ClassMethods
+  end
+
+  def mod1
+    &quot;mod1&quot;
+  end
+
+  module ClassMethods
+    def mod2
+      &quot;mod2&quot;
+    end
+  end
+end
+
+class Testing
+  include MyExtensions
+end
+
+t = Testing.new
+puts t.mod1
+puts Testing::mod2
+# &gt;&gt; mod1
+# &gt;&gt; mod2
+</code></pre>
+                    <p>私は個人的に、インスタンス
+                    メソッドをネストされたモジュールにグループ化することも好みます。しかし、私の知る限り、これはあまり受け入れられていない習慣です。</p>
+                    <pre><code>module MyExtensions
+  def self.included(base)
+    base.extend ClassMethods
+    base.include(InstanceMethods)
+
+    # or this, if you have an old ruby and the line above doesn&#39;t work
+    # base.send :include, InstanceMethods
+  end
+
+  module InstanceMethods
+    def mod1
+      &quot;mod1&quot;
+    end
+  end
+
+  module ClassMethods
+    def mod2
+      &quot;mod2&quot;
+    end
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

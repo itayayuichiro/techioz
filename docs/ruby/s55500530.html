@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby-vips を使用してリモートイメージを 1 つのイメージに結合する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby-vips を使用してリモートイメージを 1 つのイメージに結合する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby-vips を使用してリモートイメージを 1
+つのイメージに結合する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テンプレート画像があったので、その上に X 、 Y
+                    位置に特定の画像を追加する必要があります。 rmagick
+                    にその関数と同等のものはありますか</p>
+                    <p>ImageList.new(“https://365psd.com/images/istock/previews/8479/84796157-football-field-template-with-goal-on-top-view.jpg”)</p>
+                    <p>そして、その他の画像を描画して 1
+                    つの画像を生成します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、ruby-vips で URI
+                    を読み書きできます。</p>
+                    <pre><code>#!/usr/bin/ruby
+
+require &quot;vips&quot;
+require &quot;down&quot;
+
+def new_from_uri(uri)
+  byte_source = Down.open uri
+
+  source = Vips::SourceCustom.new
+  source.on_read do |length|
+    puts &quot;reading #{length} bytes from #{uri} ...&quot;
+    byte_source.read length
+  end
+  source.on_seek do |offset, whence|
+    puts &quot;seeking to #{offset}, #{whence} in #{uri}&quot;
+    byte_source.seek(offset, whence)
+  end
+
+  return Vips::Image.new_from_source source, &quot;&quot;, access: :sequential
+end
+
+a = new_from_uri &quot;https://upload.wikimedia.org/wikipedia/commons/a/a6/Big_Ben_Clock_Face.jpg&quot;
+b = new_from_uri &quot;https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png&quot;
+out = a.composite b, &quot;over&quot;, x: 100, y: 100
+out.write_to_file &quot;x.jpg&quot;
+</code></pre>
+                    <p>コンソール出力を見ると、2 つのソース
+                    イメージがロードされ、ピクセルがインターリーブされていることがわかります。次の出力が行われます。</p>
+                    <p>Vips::Source
+                    のドキュメントに詳細が記載されています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

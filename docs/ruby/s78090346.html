@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rdoc で匿名クラスのドキュメントを生成することはできますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rdoc で匿名クラスのドキュメントを生成することはできますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rdoc
+で匿名クラスのドキュメントを生成することはできますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rdoc
+                    の匿名クラスのいくつかのメソッドを文書化したいと思います。</p>
+                    <p>yard
+                    などの代替の文書作成ツールが存在することは知っていますが、プロジェクト
+                    オーナーが、いくつかの方法のために在庫を変更する準備ができているかどうかはわかりません。</p>
+                    <p>:method: と :doc:
+                    ディレクティブを試しましたが、今のところうまくいきません</p>
+                    <p>Ruby 2.7、Rdoc 6.6.2で試してみた</p>
+                    <pre><code># (c) 2024 Big Corporation
+
+# = ExampleModule gives a great example to all of us
+#
+# This module contains an example of documenting an anonymous class created with Class.new.
+module ExampleModule
+
+  # Create an anonymous class using Class.new, almost the same as
+  #   class AnonymousClass
+  # and give a closure
+  # but fails rdoc
+  AnonymousClass = Class.new do
+    ##
+    # :method: initialize
+    # This is a initializer with two parameters
+    def initialize(param1, param2)
+      # ... initialization code ...
+    end
+
+    ##
+    # :method: example_method
+    # == example_method
+    #
+    # An example method in the anonymous class.
+    def example_method
+      # ... method implementation ...
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>どうやら、私の例のメソッド コメントが
+                    AnonymousClass 定義の前に移動された場合、それらは
+                    (同じ HTML ページ内に)
+                    表示されるようです。もちろん、クラスは検索可能ではないため、メソッドがモジュールではなくクラスに関連していることを明確にするためにいくつかのコメントが必要です。</p>
+                    <pre><code># (c) 2024 Big Corporation
+
+
+# This module contains an example of documenting an anonymous class created with Class.new.
+module ExampleModule
+
+  # documentation for methods for Anonymous Class
+  # is given ahead of class definition to fool rdoc  
+
+    ##
+    # :method: an example_method of AnonymousClass
+    #     
+    # An example method in the anonymous class.
+
+    ##
+    # :method: initialize
+    # This is an AnonymousClass initializer with two parameters
+
+  # Create an anonymous class using Class.new, almost the same as
+  #   class AnonymousClass
+  # and give a closure
+  # but fails rdoc
+  # =class Anonymous Method
+  AnonymousClass = Class.new do
+    def initialize(param1, param2)
+      # ... initialization code ...
+    end
+
+    ##
+    # :method: example_method
+    #     
+    # An example method in the anonymous class.
+    def example_method
+      # ... method implementation ...
+    end
+  end
+end
+</code></pre>
+                    <p>注記。実際のコードでは、rdoc 定数セクションに
+                    AnonymousClass
+                    の記述を追加することさえできませんでしたが、上記の小さな例では問題なく動作しているようです。しかし、一定のスキップには、これは必要ではない関連する問題が必要になる可能性があると思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

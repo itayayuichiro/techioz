@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: クラスの外側のモジュール const を取得する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: クラスの外側のモジュール const を取得する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: クラスの外側のモジュール const
+を取得する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    でメタプログラミングを行っており、モジュール内に兄弟クラスを動的に生成する必要があります。その際、モジュールで
+                    const_set
+                    を呼び出したいのですが、どのモジュール定数でそれを呼び出すかは実行時までわかりません。例：</p>
+                    <p>与えられたクラス</p>
+                    <pre><code>Foo::Bar::Baz
+Foo::Quox::Quack
+</code></pre>
+                    <p>次のような関数を呼び出せるようにしたいです（ここでは過度に単純化しています）。</p>
+                    <pre><code>def generate_from klass
+  mod = klass.enclosing_module # &lt;- THIS LINE is the one I need to figure out
+  mod.const_set(&quot;GeneratedClassName&quot;, Class.new)
+end
+</code></pre>
+                    <p>そして、Baz
+                    を呼び出したときに最終的に行きたいのは、次のように定義された新しいクラスです。</p>
+                    <pre><code>Foo::Bar::GeneratedClassName
+</code></pre>
+                    <p>そしてQuackで、私は欲しいです</p>
+                    <pre><code>Foo::Quox::GeneratedClassName
+</code></pre>
+                    <p>私が知っている唯一の方法は、klass.name
+                    を分割し、定数化されたそれらの文字列に対して
+                    const_get
+                    を繰り返し呼び出すことです。もっとエレガントな方法を知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これで軌道に乗るはずです。</p>
+                    <pre><code>module Foo
+  module Bar
+    class Baz
+      def initialize
+        @nesting = Module.nesting
+      end
+
+      def enclosing_module
+        @nesting.last
+      end
+    end
+  end
+end
+
+puts Foo::Bar::Baz.new.enclosing_module #=&gt; Foo
+</code></pre>
+                    <p>関連ドキュメント:</p>
+                    <p>http://ruby-doc.org/core/classes/Module.html#M000441</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

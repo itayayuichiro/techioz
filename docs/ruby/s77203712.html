@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RVM 経由の Ruby ARM64 インストールで呼び出される Mac M1 dyld 欠落シンボル | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RVM 経由の Ruby ARM64 インストールで呼び出される Mac M1 dyld 欠落シンボル",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RVM 経由の Ruby ARM64
+インストールで呼び出される Mac M1 dyld 欠落シンボル</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はしばらくの間、信頼できる M1 Mac で Ruby
+                    と一緒に巡回していましたが、特に古き良き x86_64
+                    モード (Rosetta ターミナル上の RVM
+                    経由でインストール)
+                    では特に苦労はしませんでした。人生はよかった。</p>
+                    <pre><code>rvm ls
+   ruby-2.7.7 [ x86_64 ]
+=* ruby-3.0.5 [ arm64 ]
+   ruby-3.0.6 [ x86_64 ] 
+</code></pre>
+                    <p>私はネイティブの将来を受け入れ、Ruby 3.0.5
+                    をネイティブの arm64
+                    モードでインストールすることにしました。簡単ですよね？間違っている…</p>
+                    <p>確かに、問題なくインストールされ、動作しているように見えます。私は問題がないと思って、喜んでバンドル
+                    インストールを通じて Rails gem
+                    をインストールしました。しかし、Rails
+                    アプリを起動しようとするとすぐに、次のような嬉しいメッセージが表示されます。</p>
+                    <pre><code>dyld[*****]: missing symbol called
+</code></pre>
+                    <p>Webで見つけたいくつかの手順に関連している可能性があるため、libffi
+                    sith arm64
+                    homebrewを再インストールしましたが、最終的に同じエラーで失敗したため、rvmの再インストールは成功しませんでした…</p>
+                    <p>この関連する SO 投稿を見つけましたが、mysql
+                    に関連していたので、私には当てはまりません。私のプロジェクトでは
+                    postgres を使用しています。 回答がゼロの悲しく孤独な
+                    StackOverflow
+                    投稿がまたありますが、それはまるで鏡を見ているようです。悲しみの未解決の鏡…</p>
+                    <p>Rubyを再インストールする前に、libyamlとlibffiを再インストールしましたが、うまくいきませんでした。
+                    ffi
+                    バイナリを指すようにLDPFlagsを設定しますが、これもうまくいきません。ネットで調べられることはすべてやったのですが、何も解決しませんでした…</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 2.7.5 から Ruby 3.3.0
+                    にアップグレードしましたが、同じエラーが発生しました。
+                    問題はこの行にありました</p>
+                    <pre><code>gem &#39;therubyracer&#39;, platform: :ruby
+</code></pre>
+                    <p>だから私はそれを削除しただけです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

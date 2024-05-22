@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>バイナリ GCD アルゴリズムが非常に遅いのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "バイナリ GCD アルゴリズムが非常に遅いのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>バイナリ GCD
+アルゴリズムが非常に遅いのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>http://en.wikipedia.org/wiki/Binary_GCD_algorithm</p>
+                    <p>Wikipedia によると、Euclid
+                    のアルゴリズムよりもわずかに高速であるとされています
+                    (それほどではありませんが、少なくとも同等のパフォーマンスが得られると期待していました)。私の場合、それは一桁遅いです。理由を理解するのを手伝っていただけますか?</p>
+                    <p>Rubyで実装してみました。最初に再帰的ソリューションを使用しました</p>
+                    <pre><code>def gcd_recursive(u, v)
+return u|v if u==0 or v==0
+
+if u.even?
+  if v.even?
+    return gcd(u&gt;&gt;1, v&gt;&gt;1)&lt;&lt;1
+  else
+    return gcd(u&gt;&gt;1, v) if v.odd?
+  end
+elsif u.odd? and v.even?
+  return gcd(u, v&gt;&gt;1)
+else
+  if u &lt; v
+    u, v = v, u
+  end
+  return gcd((u-v)&gt;&gt;1, v)
+end
+end
+</code></pre>
+                    <p>それはあまりうまく機能しなかったので、ループにするとどのくらい速くなるかを確認したかったのです</p>
+                    <pre><code>def gcd(u, v)
+  return u|v if u==0 or v==0
+  shift=0
+  while ((u|v)&amp;1)==0 do
+    u=u &gt;&gt; 1;
+    v=v &gt;&gt; 1;
+    shift += 1
+  end
+  while ((u&amp;1) == 0) do 
+    u=u &gt;&gt; 1
+  end
+  begin
+    while ((v &amp; 1) == 0) do
+      v=v &gt;&gt; 1
+    end
+
+    if u &lt; v
+      v -= u
+    else
+      diff = u - v
+      u = v
+      v = diff
+    end
+  end while v != 0
+  u&lt;&lt;shift
+end
+</code></pre>
+                    <p>これらはベンチマーク結果です</p>
+                    <pre><code>       user     system      total        real
+std  0.300000   0.000000   0.300000 (  0.313091)
+rbn  0.850000   0.000000   0.850000 (  0.872319)
+bin  2.730000   0.000000   2.730000 (  2.782937)
+rec  3.070000   0.000000   3.070000 (  3.136301)
+</code></pre>
+                    <p>std はネイティブの Ruby 1.9.3 C 実装です。</p>
+                    <p>rbn は基本的に同じもの (Euclid のアルゴリズム)
+                    ですが、Ruby で書かれています。</p>
+                    <p>bin は上記のループ コードです。</p>
+                    <p>rec は再帰バージョンです。</p>
+                    <p>編集: matz の Ruby 1.9.3
+                    でベンチマークを実行しました。 Rubinius
+                    で同じテストを実行してみました。結果は次のとおりです。これも紛らわしいですね…</p>
+                    <pre><code> rbn  1.268079   0.024001   1.292080 (  1.585107)
+ bin  1.300082   0.000000   1.300082 (  1.775378)
+ rec  1.396087   0.000000   1.396087 (  2.348785)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは単なる推測ですが、次の 2
+                    つの理由が重なっているのではないかと考えています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

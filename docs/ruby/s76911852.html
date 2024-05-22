@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails minitest でセッションをシミュレートするときにルート一致が得られない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails minitest でセッションをシミュレートするときにルート一致が得られない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails minitest
+でセッションをシミュレートするときにルート一致が得られない</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>No route matches {:action=&gt;&quot;/login&quot;, :controller=&gt;&quot;categories&quot;, :email=&gt;&quot;[email protected]&quot;, :password=&gt;&quot;fardeen&quot;}
+</code></pre>
+                    <p>これは事件です。</p>
+                    <pre><code>require &#39;test_helper&#39;
+
+class CategoriesControllerTest &lt; ActionController::TestCase
+  setup do
+    @category = Category.create(name: &quot;Sports&quot;)
+    @user=User.create(username: &quot;fardeen&quot;, email: &quot;[email protected]&quot;,password: &quot;fardeen&quot;, admin: true)
+    # @controller.session[:user_id] = @user.id
+  end
+
+  test &quot;should get index&quot; do
+    get :index
+    assert_response :success
+    # assert_not_nil assigns(:categories)
+  end
+
+  test &quot;should get new&quot; do
+    sign_in_as(@user)
+    get :new
+    assert_response :success
+  end
+
+  test &quot;should create category&quot; do
+     sign_in_as(@user)
+    assert_difference(&#39;Category.count&#39;,1) do
+      post :create, category: { name:&quot;Travel&quot; }
+    end
+</code></pre>
+                    <p>ご覧のとおり、私はユーザーを作成しており、サインインしているユーザーのみがカテゴリを編集または作成できるため、この方法でTDDを作成していますが、ルートエラーを通過することはありません。</p>
+                    <p>セッションではなくコントローラーでカテゴリを取得しているのはなぜですか。</p>
+                    <p>私のルートは次のとおりです。</p>
+                    <pre><code> Prefix Verb   URI Pattern                    Controller#Action
+         root GET    /                              pages#Welcome
+        about GET    /about(.:format)               pages#about
+     articles GET    /articles(.:format)            articles#index
+              POST   /articles(.:format)            articles#create
+  new_article GET    /articles/new(.:format)        articles#new
+ edit_article GET    /articles/:id/edit(.:format)   articles#edit
+      article GET    /articles/:id(.:format)        articles#show
+              PATCH  /articles/:id(.:format)        articles#update
+              PUT    /articles/:id(.:format)        articles#update
+              DELETE /articles/:id(.:format)        articles#destroy
+       signup GET    /signup(.:format)              users#new
+        users GET    /users(.:format)               users#index
+              POST   /users(.:format)               users#create
+    edit_user GET    /users/:id/edit(.:format)      users#edit
+         user GET    /users/:id(.:format)           users#show
+              PATCH  /users/:id(.:format)           users#update
+              PUT    /users/:id(.:format)           users#update
+              DELETE /users/:id(.:format)           users#destroy
+        login GET    /login(.:format)               session#new
+              POST   /login(.:format)               session#create
+       logout GET    /logout(.:format)              session#destroy
+   categories GET    /categories(.:format)          categories#index
+              POST   /categories(.:format)          categories#create
+ new_category GET    /categories/new(.:format)      categories#new
+edit_category GET    /categories/:id/edit(.:format) categories#edit
+     category GET    /categories/:id(.:format)      categories#show
+              PATCH  /categories/:id(.:format)      categories#update
+              PUT    /categories/:id(.:format)      categories#update
+</code></pre>
+                    <p>色々試してみましたが駄目でした。</p>
+                    <p>これは質問された私のカテゴリコントローラーコードです:</p>
+                    <pre><code>class CategoriesController &lt; ApplicationController
+
+  before_action :require_admin, :except=&gt;[:index,:show]
+    def new
+        @category=Category.new
+    end
+    
+    def create
+        @category=Category.create(category_params)
+        if @category.save
+               flash[:info]=&quot;Category has been created successfully!!!&quot;
+               redirect_to @category
+        else
+            render &#39;new&#39;
+        end
+    end
+
+    def index
+        @categories=Category.paginate(:page =&gt; params[:page], :per_page =&gt; 1)
+    end
+    
+    def show
+        @category=Category.find(params[:id])
+    end
+
+    def edit
+    end
+
+
+private
+
+    def category_params
+      params.require(:category).permit(:name)
+    end
+    
+   def require_admin
+    if !(logged_in? &amp;&amp; current_user.admin)
+        flash[:alert]=&quot;Only Admin can do this!!!&quot;
+      redirect_to categories_path
+    end
+  end
+end
+
+
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それを試してみてください</p>
+                    <pre><code>get: index, use_route: &#39;your_route&#39;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

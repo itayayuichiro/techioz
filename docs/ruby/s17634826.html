@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Redis パイプラインの実行順序 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Redis パイプラインの実行順序",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Redis パイプラインの実行順序</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRuby Redis
+                    gemを使用しています。たとえば、次のようにするかどうか疑問に思います。</p>
+                    <pre><code>redis.pipelined do
+    REDIS.del(&quot;users:#{current_user_id}:i-unread&quot;)
+    REDIS.lpush(&quot;users:#{current_user_id}:i-read&quot;, items)
+    REDIS.ltrim(&quot;users:#{current_user_id}:i-read&quot;, 0, Interaction::MAX_INTERACTIONS)
+end
+</code></pre>
+                    <p>この実行順序は保証されていますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>もちろん順序は保証されています。そうでない場合、パイプラインは役に立ちません。いつでもコードを見ることができます。たとえば、このテストは明らかにコマンドが順番に実行されることを前提としています:
+                    https://github.com/redis/redis-rb/blob/master/test/pipelining_commands_test.rb#L32</p>
+                    <pre><code>def test_bulk_and_multi_bulk_commands_mixed
+  r.pipelined do
+    r.lpush &quot;foo&quot;, &quot;s1&quot;
+    r.lpush &quot;foo&quot;, &quot;s2&quot;
+    r.mset(&quot;baz&quot;, &quot;s3&quot;, &quot;qux&quot;, &quot;s4&quot;)
+  end
+
+  assert_equal 2, r.llen(&quot;foo&quot;)
+  assert_equal &quot;s2&quot;, r.lpop(&quot;foo&quot;)
+  assert_equal &quot;s1&quot;, r.lpop(&quot;foo&quot;)
+  assert_equal &quot;s3&quot;, r.get(&quot;baz&quot;)
+  assert_equal &quot;s4&quot;, r.get(&quot;qux&quot;)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

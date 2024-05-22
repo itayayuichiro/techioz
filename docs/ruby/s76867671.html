@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby を使用して、Web サーバーがサポートする暗号スイートを確認するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby を使用して、Web サーバーがサポートする暗号スイートを確認するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby を使用して、Web
+サーバーがサポートする暗号スイートを確認するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>使用されている TLS 暗号スイートをターゲット
+                    ホストに対して検証する自動チェッカーを Ruby
+                    で作成したいと考えています。組み込みライブラリを使用しても外部
+                    gem
+                    を使用しても構いませんが、今のところ何も見つかりません。</p>
+                    <p>サポートされている暗号スイートの簡単なリストを取得したいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初の回答は質問を読み間違えたため不正解でした。良い出発点ではないにしても、これで希望どおりのことができると思います。これについてはクリーンアップやリファクタリングは行っていません。</p>
+                    <pre><code>require &#39;openssl&#39;
+require &#39;socket&#39;
+
+# it doesn&#39;t matter that this would give a 301, this isn&#39;t HTTP
+hostname = &#39;google.co.uk&#39;
+port = 443
+
+# we cannot directly get to the SSL socket using net/http because
+# it is already gone when we get the response back and it doesn&#39;t
+# remember it, so we have to interact with OpenSSL directly like you
+# would with the CLI version: `openssl s_client -cipher &quot;TLSv1.2&quot; -host google.co.uk -port 443`
+
+# keep track of which ones work
+success = []
+
+# get a list of our ciphers we know about
+ciphers = OpenSSL::Cipher.ciphers
+
+# try each one
+ciphers.each do |cipher|
+  puts &quot;Trying: #{cipher} ...&quot;
+
+  begin
+    context = OpenSSL::SSL::SSLContext.new
+    context.ciphers = [cipher.upcase]
+    socket = TCPSocket.new(hostname, port)
+    ssl_socket = OpenSSL::SSL::SSLSocket.new(socket, context)
+    ssl_socket.connect
+
+    puts &quot;Negotiated Cipher: #{ssl_socket.cipher[0]}&quot;
+    puts &quot;Remote Ciphers:&quot;
+    puts ssl_socket.ssl_version
+    ssl_socket.close
+
+    # if we get this far, it worked
+    success &lt;&lt; cipher.upcase
+  rescue OpenSSL::SSL::SSLError =&gt; e
+    # do nothing
+  end
+end
+
+
+puts &quot;All the ones that worked:&quot;
+puts success
+</code></pre>
+                    <p>答えを知っているホストと照合してみます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

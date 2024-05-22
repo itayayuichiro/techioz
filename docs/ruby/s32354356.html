@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec テストで例外を発生させる方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec テストで例外を発生させる方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec テストで例外を発生させる方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テストシナリオで行き詰まっています。</p>
+                    <p>コントローラーメソッドがあります:</p>
+                    <pre><code>def update
+  @object = Object.find params[:id]
+  # some other stuff
+  @object.save
+  rescue ActiveRecord::StaleObjectError
+    # woo other stuff
+end  
+</code></pre>
+                    <p>最初の部分は次のようにテストします。</p>
+                    <pre><code>context &#39;#update&#39;
+  let(:object) { double }
+
+  it &#39;nothing fails&#39; do
+    # some other stuff
+    expect(Object).to receive(:find).with(&#39;5&#39;).and_return(object)
+    expect(object).to receive(:save).and_return(true)
+    xhr :put, :update, id:5
+    expect(response).to be_success
+    expect(assigns(:object)).to eq(object)
+  end
+end
+</code></pre>
+                    <p>次に、ActiveRecord::StaleObjectError
+                    例外をテストしたいと思います。スタブ化したいのですが、これを行う方法が見つかりませんでした。</p>
+                    <p>そこで私の質問は、RSpec テストで
+                    ActiveRecord::StaleObjectError
+                    を発生させるにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>たとえばこのように</p>
+                    <pre><code>expect(object).to receive(:save).and_raise(ActiveRecord::StaleObjectError)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

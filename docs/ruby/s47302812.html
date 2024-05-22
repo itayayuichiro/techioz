@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Gem の管理は名前空間モデルをまだサポートしていません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Gem の管理は名前空間モデルをまだサポートしていません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Gem
+の管理は名前空間モデルをまだサポートしていません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここでTutsPlus Modular Rails
+                    Appトレーニングに従って、Modular
+                    Railsアプリケーションに取り組んでいます。</p>
+                    <p>ただし、Administrate Gem をインストールし、rails
+                    generated administrate:install
+                    を実行してダッシュボードをインストールすると、以下の画像のようなエラーが発生します。</p>
+                    <p>つまり、Administrated Gem は Modular Rails
+                    アプリでは動作しません。この問題を解決するにはどうすればよいですか?
+                    または、Administrate Gem
+                    で名前空間モデルをサポートするにはどうすればよいですか?</p>
+                    <p>私がしたこと：</p>
+                    <p>ダッシュボードをハードコーディングしようとしましたが、Administrateでは動作しません（Railsはそのエラーのため、モジュラーRailsアプリケーションでGemをうまく管理できませんが、モノリシックRailsアプリケーションでは動作します）。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この PR をマージした後、Administrate
+                    は名前空間リソースをサポートするようになりました。
+                    名前空間モデルのソリューション例を以下に示します。ブログ名前空間に投稿モデルがあると仮定します。</p>
+                    <p>モデル</p>
+                    <pre><code>app/models/blog/post.rb
+</code></pre>
+                    <p>次に、それを管理ダッシュボードに追加します。
+                    この構造に従うだけで機能します。</p>
+                    <p>config/routes.rb</p>
+                    <pre><code>namespace :admin do
+    namespace :blog do
+      resources :posts
+    end
+    root to: &quot;admin_users#index&quot;
+end
+</code></pre>
+                    <p>#app/admin/blog/posts_controller.rb</p>
+                    <pre><code>module Admin
+  class Blog::PostsController &lt; Admin::ApplicationController
+  end
+end
+</code></pre>
+                    <p>#app/dashboards/blog/posts_dashboard.rb</p>
+                    <pre><code>require &quot;administrate/base_dashboard&quot;
+
+class Blog::PostDashboard &lt; Administrate::BaseDashboard
+  #normal stuff
+end
+</code></pre>
+                    <p>詳細な解決策については、このディスカッションを確認してください</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

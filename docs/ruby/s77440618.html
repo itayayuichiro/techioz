@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ファイル名を引数として Ruby スクリプトに渡すとき、OptionParser は名前ではなくファイルの内容を読み取るのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ファイル名を引数として Ruby スクリプトに渡すとき、OptionParser は名前ではなくファイルの内容を読み取るのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ファイル名を引数として Ruby
+スクリプトに渡すとき、OptionParser
+は名前ではなくファイルの内容を読み取るのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>GitHub
+                    環境と対話するためのスクリプトを作成しています。特定の使用例では、スクリプトのスコープをユーザーのリストに制限する必要があり、改行区切りのファイルに保存します。ユーザー
+                    リストのファイル名を引数としてスクリプトに渡し、そのファイル名の文字列を変数に保存し、スクリプトの後半でその変数を使用してファイル名によってユーザー
+                    リスト
+                    ファイルを開いたり処理したりしたいと考えています。</p>
+                    <p>私の問題は、厳密にはファイル名を正しく入力して保存することです。ユーザー
+                    リストが「user-list」というファイル内にあり、次のテキストが含まれているとします。</p>
+                    <pre><code>user1
+user2
+user3
+</code></pre>
+                    <p>ファイル名 (“user-list”)
+                    を変数に保存したいのですが、実際に保存しているのはユーザーのリスト
+                    ([ “user1”、“user2”、“user3” ]) です。</p>
+                    <p>ここで非常に明白な何かが欠けているように感じますが、OptionParser
+                    のドキュメントやその他の Ruby
+                    ドキュメントには関連するものが何も見つかりませんでした。私は
+                    Ruby
+                    の初心者でもあり、既存のコードベースを使って作業しているため、これを行うためのより良い方法があるかどうかはまだわかりません。</p>
+                    <p>私が作業しているコードのスニペットは次のとおりです。</p>
+                    <pre><code># Initialize options OpenStruct
+options = OpenStruct.new
+
+...
+
+# Parse arguments
+option_parser = OptionParser.new do |opts|
+
+...
+
+    opts.on(&quot;-u&quot;, &quot;--user-file USER_FILE&quot;, String,
+        &quot;Read users from a file. File should be newline separated.&quot;) do |user_file|
+        # FIXME: This doesn&#39;t work
+        # Check if the file exists
+        #unless File.exist?(user_file)
+        #    puts &quot;File not found: #{user_file}&quot;
+        #    exit
+        #end
+        options.user_file = user_file
+        
+        # FIXME: Testing what was stored
+        puts options.user_file
+    end
+
+...
+
+option_parser.parse!(ARGV)
+</code></pre>
+                    <p>スクリプトに渡すものは次のとおりです。</p>
+                    <pre><code>./my_script -u user-file
+</code></pre>
+                    <p>ファイル「user-file」は次の内容で存在します。</p>
+                    <pre><code>user1
+user2
+user3
+</code></pre>
+                    <p>文字列「user-file」を変数 user_file
+                    に保存しようとしていますが、実際に保存しているのはリスト
+                    [ “user1”, “user2”, “user3” ] です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはあなたが言及したのと同じコードであり、私にとってはうまくいきました。</p>
+                    <pre><code>require &#39;optparse&#39;
+require &#39;ostruct&#39;
+
+options = OpenStruct.new
+
+option_parser = OptionParser.new do |opts|
+  opts.on(&#39;-u&#39;, &#39;--user-file USER_FILE&#39;, String,
+          &#39;Read users from a file. File should be newline separated.&#39;) do |user_file|
+    options.user_file = user_file
+    puts options.user_file
+  end
+end
+option_parser.parse!(ARGV)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

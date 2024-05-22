@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Thread#run と Thread#wakeup の違いは? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Thread#run と Thread#wakeup の違いは?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Thread#run と Thread#wakeup の違いは?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby では、Thread#run と Thread#wakup
+                    の違いは何ですか?</p>
+                    <p>RDoc では、スケジューラが Thread#wakeup
+                    で呼び出されないように指定されていますが、これは何を意味しますか?
+                    wakeup と run
+                    をいつ使用するかの例は?ありがとう。</p>
+                    <p>編集： Thread#wakup
+                    によってスレッドが実行可能になることはわかりましたが、Thread#run
+                    が実行されるまで (スレッドがウェイクアップされる)
+                    まで実行されない場合は、何の役に立つでしょうか?</p>
+                    <p>誰かがウェイクアップが何か意味のあることを行う例を提供してもらえますか?好奇心のために
+                    =)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが何を意味するかを説明する例を次に示します
+                    (コード例はここから)。</p>
+                    <p>スレッド.ウェイクアップ</p>
+                    <pre><code>thread = Thread.new do 
+  Thread.stop
+  puts &quot;Inside the thread block&quot;
+end
+
+$ thread
+=&gt; #&lt;Thread:0x100394008 sleep&gt; 
+</code></pre>
+                    <p>上記の出力は、新しく作成されたスレッドが stop
+                    コマンドによりスリープ状態になっていることを示しています。</p>
+                    <pre><code>$ thread.wakeup
+=&gt; #&lt;Thread:0x100394008 run&gt;
+</code></pre>
+                    <p>この出力は、スレッドがスリープ状態ではなくなり、実行できることを示します。</p>
+                    <pre><code>$ thread.run
+Inside the thread block
+=&gt; #&lt;Thread:0x1005d9930 sleep&gt;   
+</code></pre>
+                    <p>ここで、スレッドは実行を続行し、文字列を出力します。</p>
+                    <pre><code>$ thread.run
+ThreadError: killed thread
+</code></pre>
+                    <p>スレッド実行</p>
+                    <pre><code>thread = Thread.new do 
+  Thread.stop
+  puts &quot;Inside the thread block&quot;
+end
+
+$ thread
+=&gt; #&lt;Thread:0x100394008 sleep&gt; 
+
+$ thread.run
+Inside the thread block
+=&gt; #&lt;Thread:0x1005d9930 sleep&gt;   
+</code></pre>
+                    <p>スレッドは起動するだけでなく、実行を継続して文字列を出力します。</p>
+                    <pre><code>$ thread.run
+ThreadError: killed thread
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>FactoryBot 特性内の関連オブジェクトを更新する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "FactoryBot 特性内の関連オブジェクトを更新する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>FactoryBot
+特性内の関連オブジェクトを更新する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サンプル工場</p>
+                    <pre><code>FactoryBot.define do
+  factory :fruit do
+    name { &quot;Kiwi&quot; }
+    status { &quot;available&quot; }
+    store { Store.first }
+  end
+
+  trait :unaccessible do
+    status { &quot;unaccessible&quot; }
+    store { status: &quot;closed&quot;, hours_before_open: 2 }
+  end
+end
+</code></pre>
+                    <p>特性ブロック内で、関連付けられた Store
+                    オブジェクトのプロパティを更新する方法を見つけるのに苦労しています。ドキュメントの特性セクションに例が見つかりませんでした。また、ここでSOとGoogleで検索した例は見つかりませんでした。これも可能でしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、トレイト内の関連付けもオーバーライドできるはずだと思います。</p>
+                    <pre><code>FactoryBot.define do
+  factory :fruit do
+    name { &quot;Kiwi&quot; }
+    status { &quot;available&quot; }
+    store # assumes a factory :store
+  end
+
+  trait :unaccessible do
+    status { &quot;unaccessible&quot; }
+    association :store, status: &quot;closed&quot;, hours_before_open: 2
+  end
+end
+</code></pre>
+                    <p>そうすれば、作成後にストア
+                    オブジェクトを更新するために追加の DB
+                    書き込みを行う必要がなくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

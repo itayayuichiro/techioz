@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字のグレードで並べ替えることはできますか? [閉まっている] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字のグレードで並べ替えることはできますか? [閉まっている]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字のグレードで並べ替えることはできますか?
+[閉まっている]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>レターグレードで並べ替えたいテーブルがあります。問題は、記号を含む文字の前に文字が並べ替えられることです。たとえば、A、A+、A-、B、B+、B-などのように並べ替えますが、A+、A、A-、B+、B、B-などのように並べ替えたいのですが、方法はありますか?これを設定するには?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アイデアとして、成績の最後の文字を確認し、その値に応じて成績に数値を追加することができます</p>
+                    <p>モデルにスコープを追加できます</p>
+                    <pre><code>scope :order_by_grade, -&gt; do
+  sql = &lt;&lt;~SQL
+    CASE RIGHT(grade, 1)
+    WHEN &#39;-&#39; THEN grade || 3
+    WHEN &#39;+&#39; THEN grade || 1
+    ELSE grade || 2
+    END
+  SQL
+
+  order(sql)
+end
+</code></pre>
+                    <p>そして、モデルに適用します。
+                    Work.order_by_grade</p>
+                    <p>別のアイデアとして、すべてのバリアントを含むモデルに定数を定義し、インデックスを使用することもできます。</p>
+                    <p>そして、ASC として最悪から最高へ、DESC
+                    として最高から最悪へ並べ替えるほうが良いかもしれません
+                    – それはあなたの選択です</p>
+                    <pre><code>GRADES = %w[A+ A A- B+ ...]
+
+scope :order_by_grade, -&gt; do
+  sql = &#39;CASE grade &#39;
+
+  GRADES.reverse_each.with_index do |grade, index|
+    sql &lt;&lt; sanitize_sql_array([&#39;WHEN ? THEN ?&#39;, grade, index])
+  end
+
+  sql &lt;&lt; &#39; END&#39;
+
+  order(sql)
+end
+</code></pre>
+                    <p>そして、モデル Work.order_by_grade または
+                    Work.order_by_grade.reverse_order に適用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

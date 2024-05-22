@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails ActiveRecord::LogSubscriber が詳細なクエリ ログを出力しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails ActiveRecord::LogSubscriber が詳細なクエリ ログを出力しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails ActiveRecord::LogSubscriber
+が詳細なクエリ ログを出力しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails で詳細クエリ
+                    ログを有効にしようとしていますが、ActiveRecord::LogSubscriber
+                    の動作がおかしく、詳細クエリ
+                    ログが機能しません。</p>
+                    <p>問題はここから発生しているようです:
+                    https://github.com/rails/rails/blob/v6.0.0/activerecord/lib/active_record/log_subscriber.rb#L113</p>
+                    <p>location
+                    変数を調べると、内容があることがわかります。</p>
+                    <pre><code>[
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activerecord-6.0.0/lib/active_record/log_subscriber.rb:100:in `debug&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activerecord-6.0.0/lib/active_record/log_subscriber.rb:45:in `sql&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/subscriber.rb:145:in `finish&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/log_subscriber.rb:107:in `finish&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/notifications/fanout.rb:160:in `finish&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/notifications/fanout.rb:62:in `block in finish&#39;&quot;,
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/notifications/fanout.rb:62:in `each&#39;&quot;,
+  ...
+]
+</code></pre>
+                    <p>ただし、clean
+                    メソッドを通過すると、空の配列になります。したがって、この：</p>
+                    <pre><code>backtrace_cleaner.clean(locations.lazy).first
+</code></pre>
+                    <p>nilを返しています。したがって、105
+                    行目のソース割り当ては nil です。これは、107 行目の
+                    if ソースが false
+                    と評価され、何も記録されないことを意味します。</p>
+                    <p>これら 2 つの put を ActiveRecord::LogSubscriber
+                    に追加しました。</p>
+                    <pre><code>def log_query_source
+  source = extract_query_source_location(caller)
+
+  puts &quot;-----\n-\n-\nCALLERS: #{caller.inspect}\n-\n-\n-----&quot;
+
+  if source
+    logger.debug(&quot;  ↳ #{source}&quot;)
+  end
+end
+
+def extract_query_source_location(locations)
+  puts &quot;-----\n-\n-\nCLEANER: #{backtrace_cleaner.instance_values}\n-\n-\n-----&quot;
+
+  backtrace_cleaner.clean(locations.lazy).first
+end
+</code></pre>
+                    <p>これは、実際に発信者として登録されているものと、バックトレース
+                    クリーナーがフィルタリングとサイレンシングのために確立したものに関するコンテキストを収集するのに役立ちます。</p>
+                    <p>呼び出し元の出力は次のとおりです
+                    (アプリケーション内からリストされたソースがあることを示すのに十分なものだけを含めています)。</p>
+                    <pre><code>[
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activerecord-6.0.0/lib/active_record/log_subscriber.rb:100:in `debug&#39;&quot;,
+  
+  ...
+
+  &quot;/Users/jeff/Development/lead-simple/LeadSimple/components/api/app/graph/api/loaders/association_loader.rb:47:in `preload_association&#39;&quot;,
+  &quot;/Users/jeff/Development/lead-simple/LeadSimple/components/api/app/graph/api/loaders/association_loader.rb:34:in `perform&#39;&quot;,
+
+  ...
+
+  &quot;/Users/jeff/Development/lead-simple/LeadSimple/components/api/app/controllers/api/graphql_controller.rb:16:in `execute&#39;&quot;,
+
+  ...
+
+  &quot;/Users/jeff/Development/lead-simple/LeadSimple/components/api/lib/api/graphql_reloader.rb:18:in `call&#39;&quot;,
+
+  ...
+
+  &quot;/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/puma-5.6.5/lib/puma/thread_pool.rb:147:in `block in spawn_thread&#39;&quot;
+]
+</code></pre>
+                    <p>バックトレース
+                    クリーナーの出力は次のとおりです。</p>
+                    <pre><code>{
+  &quot;silencers&quot;=&gt;[
+    #&lt;Proc:0x0000000108343330@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/backtrace_cleaner.rb:101&gt;, 
+    #&lt;Proc:0x00000001083432e0@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/backtrace_cleaner.rb:105&gt;, 
+    #&lt;Proc:0x00000001083431c8@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/railties-6.0.0/lib/rails/backtrace_cleaner.rb:19&gt;
+  ], 
+  &quot;filters&quot;=&gt;[
+    #&lt;Proc:0x0000000108343380@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/activesupport-6.0.0/lib/active_support/backtrace_cleaner.rb:97&gt;, 
+    #&lt;Proc:0x0000000108343240@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/railties-6.0.0/lib/rails/backtrace_cleaner.rb:16&gt;, 
+    #&lt;Proc:0x0000000108343218@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/railties-6.0.0/lib/rails/backtrace_cleaner.rb:17&gt;, 
+    #&lt;Proc:0x00000001083431f0@/Users/jeff/.rbenv/versions/2.6.6/lib/ruby/gems/2.6.0/gems/railties-6.0.0/lib/rails/backtrace_cleaner.rb:18&gt;
+  ], 
+  &quot;root&quot;=&gt;&quot;/Users/jeff/Development/lead-simple/LeadSimple/&quot;
+}
+</code></pre>
+                    <p>ご覧のとおり、アプリケーション
+                    コードに固有のものは何もサイレント化
+                    (またはフィルター処理)
+                    されていません。ただし、「ルート」インスタンス値が存在します。これは非常に奇妙です。ActiveRecord::BacktraceCleaner
+                    のソース
+                    コードを見ると、定義されているインスタンス変数は
+                    <span class="citation"
+                    data-cites="filters">@filters</span> と <span
+                    class="citation"
+                    data-cites="silencers">@silencers</span>
+                    だけであるためです。</p>
+                    <p>「root」の値として設定されたパスはアプリケーションレベルのトレースを削除することになるため、これが関係していると思います（サイレンサーとして使用されている場合）。問題は、それがどこから来たのかわからないことです。</p>
+                    <p>私が推測できる唯一のことは、Gem の 1 つが
+                    ActiveSupport::BacktraceCleaner
+                    をオーバーロードして、<span class="citation"
+                    data-cites="root">@root</span>
+                    インスタンス変数とそれに基づいたサイレンシングの追加レイヤーを追加しているということです。
+                    ￣<em>(ツ)</em>/￣</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    サーバーがログに記録している内容を確認することによって、または
+                    Rails
+                    コンソールのアクティビティを確認することによって、詳細ログをテストしていますか?この行は、コンソールで実行されるアクティビティの詳細なクエリのログを常にオフにします。</p>
+                    <pre><code># ActiveRecord::Railtie
+console do |app|
+  require &quot;active_record/railties/console_sandbox&quot; if app.sandbox?
+  require &quot;active_record/base&quot;
+  unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
+    console = ActiveSupport::Logger.new(STDERR)
+    Rails.logger.extend ActiveSupport::Logger.broadcast console
+  end
+  ActiveRecord::Base.verbose_query_logs = false  # &lt;--- HERE
+end
+</code></pre>
+                    <p>その行を追加したコミットは次のとおりです。コミット
+                    メッセージには詳細が記載されており、この問題についても言及されています。これは意図的なもので、Rails
+                    コンソールのノイズを減らすために行われました。</p>
+                    <p>Rails
+                    コンソールで詳細ログをオンに戻したい場合は、次のようにフラグを手動でリセットする必要があります。</p>
+                    <pre><code>ActiveRecord::Base.verbose_query_logs = true
+</code></pre>
+                    <p>または、これをアプリのイニシャライザーに追加して、コンソールが起動するたびにオンにすることもできます。</p>
+                    <pre><code># config/initializers/verbose_logging.rb
+Rails.application.console do
+  ActiveRecord::Base.verbose_query_logs = true
+end
+</code></pre>
+                    <p>Rails
+                    ガイドでは、メモリ使用量を理由に、運用環境ではこれをオンにしないことを推奨しているため、運用コンソールを実行する利用可能なリソースに応じて、その環境では無効にしておくことが必要になる場合があります。</p>
+                    <p>詳細ログが作成されると、Rails
+                    はアプリ内のソースの場所が表示されるように、標準の
+                    Ruby コード参照と gem
+                    リファレンスを削除しようとします。これは、ActiveRecord::LogSubscriber.backtrace_cleaner
+                    のクリーナーを使用して行われます。デフォルトでは、ActiveSupport::BacktraceCleaner
+                    から継承する Rails::BacktraceCleaner です。</p>
+                    <p>Rails::BacktraceCleaner
+                    が誤ってコードを消去しているかどうかをテストするには、次のようなことができます。</p>
+                    <pre><code># Get the source location for a class method somewhere in your app
+path = MyClass.method(:my_class_method).source_location.first
+
+# Run it through the BacktraceCleaner
+backtrace_cleaner = Rails::BacktraceCleaner.new
+backtrace_cleaner.clean([path])
+</code></pre>
+                    <p>[] が返された場合は、アプリのコードを
+                    RbConfig::CONFIG[“rubylibdir”]
+                    フォルダーに配置しているかどうかを確認してください。
+                    BacktraceCleaner は、コードが標準 Ruby
+                    ライブラリの一部であると想定し、バックトレースから削除します。</p>
+                    <p>Rails::BacktraceCleaner
+                    は、app、config、lib、または test
+                    サブディレクトリに見つからないコードも除外します。それはここで完了です。</p>
+                    <p>あなたのルートは次のように述べています：</p>
+                    <pre><code>/Users/jeff/Development/lead-simple/LeadSimple/
+</code></pre>
+                    <p>そして、その下のサブフォルダーは次のとおりです。</p>
+                    <pre><code>/Users/jeff/Development/lead-simple/LeadSimple/components/...
+</code></pre>
+                    <p>Rails
+                    はバックトレースからそれを削除します。次のようなもので確認できます。</p>
+                    <pre><code>test = [&#39;/Users/jeff/Development/lead-simple/LeadSimple/components/api/app/graph/api/loaders/association_loader.rb&#39;]
+backtrace_cleaner = Rails::BacktraceCleaner.new
+
+# Filtering will drop off everything before the root
+filtered = backtrace_cleaner.send(:filter_backtrace, [path])
+ =&gt; [&quot;components/api/app/graph/api/loaders/association_loader.rb&quot;]
+
+# Silencing will drop off paths that don&#39;t start with app, config, lib, or test
+backtrace_cleaner.send(:silence, filtered)
+ =&gt; []
+</code></pre>
+                    <p>これを回避するには、次のようにすることができます。</p>
+                    <p>最後のオプションが最も簡単ですが、アプリの起動時にすでに初期化された定数エラーがスローされます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

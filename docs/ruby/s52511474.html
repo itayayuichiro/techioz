@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Microsoft Graph V1 API エラー: OData::ServerError 503 ConcurrentItemSave: “保存するデータを保存中に競合が発生しました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Microsoft Graph V1 API エラー: OData::ServerError 503 ConcurrentItemSave: “保存するデータを保存中に競合が発生しました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Microsoft Graph V1 API エラー:
+OData::ServerError 503 ConcurrentItemSave:
+“保存するデータを保存中に競合が発生しました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この問題を検索しましたが、まだ何も見つかりません。誰かこの問題のデバッグを手伝ってくれませんか?Microsoft
+                    Graph API (v1) を使用して新しいイベントを Outlook
+                    カレンダーにプッシュするときに問題が発生するため、デバッグに問題があります。この問題がユーザーのアクションによって引き起こされたのか、それとも単に
+                    API
+                    サーバーのエラーによって引き起こされたのかはわかりません。テストしましたが、まだ動作していますが、以下のコードスニペットに記載されている
+                    gem を使用した Ruby on Rails
+                    アプリから今日数回発生したこのエラーを受け取りました。どうもありがとう！これらのエラーの後、カレンダーに重複したイベントが追加されます。</p>
+                    <p>OData::ServerError 503 ConcurrentItemSave:
+                    “データを保存中に競合が発生しました (保存結果:
+                    IrresolvableConflict、プロパティ:
+                    )。リクエストを再試行してください。”
+                    「https://graph.microsoft.com/v1.0/me/calendars/AAMkADg1YmMzNjE2LTM5Y2MtNGI2NC05NjJjLWRiY2RhZTZkNDRkMABGAAAAAADZc5aq6QclSqy_4oRMVv_EBwB4ZnW6S6xLTZDSXIsgJfprAAAAAAEGAAB4ZnW6S」より6xLTZDSXIsgJfprAAAGEcjmAAA=/events”</p>
+                    <p>API経由でイベントを作成するために使用するコード</p>
+                    <pre><code>require &#39;adal&#39;
+require &#39;microsoft_graph&#39;
+
+username      = ENV[&quot;OUTLOOK_USERNAME&quot;]
+password      = ENV[&quot;OUTLOOK_PASSWORD&quot;]
+client_id     = ENV[&quot;OUTLOOK_CLIENT_ID&quot;]
+client_secret = ENV[&quot;OUTLOOK_CLIENT_SECRET&quot;]
+tenant        = ENV[&quot;OUTLOOK_TENANT&quot;]
+user_cred     = ADAL::UserCredential.new(username, password)
+client_cred   = ADAL::ClientCredential.new(client_id, client_secret)
+context       = ADAL::AuthenticationContext.new(ADAL::Authority::WORLD_WIDE_AUTHORITY, tenant)
+resource      = &quot;https://graph.microsoft.com/&quot;
+tokens        = context.acquire_token_for_user(resource, client_cred, user_cred)
+
+callback = Proc.new { |r|
+  r.headers[&quot;Authorization&quot;] = &quot;Bearer #{tokens.access_token}&quot;
+  r.headers[&quot;Prefer&quot;] = &#39;outlook.timezone=&quot;Australia/Sydney&quot;&#39;
+  r.headers[&#39;Content-type&#39;] = &#39;application/json&#39;
+}
+
+@graph = MicrosoftGraph.new(
+  base_url: &quot;https://graph.microsoft.com/v1.0&quot;,
+  cached_metadata_file: File.join(MicrosoftGraph::CACHED_METADATA_DIRECTORY, &quot;metadata_v1.0.xml&quot;),
+  &amp;callback
+)
+
+#example_data
+calendar_id = &quot;my_calendar_id&quot;
+data = my_event_object
+
+@graph.service.post(&quot;me/calendars/#{calendar_id}/events&quot;, data.to_json)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私も同じ問題に直面しました。これは実際には MS
+                    側の問題であり、その理由はイベント
+                    オブジェクトにオープン拡張機能が含まれていたためでした。ドキュメントによればこれは問題ないはずですが、実際には
+                    20 ～ 30 リクエストごとにエラーが発生します。</p>
+                    <p>イベント作成リクエストを 2 つの API
+                    呼び出しに分割することで問題を修正しました。最初のリクエストにはイベントに添付された拡張情報が含まれておらず、2
+                    番目のリクエストでは、ここで説明されているように、新しく作成されたイベントに拡張データが追加されます。</p>
+                    <p>/extensions への 2 回目の POST
+                    は同じエラーで失敗する可能性がありますが、再試行ポリシーをラップしたので、最近の経験によれば、ジョブを完了するのに
+                    1 回以上の再試行は必要ありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>const を使用して接続されているアカウントの Stripe_account_id を追加すると CORS エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "const を使用して接続されているアカウントの Stripe_account_id を追加すると CORS エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>const を使用して接続されているアカウントの
+Stripe_account_id を追加すると CORS エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Stripe 支払いリクエスト
+                    ボタンを設定しました。ストライプ
+                    アカウント「acct_XXX…」を手動で追加すると、すべてが機能し、接続されているアカウントのダッシュボード上で支払いが成功します。</p>
+                    <p>しかし、これをpayment_request_buttons.jsのconstに入れようとすると、次のようになります。</p>
+                    <pre><code>const stripe_account_id = document.getElementById(&#39;stripe_account_id&#39;).value;
+
+const stripe = Stripe(&#39;pk_test_XXX...&#39;), {
+  apiVersion: &quot;2022-11-15&quot;,
+  stripeAccount: stripe_account_id,
+});
+</code></pre>
+                    <p>隠された入力:</p>
+                    <pre><code>&lt;input id=&quot;stripe_account_id&quot; type=&quot;hidden&quot; value=&quot;&lt;%= &quot;&#39;#{@user.stripe_account_id}&#39;&quot; %&gt;&quot;&gt; 
+</code></pre>
+                    <p>次の CORS エラーが発生します。</p>
+                    <pre><code>No &#39;Access-Control-Allow-Origin&#39; header is present
+</code></pre>
+                    <p>const
+                    を使用する場合と比べて、手動でアカウントを入力する場合の違いがわかりません。</p>
+                    <p>コンソールのストライプリンクからこのエラーに遭遇しました。</p>
+                    <pre><code>{
+&quot;error&quot;: {
+&quot;message&quot;: &quot;You did not provide an API key. You need to 
+provide your API key in the Authorization header, using 
+Bearer auth (e.g. &#39;Authorization: Bearer YOUR_SECRET_KEY&#39;). 
+See https://stripe.com/docs/api#authentication for details, 
+or we can help at https://support.stripe.com/.&quot;,
+&quot;type&quot;: &quot;invalid_request_error&quot;
+ }
+}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このエラーは解決しました。</p>
+                    <p>ストライプ
+                    アカウントを手動で渡す場合は、中にアカウント番号を含むアポストロフィ「
+                    」を使用しますが、ストライプへの投稿データを見ると、それらが削除されていることがわかります。</p>
+                    <pre><code>_stripe_account: acct_xxx........... 
+</code></pre>
+                    <p>したがって、私のRubyコードでは、値にアポストロフィを追加していました。結果は次のとおりです。</p>
+                    <pre><code>value=&quot;&lt;%= &quot;&#39;#{@user.stripe_account_id}&#39;&quot; %&gt;&quot;&gt;
+
+_stripe_account: &#39;acct_xxx...........&#39; 
+</code></pre>
+                    <p>送信されるとエラーが発生します。</p>
+                    <p>アポストロフィを除いた私の更新された Ruby
+                    コード:</p>
+                    <pre><code>value=&quot;&lt;%= @user.stripe_account_id %&gt;&quot;&gt;
+</code></pre>
+                    <p>このデータは、「ネットワーク」&gt;「wallet-config」&gt;「ペイロード」&gt;「フォームデータ」で見つかりました。</p>
+                    <p>これで CORS
+                    エラーが解決され、機能するようになりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

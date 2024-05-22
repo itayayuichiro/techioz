@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「__rvm_make -j8」の実行エラーを修正する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「__rvm_make -j8」の実行エラーを修正する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「__rvm_make
+-j8」の実行エラーを修正する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 2.7.1 のインストールで問題が発生しました</p>
+                    <p>このエラーが発生します:</p>
+                    <pre><code>Error running &#39;__rvm_make -j8&#39;,
+please read /Users/luqman/.rvm/log/1690926841_ruby-2.7.1/make.log
+
+There has been an error while running make. Halting the installation 
+</code></pre>
+                    <p>私のログ
+                    ファイルにはエラーがたくさんあり、ここでは共有できません。ログ
+                    ファイルの開始部分と終了部分だけを共有します。</p>
+                    <p>開始部分は次のとおりです。</p>
+                    <pre><code>ast.c:115:19: warning: &#39;(&#39; and &#39;{&#39; tokens introducing statement expression appear in different macro expansion contexts [-Wcompound-token-split-by-macro]
+    rb_funcall(f, rb_intern(&quot;set_encoding&quot;), 2, rb_enc_from_encoding(enc), rb_str_new_cstr(&quot;-&quot;));
+                  ^~~~~~~~~~~~~~~~~~~~~~~~~
+./include/ruby/ruby.h:1847:23: note: expanded from macro &#39;rb_intern&#39;
+        __extension__ (RUBY_CONST_ID_CACHE((ID), (str))) : \
+                      ^
+./include/ruby/ruby.h:2689:27: note: expanded from macro &#39;rb_funcall&#39;
+        rb_funcallv(recv, mid, \
+                          ^~~
+./internal.h:2411:54: note: expanded from macro &#39;rb_funcallv&#39;
+        rb_funcallv_with_cc(&amp;rb_funcallv_data, recv, mid, argc, argv); \
+                                                     ^~~
+ast.c:115:19: note: &#39;{&#39; token is here
+    rb_funcall(f, rb_intern(&quot;set_encoding&quot;), 2, rb_enc_from_encoding(enc), rb_str_new_cstr(&quot;-&quot;));
+</code></pre>
+                    <p>エンディング部分：</p>
+                    <pre><code>linking shared-object socket.bundle
+93 warnings generated.
+53 warnings generated.
+make[1]: *** [ext/openssl/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+13 warnings generated.
+linking shared-object ripper.bundle
+make: *** [build-ext] Error 2
++__rvm_make:0&gt; return 2
+</code></pre>
+                    <p>これまでに私が行った手順:</p>
+                    <p>また、インターネットからの他の解決策も試しました。</p>
+                    <p>私のMacのバージョンはVentura 13.2.1です</p>
+                    <p>何もうまくいきませんでした。この点に関して何か助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は今日同様の問題に遭遇しました。その一部は、デフォルトで
+                    openssl 3 に設定されている brew
+                    です（クレジット）。</p>
+                    <pre><code>brew install [email protected]
+rvm install ruby-2.7.1 --with-openssl-dir=$(brew --prefix [email protected])
+</code></pre>
+                    <p>私の推測では、希望する Ruby のバージョンが OS
+                    のバージョンをサポートしていない可能性があります。新しいものを試してください
+                    (3.x 以降にする必要がありました)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

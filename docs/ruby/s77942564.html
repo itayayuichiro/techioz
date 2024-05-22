@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby C API の例外処理 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby C API の例外処理",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby C API の例外処理</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようにCを介してRubyスクリプトを実行しています。</p>
+                    <pre><code>#include &lt;ruby.h&gt;
+
+int main(void) {
+  ruby_init();
+
+  int status;
+  rb_load_protect(rb_str_new2(&quot;./test.rb&quot;), 0, &amp;status);
+
+  if (status) {
+    VALUE rbError = rb_funcall(rb_gv_get(&quot;$!&quot;), rb_intern(&quot;message&quot;), 0);
+    printf(&quot;%s\n&quot;, StringValueCStr(rbError));
+  }
+
+  ruby_finalize();
+  return status;
+}
+</code></pre>
+                    <p>Ruby スクリプト:</p>
+                    <pre><code>1.hello
+</code></pre>
+                    <p>今実行すると、次の出力が得られます。</p>
+                    <pre><code>undefined method `hello&#39; for 1:Integer
+</code></pre>
+                    <p>これは予想通りです。
+                    次に、このメソッドを定義します。</p>
+                    <pre><code>VALUE hello(VALUE self) {
+  return Qnil;
+}
+
+// just after ruby_init()
+rb_define_method(rb_cInteger, &quot;hello&quot;, hello, 0);
+</code></pre>
+                    <p>今実行すると、次のようになります</p>
+                    <pre><code>ruby: [BUG] Segmentation fault at 0x00000000000000b0
+/* ... */
+</code></pre>
+                    <p>ここでエラーを処理するにはどうすればよいでしょうか?この場合は
+                    nil ですが、理由はわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ステータスを初期化するだけでよいと思います。</p>
+                    <pre><code>int status = 0;
+</code></pre>
+                    <p>rb_load_protect
+                    は、例外がある場合はステータスを設定しますが、例外がない場合はステータスを
+                    0 に設定しないように見えますが、それに &amp;status
+                    を渡すことで、コンパイラからの初期化された変数の警告を抑制しています。</p>
+                    <p>現時点で起こっていることは、ステータスが何らかの
+                    (ゼロではない)
+                    ガベージとして開始され、例外がない限りゼロに設定されないため、if
+                    ブロックは常に実行されます。ただし、例外がない場合は
+                    nil
+                    なので、メッセージを呼び出すとハンドルされない例外が発生し、クラッシュが発生します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

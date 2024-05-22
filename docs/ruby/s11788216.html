@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RMagick と Word Wrap を使用して画像上にテキストをレンダリングするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RMagick と Word Wrap を使用して画像上にテキストをレンダリングするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RMagick と Word Wrap
+を使用して画像上にテキストをレンダリングするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>画像 (1024x768) 上にテキスト
+                    (Unicode、helvetica、白、22px、太字)
+                    をレンダリングする必要があります。</p>
+                    <p>これはこれまでの私のコードです:</p>
+                    <pre><code>img = Magick::ImageList.new(&quot;my_bg_img.jpg&quot;)
+txt = Magick::Draw.new
+
+img.annotate(txt, 800, 600, 0, 0, &quot;my super long text that needs to be auto line breaked and cropped&quot;) {
+      txt.gravity = Magick::NorthGravity
+      txt.pointsize = 22
+      txt.fill = &quot;#ffffff&quot;
+      txt.font_family = &#39;helvetica&#39;
+      txt.font_weight = Magick::BoldWeight
+}
+
+img.format = &quot;jpeg&quot;
+
+return img.to_blob
+</code></pre>
+                    <p>それはすべて問題ありませんが、すべてのテキストを定義した領域（
+                    800x600
+                    ）に収めるために自動的に改行（ワードラップ）されません。</p>
+                    <p>私の何が間違っているのでしょうか？</p>
+                    <p>助けてくれてありがとう:)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Draw.annotate メソッドでは、width
+                    パラメータはレンダリング
+                    テキストに影響を与えていないようです。</p>
+                    <p>私も同じ問題に直面したため、新しい行を追加することでテキストを指定された幅に合わせるこの関数を開発しました。</p>
+                    <p>画像上に描画する際に文字が指定した幅に収まるかどうかをチェックする機能があります</p>
+                    <pre><code>def text_fit?(text, width)
+  tmp_image = Image.new(width, 500)
+  drawing = Draw.new
+  drawing.annotate(tmp_image, 0, 0, 0, 0, text) { |txt|
+    txt.gravity = Magick::NorthGravity
+    txt.pointsize = 22
+    txt.fill = &quot;#ffffff&quot;
+    txt.font_family = &#39;helvetica&#39;
+    txt.font_weight = Magick::BoldWeight
+  }
+  metrics = drawing.get_multiline_type_metrics(tmp_image, text)
+  (metrics.width &lt; width)
+end
+</code></pre>
+                    <p>そして、新しい行を追加して、指定された幅に収まるようにテキストを変換する別の関数があります</p>
+                    <pre><code>def fit_text(text, width)
+  separator = &#39; &#39;
+  line = &#39;&#39;
+
+  if not text_fit?(text, width) and text.include? separator
+    i = 0
+    text.split(separator).each do |word|
+      if i == 0
+        tmp_line = line + word
+      else
+        tmp_line = line + separator + word
+      end
+
+      if text_fit?(tmp_line, width)
+        unless i == 0
+          line += separator
+        end
+        line += word
+      else
+        unless i == 0
+          line +=  &#39;\n&#39;
+        end
+        line += word
+      end
+      i += 1
+    end
+    text = line
+  end
+  text
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

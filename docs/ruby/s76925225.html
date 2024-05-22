@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Router.rb で Current.user を取得するための受け入れられた方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Router.rb で Current.user を取得するための受け入れられた方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Router.rb で Current.user
+を取得するための受け入れられた方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリには多数の Rails
+                    エンジンがあり、現在、それぞれに独自の制約クラスがあり、ユーザーにアクセスを許可するかどうかを決定します。</p>
+                    <pre><code>mount Flipper::UI.app(Flipper) =&gt; &#39;/admin/flipper&#39;, :as =&gt; &quot;feature_flags&quot;, constraints: CanAccessFeaturesUI
+</code></pre>
+                    <p>Current.user は ApplicationController
+                    に設定されているため、routes.rb
+                    ではまだ使用できません。ルーターでそれを利用できるようにするための受け入れられた方法はありますか。大まかに次のようなことを行うことができます。</p>
+                    <pre><code>  mount Flipper::UI.app(Flipper) =&gt; &#39;/admin/flipper&#39;, :as =&gt; &quot;feature_flags&quot;, constraints: -&gt; do
+    Current&amp;.user&amp;.superuser?
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>詳細は、認証に使用しているものによって異なります。工夫する場合、Current
+                    を使用しないのも 1 つの方法です。</p>
+                    <pre><code># config/routes.rb
+
+constraints -&gt;(req) { req.env[&quot;warden&quot;].user&amp;.superuser? } do
+  # TODO: secret routes
+end
+</code></pre>
+                    <p>ただし、device
+                    には次の機能が組み込まれています。</p>
+                    <pre><code>authenticate :user, -&gt;(user) { user.superuser? } do
+  # TODO: secret routes
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.rubydoc.info/gems/devise/4.9.2/ActionDispatch/Routing/Mapper#authenticate-instance_method</p>
+                    <p>Current
+                    を使用するには、ミドルウェアで設定する必要があります。ルートの直前に実行されるため、次のようになります。</p>
+                    <pre><code>$ bin/rails middleware
+...
+use Rack::ETag
+use Rack::TempfileReaper
+use Warden::Manager
+# this is the place, after warden to use env[&quot;warden&quot;]
+#                   and before v
+run Stackoverflow::Application.routes
+</code></pre>
+                    <pre><code># config/initializers/current_middleware.rb
+
+class CurrentMiddleware
+  def initialize app
+    @app = app
+  end
+
+  def call env
+    Current.user = env[&quot;warden&quot;].user
+    @app.call(env)
+  end
+end
+
+Rails.application.config.middleware.insert_after Warden::Manager, CurrentMiddleware
+</code></pre>
+                    <pre><code>constraints -&gt; { Current.user&amp;.superuser? } do
+  # TODO: secret routes
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

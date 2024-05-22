@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails API + React クライアントでのユーザー偽装の実装 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails API + React クライアントでのユーザー偽装の実装",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails API + React
+クライアントでのユーザー偽装の実装</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、pretender、user_impersonate2、switch_user
+                    などの宝石を見つけました。それらはすべて、Devise
+                    などのシステムや「モノリス」Rails アプリの
+                    current_user
+                    を切り替えるという同様の目標を達成しているようです。</p>
+                    <p>React クライアントが Rails
+                    アプリと通信しています。管理ページは Rails
+                    で直接実装され
+                    (ビューです)、クライアントは分離されています。現在、クライアントは、device-jwt
+                    経由で access_token を提供する Devise ルートに対して
+                    POST
+                    リクエストを作成し、ブラウザのローカルストレージにトークンを保存します。</p>
+                    <p>管理者がユーザーとしてログインし、管理者 (Rails)
+                    ページからクライアント (React)
+                    ページにリダイレクトできるようにするための推奨方法はありますか?できればフロントエンドのコードへの変更は最小限に抑えますが、それでも十分対応できます。</p>
+                    <p>共有ルート ドメイン経由で Cookie
+                    を共有することも考えましたが、それはセキュリティ上の問題のような気がします。</p>
+                    <p>Rails
+                    アプリで行われたトークンの変更をクライアント
+                    アプリに「リッスン」させる方法、またはクライアントの観点から現在のユーザーを変更する同様の方法をどのようにすればよいかわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これがオススメとまではいきませんが、私がとった基本的な考え方をお話します。</p>
+                    <p>JWT
+                    を構築するときに、トークンからユーザーを識別できるようにするいくつかの重要なユーザー情報を含めます。
+                    Device-jwt
+                    のドキュメントを見ると、最も単純な解決策は次のようなものになります。</p>
+                    <pre><code>def jwt_payload
+  { uid: id }
+end
+</code></pre>
+                    <p>次に、JWT
+                    の作成に使用したシークレットを共有できることを確認する必要があります。私は
+                    12
+                    要素のファンなので、このソリューションではこのようなものに環境変数を使用します。</p>
+                    <p>最後に、ヘッダーから JWT
+                    を読み取り、復号化してユーザーを検索します。これは、ユーザーのデータベースを共有するか、ユーザーを複製することを前提としています。これを
+                    ApplicationController
+                    に含まれるモジュールに組み込みました。私たちのものを適応させると、上記のペイロードは次のようになります。</p>
+                    <pre><code>module JwtTokenable
+  private
+
+  def token_user
+    user_id = token_payload.dig(:uid)
+    # CUSTOMIZE BELOW
+    User.find(user_id) if user_id
+  end
+
+  def token_payload
+    @payload ||= JWT.decode(access_token, ENV.fetch(&#39;JWT_SECRET&#39;, &#39;&#39;), true, { algorithm: &#39;HS512&#39; })
+                    .first
+                    .deep_symbolize_keys
+  rescue JWT::DecodeError
+    return {}
+  end
+
+  def access_token
+    @access_token ||= authorization_header.split.last
+  end
+
+  def authorization_header
+    request.headers[&#39;Authorization&#39;] || &#39;&#39;
+  end
+end
+</code></pre>
+                    <p>偽装の最後のステップは、「CUSTOMIZE
+                    BELOW」コメントがある場所です。このコードは、ID
+                    でユーザーを検索するだけです。その時点で、前述した
+                    gem の 1
+                    つを利用して、ユーザーまたはなりすまし対象者を返す必要があるかどうかを判断できる可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 「Rails 入門」 コメントを検証するための推奨される方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 「Rails 入門」 コメントを検証するための推奨される方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 「Rails 入門」
+コメントを検証するための推奨される方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>レールは初めてです。よろしくお願いします。
+                    コメント検証を含む公式 Rails 7
+                    ガイドに記載されているブログの機能を拡張しようとしています。
+                    これはプロジェクト コードの github リポジトリ
+                    リンクです。
+                    コメントに検証を追加し、無効なフォームを送信した後にフロントエンドにエラーメッセージを表示する正しい方法は何ですか?</p>
+                    <p>設定 ubuntu - 22.04 RVM-1.29.12 ルビー -
+                    3.1.4p223 レール - 7.0.4.3</p>
+                    <p>現在、コメントモデルにこれらの検証を追加すると、検証が機能しません。空のコメントフォームを送信すると、投稿ページにリダイレクトされるだけです。</p>
+                    <p>/app/models/comment.rb</p>
+                    <pre><code>class Comment &lt; ApplicationRecord
+  belongs_to :post
+  validates :author, presence: true
+  validates :body, presence: true
+end
+</code></pre>
+                    <p>また、comments_controllerでコメントの保存を処理しようとしました。ただし、コメントは空の
+                    :author フィールドと :body
+                    フィールドとともに保存されます。</p>
+                    <p>/app/controllers/comments_controller.rb</p>
+                    <pre><code>def create
+  @post = Post.find(params[:post_id])
+  @comment = @post.comments.build(comment_params)
+  if @comment.save
+    redirect_to @post
+  else
+    render @post, status: :unprocessable_entity
+  end
+end
+</code></pre>
+                    <p>/app/views/comments/_form.html.erb</p>
+                    <pre><code>&lt;%= form_with model: [@post, @post.comments.build] do |form| %&gt;
+  &lt;div class=&quot;mb-3&quot;&gt;
+    &lt;%= form.label :author, class: &#39;form-label&#39; %&gt;&lt;br&gt;
+    &lt;%= form.text_field :author, class: &#39;form-control&#39;, placeholder: &#39;John Doe&#39; %&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;mb-3&quot;&gt;
+    &lt;%= form.label :body, class: &#39;form-label&#39; %&gt;&lt;br&gt;
+    &lt;%= form.text_area :body, class: &#39;form-control&#39;, rows: 3 %&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;mb-3&quot;&gt;
+    &lt;%= form.submit &#39;Add comment&#39;, class: &#39;btn btn-outline-primary&#39; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ここに私が達成したい視覚化がいくつかあります（開発ツールを通じていくつかのHTMLを追加しただけです）。最初のスクリーンショット
+                    - コメント
+                    フォームを送信する前にページを投稿し、ページをクリーンアップするだけです。
+                    2 番目のスクリーンショット (私がハイブしたいもの) -
+                    空の作成者フィールドと本文フィールドを持つコメント
+                    フォームを送信した後の同じページ。</p>
+                    <p>最初のスクリーンショット</p>
+                    <p>2 番目のスクリーンショット
+                    (これは私が望むコメントフォームです)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>保存が失敗した場合は、CommentsController
+                    クラスの作成メソッドに次の 2
+                    つの変更を加えます。</p>
+                    <p>投稿を再取得する必要がある理由は、投稿の表示ビューが
+                    (/posts/show.html.erb 内で)
+                    再レンダリングされるときに、表示ビュー内の &lt;%=
+                    render <span class="citation"
+                    data-cites="post.comments">@post.comments</span>
+                    %&gt;
+                    行が投稿のすべてのコメントをリストします。失敗時にレンダリングする前に再フェッチしない限り、新しい「失敗」コメントが含まれます。</p>
+                    <p>これが解決策の最初の部分です。次に、コメント
+                    フォームの上にエラー メッセージを表示し、コメント
+                    フォームの作成者と本文に元の値を再入力します。これを実現するには、/posts/show.html.erb
+                    で次のことを行う必要があります。</p>
+                    まず、コメント フォーム (
+                    <h4>
+                    コメントの追加
+                    </h4>
+                    <p>セクション)
+                    をレンダリングするには、次の手順を実行します。</p>
+                    <p>&lt;%= 部分レンダリング:
+                    ‘コメント/フォーム’、ローカル: { コメント: <span
+                    class="citation"
+                    data-cites="comment">@comment</span> } %&gt;</p>
+                    <p>これにより、コメントが使用できるようにコメント部分ビュー
+                    (/comments/_form.html.erb)
+                    に渡されます。以下は、目的を達成する部分ビューのサンプルです。</p>
+                    <pre><code>&lt;p style=&quot;color: red&quot;&gt;&lt;%= comment ? comment.errors.full_messages.to_sentence : nil %&gt;&lt;/p&gt;
+
+&lt;%= form_with model: [ @post, @post.comments.build ] do |form| %&gt;
+  &lt;p&gt;
+    &lt;%= form.label :author %&gt;&lt;br&gt;
+    &lt;%= text_field_tag &#39;comment[author]&#39;, comment&amp;.author %&gt;
+  &lt;/p&gt;
+
+  &lt;p&gt;
+    &lt;%= form.label :body %&gt;&lt;br&gt;
+    &lt;%= text_area_tag &#39;comment[body]&#39;, comment&amp;.body %&gt;
+  &lt;/p&gt;
+
+  &lt;p&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/p&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>セーフ ナビゲーション演算子 (&amp;.)
+                    は、オブジェクトが nil
+                    かどうかを確認します。したがって、フォームに有効なコメントがある場合
+                    (再レンダリングが失敗した場合にのみ当てはまります)、元のデータが表示されます。そうでない場合、フィールドは空になります。
+                    &amp; も同様に使用できます。構文はエラー
+                    メッセージに表示されますが、各プロパティに追加する必要があるため、代わりに「長い」バージョンを残しました。</p>
+                    <p>コメント
+                    モデルの検証のいずれかが失敗すると、エラー
+                    メッセージが表示され、失敗したコメントの元の内容がそれぞれのフィールドに再入力されます。</p>
+                    <p>コメントエラーの例</p>
+                    <p>最後の「クリーンアップ」として、部分的な <span
+                    class="citation" data-cites="post">@post</span>
+                    に直接アクセスするのではなく、ローカルの投稿を
+                    /comments/_form.html.erb
+                    に渡すことを検討できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

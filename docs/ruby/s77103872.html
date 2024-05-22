@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec で ActiveRecord::NotNullViolation をキャッチするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec で ActiveRecord::NotNullViolation をキャッチするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec で ActiveRecord::NotNullViolation
+をキャッチするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の Rspec があります。</p>
+                    <pre><code>before { model.update(calendar_id: nil) }
+...
+expect { job.perform_now(item_id) }.to raise_error(ActiveRecord::NotNullViolation)
+</code></pre>
+                    <p>これは失敗し、次のエラー
+                    メッセージが表示されます。</p>
+                    <p>何が起こるかというと、ジョブはモデルを更新し
+                    (モデルには非 null 制約がありません)、calendar_id を
+                    NULL
+                    に設定しますが、次のコードを含むコールバックも呼び出します。</p>
+                    <pre><code>another_model.update_all(calendar_id: calendar_id)
+</code></pre>
+                    <p>another_model には非 null
+                    制約セットがあります。したがって、calendar_is が
+                    NULL であるため、update_all
+                    ステートメントは失敗しますが、これは問題ありません。しかし、なぜ
+                    Rspec はエラーをキャッチしないのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、expect ブロック内ではなく、before
+                    内でエラーが発生することです。したがって、expect
+                    内の前からロジックを移動すると、問題が解決されます。</p>
+                    <pre><code>expect do
+  model.update(calendar_id: nil)
+  job.perform_now(item_id) // not even needed
+end.to raise_error(ActiveRecord::NotNullViolation)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

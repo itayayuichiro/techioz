@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JavaとRubyの素数[終了] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JavaとRubyの素数[終了]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JavaとRubyの素数[終了]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この回答から Ruby コードを Java
+                    コードに変換しようとしました。</p>
+                    <p>文章</p>
+                    <p>私のコードは以下です。ご覧のとおり、Java
+                    には素数がないため (Ruby の require prime
+                    行によりすべての数値が素数になります)、私のプログラムは単純にすべての数値を返します。
+                    Java
+                    でこれを行う方法がわかりません。助けていただければ幸いです。</p>
+                    <pre><code>import java.util.HashSet;
+import java.util.Set;
+
+public class sus {
+    public static void main(String[] args) {
+        long maxNum = 9876543210L;
+        int minNum = 1023456789;
+        int maxPrimeToCube = 2143;
+        int count = 0;
+
+        for (int primeToCube = 2; primeToCube &lt;= maxPrimeToCube; primeToCube++) {
+            int cubedVal = primeToCube * primeToCube * primeToCube;
+
+            for (int primeToSquare = 2; primeToSquare &lt;= maxPrimeToCube; primeToSquare++) {
+                int squaredVal = primeToSquare * primeToSquare;
+                int combinedVal = squaredVal + cubedVal;
+
+                if (combinedVal &lt; minNum) {
+                    continue;
+                }
+
+                if (combinedVal &gt; maxNum) {
+                    break;
+                }
+
+                String s = String.valueOf(combinedVal);
+                Set&lt;Character&gt; uniqueDigits = new HashSet&lt;&gt;();
+                for (char digit : s.toCharArray()) {
+                    uniqueDigits.add(digit);
+                }
+
+                if (uniqueDigits.size() == 10) {
+                    count++;
+                    System.out.println(&quot;val: &quot; + s + &quot; = &quot; + primeToSquare + &quot;^2 + &quot; + primeToCube + &quot;^3, count: &quot; + count);
+                }
+            }
+        }
+        System.out.println(count);
+        
+    }
+}
+</code></pre>
+                    <hr />
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードのエラーは素数を使用していないことだと思います。</p>
+                    <p>Ruby Prime クラスは素数のリストになります。 2 ～
+                    2143 の範囲の値を使用しているだけです。</p>
+                    <p>Java クラスを使用して Prime
+                    クラスを模倣できます。
+                    これにより、オブジェクトのインスタンス化中に指定された最大値を指定して、List
+                    に素数が設定されます。</p>
+                    <pre><code>class Prime {
+    List&lt;Integer&gt; list;
+
+    Prime(int maximum) {
+        list = new ArrayList&lt;&gt;();
+        boolean prime;
+        for (int valueA = 2; valueA &lt;= maximum; valueA++) {
+            prime = true;
+            for (int valueB = 2; valueB * valueB &lt;= valueA ; valueB++) {
+                if (valueA % valueB == 0) {
+                    prime = false;
+                    break;
+                }
+            }
+            if (prime) list.add(valueA);
+        }
+    }
+}
+</code></pre>
+                    <p>以下に使用例を示します。</p>
+                    <pre><code>for (int prime_to_cube : new Prime(2143).list)
+</code></pre>
+                    <p>さらに、次のように String から Set
+                    への変換を模倣することができます。</p>
+                    <pre><code>// Check if all digits are unique by converting to a set
+s = String.valueOf(combined_val);
+if (new HashSet&lt;&gt;(Arrays.asList(s.split(&quot;&quot;))).size() == 10)
+</code></pre>
+                    <p>以下は、Ruby
+                    コードからの完全なリファクタリングです。</p>
+                    <p>prime_to_square
+                    ループの場合、必要な結果を得るには最大 100,000 の
+                    Prime リストを使用する必要がありました。</p>
+                    <pre><code>int f() {
+    // Determine the max &amp; min numbers that can be made with 10 distinct digits and no leading zeroes
+    long max_num = 9_876_543_210L;
+    long min_num = 1_023_456_789;
+
+    // Find the largest prime having a cube &lt;= max_num
+    long max_prime_to_cube = 2143;
+
+    int count = 0;
+
+    // Cube every prime up to 2143
+    long cubed_val, squared_val, combined_val;
+    String s;
+    for (long prime_to_cube : new Prime(2143).list) {
+        if (prime_to_cube &gt; max_prime_to_cube) return count;
+        cubed_val = prime_to_cube * prime_to_cube * prime_to_cube;
+
+        // Try adding the square of every prime until we exceed the maximum valid number
+        for(long prime_to_square : new Prime(100_000).list) {
+            squared_val = prime_to_square * prime_to_square;
+            combined_val = squared_val + cubed_val;
+            if (combined_val &lt; min_num) continue;
+            if (combined_val &gt; max_num) break;
+
+            // Check if all digits are unique by converting to a set
+            s = String.valueOf(combined_val);
+            if (new HashSet&lt;&gt;(Arrays.asList(s.split(&quot;&quot;))).size() == 10) {
+                count += 1;
+                System.out.printf(
+                    &quot;val: %s = %d^2 + %d^3, count:%d%n&quot;,
+                    s, prime_to_square, prime_to_cube, count);
+            }
+        }
+    }
+    return count;
+}
+</code></pre>
+                    <p>出力</p>
+                    <pre><code>val: 1328675409 = 36451^2 + 2^3, count:1
+val: 1478325609 = 38449^2 + 2^3, count:2
+val: 3085469217 = 55547^2 + 2^3, count:3
+val: 3507126849 = 59221^2 + 2^3, count:4
+...
+val: 9682357410 = 5689^2 + 2129^3, count:1267
+val: 9837162450 = 13681^2 + 2129^3, count:1268
+val: 9814362750 = 523^2 + 2141^3, count:1269
+val: 9815674302 = 1259^2 + 2141^3, count:1270
+1270
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

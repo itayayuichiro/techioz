@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 インポート マップでパッケージが見つかりませんでした | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 インポート マップでパッケージが見つかりませんでした",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 インポート
+マップでパッケージが見つかりませんでした</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、私はここで Rails
+                    の世界に来たのは初めてです。importmap
+                    で遊んでいて、この方法で Monako
+                    エディタをインストールしようとしています。</p>
+                    <pre><code>./bin/importmap pin monaco-editor
+</code></pre>
+                    <p>しかし、jspmの[“monaco-editor”]にパッケージが見つかりませんでした</p>
+                    <p>この方法も試しましたが、やはりエラーが発生しました</p>
+                    <pre><code>./bin/importmap pin monaco-editor --from unpkg  
+</code></pre>
+                    <p>私のプロジェクトに monaco-editor
+                    をインポートする方法について何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>CLI を使用する代わりに、次の行を
+                    config/importmap.rb に手動で追加します。</p>
+                    <pre><code>pin &#39;monaco-editor&#39;, to: &#39;https://cdn.jsdelivr.net/npm/[email protected]/+esm&#39;
+</code></pre>
+                    <p>スティミュラスを使用している場合は、次のように単純なモナコエディタを起動して実行できます。</p>
+                    <pre><code>import { Controller } from &quot;@hotwired/stimulus&quot;
+import * as monaco from &#39;monaco-editor&#39;
+
+export default class extends Controller {
+  connect() {
+    monaco.editor.create(this.element)
+  }
+}
+</code></pre>
+                    <p>importmaps
+                    は、ブラウザがバンドラーを必要とせずに直接解釈できる純粋な
+                    esm
+                    モジュールに依存しています。ただし、monaco-editor
+                    プロジェクトはインポート ‘./actionbar.css’
+                    を使用しています。 ESM
+                    ディストリビューションの構文。これはまだ JavaScript
+                    標準に含まれていないため、現在その構文をサポートしているブラウザはありません
+                    (少なくとも 2023 年には WICG
+                    の提案とウェブキットの更新情報を確認してください)。したがって、基礎となる
+                    API がこれらの行を読み取るときに JavaScript
+                    エラーを受け取るため、importmaps
+                    コマンドも失敗します。私は個人的に次のエラーを受け取りました。</p>
+                    <pre><code>{&quot;error&quot;:&quot;Error: \n  \tfont-display: block;\n&gt; \tsrc: url(./codicon.ttf) format(\&quot;truetype\&quot;);\n                                              ^\n  }\n\nError parsing https://ga.jspm.io/npm:[email protected]/esm/vs/base/browser/ui/codicons/codicon/codicon.css:9:45&quot;}
+</code></pre>
+                    <pre><code>{&quot;error&quot;:&quot;Error: Module not found: https://cdn.jsdelivr.net/npm/[email protected]/esm/vs/basic-languages/monaco.contribution imported from https://cdn.jsdelivr.net/npm/[email protected]/esm/vs/editor/editor.main.js&quot;}
+</code></pre>
+                    <p>ここでまだエラーがスローされるかどうかを自分で確認することもできます。おそらくいつか
+                    JavaScript 標準が拡張されるか、マイクロソフトが npm
+                    パッケージをそのままブラウザに準拠するように調整するでしょう。</p>
+                    <p><span class="citation"
+                    data-cites="steventrouble">@steventrouble</span>
+                    は、動作する ESM モジュールを指す cdn URL
+                    を含む次のコード スニペットを投稿しました。</p>
+                    <pre><code>&lt;script type=&quot;module&quot;&gt;
+  import * as monaco from &#39;https://cdn.jsdelivr.net/npm/[email protected]/+esm&#39;;
+
+  monaco.editor.create(document.querySelector(&#39;.monaco&#39;));
+&lt;/script&gt;
+&lt;div class=&quot;monaco&quot; style=&quot;min-height: 100px&quot;&gt;&lt;/div&gt;
+</code></pre>
+                    <p>悲しいことに、+esm cdn リンクは依然として
+                    Microsoft 独自のフォントをロードしようとする CSS
+                    を提供します。そのため、ブラウザコンソールに次のエラーが表示されます。</p>
+                    <pre><code>GET http://localhost:3000/codicon.ttf net::ERR_ABORTED 404 (Not Found)
+</code></pre>
+                    <p>そして、Railsコンソールにはこれが表示されます</p>
+                    <pre><code>ActionController::RoutingError (No route matches [GET] &quot;/codicon.ttf&quot;):
+</code></pre>
+                    <p>それはあまり良くありません。しかし、エディターは依然として正常に動作し、フォントも私には良いように見えます。しかしとにかく、私はその問題を取り除くための醜いハックを思いつきました。これは、config/routes.rb
+                    ファイルに次の行を追加することになります。</p>
+                    <pre><code>get &#39;codicon.ttf&#39;, to: redirect(&#39;https://cdn.jsdelivr.net/npm/[email protected]/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

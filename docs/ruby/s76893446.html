@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ビューからカスタム リソース パスを参照する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ビューからカスタム リソース パスを参照する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ビューからカスタム リソース
+パスを参照する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ビューからカスタムコントローラーメソッド「load」を呼び出したいと思います。ビュー内で呼び出すパスをどのように呼び出すべきかを理解するのに苦労しています。私のroutes.rbには次のコードがあります。</p>
+                    <pre><code>Rails.application.routes.draw do
+  resources :merchants_files, except: [:edit] do
+    member do
+      post &#39;load&#39;, :as =&gt; :load
+    end
+  end
+</code></pre>
+                    <p>Merchants_files_controller.rb
+                    コントローラーには次のアクションがあります。</p>
+                    <pre><code>def load    
+    CSV.foreach(@merchants_file.merchants_csv, headers: true, col_sep: &quot;;&quot;) do |merchant|
+      Merchant.create!(merchant.to_hash)
+    end
+    respond_to do |format|
+      format.html { redirect_to merchants_files_url, notice: &quot;Merchants loaded.&quot; }
+    end    
+  end
+</code></pre>
+                    <p>表示ビューで、アクションをロードするための正しいパスを参照しようとします。</p>
+                    <pre><code>&lt;p style=&quot;color: green&quot;&gt;&lt;%= notice %&gt;&lt;/p&gt;
+
+&lt;%= render @merchants_file %&gt;
+
+&lt;div&gt;
+  &lt;%= link_to &quot;Back to merchants files&quot;, merchants_files_path %&gt;
+  &lt;%= button_to &quot;Load the merchants file&quot;, merchants_file_load_path, method: :post %&gt;
+  &lt;%= button_to &quot;Destroy this merchants file&quot;, @merchants_file, method: :delete %&gt;
+&lt;/div&gt;
+
+</code></pre>
+                    <p>Merchants_file_load_path
+                    以外の別のパス名を試してみましたが、常にこの名前の変数が存在しないというエラーが表示されます。ビューからカスタム
+                    パスを参照するにはどうすればよいですか?カスタム
+                    コントローラー
+                    アクションを適切に登録し、ビュー内のカスタム
+                    パス変数でそれを参照する方法を理解するのに苦労しています。</p>
+                    <p>Rails7.0.6を使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私自身それを発見しました。まず、コードを次のように単純化しました。</p>
+                    <pre><code>Rails.application.routes.draw do
+  resources :merchants_files, except: [:edit] do
+    member do
+      post :load
+    end
+  end
+</code></pre>
+                    <p>次に、これが私の作業ビューです。</p>
+                    <pre><code>&lt;p style=&quot;color: green&quot;&gt;&lt;%= notice %&gt;&lt;/p&gt;
+
+&lt;%= render @merchants_file %&gt;
+
+&lt;div&gt;
+  &lt;%= link_to &quot;Back to merchants files&quot;, merchants_files_path %&gt;
+  &lt;%= button_to &quot;Load the merchants file&quot;, load_merchants_file_path, method: :post %&gt;
+  &lt;%= button_to &quot;Destroy this merchants file&quot;, @merchants_file, method: :delete %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>Rails コードを書く感覚が好きです -
+                    まるで英語でテキストを書いているような感じです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

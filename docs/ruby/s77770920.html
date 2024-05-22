@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでネストされたルートを持つクラスのshowアクションを呼び出す方法は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでネストされたルートを持つクラスのshowアクションを呼び出す方法は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでネストされたルートを持つクラスのshowアクションを呼び出す方法は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ネストされたルートで show アクションを呼び出す do
+                    ブロックをどのように定義または作成しますか?</p>
+                    <p>ネストされたルートで show アクションを呼び出す do
+                    ブロックをどのように定義または作成しますか?</p>
+                    <p>求人を掲載するすべての企業にショーアクションを呼びかけることを検討しています。</p>
+                    <p>ジョブインデックスコントローラー</p>
+                    <pre><code>def index
+    @companies = Company.all
+    @jobs = Job.all.order(&quot;created_at ASC&quot;)
+end
+</code></pre>
+                    <p>ジョブショーコントローラー</p>
+                    <pre><code>def show
+    @company = Company.find(params[:company_id])
+    @job = @company.jobs.find(params[:id])
+  end
+</code></pre>
+                    <p>ルート</p>
+                    <pre><code>resources :companies do
+    resources :jobs
+end
+</code></pre>
+                    <p>鉄道路線</p>
+                    <pre><code>company_job GET    /companies/:company_id/jobs/:id(.:format)                  jobs#show
+</code></pre>
+                    <p>企業モデル</p>
+                    <pre><code>has_many :jobs, dependent: :destroy
+</code></pre>
+                    <p>ジョブモデル</p>
+                    <pre><code>belongs_to :company, optional: true
+</code></pre>
+                    <p>現在のジョブインデックスページのブロックを実行します</p>
+                    <pre><code>&lt;% @companies.jobs.each do |job| %&gt;
+   &lt;%= link_to company_jobs_path(@company) %&gt; #show action trying to call for the company posting the job
+&lt;% end %&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここにはいくつかの問題があります。</p>
+                    <p>まず、company_jobs_path は、show
+                    アクションではなく、index アクションです。
+                    company_job_path は、表示アクション
+                    ヘルパーです。</p>
+                    <p>次に、link_to の最初の引数は、href
+                    ではなく、リンクのテキストである必要があります。</p>
+                    <p>したがって、ネストされたルートの場合は、ブロック内で会社と仕事の両方を指定する必要があります。</p>
+                    <pre><code>link_to &quot;Some text&quot;, company_job_path(@company, job)
+</code></pre>
+                    <p>編集：実際、ブロックラッパーに@companyの代わりに<span
+                    class="citation"
+                    data-cites="companiesがあることに気づきました">@companiesがあることに気づきました</span>。したがって、それも修正する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

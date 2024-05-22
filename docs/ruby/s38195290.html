@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで生成されたバイトコードを実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで生成されたバイトコードを実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで生成されたバイトコードを実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby スクリプト言語を初めて使用します。</p>
+                    <p>私はRubyでバイトコードを生成する方法を学んでいました。
+                    バイトコードを生成するための答えを見つけました。</p>
+                    <p>しかし、生成されたバイトコードを実行する方法がわかりません。インターネットで検索しましたが、これに対する答えは見つかりませんでした。</p>
+                    <p>バイトコードの生成:-</p>
+                    <pre><code>puts RubyVM::InstructionSequence.compile(&quot;x = 50; x &gt; 100 ? &#39;foo&#39; : &#39;bar&#39;&quot;).disassemble
+</code></pre>
+                    <p>出力は、</p>
+                    <pre><code>== disasm: &lt;RubyVM::InstructionSequence:&lt;compiled&gt;@&lt;compiled&gt;&gt;==========
+local table (size: 2, argc: 0 [opts: 0, rest: -1, post: 0, block: -1] s1)
+[ 2] x          
+0000 trace            1                                               (   1)
+0002 putobject        50
+0004 setlocal         x
+0006 trace            1
+0008 getlocal         x
+0010 putobject        100
+0012 opt_gt           &lt;ic:1&gt;
+0014 branchunless     20
+0016 putstring        &quot;foo&quot;
+0018 leave            
+0019 pop              
+0020 putstring        &quot;bar&quot;
+0022 leave            
+</code></pre>
+                    <p>生成されたバイトコードを使用して同じスクリプトを実行する方法がわかりません。</p>
+                    <p>誰かこれを実行する方法を教えてください。</p>
+                    <p>前もって感謝します！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>TL;DR; .eval メソッドを探しています。</p>
+                    <p>.compile メソッドは RubyVM::structSequence
+                    クラスのインスタンスを返します。このクラスには、「コンパイルされた」命令を評価/実行する
+                    .eval メソッドがあります。</p>
+                    <pre><code>iseq = RubyVM::InstructionSequence.compile(&quot;x = 50; x &gt; 100 ? &#39;foo&#39; : &#39;bar&#39;&quot;)    
+iseq.eval       # =&gt; &quot;bar&quot;
+</code></pre>
+                    <p>または、ワンライナー:</p>
+                    <pre><code>RubyVM::InstructionSequence.compile(&quot;x = 50; x &gt; 100 ? &#39;foo&#39; : &#39;bar&#39;&quot;).eval
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

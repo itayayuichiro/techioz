@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>認証ありまたは認証なしでドキュメントを生成する rswag | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "認証ありまたは認証なしでドキュメントを生成する rswag",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>認証ありまたは認証なしでドキュメントを生成する
+rswag</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>JWT ベアラー トークンを受け入れる API
+                    があります。予想された結果：</p>
+                    <p>私の考えでは、過去に自分の認証が成功しているかどうかすらわからない
+                    API
+                    に取り組んだことがあります…このトークンに間違ったキーを使用しているのでしょうか?そこで、ユーザーに「トークンを取得しましたが、正しくありません」と知らせました。</p>
+                    <p>問題は次のとおりです。rswag
+                    を使用する場合、認証トークンを送信することと認証トークンを送信しないことの両方をテストする方法がわかりません。</p>
+                    <pre><code># frozen_string_literal: true
+
+require &#39;rails_helper&#39;
+
+RSpec.configure do |config|
+  # Specify a root folder where Swagger JSON files are generated
+  # NOTE: If you&#39;re using the rswag-api to serve API descriptions, you&#39;ll need
+  # to ensure that it&#39;s configured to serve Swagger from the same folder
+  config.swagger_root = Rails.root.join(&#39;swagger&#39;).to_s
+
+  # Define one or more Swagger documents and provide global metadata for each one
+  # When you run the &#39;rswag:specs:swaggerize&#39; rake task, the complete Swagger will
+  # be generated at the provided relative path under swagger_root
+  # By default, the operations defined in spec files are added to the first
+  # document below. You can override this behavior by adding a swagger_doc tag to the
+  # the root example_group in your specs, e.g. describe &#39;...&#39;, swagger_doc: &#39;v2/swagger.json&#39;
+  config.swagger_docs = {
+    &#39;v1/swagger.yaml&#39; =&gt; {
+      openapi: &#39;3.0.1&#39;,
+      info: {
+        title: &#39;My API&#39;,
+        version: &#39;v1&#39;
+      },
+      paths: {},
+      servers: [
+        {
+          url: &#39;https://{defaultHost}&#39;,
+          variables: {
+            defaultHost: {
+              default: &#39;www.example.com&#39;
+            }
+          }
+        }
+      ],
+      components: {
+        securitySchemes: {
+          AuthToken: {
+            type: :http, scheme: :bearer, bearerFormat: JWT
+          }
+        }
+      },
+      security: [ { AuthToken: [] } ]
+    }
+  }
+
+  # Specify the format of the output Swagger file when running &#39;rswag:specs:swaggerize&#39;.
+  # The swagger_docs configuration option has the filename including format in
+  # the key, this may want to be changed to avoid putting yaml in json files.
+  # Defaults to json. Accepts &#39;:json&#39; and &#39;:yaml&#39;.
+  config.swagger_format = :yaml
+end
+</code></pre>
+                    <p>テスト:</p>
+                    <pre><code>RSpec.describe &#39;api/v1/unicorns&#39;, type: :request do
+
+  path &#39;/unicorns.json&#39; do
+
+    let(:user) { create(:perceptyx_owner) }
+    let(:account) { create(:account, owners: [user]) }
+
+    get &#39;retrieves a list of accessible unicorns&#39; do
+      tags &#39;unicorns&#39;
+      produces &#39;application/vnd.api+json&#39;
+      security [ {AuthToken: [], NoAuth: []} ]
+      response &#39;200&#39;, &#39;properly authenticated request&#39; do
+        let(:Authorization) { JWT.encode({ auth: { user_id: user.pyx_user_id } }, nil, &#39;none&#39;) }
+        run_test!
+      end
+
+      response &#39;400&#39;, &#39;malformatted auth token&#39; do
+        let(:Authorization) { &#39;AAABBBCCCDDDDEEE-invalid&#39; }
+        run_test!
+      end
+
+      response &#39;401&#39;, &#39;no authentication&#39; do
+        # it&#39;s not clear how you would run a test that did
+        # not include a bearer token header -- this tests results
+        # in &quot;undefined method `Authorization&#39;&quot;
+ 
+        run_test!
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>ここで別の securityScheme
+                    リストを使用して、アプリが無視する ApiKeyAuth
+                    のような二次認証を設定することを考えました。しかし、デフォルトではなくテストにセキュリティを設定しようとすると、それは個々の「応答」ではなく「パス」内のすべてのテストに適用されるようです。</p>
+                    <p>また、「Authorization」を nil
+                    に設定しようとしました…しかし、明らかに値のないキーが送信されました。それは同じではありません。</p>
+                    <p>これはできるでしょうか?どうやって？これをドキュメントで確認する段階まではまだ行っていませんが、この質問の一部ではありませんが、そこで成功するために何ができるかについてのヒントがあれば幸いです。
+                    :)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Authorization を nil に設定してみてください。</p>
+                    <pre><code>response &#39;401&#39;, &#39;no authentication&#39; do
+  let(:Authorization) { }
+
+  run_test!
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

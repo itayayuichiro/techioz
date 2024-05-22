@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby および PostgreSQL の単一行モード | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby および PostgreSQL の単一行モード",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby および PostgreSQL の単一行モード</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby を使用して PostgreSQL DB
+                    から行をフェッチしています。これは、pg gem サイト
+                    (https://deveiate.org/code/pg/PG/Result.html)
+                    で説明されているように、単一行モードで行われます。</p>
+                    <pre><code>conn.send_query( &quot;first SQL query&quot; )
+conn.set_single_row_mode
+conn.get_result.stream_each do |row|
+    # do something with the received row of the first query
+end
+</code></pre>
+                    <p>期待どおり、結果セットのすべての行を個別に取得します。ただし、大きな結果セットの場合、Ruby
+                    は結果セットをメモリ内に保持するようです。これにより、メモリが不足すると
+                    Ruby プログラムが終了します。</p>
+                    <p>すでに処理された行のスペースを解放する方法はありますか?
+                    clear() または autoclear
+                    を使用する必要があると思いますか?しかし、それをどのように使用するのか、正確に何をクリアすればよいのかわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>find_each accept を使用してみます (LIMIT と
+                    OFFSET を追加)</p>
+                    <pre><code>limit  = 1000
+offset = 0
+
+while do
+  conn.send_query(&quot;SELECT * FROM users LIMIT #{limit} OFFSET #{offset}&quot;)
+  conn.set_single_row_mode
+  records = conn.get_result
+
+  if records.any?
+    limit  += 1000
+    offset += limit
+    sleep(5)
+  else
+    break
+  end
+  records.stream_each do |row|
+    # do something with the received row of the first query
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

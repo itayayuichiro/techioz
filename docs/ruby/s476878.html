@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>256 色、前景色と背景 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "256 色、前景色と背景",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>256 色、前景色と背景</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは 2
+                    つのスクリプトの物語であり、前の質問に関連しています。</p>
+                    <p>2 つのスクリプトは http://gist.github.com/50692
+                    にあります。 ansi.rb スクリプトは、256 色すべてを
+                    256 色の背景色すべてに表示します。 ncurses.rb
+                    スクリプトは 256
+                    色すべての前景色を表示しますが、背景には基本の 16
+                    色が表示され、点滅や反転ビデオなどのさまざまな属性が循環しているようです。</p>
+                    <p>それで何が与えられるのでしょうか？これは、色のペアに符号付き整数を使用するという
+                    ncurses のバグですか? (つまり、「tput Colors」では
+                    256 と表示されますが、「tputpairs」では 65536
+                    ではなく 32767 と表示されます)
+                    その場合、色のペアの前半は正しく表示されますが、後半は繰り返されるか、int
+                    として属性に入ります。包みます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その理由は、Debian や Amazon AMI
+                    を含むほとんどのディストリビューションが使用する現在のバージョンを含む、ABI
+                    6 より前の ncurses では、COLOR_PAIR(n) が 256
+                    を超える定義されたペアを参照できないためです。これは、COLOR_PAIR(n)
+                    の引数が chtype 型であるためです。 。下位 8
+                    ビットは色のペアを選択し、残りは特定の端末属性のビットフラグの論理和として扱われます。サンプル
+                    コードでペア番号 255
+                    を超えようとすると、点滅、反転、下線などが表示されるのはこのためです。</p>
+                    <p>これはかなり残念なことなので、プログラム内でキューを使用して
+                    init_pair()
+                    を使用してオンザフライで色を定義し、妥協案として最も最近使用されていないペアを上書きする予定です。私は
+                    ncurses のメンテナーである Thomas Dickey
+                    に、一時的に ncurses
+                    の外に出て生の端末コードを記述し、その後 ncurses
+                    に戻る方法があるかどうかを尋ねる手紙を書きました。彼の返事はこうだった。</p>
+                    <p>この解決策には落とし穴が多すぎるように思えますが、ncurses
+                    プログラムで 256 を超える同時ペアが絶対に必要な場合
+                    (inverse
+                    属性で偽装できるペアはカウントしません)、これを行う必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

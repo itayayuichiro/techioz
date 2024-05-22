@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JR gemでリソースごとの最大ページサイズ構成を指定する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JR gemでリソースごとの最大ページサイズ構成を指定する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JR
+gemでリソースごとの最大ページサイズ構成を指定する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>したがって、jsonapi-resources
+                    gemを使用するレールアプリケーションがあり、グローバル構成でこの構成を指定しました</p>
+                    <pre><code>JSONAPI.configure do |config|
+  config.maximum_page_size = 1000
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://jsonapi-resources.com/v0.10/guide/basic_usage.html</p>
+                    <p>ただし、別の API リソース (/api/logs など)
+                    でカスタムの minimum_page_size
+                    を使用したいと考えています。</p>
+                    <pre><code>module Api
+  class LogResource &lt; ApplicationResource
+    immutable
+    model_name &#39;Api::Log&#39;
+    primary_key :uuid
+
+    def self.default_sort
+      [{ field: &#39;time_start&#39;, direction: :desc }]
+    end
+  end
+end
+</code></pre>
+                    <p>SO私の質問は、この特定のJSON
+                    APIリソースに対してのみ構成を指定する方法ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ソース
+                    コードから判断できる限り、maximum_page_size
+                    はリソース
+                    レベルで直接オーバーライドできないため、これを処理する最善の方法はカスタム
+                    Paginator を実装することのようです。</p>
+                    <p>与えられた例では、次のような単純なものが機能すると思います。</p>
+                    <pre><code>class LimitedPageSizePaginator &lt; PagedPaginator 
+  MAX_PAGE_SIZE = 100 
+  def initialize(params) 
+    super
+    verify_page_size_limit
+  end 
+
+  private 
+    def verify_page_size_limit
+      if @size &gt; MAX_PAGE_SIZE
+        fail JSONAPI::Exceptions::InvalidPageValue.new(:size, @size,
+                detail: &quot;size exceeds maximum page size of #{MAX_PAGE_SIZE}.&quot;)
+      end
+    end 
+end 
+</code></pre>
+                    <p>これで、リソースのページネーターを指定できるようになります。</p>
+                    <pre><code>module Api
+  class LogResource &lt; ApplicationResource
+    immutable
+    model_name &#39;Api::Log&#39;
+    primary_key :uuid
+   
+    paginator :limited_page_size
+    
+    def self.default_sort
+      [{ field: &#39;time_start&#39;, direction: :desc }]
+    end
+  end
+end
+</code></pre>
+                    <p>これをより柔軟にする必要がある場合、たとえば、固定定数ではありません。次に、適切な制限を設定してオンザフライで動的にクラスを作成し、それをページネータとして利用するメソッドを作成する必要があります。</p>
+                    <pre><code>module PaginatorCreator 
+  class LimitedPaginator &lt; PagedPaginator 
+    class &lt;&lt; self 
+      attr_accessor :limit
+      def paginator_name
+        self.name.demodulize.underscore[..-11].to_sym
+      end 
+    end 
+
+    def initialize(params) 
+      super
+      verify_page_size_limit
+    end 
+
+    private 
+      def verify_page_size_limit
+        if @size &gt; self.class.limit
+          fail JSONAPI::Exceptions::InvalidPageValue.new(:size, @size,
+                  detail: &quot;size exceeds maximum page size of #{self.class.limit}.&quot;)
+        end
+      end 
+  end
+
+  def self.create_limited_paginator(resource:,limit:) 
+    klass = Object.const_set(&quot;#{resource.name.demodulize}LimitedPaginator&quot;,Class.new(LimitedPaginator)) 
+    klass.limit = limit
+    resource.paginator(klass.paginator_name)
+  end 
+end 
+</code></pre>
+                    <p>次に、次のように使用します</p>
+                    <pre><code>class LogResource &lt; ApplicationResource
+    PaginatorCreator.create_limited_paginator(resource: self, limit: 100)
+end  
+</code></pre>
+                    <p>注:
+                    私はこのライブラリを使用したことがないため、より良い解決策がある可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

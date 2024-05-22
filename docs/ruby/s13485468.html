@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでnil値をマッピングして削除する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでnil値をマッピングして削除する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでnil値をマッピングして削除する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>値を変更するか、値を nil
+                    に設定するマップがあります。次に、リストから nil
+                    エントリを削除したいと思います。リストを保存する必要はありません。</p>
+                    <p>これが私が現在持っているものです:</p>
+                    <pre><code># A simple example function, which returns a value or nil
+def transform(n)
+  rand &gt; 0.5 ? n * 10 : nil }
+end
+
+items.map! { |x| transform(x) } # [1, 2, 3, 4, 5] =&gt; [10, nil, 30, 40, nil]
+items.reject! { |x| x.nil? } # [10, nil, 30, 40, nil] =&gt; [10, 30, 40]
+</code></pre>
+                    <p>次のようにループを実行して、条件付きで別の配列に収集できることはわかっています。</p>
+                    <pre><code>new_items = []
+items.each do |x|
+    x = transform(x)
+    new_items.append(x) unless x.nil?
+end
+items = new_items
+</code></pre>
+                    <p>しかし、それはそれほど慣用的なものではないようです。
+                    nil
+                    を削除/除外して、関数をリストにマッピングする良い方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コンパクトを使用できます。</p>
+                    <pre><code>[1, nil, 3, nil, nil].compact
+=&gt; [1, 3] 
+</code></pre>
+                    <p>マップ ブロックの出力として nils
+                    を含む配列を取得し、そのブロックが条件付きで値を返そうとする場合は、コードの匂いがあり、ロジックを再考する必要があることを皆さんに思い出してもらいたいと思います。</p>
+                    <p>たとえば、次のようなことをしているとします。</p>
+                    <pre><code>[1,2,3].map{ |i|
+  if i % 2 == 0
+    i
+  end
+}
+# =&gt; [nil, 2, nil]
+</code></pre>
+                    <p>それならやめてください。代わりに、マップの前に、不要なものを拒否するか、必要なものを選択します。</p>
+                    <pre><code>[1,2,3].select{ |i| i % 2 == 0 }.map{ |i|
+  i
+}
+# =&gt; [2]
+</code></pre>
+                    <p>私は、正しく処理できなかったものを取り除くための最後の努力として、コンパクトを使用して混乱をクリーンアップすることを検討しています。通常、何が起こるかわからないためです。私たちは、プログラム内でどのような種類のデータが投げ込まれているかを常に知っておく必要があります。予期しない/不明なデータは不良です。作業中の配列に
+                    nils
+                    が含まれているのを見つけたときは、その存在理由を徹底的に調べ、Ruby
+                    が nils
+                    を生成して配列を選別して削除するという時間とメモリを無駄にするのではなく、配列を生成するコードを改善できるかどうかを確認します。それらは後で。</p>
+                    <pre><code>&#39;Just my $%0.2f.&#39; % [2.to_f/100]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

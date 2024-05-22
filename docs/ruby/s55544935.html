@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Paper_trail をアクション テキストで動作させるにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Paper_trail をアクション テキストで動作させるにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Paper_trail をアクション
+テキストで動作させるにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Paper Trail Gem を、body
+                    というテキスト列を持つ基本モデルの Article
+                    でうまくセットアップしました。ただし、アプリケーションにアクション
+                    テキストを実装し、記事モデルから列本文を削除した後、Paper
+                    Trail
+                    で関連する本文列の変更を追跡できなくなります。どうすればこれを機能させることができますか?</p>
+                    <p>免責事項: 私は Rails の初心者です。</p>
+                    <p>記事.rb</p>
+                    <pre><code>...
+  has_rich_text :body
+  has_paper_trail
+...
+</code></pre>
+                    <p>記事スキーマ (:body 列削除後)</p>
+                    <pre><code>  create_table &quot;articles&quot;, force: :cascade do |t|
+    t.string &quot;title&quot;
+    t.string &quot;slug&quot;
+    t.datetime &quot;archived_at&quot;
+    t.datetime &quot;published_at&quot;
+    ...
+  end
+</code></pre>
+                    <p>アクションテキストスキーマ</p>
+                    <pre><code>create_table &quot;action_text_rich_texts&quot;, force: :cascade do |t|
+    t.string &quot;name&quot;, null: false
+    t.text &quot;body&quot;
+    t.string &quot;record_type&quot;, null: false
+    t.bigint &quot;record_id&quot;, null: false
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.index [&quot;record_type&quot;, &quot;record_id&quot;, &quot;name&quot;], name: &quot;index_action_text_rich_texts_uniqueness&quot;, unique: true
+  end
+</code></pre>
+                    <p>以前と同じ機能をアプリに戻して、記事の本文に加えられた変更を確認したいと考えています。例えば。誰かが文を追加したり、単語を削除したりしました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答えを組み合わせるとうまくいきました。</p>
+                    <pre><code># frozen_string_literal: true
+
+ActiveSupport.on_load(:action_text_rich_text) do
+  ActionText::RichText.class_eval do
+    has_paper_trail
+  end
+end
+</code></pre>
+                    <p>lib/rich_text_paper_trail.rb
+                    でこのファイルがロードされていることを確認してください。たとえば、明示的に要求することで:
+                    require ‘rich_text_paper_trail’</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

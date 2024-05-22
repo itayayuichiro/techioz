@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 1.9.3 使用時の「証明書の検証に失敗しました」という OpenSSL エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 1.9.3 使用時の「証明書の検証に失敗しました」という OpenSSL エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 1.9.3
+使用時の「証明書の検証に失敗しました」という OpenSSL エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Mac OS 10.6.8 (rvm を使用してインストール) で
+                    Ruby 1.9.3p0 を使用しています。 GitHub
+                    でホストされているアプリケーション
+                    テンプレートを使用して新しい Rails
+                    アプリケーションを作成しようとすると、次のようになります
+                    (たとえば)。</p>
+                    <pre><code>
+$ rails new myapp -m https://github.com/RailsApps/rails3-application-templates/raw/master/rails3-mongoid-devise-template.rb -T -O
+</code></pre>
+                    <p>次のエラー メッセージが表示されます。</p>
+                    <pre><code>/Users/me/.rvm/rubies/ruby-1.9.3-p0/lib/ruby/1.9.1/net/http.rb:799:in `connect&#39;: SSL_connect 
+returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed 
+(OpenSSL::SSL::SSLError)
+</code></pre>
+                    <p>Ruby 言語インタープリターが OpenSSL を使用して
+                    GitHub に接続し、アプリケーション テンプレート
+                    ファイルをリクエストしていることを理解しています。
+                    GitHub では、すべての接続に SSL
+                    を使用する必要があります。 OpenSSL
+                    がサーバー証明書を検証できなかったため、接続は失敗しました。</p>
+                    <p>証明書ファイルをダウンロードすることで問題を解決できました。</p>
+                    <pre><code>$ cd /opt/local/etc/openssl
+$ sudo curl -O http://curl.haxx.se/ca/cacert.pem
+$ sudo mv cacert.pem cert.pem
+</code></pre>
+                    <p>Ruby 1.9.2を使用しても問題ありませんでした。 Ruby
+                    1.9.3
+                    で「証明書の検証に失敗しました」という問題が発生するのはなぜですか?これは
+                    Ruby 1.9.3 のバグですか? Mac OS 10.6.8
+                    に特有のものですか?私の解決策はこれを解決する正しい方法でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>正解には多くの可動部分が関係します。
+                    OS、Rubyのバージョン、OpenSSLのバージョン、Rubygemsのバージョンによって異なります。調べた結果記事を書きました。私の記事では、エラーの理由を説明し、さらに診断するための手順を示し、いくつかの回避策を示し、考えられる解決策を提案します。これは役に立ちます:</p>
+                    <p>OpenSSL エラーと Rails –
+                    証明書の検証に失敗しました</p>
+                    <p>GitHub
+                    上の関連するコミットと問題へのリンクもあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

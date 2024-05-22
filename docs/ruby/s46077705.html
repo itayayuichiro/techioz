@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>バンドラーを取得して特定のプラットフォーム用の gem をインストールする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "バンドラーを取得して特定のプラットフォーム用の gem をインストールする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>バンドラーを取得して特定のプラットフォーム用の
+gem をインストールする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロジェクトのログインには「fluent-logger」gemを使用しますが、これには「msgpack」が必要です。
+                    Bundle install を実行すると
+                    msgpack-1.1.0-x86-mingw32 が取り込まれ、Windows
+                    でそれが必要な場合に例外がスローされます。</p>
+                    <pre><code>kernel_require.rb:55:in `require&#39;: cannot load such file -- msgpack/msgpack (LoadError)
+</code></pre>
+                    <p>ただし、この問題には回避策があり、次のように
+                    –platform=ruby を指定して gem
+                    を再インストールするだけです。</p>
+                    <pre><code>gem uninstall msgpack
+gem install msgpack --platform=ruby
+</code></pre>
+                    <p>他の場所で示されているように、この要件をGemfileに入れようとしましたが（atmリンクが見つかりません）、何も起こりませんでした（前と同じようにmsgpack-1.1.0-x86-mingw32がインストールされました）。</p>
+                    <pre><code>gem &#39;msgpack&#39;, :platforms=&gt;:ruby  
+</code></pre>
+                    <p>念のため、私は Windows 7 で Ruby 1.9.3p551
+                    (および Bundler v 1.14.6) を使用しています。</p>
+                    <p>希望する人が自分で試してみることができるように、ソースの例を示します。</p>
+                    <p>Gemfile:</p>
+                    <pre><code>source &#39;http://rubygems.org&#39;
+
+ruby &#39;1.9.3&#39;
+
+gem &#39;fluent-logger&#39;
+gem &#39;msgpack&#39;, :platforms=&gt;:ruby_19 
+#for windows local dev msgpack needs to be installed with --platform=ruby
+</code></pre>
+                    <p>foo.rb</p>
+                    <pre><code>require &#39;fluent-logger&#39;
+
+logger= Fluent::Logger::FluentLogger.new
+#logger.post(&#39;idx&#39;,{message:&#39;it works&#39;})
+puts &#39;worked&#39;
+</code></pre>
+                    <p>ロガーは有効な接続を作成しませんが、接続が完了すれば素晴らしいことです。
+                    (ここで唯一重要なことは、Gemfile
+                    が正しいバージョンの msgpack (私の場合は 1.1.0
+                    ではなく 1.1.0-x86-mingw32)
+                    を取り込まないということです)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>http://bundler.io/man/gemfile.5.html</p>
+                    <p>上記からコピーして貼り付けます。</p>
+                    <p>したがって、あなたの場合、試してみてください</p>
+                    <pre><code>gem &#39;msgpack&#39;, :platforms=&gt;:ruby_19
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

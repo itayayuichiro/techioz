@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で Node.JS サーバーを実行 - Kramdown 数学エンジン | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で Node.JS サーバーを実行 - Kramdown 数学エンジン",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で Node.JS サーバーを実行 - Kramdown
+数学エンジン</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、私は Jekyll と Kramdown
+                    を使用して、マークダウンで書かれた投稿を HTML
+                    にレンダリングしています。私の投稿には多くの数学が含まれています。
+                    KaTeX gemを使用しています。これは私の _config.yml
+                    ファイルにあります。</p>
+                    <pre><code>kramdown:
+  math_engine: katex
+</code></pre>
+                    <p>これはコードの一部です。それは機能しますが、これは非常に遅いです。ブログ全体のレンダリングには約
+                    250 秒かかります。これは、execjs
+                    ライブラリを使用して katex.js
+                    を実行することが原因で発生します。</p>
+                    <pre><code>ExecJS.compile(open(PATH_TO_JS).read).call(&quot;katex.renderToString&quot;, toRender, {displayMode: dm))
+</code></pre>
+                    <p>Node.JS を繰り返し作った人を github
+                    で見つけました。彼のソリューションを実装したところ、レンダリング時間が
+                    250 秒から 6
+                    秒に短縮されました。しかし、コード自体を見たとき、私の目は血を流し始めました。彼のソリューションは、stdio
+                    を使用して Node.JS
+                    サーバーと通信します。これは彼のコードの例です:</p>
+                    <p>_plugins/katex.rb:</p>
+                    <pre><code>require &#39;execjs&#39;
+
+module Jekyll
+  module Tags
+    class KatexBlock &lt; Liquid::Block
+
+      def initialize(tag, markup, tokens)
+        super
+        @markup = markup
+      end
+
+      def render(context)
+        File.open(&quot;scripts/katex_server/in&quot;, &#39;w&#39;) {
+          |file| file.write(&quot;#{@markup}\n&quot; + super(context))
+        }
+
+        return File.read(&quot;scripts/katex_server/out&quot;)
+      end
+    end
+  end
+end
+
+Liquid::Template.register_tag(&#39;latex&#39;, Jekyll::Tags::KatexBlock)
+</code></pre>
+                    <p>スクリプト/katex_server/サーバー:</p>
+                    <pre><code>#!/bin/node
+
+const katex = require(&#39;./katex.min.js&#39;);
+const readline = require(&#39;readline&#39;);
+const fs = require(&#39;fs&#39;);
+const path = require(&#39;path&#39;);
+
+function recursive_stream() {
+    var is = fs.createReadStream(path.join(__dirname, &#39;in&#39;));
+
+    is.on(&quot;data&quot;, function(data) {
+        request = data.toString();
+        parameters = request.split(&quot;\n&quot;)[0];
+        request = request.substring(parameters.length + 1);
+        parameters = parameters.trim().split(/\s&quot;/);
+
+        os = fs.createWriteStream(path.join(__dirname, &#39;out&#39;))
+        os.end(katex.renderToString(request, {
+            displayMode: parameters.includes(&quot;display&quot;)
+        }));
+
+        recursive_stream();
+    }); 
+}
+
+recursive_stream();
+</code></pre>
+                    <p>Ruby スクリプト内で Node.JS
+                    サーバーを実行するにはどうすればよいですか? katex.js
+                    を使用してラテックスをレンダリングするためにそれを使用するにはどうすればよいですか?</p>
+                    <p>助けてくれてありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>説明からあなたの問題を理解した限りでは、Ruby
+                    アプリで katex.js
+                    を使用する方法を見つける必要があります。</p>
+                    <p>このために、Ruby アプリケーション内で Node.js
+                    を実行する必要はありません。代わりに、このライブラリを使用するための
+                    HTTP エンドポイントを提供する別の Web サービスを
+                    Node.js で作成できます。将来、docker と kubernetes
+                    を使用することにした場合、このアプローチを使用すると、すぐに優れた水平スケーラビリティを得ることができます。また、このアプローチでは、Ruby
+                    サーバーに多くの依存関係が生じる一方を他方に埋め込むソリューションとは異なり、サービスを非常にうまく分離できます。</p>
+                    <p>このような Web
+                    サービスを作成するには、コードを大幅に変更する必要さえなく、エンドポイントを定義してコードをそれにラップするだけです。</p>
+                    <p>次に、Ruby
+                    側で、Faraday.get(‘url_of_your_service’).body
+                    のような http
+                    呼び出しを実行して、レンダリングされたテンプレートを取得します。
+                    kubernetes/aws などを使用する場合、nodejs Web
+                    サーバーはほとんど同じマシンまたは同じクラスター内にあるため、これは高速に機能します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

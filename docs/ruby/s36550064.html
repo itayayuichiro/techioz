@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby関数に配列を渡す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby関数に配列を渡す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby関数に配列を渡す</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>さて、Ruby
+                    が関数に引数を渡す方法に混乱してしまいました。
+                    Rubyが値渡しであることをドキュメントで読みましたが、私の場合は参照渡しのようです
+                    問題は次のとおりです。</p>
+                    <pre><code>def buble_sort(arr) 
+unordered = true
+while unordered
+    unordered = false
+    for i in (1..arr.size-1)
+        if(arr[i-1] &gt; arr[i])
+            arr[i-1], arr[i] = arr[i], arr[i-1] 
+            unordered = true;
+        end
+    end
+end
+arr
+end
+</code></pre>
+                    <p>Ruby は arr
+                    値を値で渡すため、このメソッドを呼び出しても arr
+                    値を変更するべきではありません。ただし、私の場合、元の配列が変更されます。なぜ？
+                    コード：</p>
+                    <pre><code>p &quot;#{arr} before sort&quot; # =&gt; &quot;[85, -4, 1, 2, 55, 23, 0] before sort&quot;
+p buble_sort(arr) # =&gt; [-4, 0, 1, 2, 23, 55, 85]
+p &quot;#{arr} after sort&quot; # =&gt; &quot;[-4, 0, 1, 2, 23, 55, 85] after sort&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それを理解するには、変数とその変数が何を表すかを区別する必要があります。次の例を考えてみましょう。</p>
+                    <pre><code>items = [1, 2, 3]
+# the variable items points to an array we just instantiated
+items = [4, 5, 6]
+# items now points to a new array
+</code></pre>
+                    <p>Ruby
+                    が引数を参照渡しした場合、受け取った引数を使用してメソッド内でこれを行うと、呼び出し元によってメソッドに公開される変数が新しい場所を指すようになります。</p>
+                    <pre><code>items = [1, 2, 3]
+def my_method array
+    array = [4, 5, 6]
+    return array
+end
+my_method(items) # --&gt; [4, 5, 6]
+items # --&gt; [1, 2, 3]
+# if ruby passed arguments by reference, items would now be [4, 5, 6]
+</code></pre>
+                    <p>Ruby
+                    は引数を値で渡しますが、受け取った値は、呼び出されたものと同じメモリ内の場所への参照です。言い換えれば、クローンや複製ではなく、同じオブジェクトが得られます。</p>
+                    <pre><code>items = [1, 2, 3]
+def my_method array
+    array &lt;&lt; 4
+    return array
+end
+my_method(items) # --&gt; [1, 2, 3, 4]
+items # --&gt; [1, 2, 3, 4]
+</code></pre>
+                    <p>メソッドの引数に副作用を与えないようにしたい場合は、メソッドのクローンを作成できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

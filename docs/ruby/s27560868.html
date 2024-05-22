@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で rspec を実行するときに環境変数を変更するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で rspec を実行するときに環境変数を変更するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で rspec
+を実行するときに環境変数を変更するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかの Ruby スクリプトがあり、rspec
+                    でテストしています。</p>
+                    <p>私は環境を (今のところ) env.rb
+                    ファイルに入れて、ローカルでアクセスできるようにし、本番環境では設定変数に入れられるようにしています。</p>
+                    <p>しかし、rspec
+                    を実行するときは、別の環境変数が必要になります。 2
+                    つの使用例:</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたはできる</p>
+                    <p>私は個人的に、オブジェクトを作成し、その環境変数値をコンストラクターに渡すときにのみ
+                    ENV 変数を使用することを好みます。これにより、ENV
+                    を気にせずにオブジェクト
+                    クラスをテストでき、他のオブジェクトを環境変数で初期化するオブジェクトをテストできます。環境変数を使用して作成をアサートするだけです。</p>
+                    <p>したがって、次のように変更します</p>
+                    <pre><code>class Client
+  def initialize
+    @restclient = RestClient::Resource.new(ENV[&quot;API_URL&quot;])
+  end
+end
+</code></pre>
+                    <p>に</p>
+                    <pre><code>class Client
+  def initialize(url)
+    @restclient = RestClient::Resource.new(url)
+  end
+end
+</code></pre>
+                    <p>そして、そのインスタンスを初期化しているものを何でも持ってから、環境変数の値を渡します</p>
+                    <pre><code>def fetch_content
+  client = Client.new(ENV[&quot;API_URL&quot;])
+  # ...
+end
+</code></pre>
+                    <p>この方法では、環境変数を気にせずに URL
+                    を渡すだけで Client
+                    クラスをテストでき、クライアントをインスタンス化するクラスを次のようにテストできます。</p>
+                    <pre><code>it &quot;uses client&quot; do
+  ENV[&quot;API_URL&quot;] = &quot;foo.com&quot;
+  expect(Client).to receive(:new).with(ENV[&quot;API_URL&quot;])  
+  subject.fetch_content
+end
+</code></pre>
+                    <p>環境変数の更新に関する 1 つの問題は、変更がテスト
+                    スイートの残りの部分全体にわたって持続し、一部のテストでその変更が存在すると予想していない場合に問題が発生する可能性があることです。このような場合は、次のように値をモックできます。</p>
+                    <pre><code>expect(ENV).to receive(:[]).with(&quot;API_URL&quot;).and_return(&quot;foo.com&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

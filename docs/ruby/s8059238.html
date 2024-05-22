@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 3 で has_many :through 関係のコントローラーとビューを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 3 で has_many :through 関係のコントローラーとビューを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 3 で has_many :through
+関係のコントローラーとビューを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails で has_many :through
+                    関係のモデル命令を作成する方法を示すチュートリアルは数多くありますが、これらの関係を作成および編集するためのフォームを設定するプロセスに関連する記事はあまりないようです。ユーザーが
+                    Rails
+                    アプリでこの種の関係を管理できるようにするインターフェイスを作成する方法について、支援
+                    (または良い例) を探しています。</p>
+                    <p>シナリオは次のとおりです。</p>
+                    <p>私のモデルは次のとおりです。</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  has_many :relationships
+  has_many :athletes, :through =&gt; :relationships
+end
+
+class Athlete &lt; ActiveRecord :: Base
+  has_many :relationships
+  has_many :users, :through =&gt; :relationships
+end
+
+class Relationship &lt; ActiveRecord :: Base
+  belongs_to :users
+  belongs_to :athletes
+end
+</code></pre>
+                    <p>したがって、次のステップは、ユーザーとアスリートの関係
+                    (コーチ、親などの役割)
+                    の作成、関係の編集、または関係の破棄を可能にするビューとコントローラーを構築することです。</p>
+                    <p>最終的に、私の目標は、ユーザーがアスリートを作成し、関連する関係を選択できるシナリオを作成することです。</p>
+                    <p>残念ながら、モデルの説明や has_many
+                    関係の例以上のものを提供する具体的なチュートリアルやリファレンスは見つかりません。</p>
+                    <p>この問題を簡単なレベルで解決できるリンクや例を持っている人がいれば、残りをカスタマイズできるはずです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでのユーザー モデルとアスリート
+                    モデル間の関係は、本質的に、has_and_belongs_to_many
+                    関係 (HABTM)
+                    です。あなたと行ったり来たりすることで、これらの関係を築くための最善の方法が何であるかについて混乱しているようです。</p>
+                    <p>ActiveRecord の関連付けに関するドキュメント、特に
+                    HABTM
+                    関係に関するドキュメントから読み始めるとよいでしょう。</p>
+                    <p>モデルの設定は問題ありません。 HABTM
+                    関係の設定が完了したので、次のことができます。
+                    Athlete モデルと User
+                    モデルはどちらも非常に単純で、文字列である name
+                    属性だけを持っていると仮定します。これで、次のようなコードを実行できるようになります
+                    (これは、rails
+                    コンソールからのコンソール出力です)。</p>
+                    <pre><code>User.create(:name =&gt; &quot;Jeff&quot;)
+usr = User.first
+=&gt; #&lt;User id: 1, name: &quot;Jeff&quot;&gt;
+usr.athletes
+=&gt; []
+atl = usr.athletes.create(:name =&gt; &quot;Mike&quot;)
+=&gt; #&lt;Athlete id: 1, name: &quot;Mike&quot;&gt;
+</code></pre>
+                    <p>上の行は、Mike という名前のユーザーを作成し、この
+                    2
+                    つをリンクするための適切な属性を持つ関係エントリを自動的に作成します。それで、今これを呼び出すと:</p>
+                    <pre><code>usr.athletes
+=&gt; [#&lt;Athlete id: 1, name: &quot;Mike&quot;&gt;]
+</code></pre>
+                    <p>ここで、アスリートの作成時にユーザーが自分自身とアスリートの間の関係を指定できるようにしたい場合は、文字列型の関係フィールドを持つように
+                    Relationship クラスを設定し、関係を作成するときに
+                    (上に表示したように)
+                    、次のようなことができます。</p>
+                    <pre><code>rel = usr.relationships.where(:user_id =&gt; usr.id, :athlete_id =&gt; atl.id).first
+=&gt; #&lt;Relationship id: 1, user_id: 1, athlete_id: 2, :relation =&gt; nil&gt;
+rel.relation = &quot;Friend&quot;
+rel.save
+=&gt; #&lt;Relationship id: 1, user_id: 1, athlete_id: 2, :relation =&gt; &quot;Friend&quot;&gt;
+</code></pre>
+                    <p>これが私の元の答えより役立つことを願っています。ご質問がございましたらお知らせください。そして、上で述べた
+                    ActiveRecord Associations
+                    のドキュメントを必ず参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

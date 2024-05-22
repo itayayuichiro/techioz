@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>検証エラーが奇数回の試行でのみ表示されるのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "検証エラーが奇数回の試行でのみ表示されるのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>検証エラーが奇数回の試行でのみ表示されるのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このビューhtml.erbがあります</p>
+                    <pre><code>&lt;h1&gt;Edit&lt;/h1&gt;
+
+&lt;%= render &quot;form&quot;, appointment: @appointment, from: @source %&gt;
+
+&lt;div&gt;
+  &lt;% if params[:source] == &quot;confirmed&quot; %&gt;
+    &lt;%= link_to &quot;Volver atras&quot;, confirmed_path %&gt;
+  &lt;% elsif params[:source] == &quot;request&quot; %&gt;
+    &lt;%= link_to &quot;Volver atras&quot;, requests_path %&gt;
+  &lt;% elsif params[:source] == &quot;user&quot; %&gt;
+    &lt;%= link_to &quot;Volver atras&quot;, @appointment %&gt; |
+  &lt;% end %&gt;  
+&lt;/div&gt;
+</code></pre>
+                    <p>形式は次のとおりです。</p>
+                    <pre><code>&lt;%= form_with(model: appointment) do |form| %&gt;
+  &lt;% if appointment.errors.any? %&gt;
+    &lt;div style=&quot;color: red&quot;&gt;
+      &lt;h2&gt; Tu turno tiene &lt;%= appointment.errors.count %&gt; error/es:&lt;/h2&gt;
+
+      &lt;ul&gt;
+        &lt;% appointment.errors.each do |error| %&gt;
+          &lt;li&gt;&lt;%= error.full_message.split(&quot; &quot;)[1..].join(&quot; &quot;) %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+
+  &lt;div&gt;
+    &lt;%= form.label :time, style: &quot;display: block&quot; %&gt;
+    &lt;%= form.datetime_field :time%&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;%= form.hidden_field :source, value: @from %&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>そして私のアポイントコントローラー:</p>
+                    <pre><code>def update
+    respond_to do |format|
+      ant= @appointment.state
+
+      if params[:appointment][:source] == &quot;request&quot; 
+        @appointment.state= 3
+
+        if @appointment.update(appointment_params)
+          format.html { redirect_to requests_path, notice: &quot;Turno actualizado, espere la confirmación.&quot; }
+          format.json { render :show, status: :ok, location: @appointment }
+        else
+          @appointment.state= ant 
+          format.html { render :edit, status: :unprocessable_entity }
+          format.json { render json: @appointment.errors, status: :unprocessable_entity }
+        end
+    end
+end
+</code></pre>
+                    <p>したがって、ビュー内で無効な時間を選択すると、警告するエラーが表示されます。問題は、2
+                    回目に間違えると、警告は表示されず、時間フィールドはその時間にリセットされます。私は以前に経験しました（これは最初は発生せず、画面にエラーが表示されても継続します）。
+                    3回目はうまくいきましたが、4回目はまた同じことが起こりました</p>
+                    <p>Ruby on Rails
+                    は初めてなので、何をすればよいのかよくわかりませんでした</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>編集アクションで <span class="citation"
+                    data-cites="source">@source</span>
+                    の値を設定してください。</p>
+                    <p>更新が失敗すると、「編集」ビューが表示され、編集アクションのコードは実行されません。</p>
+                    <p>したがって、フォームが送信されてエラーが発生した後に
+                    <span class="citation"
+                    data-cites="source">@source</span>
+                    の値を設定することもできます。</p>
+                    <pre><code>else
+          @appointment.state= ant 
+
+          # set value for @source here, ex:
+          @source = params[:appointment][:source]
+
+          format.html { render :edit, status: :unprocessable_entity }
+          format.json { render json: @appointment.errors, status: :unprocessable_entity }
+        end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

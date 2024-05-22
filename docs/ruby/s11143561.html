@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku db:pull Taps Load Error: ロードするファイルがありません – pg | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku db:pull Taps Load Error: ロードするファイルがありません – pg",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku db:pull Taps Load Error:
+ロードするファイルがありません – pg</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 1.9.2-p320 で Heroku の Taps
+                    を使用した次のような「db」コマンドを使用すると、次のエラーが発生しました。</p>
+                    <pre><code>heroku db:pull --app my-app
+</code></pre>
+                    <p>これにより、次のようなエラーが発生します。</p>
+                    <pre><code>Taps Load Error: no such file to load -- sqlite3
+</code></pre>
+                    <p>-または-</p>
+                    <pre><code>Taps Load Error: no such file to load -- pg
+</code></pre>
+                    <p>(はい、ところで、私は postgres
+                    (ローカルで正常に実行されています) と sqlite3
+                    の両方を含むすべての正しい gem
+                    を持っています。また、タップと heroku gem
+                    をアンインストール、再インストール、更新し、それらを含めたり含めなかったりしています。私は
+                    Rails 3.2.6 を実行しています)。</p>
+                    <p>「タイム ゾーン
+                    ディスプレイスメント」エラーを引き起こす既知のバグがあります。つまり、taps
+                    gem を使用すると heroku db:push
+                    が機能しないという既知のバグがありますが、この問題に直接対処する
+                    SO 投稿は見たことがありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Taps は、postgres
+                    インスタンス間でデータを移行するときに使用する推奨ツールではなくなりました。代わりに、heroku-pg-transfer
+                    を試してみてください。</p>
+                    <p>これは、運用データベースのいずれか、または新しい
+                    Heroku postgres dev
+                    または基本プランを使用している場合にのみ機能します。まだ古い共有データベース
+                    プランを使用している場合は、新しい開発プランに切り替えることをお勧めします。</p>
+                    <p>まず、Heraku でデータベースの URL
+                    を見つけます。</p>
+                    <pre><code>$ heroku config:get DATABASE_URL
+postgres://yada:[email protected]:5432/123
+</code></pre>
+                    <p>次に、heroku データベースからローカル
+                    データベースに転送します。</p>
+                    <pre><code>$ heroku plugins:install https://github.com/ddollar/heroku-pg-transfer
+$ heroku pg:transfer -t postgres://localhost/dbname -f postgres://yada:yada@ec2.../123
+</code></pre>
+                    <p>heroku-pg-transfer ツールは postgres のネイティブ
+                    pg_dump
+                    機能を利用しているため、より予測可能で復元力の高いツールです。</p>
+                    <p>詳細については、こちらに書きました:「heroku
+                    pg:transfer を使用して Postres
+                    データベースを移行する」</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

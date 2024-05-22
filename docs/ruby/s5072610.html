@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby とお金、Rails アプリでお金の値を DB に保存するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby とお金、Rails アプリでお金の値を DB に保存するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby とお金、Rails アプリでお金の値を DB
+に保存するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    アプリに商品の価格を保存する際に、丸めの問題が発生しないようにしたいと考えています。</p>
+                    <p>どの mysql データ型を使用すればよいですか?
+                    また、それは Rails で何にマップされますか?</p>
+                    <p>精度を高めるために 10 桁の小数が必要です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は通貨を最低額面（ペンス、セントなど）の整数としてデータベースに保存し、これに対して計算を行うことを好みます。</p>
+                    <pre><code>add_column :product, :price, :integer
+</code></pre>
+                    <p>もちろん、フォームの入力と表示を人々が期待するフォームにする必要があるため、これを支援するためにモデルにいくつかのヘルパー
+                    メソッドを追加します。</p>
+                    <pre><code>class Product &lt; ActiveRecord::Base
+  def price_dollars
+    self.price / 100
+  end
+
+  def price_dollars=(val)
+    self.price = val * 100
+  end
+end
+</code></pre>
+                    <p>コンソールでは次の情報が得られます。</p>
+                    <pre><code>&gt; prod = Product.new
+=&gt; [snip]
+
+&gt; prod.price_dollars = 12.93
+=&gt; 12.93
+&gt; prod.price
+=&gt; 1293
+&gt; prod.price_dollars
+=&gt; 12.93
+
+&gt; prod.price = 1691
+=&gt; 1691
+&gt; prod.price_dollars
+=&gt; 16.91
+</code></pre>
+                    <p>おそらくどこかにこれをうまく処理するプラグインがあると思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

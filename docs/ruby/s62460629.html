@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュの配列を値でグループ化し、Ruby で構造 (ハッシュ) を保持する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュの配列を値でグループ化し、Ruby で構造 (ハッシュ) を保持する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュの配列を値でグループ化し、Ruby で構造
+(ハッシュ) を保持する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなハッシュがあります:</p>
+                    <pre><code>  hash = {
+    &#39;en-us&#39;: {
+      where: &#39;USA&#39;
+    },
+    &#39;en-us-zone2&#39;: {
+      where: &#39;USA&#39;
+    },
+    &#39;en-nl&#39;: {
+      where: &#39;Netherlands&#39;
+    },
+    &#39;en-pt&#39;: {
+      where: &#39;Portugal&#39;
+    },
+  }
+</code></pre>
+                    <p>そして、group_byを使用してそれらをグループ化しようとしました:</p>
+                    <pre><code>result = hash.group_by { |k,v| v[:where] }
+</code></pre>
+                    <p>ただし、ハッシュの配列ではなく、配列全体を返します。したがって、予想される結果と実際の結果は次のとおりです。</p>
+                    <pre><code>{ &quot;USA&quot;=&gt;  
+  [[:&quot;en-us&quot;, {:where=&gt;&quot;USA&quot;}], [:&quot;en-us-zone2&quot;, {:where=&gt;&quot;USA&quot;}]], 
+ &quot;Netherlands&quot;=&gt;
+  [[:&quot;en-nl&quot;, {:where=&gt;&quot;Netherlands&quot;}]],
+ &quot;Portugal&quot;=&gt;
+  [[:&quot;en-pt&quot;, {:where=&gt;&quot;Portugal&quot;}]]
+}
+</code></pre>
+                    <pre><code>{ &quot;USA&quot;=&gt;
+   [{:&quot;en-us&quot; =&gt; {:where=&gt;&quot;USA&quot;}}, {:&quot;en-us-zone2&quot; =&gt; {:where=&gt;&quot;USA&quot;}}]
+  &quot;Netherlands&quot;=&gt;
+   [{:&quot;en-nl&quot; =&gt; {:where=&gt;&quot;Netherlands&quot;}}]
+  &quot;Portugal&quot;=&gt;
+   [{:&quot;en-pt&quot; =&gt; {:where=&gt;&quot;Portugal&quot;}}]
+}
+</code></pre>
+                    <p>実際はハッシュの配列ではなく、配列の配列であることを参照してください。ハッシュ
+                    キーが最初の配列要素になります。</p>
+                    <p>:where
+                    に基づいてハッシュをグループ化するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは機能するはずです:</p>
+                    <pre><code>hash.group_by { |k,v| v[:where] }.each { |_, v| v.map! { |array| { array[0] =&gt; array[1] } } }
+</code></pre>
+                    <p>または、transform_values を使用して</p>
+                    <pre><code>hash.group_by { |k,v| v[:where] }.transform_values { |v| v.map { |array| {array[0] =&gt; array[1] } } }
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ruby-doc.org/core-2.4.0/Hash.html#method-i-transform_values</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

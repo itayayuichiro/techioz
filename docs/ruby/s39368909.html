@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の日付形式の検証 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の日付形式の検証",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の日付形式の検証</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>日付「2016-01-01」が正しい形式 (%Y-%m-%d)
+                    であることを確認する方法を教えてください。</p>
+                    <p>たとえば、日付が正しい形式であるかどうか、true
+                    または false を取得したいとします。</p>
+                    <p>疑似コード:</p>
+                    <pre><code>if (&#39;2016-01-01&#39; == (%Y-%m-%d))
+    puts date is valid
+else
+    puts date is not valid
+end
+</code></pre>
+                    <p>助けてください、</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>文字列の形式だけでなく、文字列が有効な日付を表すかどうかにも興味があるようです
+                    (たとえば、2016-01-32 は無効です)。</p>
+                    <pre><code>require &#39;date&#39;
+
+def validate_date(string)
+  format_ok = string.match(/\d{4}-\d{2}-\d{2}/)
+  parseable = Date.strptime(string, &#39;%Y-%m-%d&#39;) rescue false
+
+  if string == &#39;never&#39; || format_ok &amp;&amp; parseable
+    puts &quot;date is valid&quot;
+  else
+    puts &quot;date is not valid&quot;
+  end
+end
+
+validate_date(&#39;2016-01-01&#39;)
+#=&gt; &quot;date is valid&quot;
+
+validate_date(&#39;2016-01-32&#39;)
+#=&gt; &quot;date is not valid&quot;
+
+validate_date(&#39;01-01-2016&#39;)
+#=&gt; &quot;date is not valid&quot;
+
+validate_date(&#39;never&#39;)
+#=&gt; &quot;date is valid&quot;
+
+validate_date(&#39;today&#39;)
+#=&gt; &quot;date is not valid&quot;
+</code></pre>
+                    <p>または (true または false を返します):</p>
+                    <pre><code>require &#39;date&#39;
+
+def valid_date?(string)
+  return true if string == &#39;never&#39;
+
+  !!(string.match(/\d{4}-\d{2}-\d{2}/) &amp;&amp; Date.strptime(string, &#39;%Y-%m-%d&#39;))
+rescue ArgumentError
+  false
+end
+
+valid_date?(&#39;2016-01-01&#39;)
+#=&gt; true
+
+valid_date?(&#39;2016-01-32&#39;)
+#=&gt; false
+
+valid_date?(&#39;01-01-2016&#39;)
+#=&gt; false
+
+valid_date?(&#39;never&#39;)
+#=&gt; true
+
+valid_date?(&#39;today&#39;)
+#=&gt; false
+</code></pre>
+                    <p>注: Date.strptime
+                    は無効な日付に対して例外を発生させるため、そのような場合に
+                    false を返すにはレスキュー false が必要です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

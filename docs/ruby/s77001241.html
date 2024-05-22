@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7インポートマップとbulmaとjquery | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7インポートマップとbulmaとjquery",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7インポートマップとbulmaとjquery</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    7のインポートマップをjqueryとbulmaでうまく動作させるのに苦労しています。</p>
+                    <p>config/importmap.rb:</p>
+                    <pre><code>pin &quot;application&quot;, preload: true
+pin &quot;@hotwired/turbo-rails&quot;, to: &quot;turbo.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus&quot;, to: &quot;stimulus.min.js&quot;, preload: true
+pin &quot;@hotwired/stimulus-loading&quot;, to: &quot;stimulus-loading.js&quot;, preload: true
+pin_all_from &quot;app/javascript/controllers&quot;, under: &quot;controllers&quot;
+pin &quot;bulma&quot;, preload: true # @0.9.4
+pin &quot;jquery&quot;, preload: true # @3.7.0
+pin &quot;jquery-ujs&quot;, preload: true # @1.2.3
+pin &quot;jquery-ui&quot;, preload: true # @1.13.2
+</code></pre>
+                    <p>application.html.erb:</p>
+                    <pre><code> &lt;head&gt;
+  ...
+  &lt;%= csrf_meta_tags %&gt;
+  &lt;%= csp_meta_tag %&gt;
+
+  &lt;%= javascript_importmap_tags %&gt;
+  &lt;%= stylesheet_link_tag &quot;application&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+  &lt;%= favicon_link_tag asset_path(&quot;favicon.png&quot;) %&gt;
+  &lt;link rel=&quot;shortcut icon&quot; href=&quot;../images/fav_icon.png&quot; type=&quot;image/x-icon&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css&quot;&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css?family=Open+Sans&quot; rel=&quot;stylesheet&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://unpkg.com/bulma-modal-fx/dist/css/modal-fx.min.css&quot; /&gt;
+  &lt;/head&gt;
+</code></pre>
+                    <p>app/assets/javascripts/application.js:</p>
+                    <pre><code>import &quot;@hotwired/turbo-rails&quot;
+import &quot;controllers&quot;
+//= require jquery
+//= require jquery.turbolinks
+//= require jquery_ujs
+//= require turbolinks
+// require lightbox
+//= require_tree .
+//= require bulma
+</code></pre>
+                    <p>app/assets/config/manifest.js:</p>
+                    <pre><code>//= link_tree ../images
+//= link_directory ../stylesheets .css
+//= link_tree ../javascripts .js
+//= link_tree ../../../vendor/javascript .js
+//= link controllers/hello_controller.js
+//= link controllers/application.js
+//= link controllers/index.js
+</code></pre>
+                    <p>アプリ/javascript/application.js:</p>
+                    <pre><code>import { Application } from &quot;@hotwired/stimulus&quot;
+import &quot;controllers&quot;
+import &quot;bulma&quot;
+import * as jquery from &quot;jquery&quot;
+import &quot;jquery-ujs&quot;
+import &quot;jquery-ui&quot;
+
+window.jQuery = jquery
+window.$ = jquery
+
+const application = Application.start()
+
+// Configure Stimulus development experience
+application.debug = false
+window.Stimulus = application
+
+export { application }
+</code></pre>
+                    <p>アプリ/javascript/コントローラー/index.js</p>
+                    <pre><code>
+import { application } from &quot;controllers/application&quot;
+
+import { eagerLoadControllersFrom } from &quot;@hotwired/stimulus-loading&quot;
+eagerLoadControllersFrom(&quot;controllers&quot;, application)
+
+</code></pre>
+                    <p>JavaScript
+                    コンソールでアプリケーションをロードしようとすると、bulma
+                    スタイルは機能しているように見えますが、jquery
+                    は機能していません。 application.js で $
+                    を設定しているにもかかわらず、「Uncaught
+                    ReferenceError: $
+                    が定義されていません」というメッセージが表示されます。
+                    「Uncaught TypeError: The specifier
+                    “controllers/application” was a bare
+                    specifier」という別のエラーもあります。</p>
+                    <p>importmap
+                    を使用するのはこれが初めてで、npm、webpacker、yarn
+                    を切り出せるというアイデアは気に入っていますが、これらすべてのファイルがどのように連携して動作するかを解析するのに非常に苦労しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>新しい Rails
+                    アプリを作成するだけで、私が戻そうとしているセットアップを確認できます。</p>
+                    <p>このファイル
+                    app/assets/javascripts/application.js
+                    を削除します。application.js を 2
+                    つ持つことはできません。</p>
+                    <p>//= link_tree ../../javascript .js
+                    ですでにカバーされているため、これらは必要ありません。</p>
+                    <pre><code>//= link controllers/hello_controller.js
+//= link controllers/application.js
+//= link controllers/index.js
+</code></pre>
+                    <p>なぜスティミュラスの初期化をコピーするのかわかりませんが、それはすでにコントローラーディレクトリで行われています。</p>
+                    <pre><code>// app/assets/javascripts/application.js
+
+import &quot;jquery&quot;
+import &quot;@hotwired/turbo-rails&quot;
+import &quot;controllers&quot;
+</code></pre>
+                    <p>ターボリンクではなくターボを使用しています。
+                    Rails 7 には Rails UJS
+                    はありません。それを元に戻したくありません。</p>
+                    <p>ダウンロードする必要はありません。固定するだけです。</p>
+                    <pre><code>bin/importmap pin jquery -f jsdelivr
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/72290313/207090</p>
+                    <p>ブルマはCSSです:</p>
+                    <pre><code>&lt;!-- app/views/layouts/application.html --&gt;
+
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/[email protected]/css/bulma.min.css&quot;&gt;
+</code></pre>
+                    <p>または import (これはブラウザーが処理する単純な
+                    CSS インポートです):</p>
+                    <pre><code>/* app/assets/stylesheets/application.css */
+
+@import &quot;https://cdn.jsdelivr.net/npm/[email protected]/css/bulma.min.css&quot;;
+</code></pre>
+                    これは、ブラウザの
+                    <script type="importmap">
+                    <p>タグ内に表示されます。
+                    (コントローラーがどのようにすでに存在しているかを見てください):</p>
+                    <pre><code>$ bin/importmap json
+{
+  &quot;imports&quot;: {
+    &quot;application&quot;:                  &quot;/assets/application-c053fb992232353f27edaf9cd84a9062ed61672b85c0a69952d917f7488ff554.js&quot;,
+    &quot;@hotwired/turbo-rails&quot;:        &quot;/assets/turbo.min-f309baafa3ae5ad6ccee3e7362118b87678d792db8e8ab466c4fa284dd3a4700.js&quot;,
+    &quot;@hotwired/stimulus&quot;:           &quot;/assets/stimulus-1bd52683afde5c8ff5572f5d49429cea5bf7744ca636fcb830c015d8cccf353e.js&quot;,
+    &quot;@hotwired/stimulus-loading&quot;:   &quot;/assets/stimulus-loading-1fc59770fb1654500044afd3f5f6d7d00800e5be36746d55b94a2963a7a228aa.js&quot;,
+    &quot;jquery&quot;:                       &quot;https://cdn.jsdelivr.net/npm/[email protected]/dist/jquery.js&quot;,
+    &quot;controllers/application&quot;:      &quot;/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js&quot;,
+    &quot;controllers/hello_controller&quot;: &quot;/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js&quot;,
+    &quot;controllers&quot;:                  &quot;/assets/controllers/index-16af318b40862c438fd6ca780240ce4730b8591e53dc53315b75f360435cf905.js&quot;
+  }#    ^                             ^
+}  #    |                             |
+   #  names you use to import        urls browser uses to get it
+   #    |                             ^ 
+   #    |                             |
+   #    `------&gt;  mapped to  ---------&#39;
+</code></pre>
+                    <p>この JSON は、config/importmap.rb の pin および
+                    pin_all_from
+                    コマンドを使用して構築しているものです。そこに何かが表示されない場合は、完全な
+                    URL を使用しない限り、インポートできません。</p>
+                    <pre><code>import &quot;jquery&quot;;
+// works, because it is mapped to a jsdelivr url
+
+// without an import-map you can do this
+import &quot;https://cdn.jsdelivr.net/npm/[email protected]/dist/jquery.js&quot;;
+</code></pre>
+                    <p>ローカル
+                    ファイルについても同様で、マップするか、Rails
+                    用語で固定する必要があります。このプロセスはスプロケットを介してファイルを見つけます。しかし、私はここでそれをカバーしたと思います:</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/72855705/207090</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

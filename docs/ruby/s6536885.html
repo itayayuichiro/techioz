@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列の内容のみに基づく一貫した String#hash | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列の内容のみに基づく一貫した String#hash",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列の内容のみに基づく一貫した
+String#hash</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>目標: サーバーによって処理されるすべての URL を
+                    0、1、2、または 3
+                    にマップし、できるだけ均一に分散します。</p>
+                    <p>Ruby の String#hash
+                    メソッドのドキュメントには、「文字列の長さと内容に基づいてハッシュを返す」と書かれていますが、これがすべてではないことは明らかです。指定された文字列のハッシュは、インタープリタの呼び出し間で一貫性がありません。</p>
+                    <pre><code>$ irb
+ruby-1.9.2-p180 :001 &gt; &quot;foo&quot;.hash
+ =&gt; 360517580588231756 
+ruby-1.9.2-p180 :002 &gt; ^D
+
+$ irb
+ruby-1.9.2-p180 :001 &gt; &quot;foo&quot;.hash
+ =&gt; -2716152678666510148 
+</code></pre>
+                    <p>これは、特定の文字列のハッシュ値が、たとえばサーバー間で異なる可能性があることを意味します。
+                    Rails は内部で String#hash を使用して、URL パスを 4
+                    つのアセット ホストの 1 つにマッピングします
+                    (アプリのasset_host
+                    がそのように構成されている場合)。ただし、この機能は、マシン間の不整合のため、通常よりもはるかに効率が低くなります。異なるサーバーが同じ
+                    URL を異なるアセット
+                    ホストにマップする可能性があり、キャッシュの有効性が低下し、空が曇り、途中でお茶が冷めてしまい、優秀なプログラマーの評判が傷つきます。</p>
+                    <p>一般的なアプリの URL
+                    空間全体に効果的かつ迅速にハッシュを分散できる代替ハッシュ関数を提案していただけますか。最終的には
+                    4 つのアセット ホストの 1
+                    つにマッピングする必要があるため、できれば Fixnum
+                    を生成するハッシュ関数を提案していただけますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby のダイジェスト
+                    モジュールにはそのような機能がたくさんあります:
+                    http://ruby-doc.org/stdlib/libdoc/digest/rdoc/index.html</p>
+                    <p>簡単な例:</p>
+                    <pre><code>require &#39;digest/sha1&#39;
+Digest::SHA1.hexdigest(&quot;some string&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Vagrant CA 証明書の構成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Vagrant CA 証明書の構成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Vagrant CA 証明書の構成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>企業プロキシ サーバーおよび自己署名 CA
+                    証明書の背後で Vagrant
+                    コマンドを実行すると問題が発生します。環境変数
+                    HTTP_PROXY、HTTPS_PROXY、および HTTP_NO_PROXY
+                    変数を構成しました。</p>
+                    <p>すべての企業証明書を含む Java キー
+                    ストアがあります。 keytool コマンドの -exportcert
+                    オプションを多数のオプションとともに使用しました。
+                    openssl
+                    コマンドを多数のオプションとともに使用し、結果のファイルを
+                    Vagrant インストール内の埋め込み Ruby
+                    ディレクトリ内の複数の場所に配置しましたが、成功しませんでした。</p>
+                    <p>Rubyとcurlの設定に関する情報を含む多くのサイトを読みましたが、Vagrantコマンドを機能させることに成功しませんでした。私が見つけたすべての投稿は、Ruby
+                    と、Vagrant の組み込みコンポーネントとして Ruby
+                    を含む Vagrant
+                    で利用する方法が理解できないカールのオプションに焦点を当てています。</p>
+                    <p>Vagrant
+                    が企業プロキシを介してインターネットに正常に通信できるように、Java
+                    キー
+                    ストアから証明書を正しくエクスポートし、必要に応じて証明書を変換して結果のファイルを配置する方法についての手順を提供してください。</p>
+                    <p>Windows 7 上の Vagrant 1.9.5</p>
+                    <p>Vagrant インストール ディレクトリ C:<br />
+                    </p>
+                    <pre><code>C:\WorkArea&gt; vagrant plugin install vagrant.proxyconf
+
+ERROR:  SSL verification error at depth 3: self signed certificate in certificate chain (19)
+ERROR:  Root certificate is not trusted (/C=US/O=xxx xxx/OU=xxx xxx Certification Authority/CN=xxx xxx Root Certification Authority 01 G2)  
+SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed (https://api.rubygems.org/specs.4.8.gz)
+
+C:\WorkArea&gt; vagrant up
+
+Bringing machine &#39;default&#39; up with &#39;virtualbox&#39; provider...
+==&gt; default: Box &#39;puppetlabs/ubuntu-16.04-64-puppet&#39; could not be found. Attempting to find and install...
+    default: Box Provider: virtualbox
+    default: Box Version: &gt;= 0
+The box &#39;puppetlabs/ubuntu-16.04-64-puppet&#39; could not be found or
+could not be accessed in the remote catalog. If this is a private
+box on HashiCorp&#39;s Atlas, please verify you&#39;re logged in via
+`vagrant login`. Also, please double-check the name. The expanded
+URL and error message are shown below:
+URL: [&quot;https://atlas.hashicorp.com/puppetlabs/ubuntu-16.04-64-puppet&quot;]
+Error: SSL certificate problem: self signed certificate in certificate chain
+More details here: http://curl.haxx.se/docs/sslcerts.html
+curl performs SSL certificate verification by default, using a &quot;bundle&quot;
+of Certificate Authority (CA) public keys (CA certs). If the default
+bundle file isn&#39;t adequate, you can specify an alternate file
+using the --cacert option.
+If this HTTPS server uses a certificate signed by a CA represented in
+the bundle, the certificate verification probably failed due to a
+problem with the certificate (it might be expired, or the name might
+not match the domain name in the URL).
+If you&#39;d like to turn off curl&#39;s verification of the certificate, use
+the -k (or --insecure) option.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ルート証明書を正しい場所に配置していないようです。</p>
+                    <p>Vagrant
+                    をインストールしたディレクトリに移動し、埋め込まれているファイルを見つけます</p>
+                    <p>ファイルを結合しても機能しない場合は、環境内で
+                    SSL_CERT_FILE=/path/to/your/certs.pem を指定して
+                    vagrant
+                    を実行してみてください。これにより、企業証明書が適切にエクスポートされたことを検証できます。</p>
+                    <p>ルート証明書へのパス、ファイルと企業証明書の行末、SSL_CERT_FILE
+                    の構成方法、および SSL_CERT_FILE
+                    の値の構造方法は、プラットフォームによって異なります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

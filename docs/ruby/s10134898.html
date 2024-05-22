@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: 一度に 1 つのブール値フィールドのみが true に設定されるようにする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: 一度に 1 つのブール値フィールドのみが true に設定されるようにする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails: 一度に 1 つのブール値フィールドのみが
+true に設定されるようにする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>name:string、default:boolean
+                    のフィールドを持つモデルがあります。一度にデータベース内の
+                    1 つの項目のみを true に設定できるように、true
+                    値を一意にする必要があります。項目の残りの値をすべて
+                    false
+                    に設定するには、コントローラーで更新および新しいアクションを設定するにはどうすればよいですか?</p>
+                    <p>データベースに次の設定があるとします。</p>
+                    <pre><code>name:string | default:boolean |  
+Item1       | true            |  
+Item2       | false           |  
+Item3       | false           |  
+</code></pre>
+                    <p>Item2 のデフォルト値を true
+                    に変更すると、すべての項目をループして残りの項目を
+                    false に設定するので、一度に 1 つだけ true
+                    になるので、次のようになります。</p>
+                    <pre><code>name:string | default:boolean |  
+Item1       | false           |  
+Item2       | true            |  
+Item3       | false           | 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このコードは前の回答から抜粋され、わずかに簡略化されています。</p>
+                    <pre><code>def falsify_all_others
+  Item.where(&#39;id != ?&#39;, self.id).update_all(&quot;default = &#39;false&#39;&quot;)
+end
+</code></pre>
+                    <p>このメソッドはモデルの before_save
+                    コールバックで使用できます。</p>
+                    <p>実際には、次のように、どの値が「true」であるレコードのみを「改ざん」する方が良いでしょう。</p>
+                    <pre><code>Item.where(&#39;id != ? and default&#39;, self.id).update_all(&quot;default = &#39;false&#39;&quot;)
+</code></pre>
+                    <p>更新: コードを DRY に保つには、Item の代わりに
+                    self.class を使用します。</p>
+                    <pre><code>self.class.where(&#39;id != ? and default&#39;, self.id).update_all(&quot;default = &#39;false&#39;&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

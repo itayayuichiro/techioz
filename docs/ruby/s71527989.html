@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 + Turbo:turbo_stream は部分テンプレートの追加データで応答しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 + Turbo:turbo_stream は部分テンプレートの追加データで応答しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 + Turbo:turbo_stream
+は部分テンプレートの追加データで応答しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRails 7 +
+                    Turboをいじっていて、ユーザーリストのドロップダウンを持つフォームを作成しようとしています。フォームは新しい「ユニット」レコードを作成し、ユーザーをこのユニットに割り当てることができます。プランでは、ユニット
+                    レコードの所有者を検索して選択できるドロップダウンを作成します。問題は、ターボ
+                    ストリームが追加のデータ (コレクション)
+                    を返すことです。ネットワークリクエストを確認したところ、どうやらバックエンドがこのテンプレートに追加のデータを送信しているようです。この追加データなしで応答を作成し、部分的なテンプレートのみを返すにはどうすればよいですか?</p>
+                    <p>追加のデータ</p>
+                    <pre><code>[#&amp;lt;User id: 4, email: &amp;quot;[email protected]&amp;quot;, created_at: &amp;quot;2022-03-18 13:29:04.813660000 +0000&amp;quot;, updated_at: &amp;quot;2022-03-18 13:29:19.397311000 +0000&amp;quot;, first_name: nil, last_name: nil, phone: nil, meta: {}, account_id: 2&amp;gt;]
+</code></pre>
+                    <p>これが完全な応答です。</p>
+                    <pre><code>&lt;turbo-stream action=&quot;update&quot; target=&quot;owner_search_result&quot;&gt;&lt;template&gt;
+    &lt;li
+      id=user_4
+      class=&quot;hover:bg-blue-600 relative select-none py-2 pl-3 pr-9 text-gray-900 cursor-pointer&quot; id=&quot;option-0&quot;
+      role=&quot;option&quot; tabindex=&quot;-1&quot;&gt;
+      &lt;span class=&quot;block truncate&quot;&gt;
+        
+        
+      &lt;/span&gt;
+      &lt;span class=&quot;absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600&quot;&gt;
+        &lt;svg class=&quot;h-5 w-5&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 20 20&quot; fill=&quot;currentColor&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path fill-rule=&quot;evenodd&quot;
+            d=&quot;M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z&quot;
+            clip-rule=&quot;evenodd&quot; /&gt;
+        &lt;/svg&gt;
+      &lt;/span&gt;
+      &lt;span class=&quot;ml-2 truncate text-gray-500&quot;&gt;
+        [email protected]
+      &lt;/span&gt;
+    &lt;/li&gt;
+  [#&amp;lt;User id: 4, email: &amp;quot;[email protected]&amp;quot;, created_at: &amp;quot;2022-03-18 13:29:04.813660000 +0000&amp;quot;, updated_at: &amp;quot;2022-03-18 13:29:19.397311000 +0000&amp;quot;, first_name: nil, last_name: nil, phone: nil, meta: {}, account_id: 2&amp;gt;]&lt;/template&gt;&lt;/turbo-stream&gt;
+</code></pre>
+                    <p>これはユーザーコントローラーです</p>
+                    <pre><code>  def search
+    keyword = user_params[:keyword] || &quot;&quot;
+    @users = User.filter_by_email(keyword)
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.update(:owner_search_result, partial: &#39;users/unit_owner&#39;, locals: { users: @users })
+      end
+    end
+  end
+</code></pre>
+                    <p>部分的なものはこれです</p>
+                    <pre><code>
+
+  &lt;%= @users.each do |user| %&gt;
+    &lt;li
+      id=&lt;%= dom_id(user) %&gt;
+      class=&quot;hover:bg-blue-600 relative select-none py-2 pl-3 pr-9 text-gray-900 cursor-pointer&quot; id=&quot;option-0&quot;
+      role=&quot;option&quot; tabindex=&quot;-1&quot;&gt;
+      &lt;span class=&quot;block truncate&quot;&gt;
+        &lt;%= user.first_name %&gt;
+        &lt;%= user.last_name %&gt;
+      &lt;/span&gt;
+      &lt;span class=&quot;absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600&quot;&gt;
+        &lt;svg class=&quot;h-5 w-5&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 20 20&quot; fill=&quot;currentColor&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;path fill-rule=&quot;evenodd&quot;
+            d=&quot;M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z&quot;
+            clip-rule=&quot;evenodd&quot; /&gt;
+        &lt;/svg&gt;
+      &lt;/span&gt;
+      &lt;span class=&quot;ml-2 truncate text-gray-500&quot;&gt;
+        &lt;%= user.email %&gt;
+      &lt;/span&gt;
+    &lt;/li&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>どうもありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>交換する</p>
+                    <pre><code>&lt;%= @users.each do |user| %&gt;
+</code></pre>
+                    <p>部分的な先頭に</p>
+                    <pre><code>&lt;% @users.each do |user| %&gt;
+</code></pre>
+                    <p>各呼び出しの戻り値、つまりイテレータ自体をビューにレンダリングしたくないからです。
+                    = を削除する必要があることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の文字列を改行文字とスペース文字を考慮して最大長の文字列に分割します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の文字列を改行文字とスペース文字を考慮して最大長の文字列に分割します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+の文字列を改行文字とスペース文字を考慮して最大長の文字列に分割します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんな長い文章があります。</p>
+                    <pre><code>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum id augue id mattis. Praesent congue nisi quam, ac gravida enim viverra non. Vestibulum id interdum sapien, vitae volutpat nisi. Praesent id euismod ipsum. Vestibulum et pulvinar urna, id venenatis ante. Cras commodo eget ligula sit amet mattis. Maecenas congue turpis urna, a bibendum sem consequat nec.
+</code></pre>
+                    <p>これを（1行あたり最大50文字）に分割したいと思います。</p>
+                    <pre><code>Lorem ipsum dolor sit amet, consectetur adipiscing 
+elit. Duis vestibulum id augue id mattis. Praesent
+congue nisi quam, ac gravida enim viverra non. 
+Vestibulum id interdum sapien, vitae volutpat nisi. 
+Praesent id euismod ipsum. Vestibulum et pulvinar 
+urna, id venenatis ante. Cras commodo eget ligula 
+sit amet mattis. Maecenas congue turpis urna, a 
+bibendum sem consequat nec.
+</code></pre>
+                    <p>単語を分割したくないので、次のことは行いません。</p>
+                    <pre><code>Lorem ipsum dolor sit amet, consectetur adipiscing
+ elit. Duis vestibulum id augue id mattis. Praesen
+t congue nisi quam, ac gravida enim viverra non. V
+estibulum id interdum sapien, vitae volutpat nisi.
+ Praesent id euismod ipsum. Vestibulum et pulvinar
+ urna, id venenatis ante. Cras commodo eget ligula
+ sit amet mattis. Maecenas congue turpis urna, a b
+ibendum sem consequat nec.
+</code></pre>
+                    <p>String#index、String#splitなどを試してみました。</p>
+                    <p>レールはありません、ありがとう。</p>
+                    <p>私の最善の解決策で貪欲さが機能しない理由がわかりません。</p>
+                    <pre><code>str = &quot;Lorem ipsum [etc.]&quot;
+p str
+       .scan(/[^ \n]{1,50}/)
+       .join(&quot;\n&quot;)
+</code></pre>
+                    <p>まだ：</p>
+                    <pre><code>str = &quot;(again)and again)and again)&quot;
+
+p str.scan(/\(.+\)/).first
+# =&gt; &quot;(again)and again)and again)&quot;
+
+p str.scan(/\(.+?\)/).first
+# =&gt; &quot;(again)&quot;
+
+# My hope:
+p str.scan(/\(.{1,15}\)/).first
+# =&gt; &quot;(again)and again)&quot;
+</code></pre>
+                    <p>手伝ってくれてありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>text = &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum id augue id mattis. Praesent congue nisi quam, ac gravida enim viverra non. Vestibulum id interdum sapien, vitae volutpat nisi. Praesent id euismod ipsum. Vestibulum et pulvinar urna, id venenatis ante. Cras commodo eget ligula sit amet mattis. Maecenas congue turpis urna, a bibendum sem consequat nec.&quot;
+
+def split_string(string, max_length)
+  string.scan(/\b.{1,#{max_length}}\b/m).join(&quot;\n&quot;)
+end
+
+puts split_string(text, 50)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

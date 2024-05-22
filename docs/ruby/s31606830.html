@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>メソッドが許可されていないレール | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "メソッドが許可されていないレール",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>メソッドが許可されていないレール</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コントローラーに対して ajax
+                    ポスト呼び出しを行っています。私のAjax呼び出しは次のとおりです。</p>
+                    <pre><code>$.ajax({
+  type:&#39;POST&#39;,
+  url:&#39;/chefUI/configure/save_roles&#39;,
+  data:{ app_name: appname, role_list: role_list},...});
+</code></pre>
+                    <p>私のルートファイルは次のとおりです。</p>
+                    <pre><code>scope &quot;/chefUI&quot; do
+    post &#39;/configure/save_roles&#39;, to: &#39;admin#update_app_roles&#39;
+end
+</code></pre>
+                    <p>そして、私のコントローラーには次のものがあります。</p>
+                    <pre><code>def update_app_roles
+    begin
+      application_name = params[&quot;app_name&quot;]
+      puts application_name
+      role_name_list = params[&quot;role_list&quot;]
+      puts role_name_list
+      if application_name and !role_name_list.empty?
+      ...
+</code></pre>
+                    <p>そして、「405 Method Not
+                    allowed」という応答が返されます。何が原因でこれが起こるのかわかりません。誰かがここで私が欠けているものを理解するのを手伝ってくれませんか？私の投稿リクエストがコントローラーに届かない理由はわかりません。</p>
+                    <p>ログファイル</p>
+                    <pre><code>Started GET &quot;/chefUI/configure/app_roles?app_name=MFRH&quot; for 127.0.0.1 at 2015-07-24 15:08:51 +0530 Processing by AdminController#app_roles as */*   Parameters: {&quot;app_name&quot;=&gt;&quot;MFRH&quot;}   [1m[35mUser Load (1.0ms)[0m  SELECT  &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;username&quot; = $1 LIMIT 1  [[&quot;username&quot;, &quot;an9v0s7&quot;]]   [1m[36mApplication Load (2.0ms)[0m  [1mSELECT  &quot;applications&quot;.* FROM &quot;applications&quot; WHERE (lower(app_name) = &#39;mfrh&#39;)  ORDER BY &quot;applications&quot;.&quot;id&quot; ASC LIMIT 1[0m   [1m[35mRole Load (1.0ms)[0m  SELECT &quot;roles&quot;.* FROM &quot;roles&quot; INNER JOIN &quot;application_roles&quot; ON &quot;roles&quot;.&quot;id&quot; = &quot;application_roles&quot;.&quot;role_id&quot; WHERE &quot;application_roles&quot;.&quot;application_id&quot; = $1  ORDER BY roles.name ASC  [[&quot;application_id&quot;, 1]] Completed 200 OK in 217ms (Views: 0.0ms | ActiveRecord: 5.0ms)
+
+
+Started POST &quot;/chefUI/configure/save_roles&quot; for 127.0.0.1 at 2015-07-24 15:08:57 +0530
+</code></pre>
+                    <p>すべての投稿リクエストに対してその応答が得られていることがわかりました。以前はすべて動作していましたが、新しいモデルで大量に作成したのに、突然どれも動作しなくなりました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この問題は、これまで考えられていたよりも少し奥が深いです。</p>
+                    <p>Rails は、ルート パスとアセット
+                    ディレクトリが同じサブディレクトリにあることを好みません。</p>
+                    <p>投稿リクエストを行うと、許可されていないメソッドが表示されます。問題は、パスとアセット
+                    ディレクトリが重複できないことです。問題は、特にそのパス内の
+                    POST リクエストにあります。 Rails
+                    のどこかで、アセット ディレクトリに対するすべての非
+                    GET
+                    リクエストが無効になっているはずだと推測しています。</p>
+                    <pre><code>scope &quot;/chefUI&quot; do
+    post &#39;/configure/save_roles&#39;, to: &#39;admin#update_app_roles&#39;
+end
+
+config.assets.prefix=&quot;/chefUI/assets&quot;
+                                ^ You need this part so they don&#39;t overlap.
+</code></pre>
+                    <p>以下の非常に単純なアプリでは、メソッドが許可されていないというエラーが発生します。パス
+                    /welcome がルートとアセット
+                    プレフィックスに使用されているためです。</p>
+                    <p>ファイル: config/environment/development.rb</p>
+                    <pre><code>config.assets.prefix = &#39;/welcome&#39;
+</code></pre>
+                    <p>ファイル: config/routes.rb</p>
+                    <pre><code>resources :welcomes, path: &#39;welcomes&#39;, only: [&#39;index&#39;, &#39;create&#39;]
+</code></pre>
+                    <p>ファイル:
+                    app/controllers/welcomes_controller.rb</p>
+                    <pre><code>class WelcomesController &lt; ApplicationController
+  def index
+    @welcome = &#39;hello&#39;;
+  end
+
+  def create
+    @welcome = &#39;world&#39;;
+  end
+end
+</code></pre>
+                    <p>ファイル: app/views/welcomes/index.html.rb</p>
+                    <pre><code>&lt;%= form_for(@welcome) do |f| %&gt;
+    &lt;%= f.submit &#39;Submit&#39; %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ファイル: app/views/welcomes/create.html.rb</p>
+                    <pre><code>&lt;h1&gt;Welcomes#create&lt;/h1&gt;
+&lt;p&gt;Find me in app/views/welcomes/create.html.erb&lt;/p&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails タスクをサービスとして開始する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails タスクをサービスとして開始する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails タスクをサービスとして開始する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリケーションに Rails タスクとして TCP
+                    サーバーを記述しました。
+                    ただし、次のように開始できます。</p>
+                    <pre><code>  rails socketing:start  
+</code></pre>
+                    <p>そして、プロセスをバックグラウンドで実行し続けるタスクにしたい場合は、次のように変更してプロセスの実行が開始されます。</p>
+                    <pre><code>nohup rails socketing:start &amp;
+</code></pre>
+                    <p>1
+                    つのスレッドのみを停止するエラーが発生した場合、TCP
+                    サーバーにはマルチスレッドが実装されているため、バックグラウンドで動作し続けます。</p>
+                    <p>ここで、サービスを作成して有効にしたubuntuサーバーの起動時に、このプロセスがサービスによって開始されるようにしたいと思います。
+                    しかしコードブレイク
+                    抜け出す方法を提案していただけますか
+                    私のサービスは次のように書かれています:</p>
+                    <pre><code>[Unit]
+Description = TCP at 51234
+After = network.target
+
+[Service]
+Environment=&quot;HOME=/home/vidur&quot;
+ExecStart = /home/vidur/rails_app/tukaweb/custom_script.sh
+
+[Install]
+WantedBy = multi-user.target
+</code></pre>
+                    <p>私のcustom_script.shは次のとおりです:</p>
+                    <pre><code>#!/bin/bash
+
+ cd /home/vidur/rails_app/project_dir
+/home/vidur/.rbenv/shims/bundler exec rails socketing:start
+</code></pre>
+                    <p>次のようにサービスを開始します。</p>
+                    <pre><code>sudo systemctl start socketing.service
+</code></pre>
+                    <p>それは次のように o/p を与えます:</p>
+                    <pre><code>Jun 10 17:45:31 Vidur-PC systemd[1]: Started TCP at 51234.
+Jun 10 17:45:31 Vidur-PC systemd[1]: socketing.service: Succeeded.
+</code></pre>
+                    <p>ただし、rails タスクが開始されず、rails
+                    環境も認識されませんでした。
+                    私は次のようなレールタスクを持っています:</p>
+                    <pre><code>  task start: :environment do
+    require &#39;socket&#39;
+    puts &quot;Started TCP Server at PORT 53492&quot;
+    server = TCPServer.new 51324 # Server bound to port 51234
+   loop do
+      Thread.start(server.accept) do |client|
+      client.close
+    end
+   end
+
+    p &quot;result = #{result}&quot;
+    p &#39;Bye&#39;
+  end
+</code></pre>
+                    <p>このコードでは次のエラーが発生します。</p>
+                    <pre><code>Jun 10 19:16:40 Vidur-PC systemd[1]: Started TCP at 53492.
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: rake aborted!
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: ArgumentError: couldn&#39;t find login name -- expanding `~&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: /home/vidur/rails_app/tukaweb/config/application.rb:8:in `&lt;top (required)&gt;&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: /home/vidur/rails_app/tukaweb/Rakefile:4:in `require_relative&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: /home/vidur/rails_app/tukaweb/Rakefile:4:in `&lt;top (required)&gt;&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: /home/vidur/.rbenv/versions/2.7.2/bin/bundler:23:in `load&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: /home/vidur/.rbenv/versions/2.7.2/bin/bundler:23:in `&lt;main&gt;&#39;
+Jun 10 19:16:43 Vidur-PC custom_script.sh[60012]: (See full trace by running task with --trace)
+Jun 10 19:16:44 Vidur-PC systemd[1]: socketing.service: Main process exited, code=exited, status=1/FAILURE
+Jun 10 19:16:44 Vidur-PC systemd[1]: socketing.service: Failed with result &#39;exit-code&#39;.
+</code></pre>
+                    <p>更新された application.rb ファイル:</p>
+                    <pre><code>require_relative &#39;boot&#39;
+
+require &#39;rails/all&#39;
+
+# Require the gems listed in Gemfile, including any gems
+# you&#39;ve limited to :test, :development, or :production.
+Bundler.require(*Rails.groups)
+
+module TukaWeb
+  class Application &lt; Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 5.1
+    if Rails.env.development?
+        config.active_job.queue_adapter  = :async
+      else
+        config.active_job.queue_adapter  = :sidekiq
+    end
+
+    config.generators.javascript_engine = :js
+
+    config.action_dispatch.default_headers = {
+        &#39;Access-Control-Allow-Origin&#39; =&gt; &#39;https://tukadata.tukatech.com&#39;,
+        &#39;Access-Control-Request-Method&#39; =&gt; %w{GET POST OPTIONS}.join(&quot;,&quot;)
+    }
+    # Settings in config/environments/* take precedence over those specified here.
+    # Application configuration should go into files in config/initializers
+    # -- all .rb files in that directory are automatically loaded.
+  end
+end
+</code></pre>
+                    <p>tcp プロセス rake
+                    タスクが記載されていますが、root
+                    ユーザーのみが対象です。</p>
+                    <p>DB エラーが残っています:</p>
+                    <pre><code>`connect&#39;: Access denied for user &#39;root&#39;@&#39;localhost&#39;
+</code></pre>
+                    <p>ただし、プロセスを通常どおり実行すると、実行されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ファイルはフォルダー内にあります:
+                    /etc/systemd/system:</p>
+                    <pre><code>[Unit]
+Description=TCP Service
+After=network.target
+
+[Service]
+#Environment=&quot;HOME=/home/vidur&quot;
+ExecStart=/home/vidur/rails_apps/jquery_app/custom_script.sh
+Restart=always
+
+[Install]
+WantedBy = multi-user.target
+</code></pre>
+                    <p>必要に応じて次のコマンドも使用します。</p>
+                    <pre><code>sudo systemctl enable tcpstart
+sudo ufw allow 3005
+sudo service tcpstart start
+sudo service tcpstart status
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

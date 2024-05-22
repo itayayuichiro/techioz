@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カスタム Ruby クラスを使用した Enumerable#grep | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カスタム Ruby クラスを使用した Enumerable#grep",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カスタム Ruby クラスを使用した
+Enumerable#grep</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby 3.2
+                    を使用しており、(デモンストレーションの目的で)
+                    値の配列を格納するカスタム クラス Foo
+                    を持っています。</p>
+                    <p>私の制御下にない別のコード部分があります。これは、Enumerable#grep
+                    と Enumerable#grep_v
+                    を使用して配列内の文字列パターンを検索します。</p>
+                    <p>FooクラスをArray#grepで動作させたいと考えています。
+                    https://docs.ruby-lang.org/en/3.2/Enumerable.html#method-i-grep
+                    を調べたところ、次のように述べられています</p>
+                    <p>このように #=== メソッドを実装してみました</p>
+                    <pre><code>class Foo
+  def initialize(values)
+    @values = values
+  end
+
+  def ===(pattern)
+    @values.any? { |v| v.match?(pattern) }
+  end
+end
+</code></pre>
+                    <p>しかし、これはうまくいかないようです:</p>
+                    <pre><code>[Foo.new([&quot;foo&quot;, &quot;bar&quot;]), Foo.new([&quot;zoo&quot;])].grep(/oo/)
+=&gt; []
+</code></pre>
+                    <p>また、デバッガーを配置するか、def ===(pattern)
+                    内にステートメントを置くと、それが grep
+                    コマンドによって呼び出されないようであることがわかります。</p>
+                    <p>これがどのように機能するかについて何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Enumerable#grep のドキュメントをよく見てください
+                    [太字斜体の強調は私のもの]:</p>
+                    <p>パターンは === トリプルイコールケース包含 2
+                    項中置演算子の左側にあります。これは、メッセージ ===
+                    が要素ではなくパターンに送信されることを意味します。
+                    === トリプル等しい場合の包含 2
+                    項中置演算子は可換ではありません。</p>
+                    <p>オブジェクトを正規表現で一致させたい場合は、それを正規表現で一致できるもの、つまり文字列として表す必要があります。</p>
+                    <pre><code>class Foo
+  def initialize(values)
+    @values = values
+  end
+
+  def to_str = @values.join
+end
+
+[Foo.new(%w[foo bar]), Foo.new([&#39;zoo&#39;])].grep(/oo/)
+#=&gt; [#&lt;Foo:0xdeadbeef @values=[&quot;foo&quot;, &quot;bar&quot;]&gt;, #&lt;Foo:0xdeadbeef @values=[&quot;zoo&quot;]&gt;]
+</code></pre>
+                    <p>ただし、オブジェクトが実際に文字列である場合、つまり、文字列のサブタイプ/特殊化であるとみなせる場合にのみ、これを実行してください。</p>
+                    <p>「3 文字」変換メソッド
+                    (to_str、to_int、to_ary、to_float、to_hash
+                    など、もちろん、すべてが 3
+                    文字ではないことはわかっています)
+                    は、純粋にサブタイプであるオブジェクトに対してのみ実装する必要があります。つまり、to_str
+                    は String のサブタイプ (オブジェクト IS-A 文字列)
+                    であるオブジェクトによってのみ実装される必要がありますが、技術的な理由により
+                    String のサブクラスにすることはできません。</p>
+                    <p>Ruby コア ライブラリでどのオブジェクトが to_str
+                    を実装しているかを見ると、String と他の 2 つの 3
+                    つだけがあることがわかります。私なら、他の 2
+                    つは間違っているので実装すべきではないと主張します。
+                    to_int または to_float
+                    についても同様です。これらは慎重に使用する必要があります。</p>
+                    <p>これらは暗黙的な変換に使用され、それにはあらゆる危険が伴います。
+                    Foo#to_str
+                    を実装する場合は、文字列が予期されるすべての場所で
+                    Foo
+                    を暗黙的に文字列に変換することを本当に望んでおり、代わりに例外を発生させる必要はありません。</p>
+                    <p>これが言いたいのは、文字列ではない正規表現と何かを一致させようとするのは奇妙であるということです。それがあなたが望むものであると確信していますか、それともあなたのデザインに正しくない何かがあるのでしょうか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

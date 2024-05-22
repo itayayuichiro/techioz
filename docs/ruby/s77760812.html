@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関数を備えた Ruby イテレータ。リスト全体を反復せずに関数から最初の値を返します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関数を備えた Ruby イテレータ。リスト全体を反復せずに関数から最初の値を返します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関数を備えた Ruby
+イテレータ。リスト全体を反復せずに関数から最初の値を返します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列: arr=[x1, x2, x3…]
+                    と、関数が真実であることを示す arr の最初の x
+                    に基づいて値を返す関数があります。</p>
+                    <p>基本的に:</p>
+                    <pre><code># my_x is the return of func() 
+# with the first x in arr that func(x) is true
+# and the entire arr array is not processed.
+
+my_x=arr.ruby_magic{|x| func(x) } 
+
+my_x should be equal to first true value return of func(x)
+</code></pre>
+                    <p>arr の各 X
+                    が正規表現パターンであると仮定します。すべての正規表現を実行することなく、最初の一致からキャプチャ
+                    グループを返したいと考えています。</p>
+                    <p>Python では、next
+                    を使用してジェネレーターを作成します。真実が返されるまで各述語を実行し、その値を
+                    m
+                    に渡します。真実が返されない場合は、デフォルトとして
+                    None
+                    が使用されますが、そのデフォルトは何でも構いません。</p>
+                    <pre><code>import re 
+
+patterns=[r&quot;no match&quot;, r&quot;: (Value.*?pref)&quot;, r&quot;: (Value.*)&quot;, r&quot;etc...&quot;]
+
+s=&quot;&quot;&quot; 
+This is the input txt
+This is a match if the other is not found: Value 1
+
+This is the match I am looking for first: Value 1 pref
+
+Last line.
+&quot;&quot;&quot;
+
+val_I_want=next(
+        (m.group(1) for p in patterns 
+            if (m:=re.search(rf&#39;{p}&#39;, s))), None)
+</code></pre>
+                    <p>Ruby では同等のものを見つけられませんでした。</p>
+                    <p>明示的なループを実行できます。</p>
+                    <pre><code># s in the same multiline string as above...
+
+patterns=[/no match/, /: (Value.*?pref)/, /: (Value.*)/,/etc.../]
+
+val_I_want=nil 
+patterns.each{|p| 
+    m=p.match(s)
+    if m then
+        val_I_want=m[1]
+        break 
+    end     
+}
+# val_I_want is either nil or 
+# the first match capture group that is true
+</code></pre>
+                    <p>これが私が望む機能ですが、Python
+                    ジェネレーターと比較すると少し冗長に思えます。</p>
+                    <p>最初の値を述語として grep
+                    を試してみました。しかし、ここでの問題は、結果配列全体が次に使用される前に生成されることです。</p>
+                    <pre><code>patterns.grep(proc {|p| p.match(s)}) {|m| m.match(s)[1]}.to_enum
+# can then use .next on that.
+#BUT it runs though the entire array when all I want is the first
+
+#&lt;Enumerator: [&quot;Value 1 pref&quot;, &quot;Value 1&quot;]:each&gt;
+</code></pre>
+                    <p>find を試みましたが、キャプチャ
+                    グループではなく、true
+                    である最初のパターンが返されました。</p>
+                    <pre><code>&gt; e=patterns.find{|p| p.match(s) }
+=&gt; /: (Value.*?pref)/
+
+# Now I would have to rerun match with the pattern found to get the text
+</code></pre>
+                    <p>アイデアは？</p>
+                    <p>役立つアイデアをありがとうございました。 Ruby
+                    キットバッグの中でいくつかの新しいことを学びました。</p>
+                    <p>いくつか調べて試してみた結果、私にとって最良の方法は、Dogbert
+                    の Lazy.filter_map と Stefan の提案である s[regex,
+                    1] を組み合わせることだと思います。</p>
+                    <pre><code>val_I_want=patterns.lazy.filter_map { |p| s[p, 1] }.first
+</code></pre>
+                    <p>興味深いことに、構文 s[p, 1] は、[]
+                    演算子内の括弧のない動的正規表現 (Regexp.new
+                    “#{p.to_s}(.*)“)
+                    をサポートしていないため、魅力が損なわれます。</p>
+                    <p>私は最終的に使用しました:</p>
+                    <pre><code>patterns.lazy.filter_map { |p| card.match(&quot;#{p}(.*)&quot;)&amp;.[](1) }.first
+</code></pre>
+                    <p>しかし、これも機能します:</p>
+                    <pre><code>patterns.find{ |p| m = card.match(&quot;#{p}(.*)&quot;) and break m[1] }
+</code></pre>
+                    <p>より一般的なケースでは、次のようにすることができます。</p>
+                    <pre><code>def func(x)
+  # silly function for show
+  x*x
+end     
+
+arr=[1,3,5,6,7,8,9]
+
+p arr.lazy.filter_map { |x| (fx=func(x))&gt;30 ? [x,fx] : nil }.first
+# [6, 36]
+</code></pre>
+                    <p>そして、engineersmnky による私の .find
+                    の試みの修正に対する非常に名誉ある言及です。</p>
+                    <pre><code>val_I_want = patterns.find {|p| m = p.match(s) and break m[1] }
+   
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>.lazy.filter_map { .. }.first
+                    を使用できます。これにより、最初の真の値が見つかった後は要素のブロックは実行されません。</p>
+                    <pre><code>irb&gt; [1, 2, 3, 4, 5].lazy.filter_map { |x| p x; x &gt; 3 ? x * 2 : nil }.first
+1
+2
+3
+4
+=&gt; 8
+</code></pre>
+                    <p>これにより、3 より大きい最初の x に対して x * 2
+                    が返されます。私は p x
+                    を追加しました。このコードがリストの 5
+                    番目の要素を処理しないことを示します。</p>
+                    <p>正規表現の例:</p>
+                    <pre><code>irb&gt; regexes = [/(1)/, /(2)/, /(3)/]
+=&gt; [/(1)/, /(2)/, /(3)/]
+irb&gt; regexes.lazy.filter_map { |regex| p regex; regex.match(&quot;2&quot;)&amp;.[](1) }.first
+/(1)/
+/(2)/
+=&gt; &quot;2&quot;
+</code></pre>
+                    <p>以下のコメントで <span class="citation"
+                    data-cites="Stefan">@Stefan</span> が提案した
+                    String[Regexp, Integer] 構文を使用します。</p>
+                    <pre><code>regexes.lazy.filter_map { |regex| p regex; string[regex, 1] }.first
+</code></pre>
+                    <p>デモ：</p>
+                    <pre><code>irb&gt; regexes = [/(1)/, /(2)/, /(3)/]
+=&gt; [/(1)/, /(2)/, /(3)/]
+irb&gt; string = &quot;2&quot;
+=&gt; &quot;2&quot;
+irb&gt; regexes.lazy.filter_map { |regex| p regex; string[regex, 1] }.first
+/(1)/
+/(2)/
+=&gt; &quot;2&quot;
+irb&gt; string = &quot;4&quot;
+=&gt; &quot;4&quot;
+irb&gt; regexes.lazy.filter_map { |regex| p regex; string[regex, 1] }.first
+/(1)/
+/(2)/
+/(3)/
+=&gt; nil
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

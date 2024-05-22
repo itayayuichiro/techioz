@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gsubメソッドを一度だけ変更する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gsubメソッドを一度だけ変更する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gsubメソッドを一度だけ変更する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>タイトルをうまく説明できないのでうまく表現できませんでしたが、もしタイトルがあったとしたら、次のようなものがあるとしましょう。</p>
+                    <pre><code>puts (&quot;red, blue&quot;).gsub(&quot;red&quot;, &quot;blue&quot;).gsub(&quot;blue&quot;, &quot;red&quot;)
+</code></pre>
+                    <p>「赤、青」が反対の「青、赤」になるようにしたいのですが、「赤」が「青」になり、「青」がまた「赤」になるので、それは機能しません。</p>
+                    <p>「幸せ」という単語のすべてのインスタンスを「悲しい」に置き換えたり、その逆を行う別の方法を作成したいと考えてこれを試しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>置換をハッシュとして提供できます。パターンに一致するキー
+                    (文字列である必要があります)、値は置換されます。</p>
+                    <pre><code>&gt;&gt; &quot;red, blue, blue, green&quot;.gsub(/red|blue/, {&quot;red&quot; =&gt; &quot;blue&quot;, &quot;blue&quot; =&gt; &quot;red&quot;})
+=&gt; &quot;blue, red, red, green&quot;
+</code></pre>
+                    <pre><code>&gt;&gt; &quot;happy happy sad&quot;.gsub(/sad|happy/, {&quot;sad&quot; =&gt; &quot;happy&quot;, &quot;happy&quot; =&gt; &quot;sad&quot;})
+=&gt; &quot;sad sad happy&quot;
+</code></pre>
+                    <p>より複雑な操作の場合:</p>
+                    <pre><code>&quot;happy happy sad red blue&quot;.gsub(/\w+/) do |m|
+  case m
+  when &quot;happy&quot; then &quot;red&quot;
+  when &quot;sad&quot;   then &quot;blue&quot;
+  when &quot;red&quot;   then &quot;sad&quot;
+  when &quot;blue&quot;  then &quot;happy&quot;
+  end
+end
+=&gt; &quot;red red blue sad happy&quot;
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://rubyapi.org/3.3/o/string#class-String-label-Substitution+Methods</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

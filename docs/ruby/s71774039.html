@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>nil を無限とみなし、項目範囲が重複している既存のレコードを検証します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "nil を無限とみなし、項目範囲が重複している既存のレコードを検証します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>nil
+を無限とみなし、項目範囲が重複している既存のレコードを検証します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここに来たのは、重複する項目範囲を持つ既存のレコードを検索するのに役立つクエリをいくつか探していたのですが、何も見つかりませんでした。
+                    Cart という名前のモデルがあるとします。 Cart
+                    には次の属性があります: item_min および
+                    item_max。item_max は null 可能で、nil
+                    の場合は無限とみなされます。私のモデルでは、項目範囲が重複するレコードが保存されないように検証を追加したいと考えています。</p>
+                    <p>クエリを作成しましたが、すべてのテスト
+                    ケースで機能しません。</p>
+                    <pre><code>saved cart: item_min: 2, item_max: nil
+try to save cart: `item_min: 1, item_max: 1` VALID
+try to save cart: `item_min: 1, item_max: 2` VALID
+try to save cart: `item_min: 1, item_max: 6` INVALID
+try to save cart: `item_min: 4, item_max: 7` INVALID
+try to save cart: `item_cart: 4, item_max: nil` INVALID
+</code></pre>
+                    <pre><code>saved cart: `item_min: 2, item_max: 7`
+try to save `cart: item_min: 1, item_max: 1` VALID
+try to save cart: `item_min: 8, item_max: 10` VALID
+try to save cart: `item_min: 8, item_max: nil` VALID
+try to save cart: `item_min: 1, item_max: 2` INVALID
+try to save cart: `item_min: 1, item_max: 8` INVALID
+try to save cart: `item_min: 1, item_max: 5` INVALID
+try to save cart: `item_min: 5, item_max: 10` INVALID
+try to save cart: `item_min: 3, item_max: 5` INVALID
+try to save cart: `item_min: 1, item_max: nil` INVALID
+</code></pre>
+                    <p>次のクエリを作成しました。</p>
+                    <pre><code>
+  def validate_item_count_range
+    if item_count_max.nil?
+      overlap_carts = Cart.where(item_count_max: nil)
+    else
+      overlap_carts = Cart.where(
+        &quot;item_count_min &gt;= ? AND item_count_max &lt;= ?&quot;, item_count_min, item_count_max,
+      ).or(
+        Cart.where(
+          &quot;item_count_min &lt;= ? AND item_count_max IS NULL&quot;, item_count_min,
+        ),
+      )
+    end
+
+    errors.add(:item_count_min, &quot;overlaps with existing carts&quot;) if overlap_carts.present?
+  end
+</code></pre>
+                    <p>ただし、この検証はすべてのテスト
+                    ケースで機能するわけではありません。私のテストケースが合格できるようにクエリを改善するのを手伝ってもらえませんか?</p>
+                    <p>ところで、私はpostgresqlを使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Range#overlaps?、ActiveRecord::Calculations#pluck、Array#any?
+                    を使用します。</p>
+                    <p>特別な SQL クエリを使用しない場合</p>
+                    <pre><code>if Cart.pluck(:item_min, :item_max).any? { |min, max| (min..max).overlaps?(item_min..item_max) }
+  errors.add(:base, :overlaps_with_existing_carts)
+end
+</code></pre>
+                    <p>無限範囲には明確な開始値がありますが、終了値はありません。この
+                    nil は省略できます</p>
+                    <pre><code>(8..nil) == (8..)
+# =&gt; true
+</code></pre>
+                    <p>このような範囲には、開始値からのすべての値が含まれます。</p>
+                    <pre><code>(8..nil).overlaps?(4..6)
+# =&gt; false
+
+(8..nil).overlaps?(4..9)
+# =&gt; true
+</code></pre>
+                    <p>そしてもちろん、この方法は通常の範囲で機能します</p>
+                    <pre><code>(4..6).overlaps?(6..8)
+# =&gt; true
+
+(4..6).overlaps?(1..3)
+# =&gt; false
+</code></pre>
+                    <p>Jad がコメントに書いたように、レコードが 100
+                    万件ある場合、配列を使用したこのような検証のパフォーマンスは低くなります。
+                    PostgreSQL の組み込み範囲を使用した SQL
+                    クエリのアイデア:</p>
+                    <pre><code>if Cart.exists?([&quot;numrange(item_count_min, item_count_max, &#39;[]&#39;) &amp;&amp; numrange(?, ?, &#39;[]&#39;)&quot;, item_count_min, item_count_max])
+  errors.add(:base, :overlaps_with_existing_carts)
+end
+</code></pre>
+                    <p>RDBMS
+                    はそのようなクエリを最適化します。巨大なアレイで運用するよりもはるかに効率的です</p>
+                    <p>このクエリの []
+                    は、下限と上限を含むことを意味します
+                    (デフォルトでは、上限は排他的です)。</p>
+                    <p>NULL
+                    を使用すると、範囲に制限がないことを意味します</p>
+                    <p>&amp;&amp; 演算子は重複をチェックします</p>
+                    <pre><code>SELECT numrange(10, NULL, &#39;[]&#39;) &amp;&amp; numrange(20, 40, &#39;[]&#39;);
+-- ?column? 
+-- ----------
+--  t
+
+SELECT numrange(10, 20, &#39;[]&#39;) &amp;&amp; numrange(20, 40, &#39;[]&#39;);
+-- ?column? 
+-- ----------
+--  t
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails で複数の Grape API をマウントする際の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails で複数の Grape API をマウントする際の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails で複数の Grape API
+をマウントする際の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリにマウントしようとしている API が 2
+                    つあります。1 つは「v1」、もう 1
+                    つは「twilio」です。各 API
+                    は複数のファイルで構成されるため、それぞれに独自のフォルダーを作成したいと考えています。
+                    app/api ディレクトリ内には、「v1」と「twilio」という
+                    2 つのフォルダーと、2 つの API
+                    をマウントするために使用しようとしている「api.rb」というファイルがあります。その内容は次のとおりです。</p>
+                    <pre><code>module API
+  class V1 &lt; Grape::API
+    prefix &quot;api&quot;
+    format :json
+    mount API::Root =&gt; &#39;/v1&#39;
+  end
+
+  class Twilio &lt; Grape::API
+    prefix &quot;twilio&quot;
+    format :xml
+    mount API::Twilio_API =&gt; &#39;/twilio&#39;
+  end
+end
+</code></pre>
+                    <p>「v1」ディレクトリには、次のように始まる「root.rb」というファイルがあります。</p>
+                    <pre><code>module API
+  class Root &lt; Grape::API
+    version &#39;v1&#39;, :using =&gt; :header
+    ...
+</code></pre>
+                    <p>「twilio」ディレクトリには、次のように始まる「twilio_api.rb」というファイルがあります。</p>
+                    <pre><code>module API
+  class Twilio_API &lt; Grape::API
+    version &#39;v1&#39;, :using =&gt; :header
+    ...
+</code></pre>
+                    <p>私のルートファイルには次のものがあります:</p>
+                    <pre><code>mount API::V1 =&gt; &quot;/&quot;
+mount API::Twilio =&gt; &quot;/&quot;
+</code></pre>
+                    <p>Rails
+                    サーバーを起動すると、次のエラーが発生します。</p>
+                    <pre><code>`load_missing_constant&#39;: Expected [My rails app]/app/api/v1/root.rb to define Root (LoadError)
+</code></pre>
+                    <p>root.rb は確かに Root
+                    クラスを定義しているので、これは理解できません。助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Grape では、複数の API を別の API
+                    にマウントできます。つまり、API の「基本」クラスを 1
+                    つだけ用意し、他のすべてをそこにマウントできるということです。</p>
+                    <p>ファイル構造:</p>
+                    <pre><code>app/
+  api/
+    v1/
+      v1_api.rb
+    twilio/
+      twilio_api.rb
+    api.rb
+</code></pre>
+                    <p>アプリ/api/api.rb:</p>
+                    <pre><code>require &#39;v1/v1_api&#39;
+require &#39;twilio/twilio_api&#39;
+
+module API
+  class Base &lt; Grape::API
+    mount API::V1
+    mount API::Twilio
+  end
+end
+</code></pre>
+                    <p>アプリ/api/v1/v1_api.rb:</p>
+                    <pre><code>module API
+  class V1 &lt; Grape::API
+    prefix &quot;v1&quot;
+    format :json
+
+    get :hello do
+      { text: &#39;Hello from V1&#39; }
+    end
+  end
+end
+</code></pre>
+                    <p>アプリ/api/twilio/twilio.rb:</p>
+                    <pre><code>module API
+  class Twilio &lt; Grape::API
+    prefix &quot;twilio&quot;
+    format :xml
+
+    get :hello do
+      { text: &#39;Hello from Twilio&#39; }
+    end
+  end
+end
+</code></pre>
+                    <p>config/routes.rb:</p>
+                    <pre><code>mount API::Base =&gt; &#39;/api&#39;
+</code></pre>
+                    <p>Rails
+                    サーバーを再起動すれば準備完了です。また、app/api/twilio
+                    ディレクトリと app/api/v1
+                    ディレクトリからファイルを簡単に自動ロードできるはずなので、それらを必須にする必要はありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すでに取得した属性を使用して 2 番目の API 呼び出しを行う - Facebook API | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すでに取得した属性を使用して 2 番目の API 呼び出しを行う - Facebook API",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すでに取得した属性を使用して 2 番目の API
+呼び出しを行う - Facebook API</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Facebook との API
+                    呼び出しの次の部分にどのようにアプローチすればよいかわかりません。現時点では、ユーザー
+                    ID を使用してすべての投稿を取得しています。</p>
+                    <pre><code>&quot;https://graph.facebook.com/#{VANDALS_ID}/posts/?access_token=#{FB_ACCESS_TOKEN}&quot;
+</code></pre>
+                    <p>ただし、最初の API 呼び出しから返された object_id
+                    を使用して、各投稿に関連付けられた画像も取得したいと考えています。</p>
+                    <pre><code>&quot;https://graph.facebook.com/#{object_id}/picture
+</code></pre>
+                    <p>したがって、現時点では、最初の API
+                    呼び出しを処理し、返されたデータをモデルに保存するクラスがあります。</p>
+                    <pre><code>class FacebookFeed
+#Constants
+VANDALS_ID = ENV[&#39;VANDALS_FB_ID&#39;]
+FB_ACCESS_TOKEN = ENV[&#39;FACEBOOK_ACCESS_TOKEN&#39;]
+FACEBOOK_URL = &quot;https://graph.facebook.com/#{VANDALS_ID}/posts/?access_token=#{FB_ACCESS_TOKEN}&quot;
+
+def get_feed
+  uri = URI(FACEBOOK_URL)
+  response = HTTParty.get(uri)
+  results = JSON.parse(response.body)
+  puts formatted_data(results)
+end
+
+def formatted_data(results)
+  
+ return unless results
+
+    results[&#39;data&#39;].map { |m| 
+    attrs = { message: m[&#39;message&#39;], 
+              picture: m[&#39;picture&#39;], 
+              link: m[&#39;link&#39;], 
+              object_id: m[&#39;object_id&#39;]
+      }.compact 
+      
+     
+     Post.where(attrs).first_or_create! do |post|
+        post.attributes = attrs
+     end
+   }
+   end
+
+  def get_large_photo(object_id)
+  #added this to handle the second api request and pass through the object_id
+
+  end
+</code></pre>
+                    <p>したがって、最初の API
+                    呼び出しで必要な情報はすべて attrs
+                    というハッシュ内にあり、attrs[‘object_id’] を介して
+                    object_id
+                    にアクセスできます。あれは正しいですか？</p>
+                    <p>ハッシュから各 object_id
+                    を取得し、別の呼び出しでそれに関連付けられた画像を取得し、キー
+                    :picture に割り当てられた値を保存し、それを attrs
+                    ハッシュに戻して保存する方法に行き詰まっています。私の投稿モデルのすべて。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は次のようなことをしますが、あなたが何を達成しようとしているのかについてはまだ混乱しています。</p>
+                    <pre><code>def formatted_data(results)
+    if results[:data]
+        for record in results[:data] do
+             attrs = {
+                 message: record[:message],
+                 picture: record[:picture],
+                 link: record[:link],
+                 object_id: record[:object_id]
+             }
+             Post.where(attrs).first_or_create!(attrs)
+
+             #perform second call
+             if record[:object_id]
+                post = Post.find_by object_id: record[:object_id] 
+                if post
+                    fb_large_picture_url = get_large_photo(record[:object_id])
+                    post.update_attribute(large_image_url: fb_large_picture_url)
+                end
+             end
+        end
+    end
+ end
+
+ def get_large_photo(object_id)
+     uri = URI(&quot;https://graph.facebook.com/#{object_id}/picture&quot;)
+     response = HTTParty.get(uri)
+     results = JSON.parse(response.body)
+     return formatted_picture_data(results) #new method to handle response from second api call
+ end
+</code></pre>
+                    <p>Skype
+                    でリッチと話し合ったところ、本当の問題は、彼が API
+                    を再度呼び出して、より大きな画像を投稿するために
+                    object_id
+                    のレコードを持つようにデータベースを修正しようとしていることのようです。</p>
+                    <p>これはかなり非効率ですが、それでも機能するはずです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

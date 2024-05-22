@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RGeo: メルカトル図法で大円をプロットする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RGeo: メルカトル図法で大円をプロットする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RGeo: メルカトル図法で大円をプロットする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>地図上で複数の形状をトレースする必要があります。各形状は
+                    2
+                    つの経度/緯度座標間の線の種類として指定されます。これらの線を一連の点に分割/補間/分割し、メルカトル図法を使用する
+                    Google マップ (GeoJSON 経由) にプロットし、それを
+                    postgresql-postgis
+                    データベース内に保存してきました。</p>
+                    <p>私はこの問題を方形線と時計回りの引数については解決しましたが、大圏を追跡する方法について完全に迷っています。私は他の線種を支援するために
+                    RGeo
+                    を使用してきましたが、私が見つけるよりもはるかに簡単になると予想していました。</p>
+                    <p>定義可能なステップ数で 2
+                    つの座標間の大圏パスをプロットするにはどうすればよいですか?</p>
+                    <p>深夜のコーディングの妄想で、私はいくつかのコードサンプルを
+                    C と JavaScript から Ruby に移植しました。特に OGR
+                    から
+                    これは、ほとんど問題のないソリューションですが、作成中のポリゴン
+                    ラインの一部が重なり始めたり、収束するライン間に期待されるギャップを残さなかったりするため、控えめに言っても信頼できるソリューションではありません。</p>
+                    <p>答えの線は球面ファクトリを使用していると思いますが、線文字列を球面ファクトリからメルカトルファクトリに変換しようとすると、2つの点を持つ線しか得られません。</p>
+                    <pre><code>spherical_factory = RGeo::Geographic.spherical_factory(srid: 4326)
+point1 = spherical_factory.point(YOUR_LONGITUDE1, YOUR_LATITUDE1)
+point2 = spherical_factory.point(YOUR_LONGITUDE2, YOUR_LATITUDE2)
+great_circle = spherical_factory.line(point1, point2)
+# TODO: Split the great_circle
+</code></pre>
+                    <p>アドバイスを求めて ChatGPT
+                    も試してみました。存在しない LineString#interpolate
+                    関数を呼び出す素晴らしいコードが得られます。これと同じくらい簡単に機能するソリューションが本当に欲しいです。</p>
+                    <p>アドバイスを無視して、開始座標から増加する円を再帰的に生成し、交点から線を構築してみるかもしれません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いくつかのアドバイスに従い、PostGIS と
+                    ST_Segmentize 関数を使用しました。</p>
+                    <p>私は PostgreSQL/PostGIS
+                    データベースを持っていたので、RGeo による WKT
+                    のサポートにより、この 2
+                    つを単純なアルゴリズムに組み合わせることができました。</p>
+                    <pre><code>SRID = 4326 # Used by WGS84 / Google Maps
+
+spherical_factory = RGeo::Geographic.spherical_factory(srid: SRID)
+mercator_factory = ... # output factory
+
+# Generate a RGeo Line String for the Great Circle
+start_point = spherical_factory.point(point.longitude, point.latitude)
+target_point = spherical_factory.point(target.longitude, target.latitude)
+great_circle = spherical_factory.line_string([start_point, target_point])
+
+# Segment line using 1km chunks
+great_circle_as_wkt = &quot;srid=#{SRID};#{great_circle}&quot;
+great_circle_segments = ActiveRecord::Base.connection.execute(&quot;SELECT ST_AsText(ST_Segmentize((&#39;#{great_circle_as_wkt}&#39;::geography), 1000)) AS circle;&quot;).first[&#39;circle&#39;]
+
+# Convert the WKT Back into a RGeo Line String
+segmented_line = RGeo::WKRep::WKTParser.new(mercator_factory).parse(great_circle_segments)
+
+# Desired Output
+segmented_line.points
+</code></pre>
+                    <p>Spherical Factory
+                    はおそらく必要ありませんが、データベースにアクセスする代わりにそれを使用する追加のソリューションが必要です。</p>
+                    <p>これはおそらく最も効率的な方法ではありませんが、そうする必要はありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

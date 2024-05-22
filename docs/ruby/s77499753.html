@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>追加の条件を生成する配列からの n+1 の問題を防ぐにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "追加の条件を生成する配列からの n+1 の問題を防ぐにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>追加の条件を生成する配列からの n+1
+の問題を防ぐにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>include クエリからの配列の条件を使用すると、n+1
+                    の問題が発生します。</p>
+                    <p>以下に表を示します。</p>
+                    <pre><code>rems
+|id| |name|
+ 1  aaa
+ 2  bbb
+
+rem_correlatives
+|id| |rem_id| |name|  |deleted|  |pending_tr|
+ 1     1       qqqq1      0          0
+ 2     1       qqqq2      0          1 
+ 3     1       qqqq1      1          0
+ 4     1       qqqq2      1          1
+ 5     1       qqqq1      0          0
+ 6     1       qqqq2      0          1 
+ 7     1       qqqq1      1          0
+ 8     1       qqqq2      1          1
+ 9     2       qqqq1      0          0
+ 10    2       qqqq2      0          1 
+ 11    2       qqqq1      1          0
+ 12    2       qqqq2      1          1
+ 13    2       qqqq1      0          0
+ 14    2       qqqq2      0          1 
+ 15    2       qqqq1      1          0
+ 16    2       qqqq2      1          1
+</code></pre>
+                    <p>モデルは次のとおりです。</p>
+                    <pre><code> class Rem &lt; ApplicationRecord
+    has_many :rem_correlatives
+ end
+
+ class RemCorrelative &lt; ApplicationRecord
+    belongs_to :rem
+ end
+</code></pre>
+                    <p>これは、/app/controllers/rems_controller.rb
+                    の場所にある rems_controller.rb
+                    というコントローラーです。</p>
+                    <pre><code> def index
+    @list_array = Rem.includes(:rem_correlatives).all
+ end
+</code></pre>
+                    <p>これは /app/views/rems/index.html.erb
+                    の場所からのインデックス ビューです。</p>
+                    <pre><code> &lt;% @list_array.each do |array| %&gt;
+      &lt;% array.name %&gt;
+      &lt;% @check_result = array.rem_correlatives.where(&quot;deleted=0 AND pending_tr= 1)%&gt;
+        &lt;% if @check_result.present? %&gt;
+           No
+        &lt;% else %&gt;
+           Yes
+        &lt;% end %&gt;
+      &lt;% end %&gt;
+   
+ &lt;% end%&gt;
+</code></pre>
+                    <p>pending_tr=1とdeleted=0の列を使用してデータ配列を表示するこの回避策コードを試しましたが、良い習慣ではないようです。</p>
+                    <pre><code> &lt;% @list_array.each do |array| %&gt;
+      &lt;% array.name %&gt;
+      &lt;% array.rem_correlatives.each do |rem_correlative|%&gt;
+        &lt;!--  Create condition pending_tr=1 AND deleted=0  --&gt;
+        &lt;% if rem_correlative.pending_tr == 1 &amp;&amp; rem_correlative.deleted == 0%&gt;
+           &lt;% @check_condition = &quot;No&quot; %&gt;
+        &lt;% else %&gt;
+           &lt;% @check_condition = &quot;Yes&quot;%&gt;
+        &lt;% end %&gt;
+      &lt;% end %&gt;
+      &lt;!--  Check results from array if the word yes exists --&gt; 
+      &lt;% if @check_condition.include?(&quot;Yes&quot;) %&gt;
+         si 
+      &lt;% else %&gt;
+        no
+      &lt;% end %&gt;          
+ &lt;% end%&gt;
+</code></pre>
+                    <p>以下は、回避策コードを使用したときのバックエンドの結果です。機能していますが、n+1
+                    の問題は表示されません。</p>
+                    <p>良いコードとして追加の条件を生成している配列からの
+                    n+1 の問題を防ぐにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデル内のスコープとの専用の関連付けを作成します。</p>
+                    <pre><code># in app/models/rem.rb
+has_many :pending_rem_correlatives,
+  class_name: &#39;RemCorrelative&#39;, -&gt; { where(deleted: false, pending_tr: true) }
+</code></pre>
+                    <p>そして、この関連付けをコントローラーとビューで使用します。</p>
+                    <pre><code># in the controller
+@rems = Rem.includes(:pending_rem_correlatives).all
+
+# in the view
+&lt;% @rems.each do |rem| %&gt;
+  &lt;%= rem.name %&gt;
+
+  &lt;% if rem.pending_rem_correlatives.any? %&gt;
+    No such rem correlatives
+  &lt;% else %&gt;
+    There are matching rem correlatives
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

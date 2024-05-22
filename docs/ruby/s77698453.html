@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby cucumber cucumber 式を使用して、異なるステップで同じ定義を呼び出す方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby cucumber cucumber 式を使用して、異なるステップで同じ定義を呼び出す方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby cucumber cucumber
+式を使用して、異なるステップで同じ定義を呼び出す方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>欲しかったと言ってください</p>
+                    <pre><code>Given something
+When the sky is blue
+And grass is green
+Then I&#39;m happy
+</code></pre>
+                    <p>でも欲しかった</p>
+                    <pre><code>When(&#39;the sky is blue&#39;) do
+puts &#39;good&#39;
+end
+</code></pre>
+                    <p>そして</p>
+                    <pre><code>When(&#39;grass is green&#39;) do
+puts &#39;good&#39;
+end
+</code></pre>
+                    <p>まったく同じステップ定義になります。次のようなものになります。</p>
+                    <pre><code>When((&#39;the sky is blue&#39;)(&#39;grass is green&#39;)) do
+puts &#39;good&#39;
+end
+</code></pre>
+                    <p>正規表現ではなく、ruby-cucumber と cucumber
+                    式を使用して、それを機能させるにはどのような構文が必要でしょうか?助けてください</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Cucumber
+                    式を使用してこれを行うことはできるかもしれませんが、人々が奇妙な入力を提供した場合、過剰一致または過小一致のエッジ
+                    ケースが存在しないと想定するのは困難です。たとえば、次のような動作が期待できるかもしれません。</p>
+                    <pre><code>( the )sky/grass is blue/green
+</code></pre>
+                    <p>これは例と一致しますが、「草が青いとき」や「空が緑であるとき」などのテキストとも予期せず一致します。おそらくこれはあなたが望んでいることではありません。一般化できない場合は、より明示的なアンカーリングを備えた正規表現を使用するか、結合ステップを避けるためにガーキンを分割することを検討する必要があるかもしれません。</p>
+                    <p>Gherkin
+                    を使用すると、さまざまな方法でトークンを抽出して処理できます。混乱を引き起こすような他の同様の手順がないと仮定すると、Cucumber
+                    構成でカスタム パラメーター
+                    タイプを作成しなくても、次の手順は機能するはずです。ニーズに応じて、他のアプローチも機能する可能性があります。</p>
+                    <pre><code># Gherkin
+When the &quot;sky&quot; is &quot;blue&quot;
+And &quot;grass&quot; is &quot;green&quot;
+Then I am &quot;happy&quot;
+
+# flexible object/color step with cucumber
+# expressions and a case statement
+When(&quot;(the ){word} is {word}&quot;) do |obj, color|
+  case
+  when (obj == &quot;sky&quot; and color == &quot;blue&quot;) &amp;&amp; 
+       (obj == &quot;grass&quot; and color == &quot;green&quot;)
+    @emotional_state = &quot;happy&quot;
+  else
+    @emotional_state = &quot;unhappy&quot;
+  end
+end 
+
+# use state from the previous step to measure
+# your happiness quotient
+Then(&quot;I am {word}&quot;) do |emotional_state|
+  @emotional_state == emotional_state
+end
+</code></pre>
+                    <p>また、何があなたを幸せにするかについての真理表をより簡単にマッピングできるように、代わりにシナリオの概要を作成したり、データ
+                    テーブルを渡したりすることを検討することもできます。目標と、手順が十分に明確でなくなるまで手順を単純化しすぎる可能性によっては、少なくとも正しい方向に進むはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

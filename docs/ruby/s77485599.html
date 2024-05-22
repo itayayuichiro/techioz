@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Rspec、ワーカーが再帰的に呼び出された回数を調べる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Rspec、ワーカーが再帰的に呼び出された回数を調べる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+Rspec、ワーカーが再帰的に呼び出された回数を調べる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rspec
+                    でワーカーをテストして、同じワーカーが再帰的に何度も呼び出された回数を調べる必要があります。
+                    例えば：</p>
+                    <pre><code>Class Myworker
+  def perform(id)
+    model = Mymodel.find(id)
+    associated_records = Mymodel.users.limit(1000)
+    associated_records.each(&amp;:destroy)
+    if Mymodel.users.exists?
+      Myworker.perform_async(id)
+    end
+  end
+end
+</code></pre>
+                    <p>この反復が何回起こったかを数えるために、これの
+                    rspec を書く必要があります。</p>
+                    <p>ワーカーをスタブ化してカウンターを増分しようとしましたが、ワーカーをスタブ化しているため、同じワーカーが再度実行されず、最終値としてカウンター
+                    1 が表示されます。 RSPEC
+                    でワーカーが再帰的に呼び出された回数を確認する方法。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おっしゃるとおり、大量のデータベース
+                    レコードを削除すると、ジョブにさらに時間がかかり、最終的には他のバックグラウンド
+                    ジョブが遅延します。</p>
+                    <p>しかし、通常は複数のワーカーを同時に実行することになるため、これは実際には問題となるはずです。また、複数の巨大なジョブがより重要なジョブを遅らせるという問題が依然として発生する場合は、優先順位の異なる複数のキューを設けることを検討する必要があります。</p>
+                    <p>Sidekiq
+                    で複数の優先キューを設定している場合は、次のように、ジョブを変更して優先度の低いキューで実行し、クリティカル
+                    キューやデフォルト
+                    キューをブロックしないようにすることができます。</p>
+                    <pre><code>class DestroyUsersAssociatedToMyModel
+  include Sidekiq::Job
+  sidekiq_options queue: &#39;low&#39;
+
+  def perform(id)
+    MyModel.find(id).users.destroy_all
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

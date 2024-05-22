@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュを ERB テンプレートとして使用する場合、Ruby は「エンコーディング」について不平を言います | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュを ERB テンプレートとして使用する場合、Ruby は「エンコーディング」について不平を言います",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュを ERB
+テンプレートとして使用する場合、Ruby
+は「エンコーディング」について不平を言います</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ただそれだけに</p>
+                    <pre><code>require &#39;erb&#39;
+a = &quot;això és una merda &lt;%=rand(1..20)%&gt;&quot;
+c = {&quot;id&quot; =&gt; &quot;això és una merda &lt;%=rand(1..10)%&gt;&quot;}
+</code></pre>
+                    <p>ERB.new(a).result
+                    を実行すると、すべて問題ありません。</p>
+                    <pre><code>ERB.new(a).result
+=&gt; &quot;això és una merda 3&quot;
+</code></pre>
+                    <p>しかし、ERB.new(c).result を使用すると、Ruby
+                    はエンコーディングの問題を訴えます。</p>
+                    <pre><code>ERB.new(c).result
+/usr/lib/ruby/3.0.0/erb/compiler.rb:315:in `compile&#39;: undefined method `encoding&#39; for {&quot;id&quot;=&gt;&quot;això és una merda &lt;%=rand(1..10)%&gt;&quot;}:Hash (NoMethodError)
+        from /usr/lib/ruby/3.0.0/erb.rb:351:in `initialize&#39;
+        from (irb):57:in `new&#39;
+        from (irb):57:in `&lt;main&gt;&#39;
+        from /usr/lib/ruby/gems/3.0.0/gems/irb-1.4.2/exe/irb:11:in `&lt;top (required)&gt;&#39;
+        from /usr/bin/irb:25:in `load&#39;
+        from /usr/bin/irb:25:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>私が期待した結果は次のとおりです。</p>
+                    <pre><code>{&quot;id&quot; =&gt; &quot;això és una merda 3&quot;}
+</code></pre>
+                    <p>c
+                    を文字列としてキャストすることもできますが、ハッシュとしてキャストしたいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ERB
+                    は文字列に対してのみ機能します。文字列の配列や文字列のキーや値を含むハッシュなどの文字列を含む構造がある場合は、文字列を個別に処理する必要があります。</p>
+                    <p>ハッシュ値を処理するには、transform_values
+                    を使用できます。これは各値をブロックに渡し、ブロックの結果で値を更新します。</p>
+                    <pre><code>require &#39;erb&#39;
+
+c = {&quot;id&quot; =&gt; &quot;això és una merda &lt;%=rand(1..10)%&gt;&quot;}
+
+c.transform_values! { |str| ERB.new(str).result }
+
+c #=&gt; {&quot;id&quot;=&gt;&quot;això és una merda 7&quot;}
+</code></pre>
+                    <p>(レシーバーを変更せずに新しいハッシュを返す非!バリアントもあります)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby MRI 3.0.0 と 3.0.1 の間のハッシュ関連の動作の不一致 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby MRI 3.0.0 と 3.0.1 の間のハッシュ関連の動作の不一致",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby MRI 3.0.0 と 3.0.1
+の間のハッシュ関連の動作の不一致</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby MRI 3.0.0 と 3.0.1
+                    の間で動作が変更されたことに気付きましたが、変更ログ
+                    (https://github.com/ruby/ruby/compare/v3_0_0…v3_0_1)
+                    で理由がわかりません。</p>
+                    <p>次の単純な「値オブジェクト」クラスを考えてみましょう。</p>
+                    <pre><code># frozen_string_literal: true
+
+class Locale
+  attr_reader :code
+
+  delegate :to_s, :to_sym, :hash, to: :code
+
+  def initialize(code:)
+    @code = code
+  end
+
+  def eql?(other)
+    other.respond_to?(:to_sym) &amp;&amp; to_sym == other.to_sym
+  end
+  alias == eql?
+end
+</code></pre>
+                    <p>Ruby 3.0.0:</p>
+                    <pre><code>[9] pry(main)&gt; p RUBY_VERSION; ((1..1000).to_a + [:en, &quot;en&quot;]).to_set.include?(Locale.new(code: :en))
+&quot;3.0.0&quot;
+false
+</code></pre>
+                    <p>Ruby 3.0.1:</p>
+                    <pre><code>[6] pry(main)&gt; p RUBY_VERSION; ((1..1000).to_a + [:en, &quot;en&quot;]).to_set.include?(Locale.new(code: :en))
+&quot;3.0.1&quot;
+true
+</code></pre>
+                    <p>小さなハッシュの配列としてのハッシュの最適化に関連している可能性があると思います。</p>
+                    <pre><code>[13] pry(main)&gt; p RUBY_VERSION; ([:en, &quot;en&quot;]).to_set.include?(Locale.new(code: :en))
+&quot;3.0.0&quot;
+true
+</code></pre>
+                    <p>以下は、3.0.0 と 3.0.1
+                    で異なる結果を生成する単純な Ruby スクリプトです
+                    (場合によっては不安定です)。</p>
+                    <pre><code>raise unless RUBY_VERSION == &quot;3.0.0&quot; || RUBY_VERSION == &quot;3.0.1&quot;
+
+require &quot;set&quot;
+
+class Locale
+  attr_reader :code
+
+  def initialize(code:)
+    @code = code
+  end
+
+  def eql?(other)
+    other.respond_to?(:to_sym) &amp;&amp; to_sym == other.to_sym
+  end
+  alias == eql?
+
+  def to_sym
+    code.to_sym
+  end
+
+  def hash
+    code.hash
+  end
+end
+
+p RUBY_VERSION
+p Set.new(((1..1000).to_a + [:ru, :en])).include?(Locale.new(code: :en))
+</code></pre>
+                    <p>これについて何か考えはありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この動作の変化は、リンク先ページ
+                    b2beb8586e930c168af434d6545f75d76123192b の 2
+                    番目のコミットによって引き起こされる可能性があります。</p>
+                    <p>コミットメッセージはバグ #17488
+                    を参照しています。タイトルは「Ruby 3 の回帰:
+                    Hash#key?」です。引数が DelegateClass
+                    を使用する場合、は非決定的です。したがって、デリゲート、ハッシュ、および非決定的
+                    (不安定な)
+                    結果がすでに得られています。そして、メモによると、修正は
+                    3.0、特に 3.0.1 にバックポートされたため、バージョン
+                    3.0.0 にのみ影響し、2.7
+                    以前は影響を受けないようです。それはあなたの観察のようですね！</p>
+                    <p>バグを発見して修正した ノブ (中田信義)
+                    は次のように書きました。</p>
+                    <p>そのため、実際の理由はまだ不明ですが、以前はコードが間違っており、2.7.0
+                    と 3.0.0
+                    の間のこの変更によってそれが明らかになりました。</p>
+                    <p>いわゆる fixnum は実装の詳細です (現在では、Ruby
+                    の世界に対して隠蔽する方が適切です。以前は Fixnum
+                    クラスがありました)。これらは基本的に 31
+                    ビットまたは 63
+                    ビットの符号付き整数ですが、それらについて詳しく知りたい場合は、たとえば、この
+                    SO 回答を読んでください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

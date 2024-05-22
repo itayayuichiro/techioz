@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby、戻り値を含む 1 行のガード句 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby、戻り値を含む 1 行のガード句",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby、戻り値を含む 1 行のガード句</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のことを行う Ruby コードがあります</p>
+                    <pre><code>return [:error, &quot;error message&quot;] if guard_clause_fails?
+</code></pre>
+                    <p>書きたいことはこんな感じです</p>
+                    <pre><code>return (insert 2nd part of guard_clause_fails?) if guard_clause_fails?
+
+def guard_clause_fails?
+  return [false, [:error, &quot;error message&quot;]]
+end
+</code></pre>
+                    <p>これをルビで書くための読みやすい慣用的な方法はありますか?一行で</p>
+                    <p>私はそれをできた</p>
+                    <pre><code>def guard_clause_fails?
+  @_return_code = [:error, &quot;error message&quot;]
+  false
+end
+
+return @_return_code if @guard_clause_fails?
+</code></pre>
+                    <p>次の開発者に <span class="citation"
+                    data-cites="_return_code">@_return_code</span>
+                    とは何なのか疑問に思わせるのではなく、より自己文書化されたコードが必要です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>メソッドが異なる型を返し、呼び出し側メソッドが応答からエラーが発生したか、応答が成功したメソッド呼び出しの結果であるかを推測する必要がある場合は、私は好きではありません。</p>
+                    <p>代わりに、値オブジェクトを返すことを検討します。このモジュールを想像してください:</p>
+                    <pre><code>module ValueResponse
+  Response = Data.define(:success?, error: nil, value: nil)
+
+  def error(error)
+    Response.new(false, error:)
+  end
+
+  def success(value)
+    Response.new(true, value:)
+  end
+end
+</code></pre>
+                    <p>そのモジュールを問題のクラスに含めて、次のように使用します。</p>
+                    <pre><code>include ValueResponse
+
+def example_method
+  return error(&#39;message&#39;) if guard_clause_fails?
+
+  # ...
+  success(actual_return_value)
+end
+</code></pre>
+                    <p>そうすれば、メソッドの呼び出し元にとって、メソッドの応答が実際に何を意味するかが明確になります。</p>
+                    <pre><code>response = example_method
+
+if response.success?
+  response.value   # read success response
+else
+  response.error   # handle error message
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

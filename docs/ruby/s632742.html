@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord コールバックの実行を回避するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord コールバックの実行を回避するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord
+コールバックの実行を回避するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>after_save
+                    コールバックを持つモデルがいくつかあります。通常はこれで問題ありませんが、開発データの作成時など、コールバックを実行せずにモデルを保存したい場合があります。それを行う簡単な方法はありますか?似たような何か…</p>
+                    <pre><code>Person#save( :run_callbacks =&gt; false )
+</code></pre>
+                    <p>または</p>
+                    <pre><code>Person#save_without_callbacks
+</code></pre>
+                    <p>Rails
+                    のドキュメントを調べましたが、何も見つかりませんでした。ただし、私の経験では、Rails
+                    ドキュメントが必ずしもすべてを伝えているわけではありません。</p>
+                    <p>アップデート</p>
+                    <p>次のようなモデルからコールバックを削除する方法を説明したブログ投稿を見つけました。</p>
+                    <pre><code>Foo.after_save.clear
+</code></pre>
+                    <p>その方法が文書化されている場所を見つけることができませんでしたが、機能するようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コールバックと検証をスキップするには、update_column
+                    (Rails &gt;= v3.1) または update_columns (Rails
+                    &gt;= 4.0)
+                    を使用します。これらのメソッドでも、updated_at
+                    は更新されません。</p>
+                    <pre><code>#Rails &gt;= v3.1 only
+@person.update_column(:some_attribute, &#39;value&#39;)
+#Rails &gt;= v4.0 only
+@person.update_columns(attributes)
+</code></pre>
+                    <p>http://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column</p>
+                    <p>#2:
+                    オブジェクトの作成中にも機能するコールバックのスキップ</p>
+                    <pre><code>class Person &lt; ActiveRecord::Base
+  attr_accessor :skip_some_callbacks
+
+  before_validation :do_something
+  after_validation :do_something_else
+
+  skip_callback :validation, :before, :do_something, if: :skip_some_callbacks
+  skip_callback :validation, :after, :do_something_else, if: :skip_some_callbacks
+end
+
+person = Person.new(person_params)
+person.skip_some_callbacks = true
+person.save
+</code></pre>
+                    <p>更新情報 (2020)</p>
+                    <p>どうやら Rails は常に :if および :unless
+                    オプションをサポートしているため、上記のコードは次のように簡略化できます。</p>
+                    <pre><code>class Person &lt; ActiveRecord::Base
+  attr_accessor :skip_some_callbacks
+
+  before_validation :do_something, unless: :skip_some_callbacks
+  after_validation :do_something_else, unless: :skip_some_callbacks
+end
+
+person = Person.new(person_params)
+person.skip_some_callbacks = true
+person.save
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

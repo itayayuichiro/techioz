@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby では (通常は ) に何が提供されますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby では (通常は ) に何が提供されますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby では (通常は ) に何が提供されますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby
+                    のメタプログラミングをもう少しよく理解しようとしており、やりたいことの回避策はありますが、それをできるだけきれいにしたいと考えています。</p>
+                    <p>簡単に言うと、モジュールを含むクラスが特定のメソッドを定義しているかどうかを確認したいと思います。</p>
+                    <pre><code>irb(main):058:1* module A
+irb(main):059:2*   def self.included(base)
+irb(main):060:2*     puts base.singleton_method(:singleton_test)
+irb(main):061:1*   end
+irb(main):062:0&gt; end
+:included
+irb(main):063:1* class B
+irb(main):064:1*   include A
+irb(main):065:2*   def self.singleton_test
+irb(main):066:2*     puts &quot;hi&quot;
+irb(main):067:1*   end
+irb(main):068:0&gt; end
+</code></pre>
+                    <p>これにより、次のようなものが出力されると予想されます。</p>
+                    <p>#&lt;メソッド: B.singleton_test()
+                    (irb):95&gt;</p>
+                    <p>ただし、次のことはできません。</p>
+                    <pre><code>(irb):60:in `singleton_method&#39;: undefined singleton method `singleton_test&#39; for `B&#39; (NameError)
+
+    puts base.singleton_method(:singleton_test)
+             ^^^^^^^^^^^^^^^^^
+</code></pre>
+                    <p>これは、付属のフックが呼び出されたときにシングルトン
+                    メソッドがまだベースにバインドされていないためだと思われます。</p>
+                    <p>このパターンで singleton_test
+                    が定義されているかどうかを確認するにはどうすればよいでしょうか?</p>
+                    <p>PS
+                    おそらく、これは、シングルトンまたはインスタンスにかかわらず、モジュール
+                    A
+                    が含まれる時点でベースのメソッド定義で発生するようであることにも注目する価値があるかもしれません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>単純な注文の問題です。</p>
+                    <p>Ruby は (ほとんどの場合)
+                    左から右、上から下に評価されます。</p>
+                    <pre><code>class B
+  include A
+
+  def self.singleton_test
+    puts(&#39;hi&#39;)
+  end
+end
+</code></pre>
+                    <p>ご覧のとおり、インクルードはメソッド定義の前に来ます。
+                    2 つを入れ替える必要があります。</p>
+                    <pre><code>class B
+  def self.singleton_test
+    puts(&#39;hi&#39;)
+  end
+
+  include A
+  # #&lt;Method: B.singleton_test() ./test.rb:2&gt;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

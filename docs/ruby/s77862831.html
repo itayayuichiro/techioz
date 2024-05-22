@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sonoma を搭載した M3 Mac に Cocoapods をインストールするとエラー メッセージが表示されずに失敗する [重複] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sonoma を搭載した M3 Mac に Cocoapods をインストールするとエラー メッセージが表示されずに失敗する [重複]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sonoma を搭載した M3 Mac に Cocoapods
+をインストールするとエラー メッセージが表示されずに失敗する [重複]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>仕事用に新しい MacBook Pro を購入し、M3 で Sonoma
+                    14.2.1 を実行しています。 Cocoapods
+                    をインストールしようとしていますが、「成功」しても失敗するようです。以下は、実行したときに得られる結果です。すべてうまくいっているようです。</p>
+                    <pre><code>sudo gem install cocoapods -v 1.13.0
+Successfully installed cocoapods-1.13.0
+Parsing documentation for cocoapods-1.13.0
+Done installing documentation for cocoapods after 0 seconds
+1 gem installed
+</code></pre>
+                    <p>gem list
+                    で検索しようとすると、リストされているのが表示されます。</p>
+                    <pre><code>cocoapods (1.13.0)
+cocoapods-core (1.14.3, 1.13.0)
+cocoapods-deintegrate (1.0.5)
+cocoapods-downloader (2.1, 1.6.3)
+cocoapods-plugins (1.0.0)
+cocoapods-search (1.0.1)
+cocoapods-trunk (1.6.0)
+cocoapods-try (1.2.0)
+</code></pre>
+                    <p>しかし、実行しようとすると、次のようになります。</p>
+                    <pre><code> % pod                               
+zsh: command not found: pod
+</code></pre>
+                    <p>明らかにどこかで手順が抜けていますが、<em>何?
+                    </em>何が間違っているのかを特定するには、どうすればさらに情報を入手できますか?私はロゼッタ内とロゼッタ外の両方でこれを試しました。</p>
+                    <p>Ruby 3.0 をインストールしました - gem
+                    を使用して試したところ、make
+                    エラーで失敗しました。</p>
+                    <pre><code>make: *** [build-ext] Error 2
++__rvm_make:0&gt; return 2
+</code></pre>
+                    <p>しかし、brewでやったときは大丈夫でした。</p>
+                    <p>これはパスの問題でしょうか? M1 Cocoapods 上で
+                    Ventura を実行している私の古い Mac では、
+                    ~/.rvm/gems/ruby-3.0.0/bin/pod
+                    の下にあります。最初はインストールがRosettaになかったので、別の場所に置いているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>zsh: コマンドが見つかりません: pod は、pod
+                    が次のいずれでもないことを意味します。</p>
+                    <p>pod
+                    は間違いなく最初のものではないため、オプションは、pod
+                    実行可能ファイルを指すエイリアスを作成するか、その実行可能ファイルのディレクトリを
+                    PATH に追加することです。</p>
+                    <p>gem 環境を実行すると、INSTALLATION DIRECTORY:
+                    /Library/Ruby/Gems/2.6.0
+                    のようなものが表示されます。そこで探してください:</p>
+                    <pre><code>find /Library/Ruby/Gems/2.6.0/gems/ -name pod
+</code></pre>
+                    <p>次に、エイリアスを定義するか、パスを更新します。</p>
+                    <pre><code>alias pod=/Library/Ruby/Gems/2.6.0/gems/whatever/it/ended/up/being/pod
+# or
+export PATH=&quot;/Library/Ruby/Gems/2.6.0/gems/whatever/it/ended/up/being:$PATH&quot;
+</code></pre>
+                    <p>しかし、もっと良い方法は、rbenv 経由で Ruby
+                    をインストールすることです。その後、個別の gem
+                    の設定など、プロジェクトごとにカスタマイズできる、より新しいバージョンの
+                    Ruby を入手できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

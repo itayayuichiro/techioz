@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レール7 | GET リクエストが本番環境で機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レール7 | GET リクエストが本番環境で機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レール7 | GET
+リクエストが本番環境で機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    7アプリがあり、ユーザーがボタンをクリックすると、GETリクエストを介してオンラインで支払いを行うための支払いゲートウェイにリダイレクトされます。開発モードでは、ローカルマシン（localhost:3000上）で、完全に正常に動作します。</p>
+                    <pre><code>def paye
+        @payment_response = Easebuzz::Payment.initiate({
+          &quot;txnid&quot; =&gt; &quot;#{@order.id}&quot;,
+          &quot;amount&quot; =&gt; amount.to_f,
+          &quot;firstname&quot; =&gt; current_user.name,
+          &quot;email&quot; =&gt; current_user.email,
+          &quot;phone&quot; =&gt; current_user.phone_number,
+          &quot;productinfo&quot; =&gt; &quot;Payment for Order#{@order.id}&quot;,
+          &quot;surl&quot; =&gt; &quot;http://localhost:3000/orders/#{@order.id}/successE&quot;,
+          &quot;furl&quot; =&gt; &quot;http://localhost:3000/orders/#{@order.id}/failedTransaction&quot;,
+        })
+
+        if @payment_response[&#39;status&#39;] == 1
+          data = @payment_response[&#39;data&#39;]
+          redirect_to(&quot;https://testpay.easebuzz.in/pay/#{data}&quot;, allow_other_host: true, status: 303)
+        end
+
+       puts @payment_response
+end
+</code></pre>
+                    <pre><code>resources :orders do
+  member do
+      get &#39;/paye&#39;, to: &#39;orders#paye&#39;
+  end
+ end
+</code></pre>
+                    <pre><code>&lt;%= link_to paye_order_path(order) %&gt;
+</code></pre>
+                    <p>先ほども言いましたが、開発モードではまったく問題なく動作していますが、AWS
+                    ec2、Apache、Passenger
+                    を使用してデプロイされ、変更されたばかりの本番環境で使用すると、</p>
+                    <pre><code>def paye
+     .....
+          &quot;surl&quot; =&gt; &quot;http://(Main Domain.in)/orders/#{@order.id}/successE&quot;,
+          &quot;furl&quot; =&gt; &quot;http://(Main Domain.in)/orders/#{@order.id}/failedTransaction&quot;,
+     ......
+
+     .......
+          redirect_to(&quot;https://pay.easebuzz.in/pay/#{data}&quot;, allow_other_host: true, status: 303) 
+          #using pay.easebuzz in production
+       .....
+  puts @payment_response
+end
+</code></pre>
+                    <p>実稼働環境で動作したのは 1 回目だけで、2
+                    回目からは動作しなくなりました。</p>
+                    <p>GET リクエストが表示されています
+                    (OrdersController#payE
+                    にリクエスト形式のテンプレートがありません:
+                    text/html)</p>
+                    <p>しかし、開発中はまったく問題なく動作しているのに、本番環境では
+                    GET リクエストが実行されないのはなぜですか??</p>
+                    <p><span class="citation"
+                    data-cites="payment_response">@payment_response</span>
+                    もログに何も表示されません。</p>
+                    <p>したがって、私の主な問題は、GETリクエスト（order_controller.rbのpayEメソッド）が開発では機能しているが、運用環境で使用すると機能せず、Easebuzz::Payment.initiateを読み取らないことです。</p>
+                    <p>また、<span class="citation"
+                    data-cites="payment_response">@payment_response</span>
+                    が配置されるかどうかを確認するために、payE を GET
+                    から POST リクエストに変更しましたが、ログに
+                    OrdersController#payE
+                    のテンプレートが見つかりませんと表示されます。</p>
+                    <p>私はここでどんな愚かなことをしているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>つまり、テンプレートの問題でエラーが発生しているということは、
+                    <span class="citation"
+                    data-cites="payment_response">@payment_response
+                    ['status']</span> == 1 が true
+                    ではないことを意味します。 STDOUT
+                    が本番環境のログに関連付けられていないため、puts
+                    <span class="citation"
+                    data-cites="payment_response">@payment_response</span>
+                    はおそらく機能しません。Rails.logger.debug <span
+                    class="citation"
+                    data-cites="payment_response.inspect">@payment_response.inspect</span>
+                    を試してください。</p>
+                    <p>これは応答を確認するのに役立つはずです。私の推測では、Easebuzz
+                    の設定が運用環境で適切なマーチャント
+                    キーなどを使用するように適切に設定されていないのではないかと考えられますが、ログを見れば詳細がわかります。</p>
+                    <p>最後に、コードはエラーをより適切に処理する必要があります。そのチェックには、フラッシュ
+                    エラーを伴うローカル
+                    リダイレクト、またはユーザーに表示されるエラーを伴うテンプレートのいずれかを使用する
+                    else が必要です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

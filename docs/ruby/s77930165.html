@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この has_many :through collection_check_boxes フォーム入力ではレコードが正しく作成されないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この has_many :through collection_check_boxes フォーム入力ではレコードが正しく作成されないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この has_many :through collection_check_boxes
+フォーム入力ではレコードが正しく作成されないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7アプリに has_many :through
+                    関連付け設定があります。</p>
+                    <p>イベントの予約を処理するために ActsAsBookable gem
+                    を使用しています。イベントには予約から追加できる_many
+                    個の EventExtras があり、予約には_many 個の
+                    SelectedExtras があります。 ActsAsBookable gem
+                    のせいで、少しだけ複雑さが追加されます。</p>
+                    <p>コード例を関連部分まで切り詰めます</p>
+                    <pre><code>module BookingMonkeyPatch
+  extend ActiveSupport::Concern
+  included do
+    has_many :selected_extras, foreign_key: &quot;acts_as_bookable_booking_id&quot;, dependent: :destroy
+    has_many :event_extras, through: :selected_extras
+    belongs_to :booking_set, optional: true
+  end
+end
+ActsAsBookable::Booking.include(BookingMonkeyPatch)
+</code></pre>
+                    <pre><code>class EventExtra &lt; ApplicationRecord
+  belongs_to :event
+  has_many :selected_extras
+  has_many :acts_as_bookable_bookings, through: :selected_extras, class_name: &quot;ActsAsBookable::Booking&quot;, foreign_key: &quot;acts_as_bookable_booking_id&quot;
+end
+</code></pre>
+                    <pre><code>class SelectedExtra &lt; ApplicationRecord
+  belongs_to :event_extra
+  belongs_to :acts_as_bookable_booking, foreign_key: &quot;acts_as_bookable_booking_id&quot;, class_name: &quot;ActsAsBookable::Booking&quot;
+end
+</code></pre>
+                    <pre><code>class Event &lt; ApplicationRecord
+  has_many :event_extras, dependent: :destroy
+end
+</code></pre>
+                    <pre><code>class BookingSet &lt; ApplicationRecord
+  has_many :acts_as_bookable_bookings, class_name: &quot;ActsAsBookable::Booking&quot;, foreign_key: &quot;booking_set_id&quot;
+end
+</code></pre>
+                    <p>私のフォームでは次のものを使用しています。</p>
+                    <pre><code>&lt;%= simple_form_for @booking_set, data: {turbo: &quot;false&quot;} do |form| %&gt;
+
+  &lt;%= form.input :user_id, as: :hidden, input_html: { value: @user.id } %&gt;
+  &lt;%= form.simple_fields_for :acts_as_bookable_bookings do |booking_subform| %&gt;
+    &lt;%= render &#39;acts_as_bookable_booking_fields&#39;, f: booking_subform %&gt;
+  &lt;% end %&gt;
+  &lt;%= link_to_add_fields &quot;Add Another Booking&quot;, form, :acts_as_bookable_bookings, &quot;build_shoot&quot; if @bookers&amp;.size &gt; 1 %&gt;
+
+&lt;% end %&gt;
+</code></pre>
+                    <p>そして、ネストされたフォーム内には次のようになります。</p>
+                    <pre><code>&lt;%= f.collection_check_boxes :event_extra_ids, @selected_event.event_extras, :id, :name, {}, { :multiple =&gt; true } %&gt;
+</code></pre>
+                    <p>これはうまくいきます。このフォームはさらに 2
+                    レベル下にネストされており、すべてのネストは正常に機能します。私が抱えている問題は、エクストラの
+                    1 つを選択してフォームを送信しようとすると、基本的に
+                    SelectedExtra を作成するには
+                    act_as_bookable_booking_id
+                    が必要であるという検証エラーが発生することです。</p>
+                    <p>これはある意味、私にとっては理にかなっています。送信されたパラメータを見ると、event_extra_ids
+                    =&gt; {“24”, “25”} だけです。 SelectedExtra
+                    を作成するには、選択した追加の予約が何であるかを知る必要もあります。
+                    collection_select または collection_check_boxes
+                    は、他の提案のようにこれを自動的に処理すると思いましたが、機能しないようです。</p>
+                    <p>ここで間違っている点はありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>accepts_nested_attributes_for
+                    がモデルで定義されていないようです…「RoR ガイド:
+                    複雑なフォームの構築」を参照してください。</p>
+                    <p>それ以上の問題がある場合は、&lt;%= render
+                    ‘acts_as_bookable_booking_fields’, f:
+                    Booking_subform %&gt; をコメント アウトし、一時的に
+                    ‘acts_as_bookable_booking_fields’
+                    内の内容に置き換えて、フォーム構造の問題であるか、問題であるかどうかのトラブルシューティングをより簡単にします。巣作り。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

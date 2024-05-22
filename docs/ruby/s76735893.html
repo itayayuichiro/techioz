@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7: モジュールではないサードパーティの JS ライブラリをビルドに含める | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7: モジュールではないサードパーティの JS ライブラリをビルドに含める",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7: モジュールではないサードパーティの JS
+ライブラリをビルドに含める</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しい Rails
+                    プロジェクトには、既に縮小されており、通常は Web
+                    プロジェクトに含まれる script
+                    タグを介してのみダウンロードされたライブラリ js
+                    ファイルをいくつか含めたいと考えています。これらはモジュールではありません。</p>
+                    <p>Rails 7 で importmap
+                    機能を使用しようとしましたが、モジュールではないため、ライブラリが破壊され、実行できなくなり、例外がスローされます。モジュールシステムがなく、ラップまたは変更を一切行わない（縮小された）ライブラリのJSファイルをimportmapに含める方法はありますか？</p>
+                    <p>これを機能させる唯一の方法は、JS ファイルを
+                    public/js/library.js に配置し、アプリケーション
+                    レイアウトに別の script
+                    タグを追加することでした。</p>
+                    <p>しかし、サードパーティのJSをモジュールとしてではなく、指定されたディレクトリに自動的に含める簡単な標準的な方法があり、それぞれをパブリックに配置してアプリケーションレイアウト内でソースする必要がないことを期待しています。さらに、それらを
+                    1 つのファイルに入れる (さらに後で縮小する)
+                    オプションは、非常に便利です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>import-maps
+                    を使用してインポートしたときにライブラリが機能しない場合でも、sprockets
+                    ディレクティブを使用できます。</p>
+                    <pre><code>.
+├── app/
+│   └── assets
+│       └── javascripts                       # &lt;= create these
+│           └── do_not_name_me_application.js # &lt;=
+└── vendor
+    ├── javascript
+    └── javascripts                           # &lt;=
+        ├── goodbye_library.js                # function bye(text) { console.log(text) }
+        └── hello_library.js                  # function hi(text) { console.log(text) }
+</code></pre>
+                    <pre><code>// app/assets/config/manifest.js
+
+//= link do_not_name_me_application.js
+</code></pre>
+                    <pre><code># config/initializers/assets.rb
+
+Rails.application.config.assets.paths &lt;&lt; Rails.root.join(&quot;vendor/javascripts&quot;)
+</code></pre>
+                    <pre><code>// app/assets/javascripts/do_not_name_me_application.js
+
+//= require_directory ../../../vendor/javascripts
+
+hi(&quot;loaded non module&quot;);
+bye(&quot;also loaded&quot;);
+</code></pre>
+                    <pre><code># app/views/layouts/application.html.erb
+
+&lt;%= javascript_include_tag &quot;do_not_name_me_application&quot; %&gt;
+</code></pre>
+                    <p>テスト：</p>
+                    <pre><code>&gt;&gt; require &quot;open-uri&quot;
+&gt;&gt; puts URI.open(&quot;http://localhost:3000/assets/do_not_name_me_application.js&quot;).read
+function bye(text) { console.log(text) };
+function hi(text) { console.log(text) };
+
+hi(&quot;loaded non module&quot;);
+bye(&quot;also loaded&quot;);
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/sprockets#directives</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

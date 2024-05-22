@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>結合テーブルでフィルタリングできません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "結合テーブルでフィルタリングできません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>結合テーブルでフィルタリングできません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails で API
+                    を作成しており、Invoice、Package、Additional_charge
+                    という 3 つのテーブルがあります。</p>
+                    <p>請求書には多くのパッケージが含まれており、パッケージには多くの追加料金が含まれています</p>
+                    <p>こんな質問があります:</p>
+                    <pre><code>invoices = Invoice.includes(packages: :additional_charges)
+                      .where(user_id: @current_user.id)
+                      .order(created_at: :desc)
+
+@invoices = invoices.paginate(page:, per_page:)
+</code></pre>
+                    <p>そして、データを返すために jbuilder
+                    を使用しています。 これは私の jbuilder
+                    ファイルです。</p>
+                    <pre><code>json.invoices @invoices do |invoice|
+  json.(invoice, :id, :number, :total, :status, :created_at)
+  json.packages invoice.packages do |package|
+    json.(package, :tracking, :calculated_weight, :price)
+    json.type package.shipping_method
+    json.additional_charges package.additional_charges do |additional_charge|
+      json.(additional_charge, :name, :amount)
+    end
+  end
+end
+</code></pre>
+                    <p>しかし、問題は、Tracking という名前の Packages
+                    列をフィルターしようとしたときに発生します。</p>
+                    <p>コードを次のように変更してみました。</p>
+                    <pre><code>invoices = Invoice.includes(packages: :additional_charges)
+                      .where(user_id: @current_user.id)
+
+invoices = invoices.where(&#39;packages.tracking ILIKE ?&#39;, &quot;%#{tracking}%&quot;) if tracking.present?
+
+@invoices = invoices.order(created_at: :desc).paginate(page:, per_page:)
+</code></pre>
+                    <p>そして、私はこのエラーを受け取りました:</p>
+                    <p>Packagesテーブルのtrackin列でフィルタリングできる方法はありますか?</p>
+                    <p>結合も使用しようとしましたが、jbuilder
+                    は繰り返しデータを返します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの問題は、 include
+                    がどのように機能するかです。</p>
+                    <p>include を使用すると、Rails はeager_load または
+                    preload
+                    を使用するかどうかを推測しようとします。この推論は、
+                    where
+                    に提供されたクエリ条件の存在に基づいていますが、問題は、Rails
+                    が、関連付けられたテーブルが参照されているかどうかを判断するために文字列条件を解析しなくなったことです
+                    (長い間そうしていません)。</p>
+                    <p>例えば：</p>
+                    <pre><code>SELECT invoices.* FROM invoices 
+SELECT packages.* FROM packages WHERE packages.invoice_id IN (1,2,3)
+</code></pre>
+                    <pre><code>SELECT invoices.id AS t0_r0, invoices.number AS t0_r1,...packages.id AS t1_r0, packages.tracking AS t1_r1,... FROM invoices LEFT OUTER JOIN packages ON packages.invoice_id = invoices.id 
+</code></pre>
+                    <p>あなたの場合、問題は実装がプリロードを使用しているため、パッケージテーブルがメインクエリに含まれていないことです。ただし、where
+                    の String
+                    条件でそれを参照しているため、表示されているエラーが発生します。</p>
+                    <p>最も簡単な解決策は、ActiveRecord::QueryMethods#references
+                    を使用することです。</p>
+                    <p>References は Rails
+                    による推論を削除し、代わりにこのテーブルが参照されていることを
+                    Rails
+                    に明示的に伝えるため、コードは次のように変更されます。</p>
+                    <pre><code>invoices = invoices.references(packages: :additional_charges).where(&#39;packages.tracking ILIKE ?&#39;, &quot;%#{tracking}%&quot;) if tracking.present?
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

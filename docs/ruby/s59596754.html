@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 4 Delayed_job エラー - ジョブのロードに失敗しました: 未定義のクラス/モジュール CustomJob | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 4 Delayed_job エラー - ジョブのロードに失敗しました: 未定義のクラス/モジュール CustomJob",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 4 Delayed_job エラー -
+ジョブのロードに失敗しました: 未定義のクラス/モジュール CustomJob</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これに数日、約100時間を費やしましたが、修正できません。</p>
+                    <p>これが私のセットアップです（Rails
+                    4.2.8を使用）</p>
+                    <pre><code>class CustomJob &lt; ActiveJob::Base
+  def perform(*args)
+    filename = args.first
+    data = File.read(filename)
+    #  process that data
+  end
+end
+</code></pre>
+                    <p>Delayed::Job.enqueue CustomJob.new(‘filename’)
+                    を実行すると、件名に記載されているエラーが発生します。ジョブが作成され、データベースに追加されますが、「ジョブは失敗しました…」というエラー
+                    メッセージが表示されます。</p>
+                    <p>次の行があります:</p>
+                    <pre><code>require &#39;custom_job&#39;
+</code></pre>
+                    <p>script/layed_job.rb、config/initializers/layed_jobs.rb、config/initializers/custom_job.rb、およびジョブを呼び出しているファイルを含むいくつかの場所にあります。</p>
+                    <p>これも追加しました:
+                    config.autoload_paths+=Dir[Rails.root.join(‘app’,‘jobs’)]
+                    config.active_job.queue_adapter = :layed_job
+                    config/application.rb ファイルに</p>
+                    <p>この：</p>
+                    <pre><code>config.threadsafe! unless defined? ($rails_rake_task) &amp;&amp; $rails_rake_task
+</code></pre>
+                    <p>また、変更を加えるたびにサーバーを再起動しました。そして、以下を使用して、layed_job
+                    が実行されていることを確認しました。</p>
+                    <pre><code>dir$ RAILS_ENV=development script/delayed_job status
+delayed_job: running [pid 64503]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答えがわかった後は、いつも答えは明らかだと感じます。</p>
+                    <p>問題は、共有データベースを使用していて、この DB
+                    にアクセスする既存のワーカーが存在することでした。サーバーのローカル
+                    インスタンスを再起動して更新していましたが、他のインスタンスがジョブを実行しようとしていたため、ローカル
+                    インスタンスではなく、他のワーカーがエラーを引き起こしていました。</p>
+                    <p>解決策:
+                    遅延ジョブの他のインスタンスが、テスト/構築/使用しているコードと同じテーブルを使用していることを確認します。その場合は、可能であれば別の
+                    DB を使用してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

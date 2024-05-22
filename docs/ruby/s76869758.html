@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec: StandardError は動作するのに、他の例外クラスは動作しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec: StandardError は動作するのに、他の例外クラスは動作しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec: StandardError
+は動作するのに、他の例外クラスは動作しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>一部のテストでは、特定の例外クラスを発生させるモックをセットアップしたいと考えています。この特定の例外をテストでインスタンス化するのは難しいため、double
+                    を使用したいと思います。</p>
+                    <p>ここに例を示します。</p>
+                    <pre><code>class SomeError &lt; StandardError
+  def initialize(some, random, params)
+    # ...
+  end
+end
+
+class SomeClass
+  def some_method
+    mocked_method
+    :ok
+  rescue SomeError
+    :ko
+  end
+
+  def mocked_method
+    true
+  end
+end
+
+describe SomeClass do
+  subject(:some_class) { described_class.new }
+
+  describe &#39;#some_method&#39; do
+    subject(:some_method) { some_class.some_method }
+
+    it { is_expected.to be :ok }
+
+    context &#39;when #mocked_method fails&#39; do
+      before do
+        allow(some_class).to receive(:mocked_method)
+          .and_raise(instance_double(SomeError))
+      end
+
+      it { is_expected.to be :ko }
+    end
+  end
+end
+</code></pre>
+                    <p>ただし、このテストの実行は次のメッセージが表示されて失敗します。</p>
+                    <pre><code>     Failure/Error:
+       mocked_method
+
+     TypeError:
+       exception class/object expected
+</code></pre>
+                    <p>奇妙なのは、SomeError を StandardError
+                    に置き換えると、正常に動作することです。</p>
+                    <pre><code>class SomeClass
+  def some_method
+    mocked_method
+    :ok
+  rescue StandardError
+    :ko
+  end
+
+  def mocked_method
+    true
+  end
+end
+
+describe SomeClass do
+  subject(:some_class) { described_class.new }
+
+  describe &#39;#some_method&#39; do
+    subject(:some_method) { some_class.some_method }
+
+    it { is_expected.to be :ok }
+
+    context &#39;when #mocked_method fails&#39; do
+      before do
+        allow(some_class).to receive(:mocked_method)
+          .and_raise(instance_double(StandardError))
+      end
+
+      it { is_expected.to be :ko }
+    end
+  end
+end
+</code></pre>
+                    <p>ここで何が起きてるの？ StandardError
+                    をモックするときに、特殊なケースはありますか?あるいは、インスタンス化が難しい例外クラスをモックするより良い方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題の説明</p>
+                    <p>TypeError は Kernel#raise
+                    によって発生します。</p>
+                    <p>RSpec::Mocks::MessageExpectation#and_raise
+                    は、後で呼び出される Proc (ここに表示) で
+                    Kernel#raise への呼び出しをラップします。</p>
+                    <p>Kernel#raise は以下を受け入れます。</p>
+                    <p>あなたの場合、instance_double(SomeError)
+                    は上記のどれでもないため、Kernel#raise は TypeError
+                    をスローします。同じことは次のように再現できます。</p>
+                    <pre><code>raise({a: 12})
+in `raise&#39;: exception class/object expected (TypeError)
+</code></pre>
+                    <p>レッドニシン</p>
+                    <p>StandardError
+                    が機能する理由は、あなたが考えているものではありません。</p>
+                    <p>代わりに、SomeClass#some_method が StandardError
+                    をレスキューし、TypeError が StandardError
+                    (StandardError から継承) であるため、StandardError
+                    は単に機能しているように見えます。この場合、TypeError
+                    は依然として発生しており、プロセス内で救済されているだけです。</p>
+                    <p>これを証明するには、and_raise(instance_double(StandardError))
+                    を and_raise(instance_double(SomeError))
+                    (または、Kernel#raise
+                    で受け入れられる引数に従わない他の引数)
+                    に変更すると、コードは SomeClass#
+                    である限り合格します。 some_method は StandardError
+                    または TypeError をレスキューします。</p>
+                    <p>解決？</p>
+                    <p>あなたが直面している制限（たとえば、「その特定の例外はテストでインスタンス化するのが難しい」など）を完全には理解していませんが、SomeError
+                    をインスタンス化することだけを強くお勧めしますが、単に継承する例外を作成するだけで目的を達成できます。
+                    SomeError をモックとして使用します。</p>
+                    <pre><code>class SomeError &lt; StandardError
+  def initialize(some, random, params)
+    # ...
+  end
+end
+
+class MockSomeError &lt; SomeError; def initialize(*);end; end  
+
+class SomeClass
+  def some_method
+    mocked_method
+    :ok
+  rescue SomeError
+    :ko
+  end
+
+  def mocked_method
+    true
+  end
+end
+
+describe SomeClass do
+  subject(:some_class) { described_class.new }
+
+  describe &#39;#some_method&#39; do
+    subject(:some_method) { some_class.some_method }
+
+    it { is_expected.to be :ok }
+
+    context &#39;when #mocked_method fails&#39; do
+      before do
+        allow(some_class).to receive(:mocked_method)
+          .and_raise(MockSomeError)
+      end
+
+      it { is_expected.to be :ko }
+    end
+  end
+end
+</code></pre>
+                    <p>例</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

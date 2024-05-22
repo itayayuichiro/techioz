@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby “man” ドキュメント - “&quot; を使用した複数行のコメント? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby “man” ドキュメント - “&quot; を使用した複数行のコメント?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby “man” ドキュメント - “"
+を使用した複数行のコメント?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    の「man」ページを読んでいると、「-S」フラグについて次のような記述があります。</p>
+                    <pre><code>-S   Makes Ruby use the PATH environment variable to search for script, unless its name begins with a slash.  This is used to emulate #! on
+     machines that don&#39;t support it, in the following manner:
+
+           #! /usr/local/bin/ruby
+           # This line makes the next one a comment in Ruby \
+           exec /usr/local/bin/ruby -S $0 $*
+
+     On some systems $0 does not always contain the full pathname, so you need the -S switch to tell Ruby to search for the script if necessary
+     (to handle embedded spaces and such).  A better construct than $* would be ${1+&quot;$@&quot;}, but it does not work if the script is being
+     interpreted by csh(1).
+</code></pre>
+                    <p>私が混乱しているのはこの部分です：</p>
+                    <pre><code># This line makes the next one a comment in Ruby \
+exec /usr/local/bin/ruby -S $0 $*
+</code></pre>
+                    <p>これは、man エントリが
+                     文字によってその後の行がコメントとして扱われると言っているように聞こえます。</p>
+                    <p>これをテストするために、「foo.rb」という名前の新しい
+                    Ruby スクリプトを作成してみました。これには、次の 2
+                    行と単純な「puts」ステートメントが含まれています。</p>
+                    <pre><code># This line makes the next one a comment in Ruby \
+exec /usr/bin/env ruby -S $0 $*
+
+puts &quot;Hi&quot;
+</code></pre>
+                    <p>/usr/local/bin に Ruby
+                    実行可能ファイルがないため、スクリプトを
+                    /usr/local/bin/ruby から /usr/bin/env Ruby
+                    に変更しました。 (ドキュメントによると)
+                    その行は実行可能コードではなくコメントとして扱われる必要があるため、それが結果に意味のある影響を与えるべきではないと思います。</p>
+                    <p>man エントリの解釈が正しければ、「ruby
+                    foo.rb」を実行するとターミナルに Hi
+                    が出力されると予想されます。しかし、そんなことは起こりません。代わりに、次のように表示されます。</p>
+                    <pre><code>$ ruby foo.rb
+foo.rb:2: unknown regexp option - b
+exec /usr/bin/env ruby -S $0 $*
+foo.rb:2: syntax error, unexpected local variable or method, expecting `do&#39; or &#39;{&#39; or &#39;(&#39;
+exec /usr/bin/env ruby -S $0 $*
+foo.rb:2: syntax error, unexpected global variable, expecting `do&#39; or &#39;{&#39; or &#39;(&#39;
+exec /usr/bin/env ruby -S $0 $*
+</code></pre>
+                    <p>私の何が間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby のマニュアル
+                    ページのこの特定の部分は非常に古いようです。実際、これは元々、Ruby
+                    (当時) の SVN リポジトリへの最初の (データ)
+                    コミットで追加されました。</p>
+                    <p>当時、Ruby のパーサーは、マニュアル
+                    ページの構文例に示されているように、コメントの最後にバックスラッシュを使用した行継続を実際にサポートしていたようです。</p>
+                    <p>ただし、この機能は 1999 年 3 月 2 日の SVN
+                    リビジョン 520 で Ruby から削除されました
+                    (差分は非常に大きく、GitHub
+                    ではデフォルトではレンダリングされません。parse.y
+                    ファイルの 2433 行を確認してください)。</p>
+                    <p>その変更の ChangeLog
+                    エントリは次のようになります。</p>
+                    <pre><code>Tue Mar  2 17:04:19 1999  Yukihiro Matsumoto  &lt;[email protected]&gt;
+
+    * parse.y (yylex): backslashes do not concatenate comment lines
+      anymore.
+</code></pre>
+                    <p>この変更は、1999 年 8 月に Ruby 1.4.0
+                    でリリースされました。それ以来、24
+                    年以上前、マニュアル
+                    ページのサンプルは機能しなくなりました。</p>
+                    <p>その後の (それでもかなり古い)
+                    ドキュメントでは、別のアプローチが提案されています。</p>
+                    <pre><code>#!/bin/sh
+exec ruby -S -x $0 &quot;$@&quot;
+#! ruby
+puts &#39;Hello World&#39;
+</code></pre>
+                    <p>ここでは、exec は常に実行され、Ruby
+                    インタープリターで現在のファイルを実行するには -S
+                    フラグを使用します。ただし、-x
+                    フラグも使用します。これは、#!ruby (または明らかに
+                    #! Ruby)
+                    を含む行が見つかるまで、ファイルのすべての行をスキップするように
+                    Ruby に指示します。これは今でも機能します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

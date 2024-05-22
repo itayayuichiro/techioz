@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのsjcl.jsで作成したAESの復号化 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのsjcl.jsで作成したAESの復号化",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのsjcl.jsで作成したAESの復号化</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは。クライアント側には、暗号化されたデータと同じチャネルを介して転送されないキーがあると仮定します。</p>
+                    <p>私が達成しようとしているのは、Stanford Javascript
+                    Crypto Library (sjcl) の結果を Ruby
+                    で復号化することです。または、AES
+                    をサポートする暗号ライブラリを備えた他の言語での一般化。</p>
+                    <p>私がJavaScriptでやっていることは次のとおりです。</p>
+                    <pre><code>sjcl.encrypt(&#39;stack-password&#39;, &#39;overflow-secret&#39;)
+</code></pre>
+                    <p>そして、これが私がお返しに受け取るものです:</p>
+                    <pre><code>{
+  &quot;iv&quot;: &quot;Tbn0mZxQcroWnq4g/Pm+Gg&quot;,
+  &quot;v&quot;: 1,
+  &quot;iter&quot;: 1000,
+  &quot;ks&quot;: 128,
+  &quot;ts&quot;: 64,
+  &quot;mode&quot;: &quot;ccm&quot;,
+  &quot;adata&quot;: &quot;&quot;,
+  &quot;cipher&quot;: &quot;aes&quot;,
+  &quot;salt&quot;: &quot;pMQh7m9Scds&quot;,
+  &quot;ct&quot;: &quot;H6JRpgSdEzKUw2qEO1+HwIzAdxGTgh0&quot;
+}
+</code></pre>
+                    <p>それで、私が実際に尋ねているのは、サーバー側のシークレットを復号化するために（サーバーがすでに「stack-password」キーを持っていると仮定して）これらのパラメータのうちどれが必要で、どのライブラリを使用する必要があるかということです。
+                    AES
+                    復号化ライブラリだけでは十分ではないでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下については、事前にネゴシエートする
+                    (またはハードコードする) ことはできません。</p>
+                    <p>以下では、事前にネゴシエートする
+                    (またはハードコードする)
+                    ことができます。実際、認証されずに送信され、セキュリティが期待される場合は、これらの値をサーバー暗号化
+                    API
+                    に組み込むべきではありません。クライアントに基づいて変更可能にしたい場合、adata
+                    は v、iter、または ks
+                    にとって悪い場所ではありません。</p>
+                    <p>Ruby では、OpenSSL
+                    ライブラリを使用すると、OpenSSL が AES-128-CCM で
+                    OpenSSL::Cipher.ciphers
+                    をチェックすることをサポートしている限り、機能するようです。また、pbkdf2
+                    を使用したキーの生成はサポートされていますが、sjcl
+                    との互換性を保つために Sha256
+                    ダイジェストを使用する必要があり、これも openssl
+                    のバージョンに依存します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

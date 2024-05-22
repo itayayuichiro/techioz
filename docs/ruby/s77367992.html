@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsを使用して添付されたExcelファイルをキャッシュするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsを使用して添付されたExcelファイルをキャッシュするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsを使用して添付されたExcelファイルをキャッシュするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>has_one_attached :file
+                    という製品モデルがあります。</p>
+                    <p>製品が作成されると、Excel
+                    ファイルが添付されます。通常、Excel
+                    ファイルは、製品が作成されてから 1
+                    時間以内に別のプロセスによって再度アクセスされる必要があるため、このファイルをキャッシュして、1
+                    時間以内に再度ダウンロードする必要がないようにすることが賢明であると考えました。</p>
+                    <p>現在、添付ファイルに次のようにアクセスしています。</p>
+                    <pre><code>product.file.open do |file|
+  ...
+end
+</code></pre>
+                    <p>しかし、それが発生すると、サーバー
+                    ログに次の情報が記録されます。</p>
+                    <pre><code>S3 Storage (1320.9ms) Downloaded file from key: arxnfly66hk6imt7ksa6w1w16
+</code></pre>
+                    <p>キャッシュ手法はたくさんありますが、どれがこれに適しているのかわかりません。</p>
+                    <p>私は次のようなことを試しました：</p>
+                    <pre><code>product.file.open do |file|
+  Rails.cache.write(cache_key, file.read, expires_in: 1.hour)
+end
+</code></pre>
+                    <p>しかし、これはうまくいかないようです。 file.read
+                    は非常に長い文字列を返しますが、Excel
+                    ファイルに変換する方法がわかりません。どちらの方法でも
+                    Rails.cache.read(cache_key) を実行すると nil
+                    が返されます。</p>
+                    <p>誰かが私に正しい方向を教えてくれれば、本当に感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを行うための最良の方法はわかりません。
+                    通常、ファイルを tmp フォルダーに保存し、1
+                    時間後に削除するジョブを作成します。</p>
+                    <p>キャッシュを使用したい場合は、次を使用できます</p>
+                    <pre><code>File.open(&lt;filename&gt;, &quot;w+&quot;) do |f|     
+  f.write(Rails.cache.read(cache_key))   
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

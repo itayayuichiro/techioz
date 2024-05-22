@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Swift でパワーボールのピックを生成するためのワンライナー? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Swift でパワーボールのピックを生成するためのワンライナー?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Swift
+でパワーボールのピックを生成するためのワンライナー?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>今週、米国で 50
+                    億ドルの高額宝くじが行われたため、パワーボールの抽選を行う関数を
+                    Ruby で作成しました。パワーボールでは、1 ～ 69
+                    の範囲から 5 つの数字 (重複なし) と、1 ～ 26
+                    の範囲から 1 つの数字を選択します。</p>
+                    <p>これが私が思いついたものです:</p>
+                    <pre><code>def pball
+    Array(1..69).shuffle[0..4].sort + [rand(1..26)]
+end
+</code></pre>
+                    <p>これは、1 から 69
+                    までの整数の配列を作成し、その配列をシャッフルし、最初の
+                    5 つの数値を選択し、それらを並べ替えて、最後に 1
+                    から 26 までの数値を加算することで機能します。</p>
+                    <p>Swift には Array に組み込みの shuffle
+                    メソッドがないため、これを Swift
+                    で行うにはもう少し手間がかかります。</p>
+                    <p>これは私の試みでした:</p>
+                    <pre><code>func pball() -&gt; [Int] {
+    let arr = Array(1...69).map{($0, drand48())}.sort{$0.1 &lt; $1.1}.map{$0.0}[0...4].sort()
+    return arr + [Int(arc4random_uniform(26) + 1)]
+}
+</code></pre>
+                    <p>shuffle メソッドがないため、1 ～ 69
+                    の範囲の値を持つ [Int]
+                    を作成することで機能します。次に、map を使用して
+                    [(Int, Double)] を作成します。これは、数値と 0.0
+                    ..&lt; 1.0 の範囲のランダムな Double を含むタプル
+                    ペアの配列です。次に、Double
+                    値を使用してこの配列を並べ替え、2
+                    番目のマップを使用して [Int] に戻り、次にスライス
+                    [0…4] を使用して最初の 5 つの数値を抽出し、sort()
+                    を使用してそれらを並べ替えます。</p>
+                    <p>2 行目には、1 ～ 26
+                    の範囲の数値が追加されます。これを最初の行に追加しようとしましたが、Swift
+                    でエラーが発生しました。</p>
+                    <p>これを 1
+                    行の関数に変換する方法を誰かが提案できますか?おそらく、1
+                    ～ 69 から 5
+                    つの数字を選択するより良い方法があるかもしれません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Xcode 8.3 • Swift 3.1</p>
+                    <pre><code>import GameKit 
+
+var powerballNumbers: [Int] {
+    return (GKRandomSource.sharedRandom().arrayByShufflingObjects(in: Array(1...69)) as! [Int])[0..&lt;5].sorted() + [Int(arc4random_uniform(26) + 1)]
+}
+
+powerballNumbers   // [5, 9, 62, 65, 69, 2]
+</code></pre>
+                    <p>スイフト2.x</p>
+                    <pre><code>import GameKit 
+
+var powerballNumbers: [Int] {
+    return (GKRandomSource.sharedRandom().arrayByShufflingObjectsInArray(Array(1...69)) as! [Int])[0...4].sort() + [Int(arc4random_uniform(26).successor())]
+}
+
+powerballNumbers   // [21, 37, 39, 42, 65, 23]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

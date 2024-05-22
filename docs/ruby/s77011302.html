@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 内のデータを介して has_many を更新する際の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 内のデータを介して has_many を更新する際の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 内のデータを介して has_many
+を更新する際の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はモデルが次のようなプロジェクトに取り組んでいます。</p>
+                    <p>ユーザーには_多くのセットアップがあり、</p>
+                    <p>setups has_many
+                    の楽器が楽器のセットアップを通じてあり、</p>
+                    <p>楽器にはinstrumentsetupを通じて_多くのセットアップがあり、</p>
+                    <p>楽器のセットアップはセットアップに属し、</p>
+                    <p>楽器のセットアップは楽器に属します、</p>
+                    <p>現在、セットアップ内のすべてのパラメータを更新できるようにしていますが、セットアップ内のどの楽器も同時に更新できるようにしようとしていますが、問題が発生しています。インストゥルメントを更新するために
+                    setups_controller の create
+                    メソッドからコードを借用していますが、新しいインストゥルメントをいくつ選択しても、最後に選択したインストゥルメントのコピーが大量に作成されるだけであるという問題が発生しています。セットアップ
+                    コントローラーのコードはすべて次のとおりです。</p>
+                    <p>これは、選択したすべての楽器ではなく、同じ楽器の複数のコピーのみを表示して、フロントエンドにどのように表示されるかを示す写真です</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>更新は作成とは異なります。更新アクションでは、モデルではなくオブジェクト自体を更新する必要があります。セットアップを取得しており、セットアップにはinstrumentsetupsを通じて多くの楽器があるため、次のように更新できます</p>
+                    <pre><code>def update
+    setup = Setup.find(params[:id])
+    instruments = Instrument.find params[:instrument_ids]
+    if setup &amp;&amp; setup.user_id == current_user.id
+      setup.update(instruments: instruments)
+      setup.update!(setup_params)
+      render json: setup, status: :created
+    else
+      render json: &quot;Invalid Credentials&quot;, status: :unauthorized
+    end
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

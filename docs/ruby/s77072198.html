@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Puppet ユーザーマニフェストは puppetclient に影響を与えます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Puppet ユーザーマニフェストは puppetclient に影響を与えます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Puppet ユーザーマニフェストは puppetclient
+に影響を与えます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>VirtualBox には 2 つのサーバーがあります。</p>
+                    <p>1)ホスト名: puppetmaster 192.168.100.8</p>
+                    <p>2）ホスト名：pupetclient 192.168.100.9</p>
+                    <p>両方のサーバーで Puppet が実行されています</p>
+                    <p>ubuntuのdocuを使用してインストールしました。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ubuntu.com/server/docs/tools-puppet</p>
+                    <p>サーバーはubuntu 20.04です</p>
+                    <p>pupetclientを実行するとマスターが証明書に気づき、署名しました</p>
+                    <p>サーバーは相互に ping できます。</p>
+                    <p>マスター：</p>
+                    <pre><code>cat /etc/hosts
+127.0.0.1   localhost
+127.0.1.1   puppetmaster.example.com    puppetmaster
+192.168.100.9   puppetclient.example.com puppetclient
+</code></pre>
+                    <p>クライアント：</p>
+                    <pre><code>cat /etc/hosts
+127.0.0.1   localhost
+127.0.1.1   puppetclient.example.com    puppetclient
+192.168.100.8 puppetmaster.example.com puppetmaster puppet
+</code></pre>
+                    <p>最初に、ユーザーを作成するための最も単純なコードを作成しました。</p>
+                    <pre><code>root@puppetmaster:/etc/puppet/code/environments# cd ../../
+root@puppetmaster:/etc/puppet# tree
+.
+|-- auth.conf
+|-- code
+|   `-- environments
+|       `-- production
+|           `-- modules
+|               |-- mymodule
+|               |   |-- files
+|               |   |   `-- test.txt
+|               |   `-- manifests
+|               |       |-- init.pp
+|               |       `-- site.pp
+|               `-- user
+|                   `-- manifests
+|                       |-- init.pp
+|                       `-- site.pp
+|-- hiera.yaml
+`-- puppet.conf
+
+cat puppet.conf 
+[main]
+ssldir = /var/lib/puppet/ssl
+
+[master]
+vardir = /var/lib/puppet
+cadir  = /var/lib/puppet/ssl/ca
+dns_alt_names = puppet
+
+cat code/environments/production/modules/user/manifests/init.pp 
+class user {
+  user { &#39;testuser123&#39;:
+    ensure =&gt; present,
+    comment =&gt; &#39;bogo user&#39;,
+    home =&gt; &#39;/home/testuser123&#39;,
+    managehome =&gt; true
+  }
+}
+
+root@puppetmaster:/etc/puppet# cat code/environments/production/modules/user/manifests/site.pp 
+node &#39;puppetclient.example.com&#39; {
+  include user
+}
+
+sudo puppet apply /etc/puppet/code/environments/production/modules/user/manifests/init.pp 
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Notice: Compiled catalog for puppetmaster.example.com in environment production in 0.01 seconds
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+Notice: Applied catalog in 0.01 seconds
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+
+user@puppetclient:/home$ sudo puppet agent --test
+[sudo] password for user: 
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Info: Using configured environment &#39;production&#39;
+Info: Retrieving pluginfacts
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/indirector/request.rb:272: warning: URI.unescape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Info: Retrieving plugin
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/indirector/request.rb:272: warning: URI.unescape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Info: Retrieving locales
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:315: warning: deprecated Object#=~ is called on Puppet::Transaction::Report; it always returns nil
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/indirector/request.rb:272: warning: URI.unescape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Info: Caching catalog for puppetclient.example.com
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+Info: Applying configuration version &#39;1694262084&#39;
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+Notice: Applied catalog in 0.01 seconds
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+/usr/lib/ruby/vendor_ruby/puppet/util.rb:461: warning: URI.escape is obsolete
+/usr/lib/ruby/vendor_ruby/puppet/file_system/uniquefile.rb:126: warning: $SAFE will become a normal global variable in Ruby 3.0
+</code></pre>
+                    <p>そしてそれは何もありません、どこにエラーがあるのでしょうか？
+                    puppetclient
+                    サーバーには新しいユーザーがいません:(</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その名前とノード宣言が含まれているという事実に基づいて、/etc/puppet/code/environments/production/modules/user/manifests/site.pp
+                    をサイト
+                    マニフェストとして意図しているようです。それは一つではありません。
+                    /etc/puppet/code/environments/production/modules/mymodule/manifests/site.pp
+                    も同様です</p>
+                    <p>デフォルトでは、特定の環境のカタログ
+                    コンパイルの開始点 (つまり、サイト マニフェスト)
+                    は、環境自体の manifests/
+                    フォルダーに直接存在するマニフェスト
+                    ファイルのコレクションです。あなたの場合、それは
+                    /etc/puppet/code/environments/production/manifests
+                    になりますが、これは存在することさえ表示されません。そのフォルダーを作成し、そのフォルダーに正しいアクセス許可があることを確認し、2
+                    つの site.pp ファイルの内容をそこに移動します。
+                    (おそらく、それらを 1
+                    つのファイルにマージする必要があるでしょう。)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

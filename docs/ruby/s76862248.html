@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: インラインアダプターを使用してテスト内で ActiveJob を正しく実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: インラインアダプターを使用してテスト内で ActiveJob を正しく実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:
+インラインアダプターを使用してテスト内で ActiveJob
+を正しく実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のテストがあります。</p>
+                    <pre><code>require &quot;test_helper&quot;
+
+class DisbursementGenerationTest &lt; ActionDispatch::IntegrationTest
+  test &quot;disburse test orders&quot; do
+    puts &quot;Performing job...&quot;
+    Merchant.all.each do |merchant|   
+      DisburseJob.perform_later(merchant)      
+    end
+    puts &quot;Job performed&quot;
+    sleep 10
+    assert_equal 2, Disbursement.count
+  end
+end
+</code></pre>
+                    <p>/config/environment/test.rb で、ActiveJob キュー
+                    アダプターをインラインに設定します。</p>
+                    <pre><code>Rails.application.configure do
+  config.active_job.queue_adapter = :inline
+</code></pre>
+                    <p>テスト中のジョブはまったく実行されません。両方の
+                    put
+                    ステートメントからの出力が表示されますが、ジョブが実行されていません。予想通り、2
+                    つの販売者オブジェクトがあることを確認しました。開発環境では、sidekiq
+                    をジョブ バックエンドとして使用しており、Rails
+                    コンソールから手動でジョブを実行することも、アプリ内でスケジュールされたジョブも正常に実行します。</p>
+                    <p>テスト内で ActiveJob
+                    を正しく実行するにはどうすればよいですか?</p>
+                    <p>テストを実行したところ、ジョブが 2 回
+                    (販売者オブジェクトごとに 1 回)
+                    実行されることが予想されました。ジョブはまったく実行されていません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストするには、キュー
+                    アダプターをテストするように設定する必要があります。</p>
+                    <pre><code>  config.active_job.queue_adapter = :test
+</code></pre>
+                    <p>そして、perform_enqueued_jobs
+                    を使用してジョブを実行できます。</p>
+                    <pre><code>class DisbursementGenerationTest &lt; ActionDispatch::IntegrationTest
+  test &quot;disburse test orders&quot; do
+    Merchant.all.each do |merchant|   
+      DisburseJob.perform_later(merchant)      
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 2, Disbursement.count
+    assert_performed_jobs 2
+  end
+end
+</code></pre>
+                    <p>テスト ヘルパーと AJ
+                    のテスト全般に関する詳細情報。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

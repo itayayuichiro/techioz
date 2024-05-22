@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Fluentd から elasticsearch への接続でログ演算子エラーを使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Fluentd から elasticsearch への接続でログ演算子エラーを使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Fluentd から elasticsearch
+への接続でログ演算子エラーを使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>k8s v1.25 で Fluentbit と Fluentd
+                    をセットアップする Banzai ロギング オペレーター v
+                    4.2.2 を使用すると、以下のエラーが発生して
+                    Elasticserach v8.9.0 に接続できません。</p>
+                    <pre><code>The client is unable to verify that the server is Elasticsearch. Some functionality may not be compatible if the server is running an unsupported product.
+</code></pre>
+                    <p>2023-08-16 11:30:37 +0000 [エラー]:
+                    fluent/log.rb:372:error: 予期しないエラー
+                    error_class=Elastic::Transport::Transport::Error
+                    error=“EOFError (EOFError)”
+                    2023-08-16T11:30:37.803235525Z 2023-08-16 11:30:37
+                    +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems
+                    /elastic-transport-8.2.1/lib/elastic/transport/transport/base.rb:324:in
+                    レスキュー in Perform_request’
+                    2023-08-16T11:30:37.803240778Z 2023-08-16 11:30:37
+                    +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems/elastic-transport-8.2.1/lib/elastic/transport/transport/base.rb:285
+                    :perform_request 内 2023-08-16T11:30:37.803244112Z
+                    2023-08-16 11:30:37 +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems
+                    /elastic-transport-8.2.1/lib/elastic/transport/transport/http/faraday.rb:36:in
+                    Perform_request’ 2023-08-16T11:30:37.803670295Z
+                    2023-08-16 11:30:37 +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems/elastic-transport-8.2.1/lib/elastic/transport/client.rb:176:inリクエストの実行’
+                    2023-08-16T11:30:37.803685465Z 2023-08-16 11:30:37
+                    +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems
+                    /elasticsearch-8.6.0/lib/elasticsearch.rb:71:in
+                    method_missing’ 2023-08-16T11:30:37.803689566Z
+                    2023-08-16 11:30:37 +0000 [エラー]:
+                    fluent/supervisor.rb: 1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems/elasticsearch-api-8.6.0/lib/elasticsearch/api/actions/info.rb:41:in
+                    info’ 2023-08-16 11:30:37 +0000 [エラー]:
+                    fluent/supervisor.rb:1055:main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems/fluent-plugin-elasticsearch-5.3.0
+                    /lib/fluent/plugin/out_elasticsearch.rb:498:in
+                    detect_es_major_version’
+                    2023-08-16T11:30:37.803696370Z 2023-08-16 11:30:37
+                    +0000 [エラー]: fluent/supervisor.rb:1055:
+                    main_process:
+                    /usr/lib/ruby/gems/3.1.0/gems/fluent-plugin-elasticsearch-5.3.0/lib/fluent/plugin/out_elasticsearch.rb:489:in
+                    block in handle_last_seen_es_major_version’</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは PV の作成のため、PV は gp2/gp3
+                    StorageClass
+                    を使用して自動的に作成される必要があるため、PVC が
+                    PV
+                    をリクエストしたときに自動的に作成される必要があるため、次を使用して作成された適切なサービス
+                    アカウントで aws-ebs-csi-driver
+                    アドオンが正しく設定されていることを確認してください。以下のコマンド。</p>
+                    <pre><code>aws eks create-addon --cluster-name &lt;EKS cluster name&gt; --addon-name aws-ebs-csi-driver --service-account-role-arn arn:aws:iam::&lt;account-no&gt;:role/&lt;eks cluster name&gt;-cluster-ebs --region &quot;{{REGION}}&quot;
+</code></pre>
+                    <p>そしてECKをインストールしてみます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

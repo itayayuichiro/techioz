@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Active Storage は検証が失敗した後でも接続を検出します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Active Storage は検証が失敗した後でも接続を検出します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Active Storage
+は検証が失敗した後でも接続を検出します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これはかなり長い間続いている問題であり、今日に至るまで、まだ解決策が見つかりません。同様の問題をいくつか見たことがありますが、私が経験しているものとはまったく異なります。</p>
+                    <p>私は Rails 5 で登場して以来、Rails Active Storage
+                    を使用してきましたが、この特定の問題のため、本番環境で実際に使用することはできませんでした。
+                    Rails 6
+                    の登場時に解決された主な問題は、添付ファイルの検証を実装した場合、レコードは保存されないが、添付ファイル
+                    (BLOB) は引き続き保存され、検証がコンテンツ タイプ
+                    (たとえば、JPEG
+                    画像であることを確認してから）、添付ファイルが無効になってしまいます（たとえば、テキスト
+                    ファイルをアップロードした場合）。たとえば、この添付ファイルを
+                    image_tag
+                    で「表示」しようとすると、問題が発生します。 Rails 6
+                    では、レコードが実際にデータベースに保存されるときにのみ添付ファイルを保存することで、この問題を解決しています。これで問題の半分しか解決しません。</p>
+                    <p>これは私がまだ経験していて、まだ解決策が見つかっていないことです。</p>
+                    <p>非常に基本的なセットアップがあるとします。名前、メールアドレス、アバターが添付された人物モデル</p>
+                    <pre><code>Class Person &lt; ApplicationRecord
+  has_one_attached :avatar
+  #Check that image type is jpg or png
+  validate :check_image_type
+
+  #Remove avatar flag needed for form
+  attr_accessor :remove_avatar
+
+  #purge picture if remove picture flag was ticked on form
+  after_save :purge_avatar, if: :purge_requested?
+
+  #Returns a thumbnail version of the property picture
+  def thumbnail
+    return self.avatar.variant(resize:&#39;100x100&#39;).processed 
+  end
+
+  private 
+    #Validates the image type being uploaded
+    def check_image_type
+      if avatar.attached? &amp;&amp; !avatar.content_type.in?(%(&quot;image/jpeg image/png&quot;))
+        errors.add(:avatar, &quot;Invalid Avatar Format&quot;)
+      end
+    end
+
+    #Was a purge of the picture requested 
+    def purge_requested?
+      remove_avatar == &quot;1&quot;
+    end
+
+    def purge_avatar
+      avatar.purge_later
+    end
+end 
+</code></pre>
+                    <p>上記のコードでわかるように、人物にはアバターが 1
+                    つ添付されています。保存時に、画像タイプが jpep
+                    または png
+                    であることを確認し、そうでない場合は、レコードの保存を妨げるエラーをレコードに追加するだけです。</p>
+                    <p>これはコントローラーのコードです
+                    (インデックス、編集、更新、および破棄のアクションは省略しました)。</p>
+                    <pre><code>class PeopleController &lt; ApplicationController
+  before_action :set_person, only: [:show, :edit, :update, :destroy]
+
+  def new
+    @person = Person.new
+  end
+
+  def create
+    @person = Person.new(person_params)
+
+    respond_to do |format|
+      if @person.save
+        format.html { redirect_to @person, notice: &#39;Person was successfully created.&#39; }
+        format.json { render :show, status: :created, location: @person }
+      else
+        format.html { render :new }
+        format.json { render json: @person.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_person
+      @person = Person.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def person_params
+      params.require(:person).permit(:name, :email, :avatar, :remove_avatar)
+    end
+end
+
+</code></pre>
+                    <p>次に、フォーム上にアバターが存在する場合はフォーム内に表示し、ユーザーが情報を作成/編集し、必要に応じて別のアバターを選択できるようにします。</p>
+                    <pre><code>&lt;%= form_with(model: person, local: true) do |form| %&gt;
+  &lt;% if person.errors.any? %&gt;
+    &lt;div id=&quot;error_explanation&quot;&gt;
+      &lt;h2&gt;
+        &lt;%= pluralize(person.errors.count, &quot;error&quot;) %&gt; prohibited this person from being saved:
+      &lt;/h2&gt;
+
+      &lt;ul&gt;
+        &lt;% person.errors.full_messages.each do |message| %&gt;
+          &lt;li&gt;&lt;%= message %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+  &lt;!-- Display avatar if one attach --&gt;
+  &lt;%if person.avatar.attached?%&gt;
+    &lt;%=image_tag(person.avatar)%&gt;
+    Remove &lt;%=form.check_box :remove_avatar%&gt;
+  &lt;%end%&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= form.label :name %&gt;
+    &lt;%= form.text_field :name %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;field&quot;&gt;
+    &lt;%= form.label :email %&gt;
+    &lt;%= form.text_field :email %&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Select Picture --&gt;
+  &lt;div class = &quot;field&quot;&gt;
+    &lt;%=form.label :avatar %&gt;
+    &lt;%= form.file_field :avatar, accept: &#39;image/*&#39;%&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;actions&quot;&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+</code></pre>
+                    <p>期待される動作は次のとおりです</p>
+                    <p>間違ったファイルの種類を選択すると、レコードは保存されなくなりますが、それは問題ありませんが、非永続レコードの添付ファイルが「表示」されます。そのため、作成アクションでフォームが最初に表示されたときにはアバターは表示されませんでしたが、検証が失敗した後にフォームが再レンダリングされると「空の」アバターが表示されます。これは付属品のせいでしょうか？レコードに添付ファイルがないにもかかわらず
+                    (拒否されたため)、メソッドは true を返します。</p>
+                    <p>空白のアバターはちょっとファンキーに見え、リンクが切れた写真のように見えます。ただし、Person
+                    クラスのサムネイル
+                    メソッドなど、アバター自体に何らかの操作を行うと、次のエラーが生成されます:
+                    ActiveStorage::InvariableError</p>
+                    <p>これは付属品のせいでしょうか？属性が true
+                    で、アバター属性が有効ですが、関連付けられた BLOB
+                    (画像)
+                    がありません。そのため、サムネイルにサイズ変更しようとすると、エラーが発生して失敗します。</p>
+                    <p>アバターやアタッチを「クリア」またはリセットする方法を見つけようとしていますか?検証によりレコードが保存できない場合の属性。内部的には、Rails
+                    は本来の動作を実行します
+                    (ファイルを保存せず、存在する場合は現在のファイルを保持します)。</p>
+                    <p>しかし、フォームに表示される内容
+                    (アバターを表示する場合)
+                    は、特に新しいアバターを選択する前にユーザーがアバターを持っていた場合には、ユーザーを混乱させることになります。無効なアバターを選択し、フォームがそれを拒否した場合、再レンダリングでは最初のアバターは表示されず、画像のリンク切れアイコンに置き換えられます。これにより、実際はそうではないのに、以前のアバターが消去されたとユーザーが混乱する可能性があります。現時点では、アクティブ
+                    ストレージの内部に深く入り込まずにこれを修正する方法がわかりません
+                    (今はやりたくありません)。</p>
+                    <p>自分でパージを呼び出したり、アバター属性に null
+                    を割り当てたりしようとしましたが、うまくいきませんでした</p>
+                    <pre><code>def check_image_type
+  if avatar.attached? &amp;&amp; !avatar.content_type.in?(%(&quot;image/jpeg image/png&quot;))
+    errors.add(:avatar, &quot;Invalid Avatar Format&quot;)
+    avatar.purge    &lt;---- Not working
+    avatar = nil &lt;--- Not working
+    avatar = &#39;&#39; &lt;--- Not working
+  end
+end
+</code></pre>
+                    <p>編集：
+                    必ずしもアップロードしたばかりのプレビューを表示しようとしているわけではありません。実のところ、私はそんなことはしたくないのですが、Rails
+                    が勝手にやっているようです。</p>
+                    <p>この例では、ユーザーを作成するときにアバターがないため何も表示されませんが、間違ったファイルタイプのアバターをアップロードしようとしてフォームがリロードされてエラーが表示されると、ロードに失敗したアバターを表示しようとします。アップロードされたファイルが正しいタイプの場合、ユーザー情報が保存され、ユーザー
+                    リストまたはロードされたアバターを表示できる別の画面にリダイレクトされます。</p>
+                    <p>ユーザーがすでにアバターを持っており、それを変更したい場合。まずフォームを開くと
+                    (編集アクションを使用して)、現在のアバターが表示されます。それを変更して無効なファイルをアップロードしようとすると、再びエラーが発生してフォームがリロードされますが、現在の有効なアバターが空のアバターに置き換えられます（データベースであっても、古いアバターはまだ残っています）。同様に、有効なファイルをアップロードすると、フォームが送信され、アバターが変更され、次の画面に表示されます。</p>
+                    <p>要約すると、適切な行動は次のとおりです
+                    (私はそう感じています) 検証
+                    (ファイルの種類、サイズなど)
+                    に基づいて拒否されたファイルをアップロードしようとした場合、Rails
+                    はファイルのアップロードを試みていないかのように動作するはずです。
+                    「暫定的な添付ファイル」の残骸はすべて廃棄する必要があります。</p>
+                    <p>新しいリソースの場合は、アバターは表示されませんが、既存のリソースの場合は、現在のアバターが表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラーを防ぐために、persisted
+                    を使用できますか?</p>
+                    <pre><code>&lt;% if person.avatar.attached? &amp;&amp; person.avatar.persisted? %&gt;
+  &lt;%= image_tag(person.avatar)%&gt;
+  Remove &lt;%= form.check_box :remove_avatar%&gt;
+&lt;%end%&gt;
+</code></pre>
+                    <p>そして、この gem を ActiveStorage
+                    の検証に使用できます。</p>
+                    <p>このような：</p>
+                    <pre><code>validates :avatar, content_type: %w[image/png image/jpg image/jpeg]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

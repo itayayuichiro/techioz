@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ターミナルで複数行の要素を 1 行に印刷するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ターミナルで複数行の要素を 1 行に印刷するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ターミナルで複数行の要素を 1
+行に印刷するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>チェスのグリッドを端末に出力しようとしています。各要素は行のように同じ行に隣り合って出力されます。ただし、行内の各要素の深さを
+                    2
+                    行にし、次の要素が最初の要素が開始したのと同じ行に印刷されるようにしたいと考えています。</p>
+                    <p>単一行要素を含むこのコードは正常に動作します。</p>
+                    <pre><code>  def display_board_utf
+    grid.each_with_index do |row, row_index|
+      puts &quot;\n\n&quot;
+      print ((row_index - 8).abs).to_s + &#39; &#39;
+      row.each_with_index do |piece, column_index|
+        if piece.nil?
+          if colour_grid[row_index][column_index] == :black
+            print(&quot;\033[40m| nil |\033[m&quot;)
+          else
+            print(&quot;\033[47m| nil |\033[m&quot;)
+          end
+        else
+          if colour_grid[row_index][column_index] == :black
+            print(&quot;\033[40m|#{piece.uni_char + piece.class.to_s.chr.downcase + piece.colour.to_s.chr + colour_emoji(piece.colour)}|\033[m&quot;)
+          else
+            print(&quot;\033[47m|#{piece.uni_char + piece.class.to_s.chr.downcase + piece.colour.to_s.chr + colour_emoji(piece.colour)}|\033[m&quot;)
+          end
+        end
+      end
+      print &#39; &#39; + ((row_index - 8).abs).to_s
+    end
+    puts &quot;\n\n&quot;
+  end
+</code></pre>
+                    <p>上記の出力のイメージ:</p>
+                    <p>もちろん、各要素の 2
+                    行目を出力すると改行文字が追加されます。これは、次に出力される要素が前の要素の開始行レベルで出力されないことを意味し、次のような混乱が生じます。</p>
+                    <p>必要なものを達成できずに、puts/print/p と print
+                    to を試してみましたが、私の知る限り、「line
+                    up」コマンドはありません。
+                    (別のライブラリを使用せずに)
+                    達成しようとしているこの複数行要素の単一行タイプの出力を作成する方法について何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「そして、重要なのは、2
+                    行にわたって印刷し、もう一度上の行を印刷する方法はないということだと思います。コマンドラインでの出力は一方向のみであるため、戻ってすでに印刷されているものの上に出力することはできません」
+                    。」標準ライブラリは IO::console
+                    に同梱されています。役に立たないデモ:</p>
+                    <pre><code>require &#39;io/console&#39;
+
+c = IO::console
+c.clear_screen
+sleep 1
+c.cursor=[10,10]
+print &quot;I am here&quot;
+sleep 1
+c.cursor_up(3)
+sleep 1
+c.cursor_left(3)
+sleep(1)
+print &quot;now I&#39;m here!&quot;
+sleep 1
+c.clear_screen
+</code></pre>
+                    <p>これが Windows
+                    で機能するかどうかはわかりません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

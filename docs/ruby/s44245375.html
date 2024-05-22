@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>edxops/フォーラムの正しいプル方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "edxops/フォーラムの正しいプル方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>edxops/フォーラムの正しいプル方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>OpenEdx
+                    で動作する独自の開発スタックを作成しています。</p>
+                    <p>公式の devstack リポジトリを edx
+                    から取得し、変更しています。</p>
+                    <p>スタックにフォーラムを追加しようとしていますが、docker
+                    compose のため実行できません。</p>
+                    <p>これをコンポーザーファイルに追加しました。</p>
+                    <pre><code>forums:
+    command: bash -c &#39;source /edx/app/forum/cs_comments_service_env &amp;&amp; ruby app.rb -p 18080&#39;
+    container_name: edx.devstack.forums
+    depends_on:
+      #   - xqueue:xqueue
+      - mongo
+      - elasticsearch
+      # - rabbitmq:rabbitmq
+      - mysql
+      - memcached
+    environment:
+      CACHE_LOCATION: edx.devstack.memcached:12211
+      DB_HOST: edx.devstack.mysql
+      TEST_ELASTICSEARCH_URL: &quot;http://edx.devstack.elasticsearch:9200&quot;
+    image: edxops/forums:latest
+    ports:
+      - 4567:4567
+</code></pre>
+                    <p>どのコマンドを実行するのが正しいのか混乱しています。</p>
+                    <pre><code>studio:
+    command: bash -c &#39;source /edx/app/edxapp/edxapp_env &amp;&amp; python /edx/app/edxapp/edx-platform/manage.py cms runserver 0.0.0.0:18010 --settings devstack_docker&#39;
+</code></pre>
+                    <p>スタジオ用のコマンドです。</p>
+                    <pre><code>forums:
+    command: bash -c &#39;source /edx/app/forum/cs_comments_service_env &amp;&amp; ruby app.rb -p 18080&#39;
+</code></pre>
+                    <p>これを試してみましたが、フォルダーが存在しません。</p>
+                    <p>そこで、コマンド: bash -c ‘ruby app.rb -p 18080’
+                    を試してみましたが、次のエラーが発生しました。</p>
+                    <p>そのため、フォーラムの画像について、またそれが正しく動作するようにどのように提供すればよいかについて混乱しています。</p>
+                    <p>誰か助けてくれませんか？</p>
+                    <p>アップデート：</p>
+                    <p>新しい構成があります:</p>
+                    <pre><code>forums:
+    command: bash -c &#39;cd /edx/app/forum/cs_comments_service &amp;&amp; exec /edx/app/forum/cs_comments_service/bin/unicorn -c config/unicorn_tcp.rb&#39;
+    container_name: edx.devstack.forums
+    depends_on:
+      # - xqueue:xqueue
+      - mongo
+      - elasticsearch
+      # - rabbitmq:rabbitmq
+      - mysql
+      - memcached
+    environment:
+      CACHE_LOCATION: edx.devstack.memcached:12211
+      DB_HOST: edx.devstack.mysql
+      SEARCH_SERVER: &quot;http://edx.devstack.elasticsearch:9200&quot;
+      TEST_ELASTICSEARCH_URL: &quot;http://edx.devstack.elasticsearch:9200&quot;
+      MONGOHQ_URL: &quot;mongodb://cs_comments_service:[email protected]:27017/cs_comments_service&quot;
+      GEM_PATH: &quot;/edx/app/forum/.gem&quot;
+      GEM_HOME: &quot;/edx/app/forum/.gem&quot;
+      RBENV_ROOT: &quot;/edx/app/forum/.rbenv&quot;
+    image: edxops/forum:latest
+    ports:
+      - 4567:4567
+</code></pre>
+                    <p>しかし、私はまだこの問題を抱えています:</p>
+                    <pre><code>docker-compose logs -f --tail=500 | grep edx.devstack.forums
+Attaching to edx.devstack.forums, edx.devstack.chrome, edx.devstack.firefox, edx.devstack.credentials, edx.devstack.discovery, edx.devstack.elasticsearch, edx.devstack.ecommerce, edx.devstack.studio, edx.devstack.lms, edx.devstack.memcached, edx.devstack.mysql, edx.devstack.mongo
+edx.devstack.forums | /usr/bin/env: ‘ruby’: No such file or directory
+</code></pre>
+                    <p>しかし、なぜ？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>イメージを調べて、コンテナーの実行に役立つ詳細を把握しました。以下に私の発見をリストします。</p>
+                    <p>また、Ruby は次のようにカスタム
+                    パスにインストールされます。</p>
+                    <pre><code>    root@8a5de1d489c5:/edx/app# which ruby 
+    /edx/app/forum/.rbenv/shims/ruby
+</code></pre>
+                    <p>したがって、それを使用するには環境変数をロードする必要があります。起動の一部としてロードされる環境変数には次のものがあります。</p>
+                    <pre><code>export LISTEN_HOST=&quot;0.0.0.0&quot;
+export NEW_RELIC_APP_NAME=&quot;default_env-default_deployment-forum&quot;
+export DATA_DIR=&quot;/edx/var/forum&quot;
+export LISTEN_PORT=&quot;4567&quot;
+export MONGOHQ_URL=&quot;mongodb://cs_comments_service:[email protected]:27017/cs_comments_service&quot;
+export GEM_PATH=&quot;/edx/app/forum/.gem&quot;
+export RACK_ENV=&quot;staging&quot;
+export WORKER_PROCESSES=&quot;4&quot;
+export NEW_RELIC_ENABLE=&quot;False&quot;
+export SINATRA_ENV=&quot;staging&quot;
+export SEARCH_SERVER=&quot;http://es.edx:9200&quot;
+export PATH=&quot;/edx/app/forum/cs_comments_service/bin:/edx/app/forum/.rbenv/bin:/edx/app/forum/.rbenv/shims:/edx/app/forum/.gem/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;
+export API_KEY=&quot;password&quot;
+export HOME=&quot;/edx/app/forum&quot;
+export GEM_HOME=&quot;/edx/app/forum/.gem&quot;
+export RBENV_ROOT=&quot;/edx/app/forum/.rbenv&quot;
+</code></pre>
+                    <p>この情報を使用すると、必要な構成でイメージを実行できます。</p>
+                    <p>たとえば、環境セクションの構成に従って変数のリストを設定します。これらの変数をすべて
+                    yaml
+                    ファイルに設定する必要があります。完了したら、コマンドは次のようになります。</p>
+                    <pre><code>bash -c &#39;cd /edx/app/forum/cs_comments_service &amp;&amp; exec /edx/app/forum/cs_comments_service/bin/unicorn -c config/unicorn_tcp.rb&#39;
+</code></pre>
+                    <p>これらすべての変数を書きたくない場合は、それを実行するカスタム
+                    スクリプトを書くか、これらの設定に関連付けられるデフォルトのコマンドで起動してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

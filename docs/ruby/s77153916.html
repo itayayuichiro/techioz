@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定の (7 年間機能した) launch.json 構成に関する問題をデバッグする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定の (7 年間機能した) launch.json 構成に関する問題をデバッグする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定の (7 年間機能した) launch.json
+構成に関する問題をデバッグする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プログラムのデバッグに問題があったため、最近 Ruby
+                    3.1.2 と VSCode をアンインストールしました。 Ruby
+                    3.1.4とVSCodeを再インストールしました。</p>
+                    <p>私の構成は次のとおりです: Windows
+                    11、rubyinstaller-devkit-3.1.4-1-x64、VSCodeSetup-x64-1.82.2</p>
+                    <p>Ruby デバッグ Gems: debug
+                    (1.8.0、1.6.3)、ruby-debug-ide (0.7.3) VSCode
+                    拡張機能: Ruby v0.28.1、Ruby LSP に接続するための VS
+                    Code プラグイン Ruby Solargraph v0.24.0’ VSCode
+                    に対する Ruby の rdbg デバッガー サポート、VSCode
+                    Ruby v0.28.0</p>
+                    <p>私の Launch.json ファイル: 2016
+                    年から使用しているのは</p>
+                    <pre><code>&quot;version&quot;: &quot;0.2.0&quot;,
+&quot;configurations&quot;: [   
+    {            &quot;name&quot;: &quot;MAIN&quot;,
+        &quot;type&quot;: &quot;Ruby&quot;,
+        &quot;request&quot;: &quot;launch&quot;,
+        &quot;cwd&quot;: &quot;${workspaceRoot}&quot;,
+        &quot;program&quot;: &quot;${workspaceRoot}/main.rb&quot;
+    },
+</code></pre>
+                    <p>デバッグ用にこの構成を選択すると、次の結果が得られます
+                    「デバッガー エラー: クライアント: エラー: 接続
+                    ECONNREFused ::1:1234」 デバッグ
+                    ツールバーが表示されず、プログラムは実行されず、tcpview
+                    には「ruby.exe,33588,TCP,Listen,127.0.0.1,1234,0.0.0.0,0,9/21/2023
+                    4:17:33 PM,ruby」と表示されます。EXE、、、、”
+                    tcpview
+                    で強制終了しない限り、接続は解放されません</p>
+                    <p>以下の新しい Launch.json
+                    エントリを作成しました。これは希望どおりに機能するようです</p>
+                    <pre><code>&quot;version&quot;: &quot;0.2.0&quot;,
+&quot;configurations&quot;: [   
+    {   &quot;type&quot;: &quot;rdbg&quot;,
+    &quot;name&quot;: &quot;MAIN NEW &quot;,
+   &quot;request&quot;: &quot;launch&quot;,|        
+   &quot;cwd&quot;: &quot;${workspaceRoot}&quot;,
+   &quot;script&quot;: &quot;${workspaceRoot}/main.rb&quot;
+     },
+
+ 
+</code></pre>
+                    <p>このエントリを選択すると、正しくデバッグされます。</p>
+                    <p>しかし、これを実行した後に戻って最初の構成を選択すると、動作が少し異なります
+                    デバッグ
+                    ツールバーが表示されることを除いて、前と同じ症状
+                    (prog は実行されません)
+                    そしてそれ（sqrボックス）を閉じると、接続はtcpviewで解放され、複数のコマンドを実行できます。
+                    回数と接続はそのたびに解放されます (デバッグ
+                    バーがある限り)。あとがきはまだ可能です 設定 2
+                    でプログラムをデバッグします。</p>
+                    <p>いくつか質問があります</p>
+                    <p>「https://marketplace.visualstudio.com/items?itemName=KoichiSasada.vscode-rdbg」</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://bundler.io/v2.4/man/gemfile.5.html”</p>
+                    <p>=========================更新=======================
+                    =</p>
+                    <p>質問 4
+                    は理解できると思います。「フォルダーを開く」の場所に
+                    Gemfile を作成し、次の行を入力しました。</p>
+                    <pre><code>source &quot;https://rubygems.org&quot;
+ruby &quot;3.1.4&quot; , :patchlevel =&gt; &quot;223&quot;
+gem &quot;debug&quot;, require: false
+gem &quot;nokogiri&quot;
+</code></pre>
+                    <p>次に、VSCodeターミナルで「bundle
+                    install」を実行しました。これにより、同じディレクトリに
+                    Gemfile.lock
+                    が作成されました。ということで、期待どおりに機能しているようです。</p>
+                    <p>gem “debug”, require: false
+                    を追加しても、デバッグの問題に違いはありませんでした。</p>
+                    <p>=========================更新=======================
+                    = 9 月 26 日 user3285799 によると、「VSCode を 1.82
+                    から 1.76 にダウングレードすることで修正しました。」
+                    私のシステムにはインストールファイル
+                    VSCodeUserSetup-x64-1.73.1.exe
+                    があり、そこにドロップバックしました。問題はなくなり、どちらの構成も正常に動作しました
+                    (拡張機能は変更しませんでした)。
+                    VSCodeSetup-x64-1.80.2 (2023_08_03 06_09_33 UTC).exe
+                    (以前にあったと思っていたもの)
+                    を削除して再インストールしましたが、両方の設定エントリはまだ機能していました。その後、インストールしたのが最新バージョンではないことに気付きました。
+                    VSCodeSetup-x64-1.82.2.exe
+                    をインストールすると、問題は設定 1
+                    で再発しました。そのため、バージョン 1.81 または
+                    1.82 で発生し始めました。注: 動作した 1.80
+                    は、動作しなかった 1.82
+                    と同じ拡張子をすべて使用していました。</p>
+                    <p>そのため、問題を引き起こす変更が vscode
+                    に加えられました。設定 1 のことは忘れて、設定 2
+                    に進みます。</p>
+                    <p>launch.json
+                    エントリのドキュメントが見つかった限りでは</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://code.visualstudio.com/Docs/editor/debugging#_launchjson-attributes
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://code.visualstudio.com/docs/editor/variables-reference</p>
+                    <p>また、launch.json
+                    に移動して「タイプ」エントリに入り、コントロールスペースを押すと、その「タイプ」のペイマスターの多く
+                    (すべてではありません)
+                    がリストされることがわかります。</p>
+                    <p>したがって、現時点ではすべての問題が解決済みであるとみなされますが、新しい問題が
+                    1 つあります</p>
+                    <p>ユーザーコマンドボックスを起動して irb show_cmds
+                    を実行すると、次の結果が得られます。</p>
+                    <pre><code>    C:\Users\DNLocal&gt;irb
+irb(main):001&gt; show_cmds
+Cannot access file C:\Users\DNLocal\-R
+=&gt; nil
+irb(main):002&gt;
+</code></pre>
+                    <p>しかし、他の多くのコマンドは機能するようです
+                    ユーザー管理者ボックスを起動してirbを実行すると機能します</p>
+                    <p>「ファイル C:-R」への参照が見つかりません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の場合は、VSCode を 1.82 から 1.76
+                    にダウングレードすることで問題を修正しました。
+                    また、VSCode バージョンの自動更新を停止します。
+                    ファイル&gt;ユーザー設定&gt;設定 Update:Mode
+                    は「なし」に設定する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

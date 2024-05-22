@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby はメソッド呼び出しでは末尾のカンマをサポートしているのに、メソッド定義ではサポートしていないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby はメソッド呼び出しでは末尾のカンマをサポートしているのに、メソッド定義ではサポートしていないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+はメソッド呼び出しでは末尾のカンマをサポートしているのに、メソッド定義ではサポートしていないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>たとえば、これは有効な Ruby です。</p>
+                    <pre><code>def foo(bar, baz); end
+foo(1, 2,)
+</code></pre>
+                    <p>しかし、これはそうではありません</p>
+                    <pre><code>def foo(bar, baz,); end # syntax error, unexpected &#39;)&#39; (SyntaxError)
+foo(1,2,)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントでは、有効な回答と思われるものを受け取りました。ただし、末尾のコンマが配列やハッシュの定義では有用であると考えられることが多いのに、メソッド
+                    シグネチャではそうではない理由を理解するのに役立つかもしれません。</p>
+                    <p>次の最小限の例を考えてみましょう。</p>
+                    <pre><code>foo = [
+  &quot;4B1EDDEB-3B54-494A-9B79-FE864E8A4B84&quot;,
+  &quot;5AB88925-2C0F-4E26-AB12-554A0DD0BD6E&quot;,
+  &quot;F9265B1C-353E-4355-8B86-08428998EE16&quot;,
+  &quot;6E5D5D6C-A0C1-47A4-97F8-C4FF080BE1E0&quot;,
+  &quot;39D97755-7691-43F1-9446-07A10E138D93&quot;
+]
+</code></pre>
+                    <p>foo 配列の 5 番目の要素をソース コード内で (#pop
+                    や #unshift を使用してプログラム的にではなく)
+                    手動で移動して、それが最初の要素になるようにする場合、直前の行に末尾のカンマを追加することを忘れる可能性があります。移動されているか、配列の末尾にある末尾のカンマを削除するのを忘れています。</p>
+                    <p>ここで、そのような要素が 100
+                    個あると想定して、行を並べ替えてみます。このように、カンマのない
+                    1
+                    行がテキストの壁のどこかに埋もれていると、調整が必要な
+                    2 行を簡単に見失ってしまいます。上記の UUID
+                    のように、行や要素の長さが均一でない場合は、さらにその傾向が強くなります。右マージンが不揃いだと、欠落しているコンマを見つけるのが非常に難しくなります。</p>
+                    <p>配列またはハッシュ
+                    リテラルの末尾であるかどうかに関係なく、各行をカンマで終了できるようにすることで、末尾にカンマを付ける構文を使用することで、この問題を回避できます。末尾にカンマを付けると、視覚的に見つけにくい構文エラーが誤って発生することを心配せずにカット
+                    アンド ペーストできます。</p>
+                    <p>まず、メソッド
+                    シグネチャには、パーサーが考慮すべき要素がさらに多くあります。配列、ハッシュ、さらにはブロック変数のリストなどのコレクション内の末尾のカンマを破棄するために使用される同じアプローチは、メソッド定義では機能しない可能性があります。</p>
+                    <p>次に、1 行にカンマ区切りの要素が 1
+                    つしかないメソッド定義は非常にまれであるため、大きな配列またはハッシュによって生じる並べ替えの摩擦はおそらくそれほど重要ではありません。メソッド定義をそのように記述することもできますが、これは一般的な使用例ではなく、同じレベルの利点は得られません。</p>
+                    <p>第三に、シグネチャ内で 100
+                    個の明示的な変数を定義するメソッドは、決して目にするべきものではありません。このような場合、コードは配列またはハッシュ、スプラッティングされた位置引数またはキーワード引数
+                    (def foo(*args, **kwargs); など)
+                    を受け取る必要があります。
+                    end、またはオプションのハッシュを取得することもできます。インスタンス変数または属性リーダーを使用する場合は、何も渡す必要がない可能性があります。したがって、特に
+                    Struct から継承する場合、メソッド
+                    シグネチャに複数の行があるメソッドが実際に 1
+                    つまたは 2
+                    つ存在することはありますが、末尾のメリットを実際に享受できる、よく書かれたコードはあまり見つかりません。メソッド定義を解析する際のカンマのサポート。</p>
+                    <p>オブジェクト
+                    リテラルの実装とメソッド定義の間にわずかな矛盾があることには同意しますが、実用的には、さまざまなユース
+                    ケースを区別することは意味があります。必要に応じて、ブロック変数を定義するときに末尾のカンマによって実行される配列の構造化を
+                    Ruby
+                    言語の奇妙なリストに追加することもできます。最終的に、誰かが、リテラルとブロック変数のセマンティクスが異なるにもかかわらず、またこれらのユースケースの処理が内部で共通の実装を共有しているかどうかに関係なく、リテラルとブロック変数の末尾のカンマを解決することが十分重要であると考えました。同じ解決策はメソッド定義には機能しないか、何らかの理由でそれを実行する価値があると誰も考えていないかのどちらかです。
+                    Ruby
+                    のキーワード引数の現在の実装までの長い道のりと、*
+                    および …
+                    転送引数の実装の複雑さを考えると、私は前者に賭けます。</p>
+                    <p>不一致が気になる場合は、バグ
+                    トラッカーを検索して、これが技術的な理由から Ruby
+                    コア
+                    チームによる意図的な決定なのか、それともこれまで誰もわざわざパッチを提出しなかったからなのかを確認する必要があります。前者は、適切なメソッド定義の解析上の問題を引き起こすことなく、本当に必要とするオブジェクトに便利な構文糖衣を提供するものであるため、私は前者を疑っています。私自身は、この動作に驚くべきことも、特に一貫性のないことも感じていません。そのため、これをバグだと考えたことはありません。したがって、特定の問題や、問題が決定されたディスカッション
+                    スレッドを示すことはできませんが、そこが問題を見つける場所です。正規の答えがある場合。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

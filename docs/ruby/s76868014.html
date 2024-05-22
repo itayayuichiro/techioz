@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docker でのバンドル インストール (gem が見つかりません) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docker でのバンドル インストール (gem が見つかりません)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docker でのバンドル インストール (gem
+が見つかりません)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>docker ファイルを使用して Ruby on Rails
+                    アプリケーションの docker
+                    イメージを作成しようとしています。</p>
+                    <p>私が得ているエラー</p>
+                    <pre><code>Step 8/11 : RUN gem install bundler:2.3.24
+ ---&gt; Running in 19f290ad8c53
+ERROR:  Could not find a valid gem &#39;bundler&#39; (= 2.3.24), here is why:
+          Unable to download data from https://rubygems.org/ - Net::OpenTimeout: Net::OpenTimeout (https://rubygems.org/specs.4.8.gz)
+The command &#39;/bin/sh -c gem install bundler:2.3.24&#39; returned a non-zero code: 2
+</code></pre>
+                    <p>ドッカーファイルは</p>
+                    <pre><code>FROM ubuntu:22.04
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential libpq-dev nodejs ruby-full
+RUN gem update --system
+ENV GEM_HOME=&quot;/usr/local/bundle&quot;
+ENV PATH $GEM_HOME/bin:$GEM_HOME/gems/bin:$PATH
+# Install bundler and gems
+COPY Gemfile Gemfile.lock ./
+ENV BUNDLER_VERSION=2.3.24
+RUN gem install bundler:2.3.24
+RUN bundle install
+
+# Copy the rest of the application code
+COPY . .
+
+# Start your Rails application
+CMD [&quot;rails&quot;, &quot;server&quot;, &quot;-b&quot;, &quot;0.0.0.0&quot;]
+
+</code></pre>
+                    <p>注:
+                    このエラーはこのサーバーでのみ発生しますが、他のサーバーでは正常に動作しました。</p>
+                    <p>情報が不足している場合はお知らせください</p>
+                    <p>次のようにdockerを再起動しようとしました
+                    sudoサービスドッカーの再起動</p>
+                    <p>でもまだ同じ</p>
+                    <p>私も試してみました sudo docker プルーン
+                    システム</p>
+                    <p>何も起こらない</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ネットワークエラーがあったことを教えてくれてありがとう</p>
+                    <p>インターフェイスとドッカーの MTU を調べました</p>
+                    <p>Docker はインターフェイスよりも高い MTU
+                    を使用していました</p>
+                    <p>解決策を探していたところ、このリファレンスを見ました</p>
+                    <p>MTU 上書き</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

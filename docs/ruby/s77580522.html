@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails で指定されたパラメーターに基づいてクエリするモデル メソッドを作成する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails で指定されたパラメーターに基づいてクエリするモデル メソッドを作成する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+で指定されたパラメーターに基づいてクエリするモデル
+メソッドを作成する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails についてはかなり初心者です。</p>
+                    <p>Flights#index
+                    ルートに送信されたパラメータに基づいて、Flight
+                    オブジェクトに対してクエリを実行したいと考えています。パラメータは、出発空港
+                    ID、到着空港 ID、および日付です。</p>
+                    <p>ただし、検索フォームは nil 値を URL
+                    内の空の文字列として送信するため (例: params {date:
+                    nil) は URL …/flights/index/date=“”
+                    として送信されます)。コードを整理するのに苦労しています。
+                    FlightsController
+                    を使用し、空ではないパラメーターのみに基づいてクエリを実行するヘルパー
+                    メソッドをフライト モデルに記述します。</p>
+                    <p>私の最初の解決策は、パラメータが nil
+                    または空の文字列でない場合にのみ、特定のパラメータに基づいてクエリを実行するヘルパー
+                    メソッドをモデルに記述することでした。次に、コレクションをビューに渡す前に、コントローラー内のこれらのヘルパー
+                    メソッドをすべて文字列化します。例えば：</p>
+                    <pre><code>class Flight &lt; ApplicationRecord
+   
+   ...
+
+   def self.around_date(date_string, day_interval=1)
+    if date_string == &quot;&quot; || !date_string
+      return all
+    end
+
+    date = Date.parse(date_string)
+
+    lower_date = date - day_interval.days
+    upper_date = date + day_interval.days
+    where(start_datetime: (lower_date..upper_date))
+  end
+end
+</code></pre>
+                    <pre><code>class FlightsController &lt; ApplicationController
+  def index
+    ...
+
+    if params[:date] || params[:departure_airport_id] || params[:arrival_airport_id]
+      @pagy, @flights = pagy(Flight.around_date(params[:date])
+                                  .from_departure_airport(params[:departure_airport_id])
+                                  .to_arrival_airport(params[:arrival_airport_id])
+                                  .order(:start_datetime))
+    else
+      @flights = nil
+    end
+</code></pre>
+                    <p>これはまさに私が想像していたとおりに機能しました。しかし、これは非常に組織化されておらず、非効率的であるように思えます。そこで、ヘルパー
+                    メソッド (#around_date や #from_development_airport
+                    など) をプライベートにして、Flight
+                    クラスに新しいメソッドを作成しようとしました。</p>
+                    <pre><code>def self.query_search(query_params)
+    around_date(query_params[:date], day_interval=0) unless query_params[:date] == &quot;&quot;
+    from_departure_airport(query_params[:departure_airport_id]) unless query_params[:departure_airport_id] == &quot;&quot;
+    to_arrival_airport(query_params[:arrival_airport_id]) unless query_params[:arrival_airport_id] == &quot;&quot;
+end
+</code></pre>
+                    <p>したがって、モデルではコードを
+                    Flight.query_search(query_params)
+                    に削減し、強力なパラメーターも使用できます。</p>
+                    <p>これは私にははるかに組織化されているように見えますが、うまくいきません。
+                    query_search
+                    メソッドはヘルパー関数からのすべてのクエリを実行するわけではなく、コントローラーは常にメソッドから
+                    nil を受け取ります。</p>
+                    <p>私の質問は次の 2 つです。</p>
+                    <p>ありがとう。この質問でうまく表現できなかった点を明確にしていただけると幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActiveRecord.scope の 2
+                    つのコア機能を使用して読みやすさを向上させます。</p>
+                    <p>つまり、params
+                    にキーが存在するかどうかをテストする代わりに、その値をスコープに渡し、フィルターを適用する必要があるかどうかをスコープ内でテストします。</p>
+                    <pre><code># in the model
+scope :around_date, -&gt;(date_string, day_interval = 1) {
+  if date_string.present?
+    date = Date.parse(date_string)
+
+    lower_date = date - day_interval.days
+    upper_date = date + day_interval.days
+
+    where(start_datetime: (lower_date..upper_date))
+  end
+}
+</code></pre>
+                    <p>そして、次のようにコントローラーでそれを使用します。</p>
+                    <pre><code>@pagy, @flights = pagy(
+  Flight.around_date(params[:date])
+        .from_departure_airport(params[:departure_airport_id])
+        .to_arrival_airport(params[:arrival_airport_id])
+        .order(:start_datetime)
+)
+</code></pre>
+                    <p>ところで。 Object#present
+                    を使用できますか?オブジェクトが空か空白かを確認するには?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

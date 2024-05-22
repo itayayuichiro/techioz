@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 でポリモーフィック アソシエーションを使用した許可されていないパラメータ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 でポリモーフィック アソシエーションを使用した許可されていないパラメータ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 でポリモーフィック
+アソシエーションを使用した許可されていないパラメータ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>上の画像に基づいて、簡単な例を実行します。</p>
+                    <p>モデル: 人</p>
+                    <pre><code>class Person &lt; ApplicationRecord
+  belongs_to :personable, polymorphic: true
+end
+</code></pre>
+                    <p>モデル: 顧客</p>
+                    <pre><code>class Customer &lt; ApplicationRecord
+  has_one :person, as: :personable
+  accepts_nested_attributes_for :person
+end
+</code></pre>
+                    <p>コントローラー: customer_controller</p>
+                    <pre><code>def new
+  @customer = Customer.new
+  @customer.build_person
+end
+
+def create
+  @customer = Customer.new(customer_params)
+  @customer.save
+  redirect_to customers_path
+end
+
+private
+
+def customer_params
+  params.require(:customer).permit(:id, person_attributes: [:id, :name, :personable_type, :personable_id])
+end
+</code></pre>
+                    <p>ビュー</p>
+                    <pre><code>&lt;%= form_with(model: customer) do |form| %&gt;
+  &lt;%= form.fields_for customer.person do |form_fields| %&gt;
+    &lt;%= form_fields.label :name %&gt;
+    &lt;%= form_fields.text_field :name %&gt;
+  &lt;% end %&gt;
+  &lt;div&gt;
+    &lt;%= form.submit %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>Rails Console
+                    を使用して実行すると、以下のコードによれば問題ありません。</p>
+                    <pre><code>c = Customer.create()
+Person.create(name: &quot;Saulo&quot;, personable: c)
+</code></pre>
+                    <p>しかし、ビューとコントローラーを使用して実行すると、以下のエラーが発生します。</p>
+                    <pre><code>Unpermitted parameter: :person. Context: { controller: CustomersController, action: create, request: #&lt;ActionDispatch::Request:0x00007fdad45e3650&gt;, params: {&quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, &quot;customer&quot;=&gt;{&quot;person&quot;=&gt;{&quot;name&quot;=&gt;&quot;Alisson&quot;}}, &quot;commit&quot;=&gt;&quot;Create Customer&quot;, &quot;controller&quot;=&gt;&quot;customers&quot;, &quot;action&quot;=&gt;&quot;create&quot;} }
+</code></pre>
+                    <p>このエラーは customer_params
+                    メソッドにあると思いますが、解決する方法が見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails は person 属性が person_attributes
+                    の下にネストされることを期待していますが、フォームは代わりに
+                    person の下にそれらを送信しています。</p>
+                    <p>これを修正するには、fields_for がフォーム内の
+                    person_attributes
+                    の下にフィールドをネストするように正しく設定していることを確認します。</p>
+                    <pre><code>&lt;%= form_with(model: [customer, customer.build_person]) do |form| %&gt;
+  &lt;%= form.fields_for :person_attributes, customer.person do |person_form| %&gt;
+    &lt;%= person_form.label :name %&gt;
+    &lt;%= person_form.text_field :name %&gt;
+  &lt;% end %&gt;
+  &lt;%= form.submit %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これにより、ネストされた属性の正しいパラメーター名
+                    (person_attributes) が生成されるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

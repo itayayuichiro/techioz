@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>MRI: 一部のメソッドはエイリアスとして実装されているのに、他のメソッドは重複しているのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "MRI: 一部のメソッドはエイリアスとして実装されているのに、他のメソッドは重複しているのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>MRI:
+一部のメソッドはエイリアスとして実装されているのに、他のメソッドは重複しているのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>MRI
+                    コードベースを参照すると、エイリアス化されたメソッドの中にはエイリアスとして定義されているものと、そうでないものがあることがわかります。</p>
+                    <p>たとえば、TrueClass#inspect は、その #to_s
+                    (ソース) のエイリアスです。</p>
+                    <pre><code>rb_define_alias(rb_cTrueClass, &quot;inspect&quot;, &quot;to_s&quot;);
+</code></pre>
+                    <p>…しかし、オブジェクト#は_aですか?は kind_of?
+                    のエイリアスではなく、同じ実装関数 (ソース) を持つ 2
+                    つの別個のメソッドを定義します。</p>
+                    <pre><code>rb_define_method(rb_mKernel, &quot;kind_of?&quot;, rb_obj_is_kind_of, 1);
+rb_define_method(rb_mKernel, &quot;is_a?&quot;, rb_obj_is_kind_of, 1);
+</code></pre>
+                    <p>この違いは、「ユーザー空間」Ruby
+                    からも観察できます。</p>
+                    <pre><code># Aliased methods have a different `original_name`:
+true.method(:inspect).original_name # =&gt; :to_s
+
+# &quot;Duplicated&quot; methods don&#39;t:
+true.method(:is_a?).original_name # =&gt; :is_a?
+true.method(:kind_of?).original_name # =&gt; :kind_of?
+</code></pre>
+                    <p>エイリアスが使用される場合と使用されない場合のパターンはありますか?違いはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは決して質問に対する権威ある答えではなく、提起された質問に真に答えているわけでもありません。ただし、提供されるオプション間にいくつかの特徴があり、合理的なコメントの形式を満たすには冗長すぎます。</p>
+                    <p>質問</p>
+                    <p>言えません。おそらく、Matz またはコア
+                    チームの一部だけがこれに答えることができるでしょう。</p>
+                    <p>ここに示すようにそれが可能です。</p>
+                    <p>参照される function1 (またはメソッド)
+                    の再定義に関しては、エイリアシングと同じ実装で複数のメソッドを定義することの間には顕著な違いがあります。</p>
+                    <p>エイリアシング</p>
+                    <pre><code>rb_define_alias(rb_cTrueClass, &quot;inspect&quot;, &quot;to_s&quot;);
+</code></pre>
+                    <p>rb_define_alias は、rb_method_entry_clone
+                    を使用してエイリアスを作成するときに実際に関数定義のクローンを作成します。</p>
+                    <p>関数は実際にクローン化される
+                    (参照されるだけではない) ため、その後の rb_mod_to_s
+                    (関数 to_s が参照する) への変更や、Ruby
+                    コード内で実際の to_s
+                    メソッドを再定義しても、inspect
+                    の定義には影響せず、元の関数を引き続き表現します。</p>
+                    <p>これは、rb_define_alias
+                    と本質的に同じ関数呼び出しを使用して、高レベル Ruby
+                    の alias と alias_method2
+                    がどのように機能するかです。</p>
+                    <p>同じ実装を持つ個別のメソッド定義</p>
+                    <pre><code>rb_define_method(rb_mKernel, &quot;kind_of?&quot;, rb_obj_is_kind_of, 1);
+rb_define_method(rb_mKernel, &quot;is_a?&quot;, rb_obj_is_kind_of, 1);
+</code></pre>
+                    <p>rb_define_method
+                    は基になる関数へのメソッド参照を作成するだけなので、rb_obj_is_kind_of
+                    の実装が変更されると、そのような変更は両方の kind_of
+                    に影響しますか?そしてis_aですか？なぜなら、それらはその関数を直接参照しているからです。</p>
+                    <p>より高いレベルの例</p>
+                    <p>Ruby 内でも同様の動作が見られます。</p>
+                    <pre><code>class Foo 
+
+   # Aliasing
+  def to_s = &#39;Foo&#39;
+  alias inspect to_s 
+  # or even this which more visibly represents the concept of cloning a method
+  define_method(:other_inspect, instance_method(:to_s))
+
+  # Separate Method Definitions with the same implementation
+  def _kind_of? = true
+  define_method(:is_a?) {_kind_of?}
+  define_method(:kind_of?) {_kind_of?}
+end 
+
+Foo.new.to_s #=&gt; &#39;Foo&#39; 
+Foo.new.inspect #=&gt; &#39;Foo&#39; 
+Foo.new.other_inspect #=&gt; &#39;Foo&#39; 
+Foo.new.is_a? #=&gt; true
+Foo.new.kind_of? #=&gt; true
+
+class Foo 
+  def to_s = &#39;Bar&#39;
+  def _kind_of? =false
+end 
+
+Foo.new.to_s #=&gt; &#39;Bar&#39; 
+Foo.new.inspect #=&gt; &#39;Foo&#39; 
+Foo.new.other_inspect #=&gt; &#39;Foo&#39; 
+Foo.new.is_a? #=&gt; false 
+Foo.new.kind_of? #=&gt; false 
+</code></pre>
+                    <p>また、to_s の定義が変更されていても、inspect と
+                    other_inspect の両方の「元の名前」が依然として to_s
+                    に戻ることにも注意してください。</p>
+                    <ol start="2" type="1">
+                    <li>この質問の範囲を超えて、alias と alias_method
+                    の間には明確な違いがあります。</li>
+                    </ol>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

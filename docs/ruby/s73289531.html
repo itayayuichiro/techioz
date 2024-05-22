@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rake -T がタスクを識別しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rake -T がタスクを識別しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rake -T がタスクを識別しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rake タスク (レールなし)
+                    をセットアップしようとしているので、デモの Hello
+                    World タスクを作成しました。ただし、 rake -T または
+                    rake –tasks
+                    を実行すると、タスクが識別されていないかのように、何も返されません。ここで私は何を間違っているのでしょうか？</p>
+                    <p>また、rake hello_world
+                    を実行すると、次のエラーが表示されます。</p>
+                    <pre><code>➜  ~/GitHub/Cerner/test git:(master) ✗ rake hello_world
+rake aborted!
+Don&#39;t know how to build task &#39;hello_world&#39; (See the list of available tasks with `rake --tasks`)
+/usr/share/rvm/gems/ruby-2.6.6/gems/rake-13.0.6/exe/rake:27:in `&lt;top (required)&gt;&#39;
+/home/hsbagga28/gems/bin/ruby_executable_hooks:22:in `eval&#39;
+/home/hsbagga28/gems/bin/ruby_executable_hooks:22:in `&lt;main&gt;&#39;
+(See full trace by running task with --trace)
+</code></pre>
+                    <p>[更新] rakefile:</p>
+                    <pre><code># frozen_string_literal: true
+
+# Add your own tasks in files placed in lib/tasks ending in .rake,
+# for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
+$LOAD_PATH.push File.expand_path(&#39;lib&#39;, __dir__)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局、デフォルトの Rakefile
+                    を次のように作成しました。</p>
+                    <pre><code># Add your own tasks in files placed in lib/tasks ending in .rake,
+# for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
+
+require_relative &quot;config/application&quot;
+
+Rails.application.load_tasks
+</code></pre>
+                    <p>この後、rake -T は lib/tasks
+                    で定義されたタスクを返したようです</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

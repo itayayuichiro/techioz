@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails link_to は、JS からレンダリングする場合にのみルート一致エラーを発生させます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails link_to は、JS からレンダリングする場合にのみルート一致エラーを発生させます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails link_to は、JS
+からレンダリングする場合にのみルート一致エラーを発生させます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プレゼンテーションとコメントを受け取りました。各プレゼンテーションには多くのコメントが許可されており、それらのコメントは返信できるので…</p>
+                    <p>私のプレゼンテーション
+                    ショーでは、次の方法でコメントを正常に表示しています。</p>
+                    <pre><code>  &lt;div id= &quot;container_comments&quot;&gt;
+    &lt;%= render @presentation.comments.where(ancestry: nil) %&gt;
+  &lt;/div&gt;
+</code></pre>
+                    <p>このようにして、すべてのコメントはこのベースの
+                    _comment.html.erb
+                    ファイルを使用してレンダリングされます。</p>
+                    <pre><code>&lt;div class=&quot;media&quot; id=&quot;comment_&lt;%= comment.id %&gt;&quot;&gt;
+      &lt;div class=&quot;media-left&quot;&gt;
+        &lt;img src=&quot;&lt;%= image_path(&quot;comment.png&quot;)%&gt;&quot; class=&quot;media-object&quot; style=&quot;width:45px&quot;&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;media-body&quot;&gt;
+        &lt;h4 class=&quot;media-heading&quot;&gt;&lt;%=User.find(comment.author_id).username%&gt; &lt;small&gt;&lt;i&gt;Publicado: &lt;%=comment.created_at.strftime(&#39;%F %T&#39;) %&gt;&lt;/i&gt;&lt;/small&gt;&lt;/h4&gt;
+        &lt;p&gt;&lt;%=comment.body%&gt;&lt;/p&gt;
+      
+
+        &lt;%= link_to &quot;Reply&quot;, new_comment_congress_category_presentation_comment_path(@congress, @category, @presentation, :parent_id =&gt; comment ), :class =&gt; &quot;btn&quot;, :remote =&gt; true, &quot;data-toggle&quot; =&gt; &quot;modal&quot;, &quot;data-target&quot; =&gt; &quot;#mynewcomment&quot;%&gt;
+      
+        &lt;% replies = Comment.where(ancestry: comment) %&gt;
+        &lt;% if replies.any? %&gt;
+          &lt;% replies.each do |reply| %&gt;
+            &lt;div class=&quot;media&quot;&gt;
+              &lt;div class=&quot;media-left&quot;&gt;
+                &lt;img src=&quot;&lt;%= image_path(&quot;reply.png&quot;)%&gt;&quot; class=&quot;media-object&quot; style=&quot;width:45px&quot;&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;media-body&quot;&gt;
+                &lt;h4 class=&quot;media-heading&quot;&gt;&lt;%=User.find(reply.author_id).username%&gt; &lt;small&gt;&lt;i&gt;Publicado: &lt;%=reply.created_at.strftime(&#39;%F %T&#39;) %&gt;&lt;/i&gt;&lt;/small&gt;&lt;/h4&gt;
+                &lt;p&gt;&lt;%=reply.body%&gt;&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;%end%&gt;
+        &lt;%end%&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+</code></pre>
+                    <p>ここではすべてが正常に機能し、プレゼンテーションはコメントと返信を適切に読み込みます。問題は、返信の
+                    link_to:</p>
+                    <pre><code>&lt;%= link_to &quot;Reply&quot;, new_comment_congress_category_presentation_comment_path(@congress, @category, @presentation, :parent_id =&gt; comment ), :class =&gt; &quot;btn&quot;, :remote =&gt; true, &quot;data-toggle&quot; =&gt; &quot;modal&quot;, &quot;data-target&quot; =&gt; &quot;#mynewcomment&quot;%&gt;
+</code></pre>
+                    <p>プレゼンテーションのショー
+                    ビューから正しく読み込まれますが、JS
+                    ファイルからのレンダリングは許可されておらず、キー
+                    [:id]
+                    が欠落している「一致するルートがありません」エラーが表示されます。</p>
+                    <p>これが私のjsファイルです:</p>
+                    <pre><code>$(&quot;#mynewcomment&quot;).modal(&#39;hide&#39;);
+$(&quot;.comment_title&quot;).val(&#39;&#39;);
+$(&quot;.comment_content&quot;).val(&#39;&#39;);
+&lt;%if @comment.parent == nil%&gt;
+  $(&quot;#container_comments&quot;).append(&#39;&lt;%= j render @comment %&gt;&#39;);
+  $(&quot;#comment_&lt;%= @comment.id %&gt;&quot;).hide().fadeIn(1000);
+&lt;%else%&gt;
+   &lt;%@parent = Comment.find(@comment.parent_id)%&gt;
+   $(&quot;#comment_&lt;%= @parent.id %&gt;&quot;).replaceWith(&#39;&lt;%= j render @parent %&gt;&#39;);
+&lt;%end%&gt;
+</code></pre>
+                    <p>エラーは次のようになります。</p>
+                    <pre><code>ActionView::Template::Error (No route matches {:action=&gt;&quot;new_comment&quot;, :category_id=&gt;#&lt;...category info here...&gt;, :congress_id=&gt;#&lt;...congress info here...&gt;, :controller=&gt;&quot;comments&quot;, :parent_id=&gt;#&lt;...parent comment info here...&gt;, :presentation_id=&gt;#&lt;...Presentation info here...&gt;}, missing required keys: [:id]):
+ 7:             &lt;p&gt;&lt;%=comment.body%&gt;&lt;/p&gt;
+ 8:
+ 9:
+10:             &lt;%= link_to &quot;Responder&quot;, new_comment_congress_category_presentation_comment_path(@congress, @category, @presentation, :parent_id =&gt; comment), :class =&gt; &quot;btn&quot;, :remote =&gt; true, &quot;data-toggle&quot; =&gt; &quot;modal&quot;, &quot;data-target&quot; =&gt; &quot;#mynewcomment&quot;, :parent_id =&gt; comment %&gt;
+11:
+12:             &lt;% replies = Comment.where(ancestry: comment) %&gt;
+13:             &lt;% if replies.any? %&gt;
+
+app/views/comments/_comment.html.erb:10:in 
+`_app_views_comments__comment_html_erb__456499711_134033424&#39;
+app/views/comments/create.js.erb:5:in 
+`_app_views_comments_create_js_erb__184660212_140959668&#39;
+</code></pre>
+                    <p>まったく同じファイルが js
+                    を介してレンダリングに失敗するのはなぜだろうかと思います。ご協力に本当に感謝しています。これが私の最初の
+                    Rails
+                    プロジェクトを完了するための唯一のステップです。またよろしくお願いします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>リンクは <span class="citation"
+                    data-cites="congress">@congress</span>、<span
+                    class="citation"
+                    data-cites="category">@category</span>、<span
+                    class="citation"
+                    data-cites="presentation">@presentation</span>
+                    変数に依存しているため、これらの同じ変数が JS
+                    テンプレートでも使用できるようにする必要があります。</p>
+                    <p>この種の間違いを犯しにくくするために、ローカル
+                    ハッシュを使用して、インスタンス変数の代わりにローカル変数を使用するようにテンプレートを変更できます。</p>
+                    <pre><code># in _comment.html.erb
+&lt;%=
+  link_to &quot;Reply&quot;,
+    new_comment_congress_category_presentation_comment_path(
+      congress, category, presentation,
+      parent_id: comment
+    )
+%&gt;
+
+# in show.html.erb
+&lt;%=
+  render @presentation.comments.where(ancestry: nil),
+    locals: { congress: @congress, category: @category, presentation: @presentation }
+%&gt;
+
+# in whatever.js.erb
+&lt;%= j render @comment, locals: { congress: @congress, ... } %&gt;
+</code></pre>
+                    <p>こうすることで、3 つの必須ローカル変数のうち 1
+                    つでも割り当てに失敗した場合、どれが不足しているのかがエラー
+                    メッセージで明示的に通知されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

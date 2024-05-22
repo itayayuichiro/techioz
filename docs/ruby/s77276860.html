@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails activestorageを使用して複数のファイルをアップロードする適切な方法は何ですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails activestorageを使用して複数のファイルをアップロードする適切な方法は何ですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+activestorageを使用して複数のファイルをアップロードする適切な方法は何ですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>複数の「サポート写真」ファイルをアイテムモデルにアップロードしようとしています。</p>
+                    <p>複数のファイルをアップロードする必要があるため、サポートする写真ファイルには
+                    has_many_attached の関連付けがあります。</p>
+                    <p>item.rb</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+    belongs_to :user
+   
+
+    has_one_attached :cover_photo do |attachable|
+        attachable.variant :medium, resize_to_limit:[300,300]
+        attachable.variant :large, resize_to_limit:[1200,1000]
+    end
+
+    has_many_attached :supporting_photos do |attachable|
+        attachable.variant :medium, resize_to_limit:[300,300]
+        attachable.variant :large, resize_to_limit:[1200,1000]
+    end
+</code></pre>
+                    <p>ユーザーが記入するフォームには、file_field
+                    タグを持つ複数の div
+                    があり、ユーザーが複数の「サポート写真」を添付できるようにします。</p>
+                    <p>items/new.html.erb</p>
+                    <pre><code>  &lt;div class=&quot;mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10&quot;&gt;
+                    &lt;div class=&quot;text-center&quot;&gt;
+                      
+                      &lt;div class=&quot;mt-4 flex text-sm leading-6 text-gray-600&quot;&gt;
+                      
+                       &lt;%= form.file_field :supporting_photos, direct_upload:true %&gt;
+                   
+                      &lt;/div&gt;
+                       &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;or drag and drop&lt;/p&gt;
+                      &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;PNG, JPG, GIF up to 10MB&lt;/p&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div  class=&quot;sm:col-span-2&quot;&gt;
+                
+                  &lt;div class=&quot;mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10&quot;&gt;
+                    &lt;div class=&quot;text-center&quot;&gt;
+                      
+                      &lt;div class=&quot;mt-4 flex text-sm leading-6 text-gray-600&quot;&gt;
+                
+                      &lt;%= form.file_field :supporting_photos, direct_upload:true %&gt;
+                   
+                      &lt;/div&gt;
+                       &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;or drag and drop&lt;/p&gt;
+                      &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;PNG, JPG, GIF up to 10MB&lt;/p&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;div  class=&quot;sm:col-span-2&quot;&gt;
+                 
+                  &lt;div class=&quot;mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10&quot;&gt;
+                    &lt;div class=&quot;text-center&quot;&gt;
+                      
+                      &lt;div class=&quot;mt-4 flex text-sm leading-6 text-gray-600&quot;&gt;
+                
+                        &lt;%= form.file_field :supporting_photos, direct_upload:true %&gt;
+                   
+                      &lt;/div&gt;
+                       &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;or drag and drop&lt;/p&gt;
+                      &lt;p class=&quot;text-xs leading-5 text-gray-600&quot;&gt;PNG, JPG, GIF up to 10MB&lt;/p&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+</code></pre>
+                    <p>最後に、これが私のアイテムコントローラーです。これを行う方法を調べたとき、これが私が見つけた解決策でしたが、「許可されていないパラメーター:
+                    :supporting_photos」というエラーが発生しました。コンテキスト:
+                    { コントローラー: ItemsController、アクション:
+                    create、リクエスト: #&lt;ActionDispatch…’ ターミナル
+                    コンソールで、フォームを読み込むときにブラウザーで
+                    #&lt;actiondispatch の未定義メソッドもそれぞれ’</p>
+                    <p>誰かこれを行う適切な方法を知っていますか?お願いします、そしてありがとう</p>
+                    <pre><code>def new
+    # @item = item.new
+    @item = current_user.items.build
+  end
+
+  def create
+    # @item = item.new(item_params)
+    @item = current_user.items.build(item_params.except(:supporting_photos))
+    supporting_photos = params[:item][:supporting_photos]
+
+
+    if supporting_photos
+      supporting_photos.each do |supporting_photo|
+        @item.supporting_photos.attach(supporting_photo)
+      end
+    end
+    
+    if @item.save
+      
+      redirect_to sell_sale_path
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+
+  private
+    def item_params
+      params.require(:item).permit(:name, :brand, :colour, :condition, :department, :category, :price, :is_sold, :cover_photo, :description, supporting_photos: [])
+    end
+</code></pre>
+                    <p>ユーザーにとってより直感的なものにしたいので、複数のファイルフィールドも必要です
+                    これが私が目指していることです</p>
+                    <p>これとは対照的に</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>複数のファイルフィールドは必要ありません。複数の
+                    true 属性を持つ 1 つだけ</p>
+                    <p>また、許可するには、このパラメータを :item
+                    キーでラップする必要があることにも注意してください。基本的に、この目的のために
+                    :model キーとともに form_with
+                    を使用することが可能です。</p>
+                    <pre><code>&lt;%#= app/views/items/new.html.erb %&gt;
+
+&lt;%= render &quot;form&quot;, item: @item %&gt;
+</code></pre>
+                    <pre><code>&lt;%#= app/views/items/_form.html.erb %&gt;
+
+&lt;%= form_with(model: item) do |form| %&gt;
+  &lt;%= form.file_field :supporting_photos, direct_upload: true, multiple: true %&gt;
+
+  &lt;%= form.submit %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>ただし、アイテムを更新するときに既存の写真を保持し、このフォームを部分的に再利用する必要がある場合は、複数の非表示フィールドを追加する必要がある場合があります。</p>
+                    <pre><code>&lt;% item.supporting_photos.each do |sp| %&gt;
+  &lt;%= form.hidden_field :supporting_photos, multiple: true, value: sp.signed_id %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>バックエンド側では、明示的に写真を添付したり
+                    (特に保存前に)
+                    パラメータを反復したりする必要はなく、十分です。</p>
+                    <pre><code># app/controllers/items_controller.rb
+
+def create
+  @item = Item.new(item_params)
+
+  if @item.save
+    redirect_to item_url(@item)
+  else
+    render :new, status: :unprocessable_entity
+  end
+end
+
+private
+
+def item_params
+  params.require(:item).permit(supporting_photos: [])
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

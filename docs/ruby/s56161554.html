@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5.2.3は、rspecを使用してテストするときにすべてのparamsデータ型を文字列に変換します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5.2.3は、rspecを使用してテストするときにすべてのparamsデータ型を文字列に変換します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+5.2.3は、rspecを使用してテストするときにすべてのparamsデータ型を文字列に変換します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRails
+                    5.2.3を使用し、このようにRailsにリクエストを送信するときにrspec-rails（3.8.2）を使用してテストしています。</p>
+                    <pre><code>  let(:params) do
+    {
+      down_payment: 10_000,
+      asking_price: 100_000,
+      payment_schedule: &#39;weekly&#39;,
+      amortization_period: 5
+    }
+  end
+  it &#39;works&#39; do
+    get :calculate, params: params, format: :json
+    expect(response.status).to eq 200
+  end
+</code></pre>
+                    <p>私も試してみました</p>
+                    <pre><code>  it &#39;works&#39; do
+    get :calculate, params: params, as: :json
+    expect(response.status).to eq 200
+  end
+</code></pre>
+                    <p>Railsでは、すべての整数がこのように文字列に変換されます</p>
+                    <pre><code>&lt;ActionController::Parameters {&quot;amortization_period&quot;=&gt;&quot;5&quot;, &quot;asking_price&quot;=&gt;&quot;100000&quot;, &quot;down_payment&quot;=&gt;&quot;10000&quot;, &quot;payment_schedule&quot;=&gt;&quot;weekly&quot;, &quot;format&quot;=&gt;&quot;json&quot;, &quot;controller&quot;=&gt;&quot;payment_amount&quot;, &quot;action&quot;=&gt;&quot;calculate&quot;, &quot;payment_amount&quot;=&gt;{}} permitted: false&gt;
+</code></pre>
+                    <p>しかし、curl
+                    を使用してリクエストを送信すると、整数が文字列に変換されていないことがわかります。</p>
+                    <pre><code>curl -X GET -H &quot;Content-Type: application/json&quot;  -d ‘{&quot;asking_price&quot;: 100000 ,&quot;payment_schedule&quot;: &quot;monthly&quot;, &quot;down_payment&quot;: 10000, &quot;amortization_period&quot;: 5  }&#39; http://localhost:3000/payment-amount
+</code></pre>
+                    <p>助けてくれてありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>JSON
+                    ペイロードには、文字列、数値、整数、ブール値、null
+                    の 5 つの値タイプを含めることができます。</p>
+                    <p>対照的に、HTTP
+                    クエリ文字列は単なる文字列です。</p>
+                    <p>デフォルトでは、リクエスト仕様は HTTP
+                    仕様で指定されたエンコーディングを使用します。つまり、すべてのパラメータは文字列です。これが、パラメーターが変換される理由です。</p>
+                    <p>運用システムが JSON
+                    を送信している場合は、テストにもそうするように指示する必要があります。上記と同様に
+                    as: :json を追加します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

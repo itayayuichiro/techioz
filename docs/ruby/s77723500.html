@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Kiba ETL とファラデーのリクエスト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Kiba ETL とファラデーのリクエスト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Kiba ETL とファラデーのリクエスト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は CDC
+                    のコンセプトを持ったプロジェクトに取り組んでいます。データベースから変更を読み取り、イベントを
+                    Rabbitmq キューにプッシュします (debezium
+                    を使用します)。</p>
+                    <p>その後、KibaETL
+                    を使用して、そのキューから消費されるイベント
+                    メッセージを処理します。</p>
+                    <p>KibaETL には 3 つの主要なプロセスがあります</p>
+                    <p>奇妙な部分は。ファラデーを呼び出すと、サイレントに
+                    kiba etl
+                    パイプラインが終了します。エラーは表示されません….</p>
+                    <p>これが私の変換クラスのスニペットです。</p>
+                    <pre><code>#frozen_string_literal: true
+
+require &#39;faraday&#39;
+require &#39;faraday/net_http&#39;
+require &#39;json&#39;
+require &#39;kiba&#39;
+
+class RetrieveJobDataTransform
+  def process(row)
+    puts &quot;\t[transform] Retrieve Job Information by UUID - job_uuid: #{row}&quot;
+    raise ArgumentError, &#39;row cannot be nil&#39; if row.nil?
+
+    job_uuid = row.dig(:after_data, &#39;job_uuid&#39;)
+    
+    api_result = make_api_call(job_uuid)
+
+    transformed_data = transform_data(row, api_result)
+
+    transformed_data
+  end
+
+  private
+
+  def make_api_call(job_uuid)    
+    
+    conn = create_connection(&#39;https://url.com&#39;)    
+    
+    **# before conn.get call, it shows output properly**
+    response = conn.get(&quot;api/jobs/#{job_uuid}&quot;)
+    **# here it doesnt show any output when I was debugging**
+
+    if response.success?
+      JSON.parse(response.body)
+    else
+      nil
+    end
+  end
+
+  def transform_data(row, api_result)
+    row = api_result
+  end
+
+  def create_connection(api_url)
+    Faraday.new(api_url) do |f|
+      f.headers[&#39;x-api-key&#39;] = &#39;api key&#39;
+      f.response :json 
+      f.adapter :net_http 
+      f.options.timeout = 120
+    end
+  end
+end
+</code></pre>
+                    <p>ETLを処理するために呼び出されるメインクラス</p>
+                    <pre><code>job = Kiba.parse do
+  source KibaSource, bunny_adapter, queue_name
+
+  transform ParseMessageTransform
+  transform ValidateMessageTransform
+
+  **#This is the class that silently quit with no error or warnings**
+  transform RetrieveJobDataTransform 
+  
+  destination KibaDestination
+end
+
+puts &#39;# job started - Running Kiba job... &#39;
+Kiba.run(job)
+</code></pre>
+                    <p>奇妙な動作は、「irb」と入力してそのクラスコードを追加し、kiba
+                    etl
+                    パイプライン内に入れずにそれを呼び出すと、エラーなしで動作することです。</p>
+                    <p>誰かアドバイスをいただけますか？私はこの問題に行き詰まっており、それを乗り越える方法がわかりません。</p>
+                    <p>前もって感謝します</p>
+                    <p>乾杯！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Kiba の仕組みにより、それが実際に Kiba
+                    関連だったとしたら (たとえ IRB
+                    で動作させることができたとしても)、私はかなり驚くでしょう。しかし、私はこれを除外したいと思っています。</p>
+                    <p>ソースと宛先を「スタブ」する、可能な限り最小の複製
+                    (おそらく単一ファイルの Bundler 構成
+                    https://bundler.io/guides/bundler_in_a_single_file_ruby_script.html
+                    を使用) を作成していただけますか?</p>
+                    <p>すべての行に対してファラデー接続を再作成しているため、潜在的に奇妙なことが発生する可能性があります。</p>
+                    <p>また、おそらく別の HTTP
+                    クライアントを使用してみます。発信中の通話の
+                    HTTPparty。何らかの理由で、あなたの呼び出しと
+                    RabbitMQ
+                    呼び出しの間で競合が発生する可能性があります。</p>
+                    <p>gist.github.com
+                    経由で最小の再現を投稿していただければ、さらにお手伝いできることを嬉しく思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

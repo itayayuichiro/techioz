@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>self を拡張する Ruby ユーティリティ モジュールのインスタンス変数? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "self を拡張する Ruby ユーティリティ モジュールのインスタンス変数?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>self を拡張する Ruby ユーティリティ
+モジュールのインスタンス変数?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかの単純な関数を備えたユーティリティモジュールを作成しています。インスタンス化する必要がないようにモジュールを自己拡張したいのです。同僚と私は、これらのタイプのモジュールにデータを保存するさまざまな方法について話し合っていたのですが、彼が提供した一例は、インスタンス変数を使用した次のようなものでした。</p>
+                    <pre><code>module ExampleModule
+  extend self
+
+  @my_instance_variable = &quot;Hello from module&quot;
+
+  def do_thing
+    puts &quot;**** #{@my_instance_variable}&quot;
+    @my_instance_variable
+  end
+end
+</code></pre>
+                    <p>これは私たちが使用することに決めたアプローチではありませんが、それが機能する理由や最良の代替案をより深く理解したいと思いました。そこで、いくつか質問します。</p>
+                    <p>なぜこれが機能するのでしょうか?インスタンスなしで呼び出されたモジュール
+                    メソッドはどのようにしてインスタンス変数にアクセスできるのでしょうか?この動作について説明している
+                    Ruby のドキュメント/記事を教えていただけますか?</p>
+                    <p>これが適切なパターンであるかどうか、または適切な場合について考えますか?
+                    (このようなモジュールにインスタンス変数があるのは直観に反しているように思えるので、私はファンではありません)</p>
+                    <p>ここでは代わりにクラス変数を使用する必要がありますか?私たちのrubocopは@<span
+                    class="citation"
+                    data-cites="fooクラス変数にコード臭としてフラグを立てます">@fooクラス変数にコード臭としてフラグを立てます</span></p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rubyではモジュールにインスタンス変数を持たせることができます。これは、モジュールの一種であるクラスにも当てはまります。キーワードの代わりに
+                    Module.new
+                    メソッドを使用すると、これがさらに明確になります。</p>
+                    <pre><code>module Foo
+  @bar = &quot;Hello World&quot;
+  def self.bar
+    @bar
+  end
+end
+
+# is pretty much equivilent to
+Foo = Module.new do
+  @bar = &quot;Hello World&quot;
+  def self.bar
+    @bar
+  end
+end
+</code></pre>
+                    <p>上記の例と実際のコードの唯一の違いは、extende
+                    self
+                    を使用していることです。これにより、モジュールを含むクラスだけでなく、モジュール上でも
+                    do_thing を呼び出すことができます。</p>
+                    <p>私はこれの大ファンではありません。個人的な意見としては、def
+                    self.method_name
+                    を使用してメソッドを明示的に定義するほうが良いでしょう。これにより、意図がより明確になり、静的分析で検出できるようになります。</p>
+                    <p>モジュール
+                    インスタンス変数の非常に一般的な使用法の 1
+                    つは、構成パターンです。</p>
+                    <pre><code>module MyGem
+  class &lt;&lt; self
+    attr_accessor :configuration
+  end
+
+  def self.configure
+    self.configuration ||= Configuration.new
+    yield(configuration)
+  end
+
+  class Configuration
+    attr_accessor :mailer_sender
+
+    def initialize
+      @mailer_sender = &#39;[email protected]&#39;
+    end
+  end
+end
+</code></pre>
+                    <p>ここでは、Gem 固有の設定のセットが <span
+                    class="citation"
+                    data-cites="configuration">@configuration</span>
+                    に保存されています。次に、アプリの起動時に読み込まれる初期化ファイルにこれを設定します。</p>
+                    <pre><code>MyGem.configure do |config|
+  config.mailer_sender = &#39;[email protected]&#39;
+end
+</code></pre>
+                    <p>これにより、グローバルに依存せずにアプリ全体の設定が可能になります。</p>
+                    <p>Ruby
+                    を初めて使用する場合、モジュール/クラスのインスタンス変数は混乱するかもしれませんが、Ruby
+                    ではすべてがオブジェクトであり、インスタンス変数はクラスの定義されたプロパティではないことを覚えておいてください。これらは、モジュール、クラス、またはクラスのインスタンスである可能性のあるもののインスタンスに語彙的にスコープされる単なる変数です。</p>
+                    <p>Ruby
+                    のクラス変数には予期しない動作がたくさんあるため、通常は避けるのが最善です。たとえば、クラスとそのすべてのサブクラス間で共有されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

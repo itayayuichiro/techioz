@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveStorage カスタム アラライザーで「Vips::Error Exception: VipsJpeg: out of order read at line 1440」を取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveStorage カスタム アラライザーで「Vips::Error Exception: VipsJpeg: out of order read at line 1440」を取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveStorage カスタム
+アラライザーで「Vips::Error Exception: VipsJpeg: out of order read at
+line 1440」を取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のカスタムアナライザー</p>
+                    <pre><code>class BlurhashAnalyzer &lt; ActiveStorage::Analyzer::ImageAnalyzer::Vips
+  def metadata
+    read_image do |image|
+      if rotated_image?(image)
+        { width: image.height, height: image.width }
+      else
+        { width: image.width, height: image.height }
+      end.merge blurhash(image)
+    end
+  end
+
+  private
+
+  def blurhash(vips_image)
+    # Create a thumbnail first, otherwise the Blurhash encoding is very slow
+    byebug
+    processed_image = ImageProcessing::Vips.source(vips_image).resize_and_pad(200, 200).call
+    thumbnail = ::Vips::Image.new_from_file processed_image.path
+
+    {
+      blurhash: Blurhash.encode(
+        thumbnail.width,
+        thumbnail.height,
+        ::Vips::Region.new(thumbnail).fetch(0, 0, thumbnail.width, thumbnail.height).unpack(&#39;C*&#39;)
+      )
+    }
+  rescue StandardError =&gt; e
+    raise e if Rails.env.development?
+    Rails.logger.error &quot;Error while encoding Blurhash: #{e}&quot;
+    {}
+  end
+end
+</code></pre>
+                    <p>Blurhash メソッドの例外</p>
+                    <pre><code>(process:29640): VIPS-WARNING **: 17:25:01.323: error in tile 0 x 120
+*** Vips::Error Exception: VipsJpeg: out of order read at line 1440
+
+</code></pre>
+                    <p>ただし、同じファイルで新しい Vips::Image
+                    を作成すると、機能します。</p>
+                    <pre><code>(byebug) ImageProcessing::Vips.source(::Vips::Image.new_from_file vips_image.filename).resize_and_pad(200, 200).call
+#&lt;Tempfile:/var/folders/_j/m395qb5d2yscnx89dswmrxgm0000gn/T/image_processing20220624-29640-aflgbs.jpg&gt;
+
+(byebug) ImageProcessing::Vips.source(::Vips::Image.new_from_file vips_image.filename, access: :sequential).resize_and_pad(200, 200).call
+#&lt;Tempfile:/var/folders/_j/m395qb5d2yscnx89dswmrxgm0000gn/T/image_processing20220624-29640-eflx0v.jpg&gt;
+</code></pre>
+                    <p>Rails 7.0.3 Analyzer::ImageAnalyzer::Vips
+                    のソースコードを確認しました。</p>
+                    <pre><code>...
+    def read_image
+        download_blob_to_tempfile do |file|
+          require &quot;ruby-vips&quot;
+
+          image = instrument(&quot;vips&quot;) do
+            ::Vips::Image.new_from_file(file.path, access: :sequential)
+          end
+</code></pre>
+                    <p>上で行ったのと同じ Vips::Image
+                    の作成方法ですが、直接使用すると例外が発生します。</p>
+                    <p>この問題が
+                    https://github.com/libvips/pyvips/issues/96
+                    に関連していることはわかっていますが、ここではローテーションしませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、イメージをストリーミング
+                    モードで開いた後、そのイメージを複数回読み取ろうとした場合に発生します。</p>
+                    <p>ドキュメントには背景を説明した章があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://www.libvips.org/API/current/How-it-opens-files.md.html</p>
+                    <p>たとえば、次のようにファイルを処理するとします。</p>
+                    <pre><code>image = Vips::Image.new_from_file &quot;something.jpg&quot;, access: :sequential
+image = 255 - image
+image.write_to_file &quot;something-inverted.jpg&quot;
+</code></pre>
+                    <p>libvips は、最後の write_to_file
+                    まですべての計算を遅らせてから、イメージをストリーミングします。デコード、処理、再エンコードはすべて同時に並行して実行され、画像のごく一部のみがメモリに保持されます。</p>
+                    <p>欠点は、ワンショット処理しかできないことです。これは、たとえば次のように失敗します。</p>
+                    <pre><code>image = Vips::Image.new_from_file &quot;something.jpg&quot;, access: :sequential
+image = 255 - image
+image.write_to_file &quot;something-inverted.jpg&quot;
+avg = image.avg()
+</code></pre>
+                    <p>画像が読み取られ、処理され、破棄され、ピクセルが残っていないため、パイプラインの実行後は平均を計算できません。</p>
+                    <p>デフォルトのランダム アクセス
+                    モードを使用すると、正常に動作します。</p>
+                    <pre><code>image = Vips::Image.new_from_file &quot;something.jpg&quot;
+image = 255 - image
+image.write_to_file &quot;something-inverted.jpg&quot;
+avg = image.avg()
+</code></pre>
+                    <p>JPG
+                    ファイルはメモリ配列にデコードされ、処理と保存のみが並行して実行され、ピクセルは後で平均を計算するためにまだ存在します。</p>
+                    <p>あなたの場合、画像はシーケンシャルモードで開かれていますが、ピクセルを2回読み取ろうとしています。オリジナルをランダム
+                    アクセス モードで開くか、image = image.copy_memory()
+                    を実行してメモリ内に再利用可能なコピーを作成する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

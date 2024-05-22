@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Travis CI を使用した Github ページでは jekyll-archives が機能しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Travis CI を使用した Github ページでは jekyll-archives が機能しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Travis CI を使用した Github ページでは
+jekyll-archives が機能しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Travis を使用して Github
+                    ページにデプロイしています。私のプロジェクトでは
+                    jekyll-archives
+                    も使用しています。私の設定はローカルでは非常にうまく機能しますが、github
+                    ページにはアーカイブ
+                    ページが生成されません。また、github
+                    ページのホワイトリストに登録されていない
+                    jekyll-paginate-v2 も使用しましたが、Travis
+                    のデプロイメントで完全に機能します。 jekyll-archive
+                    の問題がわかりません。</p>
+                    <p>私のGemfile</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+gem &#39;jekyll&#39;, &#39;&lt;4&#39;
+gem &#39;html-proofer&#39;, &#39;4.3.1&#39;
+gem &#39;jekyll-archives&#39;
+gem &#39;jekyll-sitemap&#39;
+gem &#39;jekyll-paginate-v2&#39;
+gem &#39;kramdown-parser-gfm&#39;
+gem &#39;webrick&#39;
+</code></pre>
+                    <p>私の _config.yml</p>
+                    <pre><code>plugins:
+  - jekyll-archives
+  - jekyll-sitemap
+  - jekyll-paginate-v2
+
+exclude:
+  - &quot;/vendor/&quot;
+
+future: true
+timezone: Asia/Kolkata
+
+# Build settings
+markdown: kramdown
+inter_post_navigation: true
+highlightjs_theme: &quot;monokai-sublime&quot;
+
+# Pagination Settings
+pagination:
+  enabled: true
+  per_page: 5
+  permalink: &quot;/page/:num/&quot;
+  sort_reverse: true
+
+# Archive settings
+jekyll-archives:
+  enabled:
+    - categories
+    - tags
+  layout: archive
+  permalinks:
+    category: &#39;/category/:name/&#39;
+    tag: &#39;/tag/:name/&#39;
+</code></pre>
+                    <p>私の .travis.yml</p>
+                    <pre><code>language: ruby
+rvm:
+  - 2.6.3
+cache: bundler
+install:
+  - gem install bundler
+  - gem update --system 3.2.3
+  - bundle install
+script:
+  - bundle exec jekyll build
+branches:
+  only:
+    - master
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+deploy:
+  provider: pages
+  skip_cleanup: true
+  local_dir: _site
+  github_token: $TRAVIS_DEPLOY_TOKEN
+  keep_history: true
+  on:
+    branch: master
+  repo: &lt;org&gt;/&lt;repo&gt;.github.io
+  target_branch: gh-pages
+notifications:
+  email: false
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局のところ、jekyll-archives
+                    は正しく動作していましたが、デフォルト設定に従って遅延リンクが作成されていました。一方、カテゴリーリンクはhtmlファイルのアンカータグ内にそのまま残しました。そのため、アンカータグにslugifyフィルターを配置する必要がありました。</p>
+                    <p>前に</p>
+                    <pre><code>&lt;a href=&quot;{{ site.baseurl }}/category/{{ cat }}&quot;&gt;{{ cat | capitalize }}&lt;/a&gt;
+</code></pre>
+                    <p>後</p>
+                    <pre><code>&lt;a href=&quot;{{ site.baseurl }}/category/{{ cat | slugify }}&quot;&gt;{{ cat | capitalize }}&lt;/a&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

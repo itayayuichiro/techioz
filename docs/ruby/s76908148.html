@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ネストされた each/map Ruby のすべての要素を徹底的に比較する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ネストされた each/map Ruby のすべての要素を徹底的に比較する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ネストされた each/map Ruby
+のすべての要素を徹底的に比較する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コレクションの Rails
+                    パラメータと、値をチェックする列を持つ既存のモデルの関連付けを取得するメソッドを書きました。これまで私が行ってきたことは、rails
+                    パラメータをクリーンアップし、その中に入れ子になったループ配列のマップを使用して要素を反復処理することです。このアプローチの問題は、どちらかの配列の値が失われる場合があることです。基本的に、両方の配列のすべての組み合わせを比較するわけではありません。両方の配列のすべての要素の組み合わせを比較するにはどうすればよいですか?</p>
+                    <pre><code>water_bottles = water_bottle_params.to_unsafe_h.map {|_w, v| v}
+
+formatted_water_bottles = water_bottles.reject(&amp;:blank?)
+    
+all_water_bottles = current_user.water_bottles
+    
+    formatted_water_bottles.each do |w|
+    
+      all_water_bottles.map |wb|
+      
+       if wb.name == w[&#39;name&#39;]
+          raise &quot;Water Bottle Exist!&quot;
+       end 
+      end 
+    end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パラメータのウォーターボトル名のいずれかがデータベースにすでに存在する場合に例外を発生させたいようです。その場合、メソッド全体はおそらく次のようにはるかに単純に書くことができます。</p>
+                    <pre><code>bottle_names = water_bottle_params.values.compact_blank
+raise &#39;Water Bottle Exist!&#39; if current_user.water_bottles.exists?(name: bottle_names)
+</code></pre>
+                    <p>このバージョンでは FinderMethods#exists?
+                    を使用します。一致するボトル名が存在するかどうかをデータベース内で直接判断します。これは通常、すべてのレコードをメモリにロードし、配列メソッドを使用して両方の配列を比較するよりもはるかに高速です。さらに、この方法では必要なメモリが少なくなります。</p>
+                    <p>コードを簡素化するために使用したその他のメソッド:map
+                    の代わりに value { |_k, v| v } と
+                    .reject(&amp;:blank?) の代わりに Compact_blank
+                    を使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: ハッシュを含む列挙型がハッシュキー:値を返さない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: ハッシュを含む列挙型がハッシュキー:値を返さない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails:
+ハッシュを含む列挙型がハッシュキー:値を返さない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、性別やステータスなどの静的なモデル属性を持つ
+                    Ruby on Rails
+                    アプリケーションを構築しています。モデル内でそれらを列挙型として定義することにしました。列挙型を定義するために
+                    Ruby-enum gem を使用しています。</p>
+                    <p>Ruby-enum gem
+                    をプロジェクトに追加し、バンドルインストールを実行しました。</p>
+                    <pre><code>gem &#39;ruby-enum&#39;, &#39;~&gt; 0.8.0&#39;
+</code></pre>
+                    <p>ただし、列挙型は他のさまざまなモデルからアクセスできる必要があるため、モデルの懸念ディレクトリ内のモジュールとして列挙型を定義しました。</p>
+                    <pre><code># app/models/concerns/status.rb
+
+module Status
+  extend ActiveSupport::Concern
+  included do
+    include Ruby::Enum
+
+    define :ordered, &#39;Ordered&#39;
+    define :cancelled, &#39;Cancelled&#39;
+    define :waiting, &#39;Waiting&#39;
+  end
+end
+</code></pre>
+                    <p>このモジュールを Users モデルに含めました</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  include Status
+end
+</code></pre>
+                    <p>そして、私の Users
+                    モデルにはステータスの列があります。</p>
+                    <pre><code>create_table &quot;users&quot;, force: :cascade do |t|
+  t.string &quot;first_name&quot;
+  t.string &quot;last_name&quot;
+  t.string &quot;status&quot;
+  t.datetime &quot;created_at&quot;, precision: 6, null: false
+  t.datetime &quot;updated_at&quot;, precision: 6, null: false
+end
+</code></pre>
+                    <p>ただし、Rails コンソールで Status
+                    モジュールをクエリすると、次のようになります。</p>
+                    <pre><code>Status.all
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <pre><code>NoMethodError (undefined method `all&#39; for Status:Module)
+</code></pre>
+                    <p>Rails コンソールでユーザー
+                    モデルのすべてのステータスをクエリすると、次のようになります。</p>
+                    <pre><code>User.statuses.all
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <pre><code>ArgumentError (wrong number of arguments (given 2, expected 0..1))
+</code></pre>
+                    <p>これをビューで利用できるようにする方法もわかりません</p>
+                    <pre><code>  # app/views/users/_form.html.erb
+
+  &lt;%= form.label :status %&gt;&lt;br /&gt;
+  &lt;%= form.select :status, User.statuses.keys.collect { |status| status },{} %&gt;  
+</code></pre>
+                    <p>列挙型を定義し、ユーザーのフォーム
+                    ビューで列挙型のキー値を返し、フォームでステータスを選択できるようにするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>.all は、ActiveRecord
+                    クラスのすべてのレコードを要求します。ステータスは
+                    ActiveRecord
+                    クラスではありません。それはクラスですらない、モジュールです。</p>
+                    <p>User.statuses.all
+                    に関しては、ステータスがどこで定義されているかがわかりません。</p>
+                    <p>Ruby::Enum
+                    にはいくつかの定数とメソッドが追加されていますが、Rails
+                    はそれらについて知りません。これらを自分で Rails
+                    に統合する必要があります。</p>
+                    <p>Rails にはすでに enum が統合されています。</p>
+                    <pre><code>module Status
+  extend ActiveSupport::Concern
+  included do
+    # It will take an Array, but it&#39;s good practice to be explicit.
+    enum status: {ordered: 0, cancelled: 1, waiting: 2}
+  end
+end
+</code></pre>
+                    <p>User.statuses はステータスの
+                    HashWithIndependentAccess を返します。</p>
+                    <p>これらの列挙型は整数にマップされ、文字列は列挙型のポイントを無効にすることに注意してください。ステータスを整数として保存すると、潜在的に多くのスペースを節約できます。
+                    Rails
+                    は、整数を文字列にマッピングしたり、その逆のマッピングを処理します。</p>
+                    <p>整数のステータスを使用するようにテーブルを必ず変更してください:
+                    t.string
+                    “status”。ステータスがオンのユーザーを回避するには、デフォルトまたは
+                    null のいずれかを定義する必要があります: false。</p>
+                    <p>データの表示方法の詳細はデータベースに含まれていません。最も簡単な方法は、humanize
+                    を使用することです。</p>
+                    <pre><code># ordered becomes Ordered. not_waiting becomes Not waiting.
+User.statuses.keys.collect { |status| status.humanize }
+</code></pre>
+                    <p>それをステータスモジュールにプッシュできます。</p>
+                    <pre><code>module Status
+  ...
+
+  class_methods do
+    def show_statuses
+      statuses.keys.collect { |status| status.humanize }
+    end
+  end
+end
+
+User.show_statuses
+</code></pre>
+                    <p>これを選択として実行すると…</p>
+                    <pre><code>&lt;%= f.select :status, User.statuses.collect { |status,id| [status.humanize,id] } %&gt;
+</code></pre>
+                    <p>また、それをステータスにプッシュすることもできます。</p>
+                    <pre><code>module Status
+  ...
+
+  class_methods do
+    ...
+
+    def statuses_for_select
+      statuses.collect { |status,id| [status.humanize,id] }
+    end
+  end
+end
+
+&lt;%= f.select :status, User.statuses_for_select %&gt;
+</code></pre>
+                    <p>表示の詳細が複雑になると、モデルが太くなります。次に、それをデコレータにプッシュすることを検討する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby と C API: グローバル メソッドの rb_funcall_with_block? Cからブロックを使用してRubyグローバルメソッドを呼び出すにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby と C API: グローバル メソッドの rb_funcall_with_block? Cからブロックを使用してRubyグローバルメソッドを呼び出すにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby と C API: グローバル メソッドの
+rb_funcall_with_block?
+Cからブロックを使用してRubyグローバルメソッドを呼び出すにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>C API コードから Ruby のグローバル
+                    メソッドを呼び出したいと考えています。したがって、Rubyでは次のようになります。</p>
+                    <pre><code>def giveMeABlock(*args)
+  puts &quot;Starting giveMeABlock with #{args.inspect}&quot;
+  yield if block_given?
+end
+</code></pre>
+                    <p>その後学んだことですが、グローバル関数は実際には
+                    Object
+                    の単なるプライベート関数であるため、どこからでも呼び出すことができます。</p>
+                    <p>C ではこのメソッドを呼び出したいので、
+                    rb_funcallv を使用できます。</p>
+                    <pre><code>VALUE rb_funcallv(VALUE recv, ID mid, int argc, VALUE *argv)
+Invokes a method, passing arguments as an array of values. Able to call even private/protected methods.
+</code></pre>
+                    <p>この特定の例では、次のことができます。</p>
+                    <pre><code>rb_funcallv(self, rb_intern(&quot;giveMeABlock&quot;), 0, NULL);
+</code></pre>
+                    <p>また、ブロックが指定されていないにもかかわらず、メソッドを呼び出すことができます。</p>
+                    <p>ブロックを使用して呼び出すには、次のようにします。</p>
+                    <pre><code>VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE passed_procval)
+Same as rb_funcallv_public, except passed_procval specifies the block to pass to the method.
+</code></pre>
+                    <p>ただし、これは rb_funcallv_public
+                    と同様、パブリック
+                    メソッドのみを呼び出すことができます。つまり、試してみると:</p>
+                    <pre><code>rb_funcall_with_block(self, rb_intern(&quot;giveMeABlock&quot;), 0, NULL, block);
+</code></pre>
+                    <p>わかりました:</p>
+                    <pre><code>private method `giveMeABlock&#39; called for main:Object (NoMethodError)
+</code></pre>
+                    <p>では、なぜブロックを提供できるプライベート
+                    メソッドの funcall
+                    がないのでしょうか、それとも何かが足りないのでしょうか?そして、この一見単純なタスクを達成するにはどうすればよいでしょうか?</p>
+                    <p>Object
+                    クラス内でメソッドを定義すると、それが機能することがわかりました
+                    (パブリックになっているので)。しかし、これはハックのようで、Ruby
+                    ソースを変更できることが前提になっています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パーティーに遅れてしまったので、おそらくこの回答はもう必要ないでしょうが、後世のために投稿しておきます。</p>
+                    <p>私が見つけたこの問題の回避策は、関数をパブリックにすることでした。
+                    Ruby コードから直接実行することもできます。</p>
+                    <pre><code>public def giveMeABlock(*args)
+  puts &quot;Starting giveMeABlock with #{args.inspect}&quot;
+  yield if block_given?
+end
+</code></pre>
+                    <p>または、それができない場合
+                    (たとえば、実行する必要がある Ruby
+                    コードを変更できない場合)、C
+                    コードからコードを公開できます。</p>
+                    <pre><code>rb_funcall(rb_cObject, rb_intern(&quot;public&quot;), 1, rb_id2sym(rb_intern(&quot;giveMeABlock&quot;)))
+</code></pre>
+                    <p>これでパブリックになったので、rb_funcall_with_block
+                    で呼び出すことができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>以下をお勧めします。 インストール: Clang、GCC、Postgres、Redis | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "以下をお勧めします。 インストール: Clang、GCC、Postgres、Redis",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>以下をお勧めします。 インストール:
+Clang、GCC、Postgres、Redis</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の Concurrent::Future
+                    は例外をキャッチしていませんでした。そこで記事からコードをコピーしてレスキューブロックを追加しました。
+                    しかし、今度はエラーが発生しました:</p>
+                    <p>コードは次のとおりです。</p>
+                    <pre><code>executed_future = Concurrent::Future.execute do
+            url = &quot;#{endpoint}#{datum[:hierarchy_id]}#{valuation_date}&quot;
+            raise StandardError.new(&quot;Testing error!&quot;) # To test
+
+            [...]
+          end.rescue do | exception | # Adding this, will throw the error
+            @exceptions &lt;&lt; exception
+            binding.pry # No activated
+          end
+</code></pre>
+                    <p>私には何が欠けているのでしょうか？</p>
+                    <p>Concurrent::Future
+                    ブロックで例外をレスキューすることを期待しています。まさに記事の通りです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は Concurrent::Future
+                    に詳しくないので、その特定の gem にレスキュー
+                    メソッドの別の実装が存在することを見逃してしまうかもしれません。</p>
+                    <p>しかし、Rubyでは、レスキューは、別のメソッドの戻り値で呼び出すメソッドではありません（質問のConcurrent::Future.execute呼び出しの戻り値など）。現在のブロックのコンテキストで発生した例外をキャッチするキーワードです。</p>
+                    <p>したがって、Concurrent::Future.execute
+                    ブロック内で Ruby の慣用的な begin …rescue … end
+                    構文を使用してみます。</p>
+                    <pre><code>executed_future = Concurrent::Future.execute do
+  begin
+    url = &quot;#{endpoint}#{datum[:hierarchy_id]}#{valuation_date}&quot;
+    raise StandardError.new(&quot;Testing error!&quot;) # To test
+    # ...
+  rescue StandardError =&gt; exception
+    @exceptions &lt;&lt; exception
+    binding.pry
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

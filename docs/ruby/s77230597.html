@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5 (Rails 4.2 から) および Devise 4 (Devise 3 から) のアップグレード: Warden::Proxy インスタンスがリクエスト環境で見つかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5 (Rails 4.2 から) および Devise 4 (Devise 3 から) のアップグレード: Warden::Proxy インスタンスがリクエスト環境で見つかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 5 (Rails 4.2 から) および Devise 4
+(Devise 3 から) のアップグレード: Warden::Proxy
+インスタンスがリクエスト環境で見つかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そのため、私たちは古い Rails 4
+                    アプリをアップグレードしているところです。私たちは現在、Rails
+                    4.2 から 5.0
+                    に移行しようとしています。これには、Devise
+                    をバージョン 3 からバージョン 4
+                    にアップグレードすることが含まれます。少なくともドキュメントとrailsbump.orgによると、これはRails
+                    5と互換性があるはずなので、バージョン4に遅れてジャンプしました。</p>
+                    <p>これまでのところ、バンドルのインストールは成功し、サーバーが起動しますが、どのページにアクセスしても、デバイスからいくつかのエラーが発生し、それを理解するのに苦労しました。</p>
+                    <pre><code>Error during failsafe response: Devise could not find the `Warden::Proxy` instance on your request environment.
+Make sure that your application is loading Devise and Warden as expected and that the `Warden::Manager` middleware is present in your middleware stack.
+If you are seeing this on one of your tests, ensure that your tests are either executing the Rails middleware stack or that your tests are using the `Devise::Test::ControllerHelpers` module to inject the `request.env[&#39;warden&#39;]` object for you.
+  /home/josh/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/devise-4.9.2/lib/devise/controllers/helpers.rb:143:in `warden&#39;
+  /home/josh/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/devise-4.9.2/lib/devise/controllers/helpers.rb:126:in `current_user&#39;
+  /home/josh/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/paper_trail-4.0.2/lib/paper_trail/frameworks/rails/controller.rb:19:in `user_for_paper_trail&#39;
+  /home/josh/.rbenv/versions/2.7.6/lib/ruby/gems/2.7.0/gems/paper_trail-4.0.2/lib/paper_trail/frameworks/rails/controller.rb:65:in `set_paper_trail_whodunnit&#39;
+</code></pre>
+                    <p>スタック トレースから、current_user
+                    が制御していない Paper_trail
+                    コードから呼び出されていることがわかります。
+                    ApplicationController で問題のある Paper_trail
+                    ユーザー
+                    メソッドをオーバーライドし、そこで何が起こるかを制御できます。これにより、current_user
+                    と user_signed_in?
+                    のすべてのインスタンスを制御できるようになります。
+                    。これらのメソッドが使用されないようにすべてをコメントアウトすると、エラーは発生せず、ページが読み込まれます。少なくとも、これにより他のいくつかの作業を進めることができますが、アプリが適切に機能するためには明らかにこれらのヘルパーが必要です。</p>
+                    <p>エラー
+                    メッセージにはテストについて言及されており、Google、ChatGPT
+                    などによるこの問題に関する多くの調査でもテストが必要とされています。しかし、これはテスト環境では起こっておらず、これが問題ではないと確信しています。</p>
+                    <p>Warden::Manager
+                    ミドルウェアも、アプリのミドルウェア
+                    スタックに存在します。</p>
+                    <p>この号ではいくつかの興味深いアイデアが取り上げられました。私たちのアプリはカスタム例外アプリを使用していますが、その問題を提起したユーザーとは異なり、このアプリは
+                    ApplicationController
+                    から継承しません。このコードをコメントアウトしても問題は解決されません。ただし、誰かがそれに気づいた場合に備えて、カスタム例外のコードを次に示します。</p>
+                    <pre><code>  def call(env)
+    status = env[&quot;PATH_INFO&quot;][1..-1]
+
+    if status == &quot;404&quot; || status == &#39;422&#39; || status == &#39;500&#39;
+      Rails.application.routes.call(env)
+    else
+      super
+    end
+  end
+end```
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私たちは問題を解決しました。結局、Web
+                    コンソールのミドルウェアにエラーがあったため、Web
+                    コンソールのバージョンを少し上げるだけで済みました。ロギング、Web
+                    コンソール、およびデバイス/ワーデンの間のミドルウェアで特定の処理が発生する順序のため、エラー
+                    メッセージは非常にわかりにくいものでした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すべてのベンダーのリストを取得しますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すべてのベンダーのリストを取得しますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すべてのベンダーのリストを取得しますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は次の操作を行って製品からベンダーを取り出し、unique
+                    を使用してフロントエンドにそれを取得し、ストア上の各ベンダーをリストします。</p>
+                    <p>コントローラ：</p>
+                    <pre><code>@count = ShopifyAPI::Product.count
+@n = 1
+@products = ShopifyAPI::Product.find(:all, limit: 250, page: @n)
+if (@count &gt; 50) &amp;&amp; params[:page_number]
+  @page_number = params[:page_number].to_i
+  @products = ShopifyAPI::Product.find(:all, params: {page: @page_number})
+end
+</code></pre>
+                    <p>フロントエンド：</p>
+                    <pre><code>&lt;% @products.map(&amp;:vendor).uniq.each do |vendor| %&gt;
+...
+...
+&lt;% end %&gt;
+
+&lt;% if (@count &gt; 50) &amp;&amp; (@page_number.present? &amp;&amp; @page_number &gt; 1) %&gt;
+  &lt;%= link_to &quot;&lt;&quot;, company_shop_vendors_path(shop_id: @shop.id, page_number: (@page_number - 1)) %&gt; &lt;%= link_to &quot;1&quot;, company_shop_vendors_path(shop_id: @shop.id, page_number: 1) %&gt; &lt;%= link_to &quot;#{@page_number + 1} &gt;&quot;, company_shop_vendors_path(shop_id: @shop.id, page_number: (@page_number + 1)) %&gt;
+&lt;% elsif (@count &gt; 50) %&gt;
+  &lt;%= link_to &quot;#{@n+1} &gt;&quot;, company_shop_vendors_path(shop_id: @shop.id, page_number: (@n += 1)) %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>これでベンダーを入手できますが、私が望むようにはいきません。</p>
+                    <p>ページシステム全体はひどい試みであり、私は実際に検索フォームも使用していますが、これはより優れています。製品ページをページ分割しても、各ページに固有のベンダーが表示されるだけで、ページが数百ある場合は無意味です。</p>
+                    <p>これを行うための最良の方法は何ですか?</p>
+                    <p>すべてのベンダーをページ分割してメモリにスローし、すべてのベンダーをフロントエンドに一意に表示する方法はあるでしょうか?</p>
+                    <p>それ以外の唯一のオプションは、API
+                    を直接使用する代わりに、製品 API
+                    リクエストでベンダーをデータベースに保存し、製品が
+                    Webhook を作成することです。</p>
+                    <p>どう思いますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>不気味な方法ですが、製品をループしたくない、アプリプロキシ経由では実行できない人には役立つかもしれません</p>
+                    <p>これにより、すべての製品ベンダーが JSON
+                    形式でリストされます。</p>
+                    <p>自動化プロセスが中断される可能性があります。ただし、大きなデータをループしたくない場合には役立ちます。</p>
+                    <p>この情報が意味を成し、役立つことを願っています。</p>
+                    <p>更新：APIを使用してのみ可能になりました。以下はgraphQLクエリです</p>
+                    <pre><code>$query = &#39;{ shop { productVendors(first:100){ edges { node } } } }&#39;;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

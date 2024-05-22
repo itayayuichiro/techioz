@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ransack には、検索可能として明示的に許可リストに登録された  関連付けが必要です | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ransack には、検索可能として明示的に許可リストに登録された  関連付けが必要です",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ransack
+には、検索可能として明示的に許可リストに登録された <Model>
+関連付けが必要です</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>gem「ipaddress」をインストールするまで私のコードは実行され、機能していましたが、以前に作成したモデルはすべて次のエラーが発生するようになりました。</p>
+                    <p>Ransack には、明示的に許可リストに登録された
+                    <MODEL_NAME> 関連付けが必要です 検索可能。</p>
+                    <p>User で ransackable_associations クラス
+                    メソッドを定義します。
+                    モデル、検索したくないアイテムに注意してください (
+                    たとえば、encrypted_password、password_reset_token、owner、または
+                    その他の機密情報）。以下をベースとして使用できます。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+
+  # ...
+
+  def self.ransackable_associations(auth_object = nil)
+    [&quot;comments&quot;, &quot;created_by&quot;, &quot;favorites&quot;, &quot;impressions_by_user&quot;, &quot;updated_by&quot;, &quot;user_group&quot;]
+  end
+
+  # ...
+
+The issue I have with this is I need a dynamic to do this instead of having to redo this for every single model that I have created.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデルを ActiveRecord::Base の使用から
+                    ApplicationRecord の使用に変更し、次のコードを含む
+                    Application_Record.rb
+                    ファイルを作成する必要がありました。</p>
+                    <pre><code>class ApplicationRecord &lt; ActiveRecord::Base
+  primary_abstract_class
+
+  Rails.logger.info(&quot;INSIDE APPLICATION RECORD&quot;);
+  self.abstract_class = true
+
+  def self.ransackable_attributes(auth_object = nil)
+    column_names + _ransackers.keys
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    reflect_on_all_associations.map { |a| a.name.to_s } + _ransackers.keys
+  end
+end
+</code></pre>
+                    <p>次に、イニシャライザの印象派拡張機能を微調整して、次のメソッドを追加する必要がありました。</p>
+                    <pre><code>def ransackable_associations(auth_object = nil)
+  Rails.logger.info(&quot;WITHIN RANSACK ASSOCIATION&quot;)
+  super + %w[impressionable]
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

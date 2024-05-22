@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails - 既存のレコードを保存し、コピーに更新を適用する方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails - 既存のレコードを保存し、コピーに更新を適用する方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails -
+既存のレコードを保存し、コピーに更新を適用する方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>40
+                    以上の列に保存された多くの変数を含む予算を追跡する
+                    Web
+                    ページがあります。時間の経過とともに、これらの予算は調整されますが、時間の経過と年ごとの変化を追跡できる必要があります。
+                    :before_update
+                    コールバックによってトリガーされる既存のレコードの複製を作成するプライベート
+                    メソッドをモデルに追加してみました。しかし、うまくいきません。更新により既存のレコードが変更され、元のレコードはまったく保持されません。</p>
+                    <p>モデル：</p>
+                    <pre><code>class Budget &lt; ActiveRecord::Base
+
+  before_update :copy_budget
+
+  private
+
+  def copy_budget
+    @budget = Budget.find(params[:id])
+    @budget.dup
+    @budget.save
+  end
+end
+</code></pre>
+                    <p>私はまだ Rails を学習中ですが (これは Rails 4
+                    です)、これが最善の方法だったと思います。そうでない場合、レコードがすでに存在する場合に更新するようにルーティングするのではなく、常に新しいレコードを投稿するようにフォームを設定するより良い方法はありますか?</p>
+                    <p>現在、form_for 行は次のようになります。</p>
+                    <p>&lt;%= form_for(<span class="citation"
+                    data-cites="budget">@budget</span>) は |f|
+                    を実行します%&gt;</p>
+                    <p>重複が発生しないことを除いて、すべてが正常に動作します。私には何が欠けているのでしょうか？
+                    .dup 関数が :id
+                    も複製している可能性はありますか?これは、私が使用している
+                    MySQL
+                    データベースの自動インクリメントによって割り当てられているため、.dup
+                    がすべてをコピーしている場合、:id
+                    を除くすべてのデータを新しいレコードにコピーする方法はありますか?</p>
+                    <p>ご提案をいただきありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>dup メソッドは ID
+                    なしで新しいオブジェクトを返し、その場で更新しません。
+                    copy_budget メソッドはすでに Budget のインスタンス
+                    メソッドであるため、ID で予算を検索する必要はなく
+                    (モデル内でパラメータにアクセスできないため、検索することさえできません)、代わりに現在のインスタンス
+                    (自分自身)。したがって、次の変更により copy_budget
+                    メソッドが修正されますが、データベースに保存される直前に、すでに変更されたオブジェクトがまだコピーされています。</p>
+                    <pre><code>def copy_budget
+  copy_of_budget = self.dup
+  copy_of_budget.save
+end
+</code></pre>
+                    <p>それはあなたが期待しているように機能するでしょう。ただし、コピーを現在のバージョンの予算にリンクしているわけではありません
+                    (予算 ID = 1 が予算 ID = 2
+                    の古いバージョンであるかどうかを判断する方法はありません)。
+                    PaperTrail などの gem を検討することをお勧めします
+                    (ニーズに合わない場合は、他にもたくさんあると思います)。これは、履歴を保存する際の多くの問題と機能をすでに検討しています。記録が変わった。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

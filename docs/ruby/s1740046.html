@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのプロシージャとラムダの違いは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのプロシージャとラムダの違いは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのプロシージャとラムダの違いは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そして、どのような場合に、もう一方ではなく一方を使用しますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>違いの 1 つは、引数の処理方法です。 proc {} と
+                    Proc.new {}
+                    を使用したプロシージャの作成は同等です。ただし、lambda
+                    {}
+                    を使用すると、渡された引数の数をチェックするプロシージャが得られます。
+                    ri Kernel#lambda から:</p>
+                    <p>例：</p>
+                    <pre><code>p = Proc.new {|a, b| puts a**2+b**2 } # =&gt; #&lt;Proc:0x3c7d28@(irb):1&gt;
+p.call 1, 2 # =&gt; 5
+p.call 1 # =&gt; NoMethodError: undefined method `**&#39; for nil:NilClass
+p.call 1, 2, 3 # =&gt; 5
+l = lambda {|a, b| puts a**2+b**2 } # =&gt; #&lt;Proc:0x15016c@(irb):5 (lambda)&gt;
+l.call 1, 2 # =&gt; 5
+l.call 1 # =&gt; ArgumentError: wrong number of arguments (1 for 2)
+l.call 1, 2, 3 # =&gt; ArgumentError: wrong number of arguments (3 for 2)
+</code></pre>
+                    <p>さらに、Ken が指摘しているように、ラムダ内で
+                    return
+                    を使用するとそのラムダの値が返されますが、proc 内で
+                    return
+                    を使用すると、それを囲んでいるブロックから返されます。</p>
+                    <pre><code>lambda { return :foo }.call # =&gt; :foo
+return # =&gt; LocalJumpError: unexpected return
+Proc.new { return :foo }.call # =&gt; LocalJumpError: unexpected return
+</code></pre>
+                    <p>したがって、ほとんどの簡単な用途では同じですが、厳密な引数の自動チェック
+                    (デバッグに役立つ場合もあります)
+                    が必要な場合、または return ステートメントを使用して
+                    proc の値を返す必要がある場合は、lambda
+                    を使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

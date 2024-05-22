@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ページネーションがレールで CSS と JS をレンダリングしません (ページネーションでヘッドが欠落しています) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ページネーションがレールで CSS と JS をレンダリングしません (ページネーションでヘッドが欠落しています)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ページネーションがレールで CSS と JS
+をレンダリングしません (ページネーションでヘッドが欠落しています)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アプリには合計 2 つのビューがあり、1 つはカンバン
+                    ビュー、もう 1 つはクラシック
+                    ビューです。すべて正常に動作していますが、クラシック
+                    ビューではページ 2 または 3
+                    をクリックすると、他のページにリダイレクトされ、すべてのコンテンツが表示されますが、先頭が表示されません。要素にタグがないため（ブラウザで確認しました）、コンテンツが正しく表示されません。ページネーションの後、すべてのCSSファイルとJSファイルがあるため、application.html.erbファイルがレンダリングされていないことを確認しました。</p>
+                    <p>私は Kaminari gem を使用していますが、pagy
+                    も適用しましたが、それでも同じことが発生します。</p>
+                    <p>これがコードの一部です、</p>
+                    <p>私のindex.html.erbファイル</p>
+                    <pre><code>...
+  &lt;div id=&quot;partial-container&quot;&gt;&lt;/div&gt;
+...
+&lt;script&gt;
+  const partialContainer = document.getElementById(&#39;partial-container&#39;);
+  const valueFromBrowserData = localStorage.getItem(&#39;view&#39;); // return view either kanban view or classic view
+
+  if (valueFromBrowserData) {
+    selectDropdown.value = valueFromBrowserData;
+    loadPartial(window.location.pathname, valueFromBrowserData, partialContainer);
+  }
+
+  form.addEventListener(&#39;change&#39;, (event) =&gt; {
+    const dropdownValue = event.target.value;
+    localStorage.setItem(&#39;view&#39;, dropdownValue);
+    loadPartial(window.location.pathname, dropdownValue, partialContainer);
+  });
+
+  function loadPartial(url, value, container) {
+    loaded_partials = true;
+    // Show the loader
+    var loader = document.getElementById(&#39;loader-style&#39;);
+    if (loader) {
+      loader.style.display = &#39;flex&#39;;
+    }
+    // Clear the partial container
+    container.innerHTML = &#39;&#39;;
+    const urlWithParams = `${url}?name=${encodeURIComponent(value)}
+      fetch(urlWithParams)
+      .then((response) =&gt; response.text())
+      .then((partialHtml) =&gt; {
+        container.innerHTML = partialHtml;
+        removeEmptyHeaders();
+        // Hide the loader
+        if (loader) {
+          loader.style.display = &#39;none&#39;;
+        }
+      })
+      .catch((error) =&gt; {
+        console.error(&#39;Error loading partial:&#39;, error);
+        // Hide the loader in case of error
+        if (loader) {
+          loader.style.display = &#39;none&#39;;
+        }
+      });
+   }
+&lt;/script&gt;
+</code></pre>
+                    <p>したがって、localstorageに基づいて、かんばんとクラシックビューの詳細を取得します。クラシックビューでは、_classic_view.html.erbである1つの部分をレンダリングするコードをいくつか書きます。</p>
+                    <pre><code>&lt;div id=&quot;flash-notification&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;can-table-data&quot;&gt;
+&lt;% @data.each do |data|%&gt;
+... # showing details
+&lt;% end %&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;table-pagination&quot;&gt;
+  &lt;%= paginate @data %&gt;
+  &lt;div class=&quot;dynamic-page-selection mt-1&quot;&gt;
+    &lt;div class=&quot;dropdown&quot;&gt;
+      &lt;button class=&quot;btn btn-row dropdown-toggle&quot; type=&quot;button&quot; data-bs-toggle=&quot;dropdown&quot; aria-expanded=&quot;false&quot;&gt;
+        &lt;%= @data.limit_value %&gt; Rows / Page
+      &lt;/button&gt;
+      &lt;ul class=&quot;dropdown-menu&quot;&gt;
+        &lt;% PAGE_SIZES.each do |size| %&gt;
+          &lt;li&gt;&lt;%= link_to size, url_for(per_page: size), class: &quot;dropdown-item&quot; %&gt;&lt;/li&gt;
+        &lt;% end %&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+</code></pre>
+                    <p>私のapplication.html.erb</p>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Test&lt;/title&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+    &lt;%= csrf_meta_tags %&gt;
+    &lt;%= csp_meta_tag %&gt;
+    &lt;!-- Dropzone Stand alone V6 css --&gt;
+    &lt;link href=&quot;https://unpkg.com/[email protected]/dist/dropzone.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css&quot;&gt;
+    &lt;%= javascript_include_tag &quot;jquery&quot; %&gt;
+    &lt;%= stylesheet_link_tag &quot;application.bootstrap&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+    &lt;%= javascript_importmap_tags %&gt;
+    &lt;%= javascript_include_tag &quot;delete_confirmation_dialog&quot; %&gt;
+    &lt;%= javascript_include_tag &quot;polling&quot; %&gt;
+    &lt;%= javascript_include_tag &#39;sortable_developer_fields&#39; %&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;https://www.gstatic.com/charts/loader.js&quot;&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;%if @current_user %&gt;
+      &lt;div class=&quot;wrapper&quot;&gt;
+        &lt;%= render &#39;layouts/header&#39; %&gt;
+        &lt;div class=&quot;content-page&quot;&gt;
+          &lt;div class=&quot;custom-container&quot;&gt;
+            &lt;%= yield %&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;% else %&gt;
+      &lt;%= render &#39;layouts/flash&#39; %&gt;
+      &lt;%= yield %&gt;
+    &lt;% end %&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+                    <p>初めてクラシックビューをロードすると、完璧に機能します</p>
+                    <p>任意のページをクリックすると、_classic_view.html.erb
+                    のデータのみがレンダリングされ、application.html.erb
+                    はレンダリングされません。</p>
+                    <p>解決策を見つけたらぜひ教えてください。ありがとうございます!</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ページネーションが適用されているときに、コンテンツを置き換える適切なturbo_frameが見つからないため、特定のフレームではなく完全なページをリダイレクトしているため、_classic_view.html.erbにturbo_frameを1つ追加するだけで問題が解決されるため、なぜこれが起こるのか解決策を見つけたところです。問題</p>
+                    <pre><code>&lt;div id=&quot;flash-notification&quot;&gt;&lt;/div&gt;
+&lt;%= turbo_frame_tag &quot;classic_view_table&quot; do %&gt;
+
+  &lt;div class=&quot;can-table-data&quot;&gt;
+  &lt;% @data.each do |data|%&gt;
+  ... # showing details
+  &lt;% end %&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;table-pagination&quot;&gt;
+    &lt;%= paginate @data %&gt;
+    &lt;div class=&quot;dynamic-page-selection mt-1&quot;&gt;
+      &lt;div class=&quot;dropdown&quot;&gt;
+        &lt;button class=&quot;btn btn-row dropdown-toggle&quot; type=&quot;button&quot; data-bs-toggle=&quot;dropdown&quot; aria-expanded=&quot;false&quot;&gt;
+          &lt;%= @data.limit_value %&gt; Rows / Page
+        &lt;/button&gt;
+        &lt;ul class=&quot;dropdown-menu&quot;&gt;
+          &lt;% PAGE_SIZES.each do |size| %&gt;
+            &lt;li&gt;&lt;%= link_to size, url_for(per_page: size), class: &quot;dropdown-item&quot; %&gt;&lt;/li&gt;
+          &lt;% end %&gt;
+        &lt;/ul&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

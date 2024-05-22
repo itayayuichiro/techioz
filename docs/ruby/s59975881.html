@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コンテンツ内のマークアップを保持したまま、Nokogiri ノード内のテキストの一部を置き換える | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コンテンツ内のマークアップを保持したまま、Nokogiri ノード内のテキストの一部を置き換える",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コンテンツ内のマークアップを保持したまま、Nokogiri
+ノード内のテキストの一部を置き換える</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Nokogiri でノードのコンテンツをスキャンし、gsub
+                    を実行することで、多数のファイルにわたる一意の文字列のインスタンスを置き換えようとしています。文字列の一部をそのままにして、アンカー
+                    タグに変換します。ただし、大部分のノードの内容にはさまざまな形式のマークアップが含まれており、単なる単純な文字列ではありません。たとえば、次のようなファイルがあるとします。</p>
+                    <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+        &lt;link href=&quot;style.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div&gt;
+            &lt;p class=&quot;header&quot;&gt;&amp;lt;&amp;lt;2&amp;gt;&amp;gt;Header&lt;/p&gt;
+            &lt;p class=&quot;paragraph&quot;&gt;
+            &lt;p class=&quot;text_style&quot;&gt;Lorem ipsum blah blah blah. &amp;lt;&amp;lt;3&amp;gt;&amp;gt; Here is more content. &lt;span class=&quot;style&quot;&gt;Preserve this.&lt;/span&gt; Blah blah extra text.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>文書全体に数字があり、&lt;&lt; と &gt;&gt;
+                    で囲まれています。数値の値を取得して、<a id='[#]'/>
+                    のようなタグに変換したいのですが、同じセクション内の他の要素の
+                    HTML マークアップ、つまり &lt;span class
+                    を保持したいと考えています。
+                    =“style”&gt;これを保存します。</span>。</p>
+                    <p>私が試したことはすべて次のとおりです。</p>
+                    <pre><code>file = File.open(&quot;file.xhtml&quot;) {|f| Nokogiri::XML(f)}
+
+file.xpath(&quot;//text()&quot;).each { |node|
+    if node.text.match(/&lt;&lt;([^_]*)&gt;&gt;/)
+        new_content = node.text.gsub(/&lt;&lt;([^_]*)&gt;&gt;/,&quot;&lt;a id=\&quot;\\1\&quot;/&gt;&quot;)
+        node.parent.inner_html = new_content
+    end
+}
+</code></pre>
+                    <p>gsub は正しく動作しますが、.text
+                    メソッドを使用しているため、マークアップは無視され、事実上消去されます。この場合、<span
+                    class="style">Preserve this.</span>
+                    部分は完全に削除されます。 (参考までに、私が .parent
+                    メソッドを使用しているのは、単に node.inner_html =
+                    new_content
+                    を実行すると、次のエラーが発生するためです:
+                    add_child_node’: Nokogiri::XML::Element
+                    そこに再親化できません (ArgumentError)。)</p>
+                    <p>代わりにこれを行うと:</p>
+                    <pre><code>    new_content = node.text.gsub(/&lt;&lt;([^_]*)&gt;&gt;/,&quot;&lt;a id=\&quot;\\1\&quot;/&gt;&quot;)
+    node.content = new_content
+</code></pre>
+                    <p>文字が適切にエスケープされていません。ファイルは
+                    <a id="3"/> ではなく <a id="3"/> で終わります。</p>
+                    <p>代わりに次のように CSS
+                    メソッドを使用してみました。</p>
+                    <pre><code>file.xpath(&quot;*&quot;).each { |node|
+    if node.inner_html.match(/&amp;lt;&amp;lt;([^_]*)&amp;gt;&amp;gt;/)
+        new_content = node.inner_html.gsub(/&amp;lt;&amp;lt;([^_]*)&amp;gt;&amp;gt;/,&quot;&lt;a id=\&quot;\\1\&quot;/&gt;&quot;)
+        node.inner_html = new_content
+    end
+}
+</code></pre>
+                    gsub
+                    は機能し、マークアップは保持され、置換されたタグは適切にエスケープされます。ただし、
+                    <head>
+                    タグと
+                    <body>
+                    <p>タグが削除されるため、無効なファイルになります。</p>
+                    <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;html&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;/&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+        &lt;link href=&quot;style.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;/&gt;
+        &lt;div&gt;
+            &lt;p class=&quot;header&quot;&gt;&lt;a id=&quot;2&quot;/&gt;Header&lt;/p&gt;
+            &lt;p class=&quot;paragraph&quot;&gt;
+            &lt;/p&gt;&lt;p class=&quot;text_style&quot;&gt;Lorem ipsum blah blah blah. &lt;a id=&quot;3&quot;/&gt; Here is more content. &lt;span class=&quot;style&quot;&gt;Preserve this.&lt;/span&gt; Blah blah extra text. &lt;/p&gt;    
+    &lt;/div&gt;
+&lt;/html&gt;
+</code></pre>
+                    <p>すべてのノード (file.css(“*“))
+                    を反復しているという事実と関係があるのではないかと思いますが、子ノードに加えて親ノードもスキャンされるため、これも冗長です。</p>
+                    <p>Web
+                    を調べましたが、これに対する解決策が見つかりません。マークアップを維持し、正しくエンコードしながら、一意のテキストを交換できるようにしたいだけです。ここで何か明らかに欠けているものはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはかなりうまく機能するようです:</p>
+                    <pre><code>require &#39;nokogiri&#39;
+
+doc = Nokogiri::XML(&lt;&lt;EOT)
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Title&lt;/title&gt;
+        &lt;link href=&quot;style.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div&gt;
+            &lt;p class=&quot;header&quot;&gt;&amp;lt;&amp;lt;2&amp;gt;&amp;gt;Header&lt;/p&gt;
+            &lt;p class=&quot;paragraph&quot;&gt;
+            &lt;p class=&quot;text_style&quot;&gt;Lorem ipsum. &amp;lt;&amp;lt;3&amp;gt;&amp;gt; more content. &lt;span class=&quot;style&quot;&gt;Preserve this.&lt;/span&gt; extra text.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+EOT
+
+doc.search(&quot;//text()[contains(.,&#39;&lt;&lt;&#39;)]&quot;).each do |node|
+  node.replace(node.content.gsub(/&lt;&lt;(\d+)&gt;&gt;/, &#39;&lt;a id=&quot;[\1]&quot; /&gt;&#39;))
+end
+</code></pre>
+                    <p>その結果、次のような結果が得られます。</p>
+                    <pre><code>puts doc.to_html
+
+# &gt;&gt; &lt;html&gt;
+# &gt;&gt;     &lt;head&gt;
+# &gt;&gt; &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+# &gt;&gt;         &lt;title&gt;Title&lt;/title&gt;
+# &gt;&gt;         &lt;link href=&quot;style.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;&gt;
+# &gt;&gt;     &lt;/head&gt;
+# &gt;&gt;     &lt;body&gt;
+# &gt;&gt;         &lt;div&gt;
+# &gt;&gt;             &lt;p class=&quot;header&quot;&gt;&lt;a id=&quot;[2]&quot;&gt;&lt;/a&gt;Header&lt;/p&gt;
+# &gt;&gt;             &lt;p class=&quot;paragraph&quot;&gt;
+# &gt;&gt;             &lt;p class=&quot;text_style&quot;&gt;Lorem ipsum. &lt;a id=&quot;[3]&quot;&gt;&lt;/a&gt; more content. &lt;span class=&quot;style&quot;&gt;Preserve this.&lt;/span&gt; extra text.&lt;/p&gt;
+# &gt;&gt;         &lt;/p&gt;
+# &gt;&gt;     &lt;/div&gt;
+# &gt;&gt; &lt;/body&gt;
+# &gt;&gt; &lt;/html&gt;
+</code></pre>
+                    <p>ノコギリさんが追加しているのは、</p>
+                    <pre><code>&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+</code></pre>
+                    <p>おそらくマークアップが XML
+                    として定義されているためです。</p>
+                    <p>セレクター “//text()[contains(.,‘&lt;&lt;’)]”
+                    は、‘&lt;&lt;’ を含むテキスト
+                    ノードのみを検索します。誤検知が発生する可能性がある場合は、これを変更してより具体的にすることができます。構文については、「XPath:
+                    contains
+                    関数での正規表現の使用」を参照してください。</p>
+                    <p>replace はトリックを実行しています。
+                    Nokogiri::XML::Text ノードを変更して &lt;a…/&gt;
+                    を含めようとしましたが、変更できません。&lt; と &gt;
+                    はエンコードする必要があります。ノードを
+                    Nokogiri::XML::Element に変更すると (Nokogiri の
+                    <a id="[2]">
+                    デフォルト値)、希望どおりに保存できるようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

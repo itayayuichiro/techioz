@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の to_i メソッドはゼロを返します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の to_i メソッドはゼロを返します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の to_i メソッドはゼロを返します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の to_i
+                    メソッドがゼロを返します。文字列を整数に変換せずにゼロを返す理由はわかります。</p>
+                    <pre><code>              job_id = job_template_id[index]
+               @handle.log(:info, &quot;job_id is:  #{job_id}&quot;)
+              job_id = job_id.to_i
+              @handle.log(:info, &quot;job_id 2 is:  #{job_id}&quot;)
+
+
+
+[----] I, [2022-03-24T09:23:29.327746 #328:2aebe6eaa0a4]  INFO -- automation: Q-task_id([r382_miq_provision_1347]) &lt;AEMethod launch_ansible_job&gt; job_template_id is:  &quot;39&quot;
+[----] I, [2022-03-24T09:23:29.328220 #328:2aebe6eaa0a4]  INFO -- automation: Q-task_id([r382_miq_provision_1347]) &lt;AEMethod launch_ansible_job&gt; job_id is:  &quot;39&quot;
+[----] I, [2022-03-24T09:23:29.328778 #328:2aebe6eaa0a4]  INFO -- automation: Q-task_id([r382_miq_provision_1347]) &lt;AEMethod launch_ansible_job&gt; job_id 2 is:  0
+</code></pre>
+                    <p>job_template_id は配列です。</p>
+                    <pre><code>job_template_id =&gt; [&quot;39&quot;, &quot;40&quot;]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>job_template_id が [‘“39”’, ‘“40”’] ではなく
+                    [‘39’, ‘40’] でよろしいですか?</p>
+                    <p>irb で次のように考えてみましょう。</p>
+                    <pre><code>irb &gt; job_id = &quot;39&quot;
+ =&gt; &quot;39&quot; 
+irb &gt; puts &quot;job_id is #{job_id}&quot;
+job_id is 39
+ =&gt; nil 
+irb &gt; job_id.to_i
+ =&gt; 39
+</code></pre>
+                    <p>補間された文字列には引用符がありません。ただし、内部引用符がある場合は、文字列補間と
+                    #to_i
+                    呼び出しの両方で何が表示されるかがわかります。</p>
+                    <pre><code>irb &gt; job_id = &#39;&quot;39&quot;&#39;
+ =&gt; &quot;\&quot;39\&quot;&quot; 
+irb &gt; puts &quot;job_id is #{job_id}&quot;
+job_id is &quot;39&quot;
+ =&gt; nil 
+irb &gt; job_id.to_i
+ =&gt; 0 
+</code></pre>
+                    <p>job_template_id
+                    の要素内に余分な引用符があります。おそらく #inspect
+                    を使用して job_template_id を設定しているか、二重
+                    JSON エンコーディングを行っている可能性があります。
+                    job_template_id
+                    を構築するコードを見て、余分な引用符がどこから来ているかを確認してみます。また、job_template_id
+                    の名前を job_template_ids
+                    に変更します。配列には複数の名前を付ける必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

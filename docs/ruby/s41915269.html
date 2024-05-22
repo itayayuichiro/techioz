@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>リクエストごとに新しいsinatraオブジェクトを作成しますが、初期化は1回のみ呼び出されます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "リクエストごとに新しいsinatraオブジェクトを作成しますが、初期化は1回のみ呼び出されます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>リクエストごとに新しいsinatraオブジェクトを作成しますが、初期化は1回のみ呼び出されます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のスクリプトを使用して、非常に単純な Web
+                    サーバーを作成しました。</p>
+                    <pre><code>require &#39;sinatra&#39;
+
+class MyApp &lt; Sinatra::Base
+
+    def initialize(app = nil)
+        super(app)
+        puts &quot;******** constructing myapp **********&quot;
+    end
+
+    get &#39;/&#39; do
+        return &quot;object id: #{object_id}, class #{self.class}&quot;
+    end
+
+end
+
+MyApp.run!
+</code></pre>
+                    <p>この小さな Web サーバーを実行し、初めて wget -q
+                    -O - http://localhost:4567
+                    を呼び出すと、サーバーを実行しているコンソールに次のように表示されます。</p>
+                    <pre><code>******** constructing myapp **********
+127.0.0.1 - - [28/Jan/2017:16:47:39 EST] &quot;GET / HTTP/1.1&quot; 200 31
+- -&gt; /
+</code></pre>
+                    <p>そしてwgetは出力します:</p>
+                    <pre><code>object id: 10454240, class MyApp
+</code></pre>
+                    <p>予想どおり、最初の呼び出しで MyApp
+                    オブジェクトが作成され、initialize
+                    が呼び出されます。</p>
+                    <p>次に、wget -q -O - http://localhost:4567 への 2
+                    回目の呼び出しを行うと、次のように表示されます。</p>
+                    <pre><code>127.0.0.1 - - [28/Jan/2017:16:49:11 EST] &quot;GET / HTTP/1.1&quot; 200 31
+- -&gt; /
+</code></pre>
+                    <p>そして、wget の出力はこれを出力します:</p>
+                    <pre><code>object id: 9387860, class MyApp
+</code></pre>
+                    <p>したがって、2 回目の呼び出しでは、MyApp
+                    の別のインスタンスがありますが (object_id
+                    が最初の呼び出しと同じ値を持っていないため)、initialize
+                    は呼び出されません。新しいオブジェクトを作成し、初期化の呼び出しをバイパスするにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>新しいクラスはリクエストごとに作成されます。インスタンスは
+                    Sinatra::Application.new ではなく
+                    Sinatra::Application.prototype.dup
+                    に関連付けられているため、initialize
+                    が毎回呼び出されるわけではありません。見る
+                    ドキュメントリンク コード用。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

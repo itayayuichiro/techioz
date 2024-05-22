@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>理学療法士向けのこの Rails アプリのモデル関係を定義するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "理学療法士向けのこの Rails アプリのモデル関係を定義するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>理学療法士向けのこの Rails
+アプリのモデル関係を定義するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は初めて実際の Rails
+                    アプリを構築しようとしている Ruby on Rails
+                    初心者です。</p>
+                    <p>考え方は次のとおりです。</p>
+                    <p>アプリには演習の概要が表示されます。各演習には、カテゴリ:文字列、ボディパート:文字列、説明:テキスト、および画像があります
+                    (これは Paperclip gem
+                    を使用して追加されます)。それから患者もいます。各患者には名前:文字列と電子メール:文字列があります。最後に運動計画があります。各演習プランには
+                    name:string
+                    があり、演習の概要からの演習が含まれます。</p>
+                    <p>アプリのユーザー (理学療法士)
+                    として、概要からエクササイズを選択し、PDF
+                    の形式で患者に電子メールで送信できます (これは Prawn
+                    gem
+                    を使用して実装されます)。エクササイズを選択するとき、ユーザー
+                    (理学療法士)
+                    はエクササイズごとに「繰り返し」または「期間」を入力できる必要があります。これを演習計画に追加し、PDF
+                    に印刷する必要があります。</p>
+                    <p>ActiveRecord
+                    でモデルの関連付けを最もよく定義するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私なら次のようなことから始めます。</p>
+                    <pre><code>class Exercise &lt; ActiveRecord::Base
+  has_many :exercise_plans
+end
+
+class Patient &lt; ActiveRecord::Base
+  has_many :exercise_plans # or perhaps just `has_one`?
+end
+
+class ExercisePlan &lt; ActiveRecord::Base
+  belongs_to :patient
+  has_and_belongs_to_many :exercises
+end
+</code></pre>
+                    <p>データベースに必要なテーブル:
+                    エクササイズ、患者、エクササイズプラン、エクササイズプラン_エクササイズ。最後のものは計画と演習の間の関連付けを保持するだけであり、exercise_plan_id
+                    と Exercise_id への参照のみが必要です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

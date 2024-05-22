@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails での JavaScript | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails での JavaScript",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails での JavaScript</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails を初めて使用するため、JS
+                    コードが実行されません。私のプログラムは、新しいページに切り替えることなく、同じページ上の回文の数値をチェックした結果を出力するはずですが、出力ボタンを押しても何も起こりません。
+                    js
+                    コードはブラウザで有効になっており、必要なライブラリはすべてダウンロードされているようです
+                    (ただし、再確認が必要であることを私に知らせることはできます)。ブラウザには、js
+                    リクエストの 200
+                    ステータスも表示されます。なぜ彼らは機能しないのでしょうか?</p>
+                    <p>コード:</p>
+                    <pre><code># app/controllers/palindrome_controller.rb
+class PalindromeController &lt; ApplicationController
+  def index; end
+
+  def show
+    @number = params[:number]
+    @error = validate_input(@number)
+    calculate_palindrome unless @error
+
+    respond_to do |format|
+      format.js 
+    end
+  end
+
+  private
+
+  def validate_input(number)
+    return &#39;No number entered&#39; if number =~ /\D/
+    return &#39;The number is already a palindrome&#39; if number == number.reverse
+
+    nil
+  end
+
+  def calculate_palindrome
+    @number = @number.to_i
+    @results = []
+    while @number.to_s != @number.to_s.reverse
+      @results &lt;&lt; @number
+      @number += @number.to_s.reverse.to_i
+    end
+    @results &lt;&lt; @number
+  end
+end
+
+</code></pre>
+                    <pre><code>&lt;!-- app/views/palindrome/index.html.erb --&gt;
+&lt;h1&gt;Testing the palindrome hypothesis&lt;/h1&gt;
+&lt;%= form_with url: &#39;/palindrome/show&#39;, method: &#39;get&#39;, remote: true do %&gt;
+  &lt;%= label_tag :number, &quot;Enter a number:&quot; %&gt;
+  &lt;%= text_field_tag :number %&gt;
+  &lt;%= submit_tag &quot;Check&quot; %&gt;
+&lt;% end %&gt;
+&lt;div id=&quot;results&quot;&gt;&lt;/div&gt;
+</code></pre>
+                    <pre><code># config/routes.rb
+Rails.application.routes.draw do
+  root &#39;palindrome#index&#39;
+  get &#39;palindrome/show&#39;, to: &#39;palindrome#show&#39;
+end
+</code></pre>
+                    <pre><code>&lt;!-- app/views/palindrome/show.js.erb --&gt;
+&lt;% if @error %&gt;
+  $(&quot;#results&quot;).html(&quot;&lt;p&gt;&lt;%= @error %&gt;&lt;/p&gt;&quot;);
+&lt;% else %&gt;
+  var table = &quot;&lt;table&gt;&lt;tr&gt;&lt;th&gt;Step number&lt;/th&gt;&lt;th&gt;Current value&lt;/th&gt;&lt;/tr&gt;&quot;;
+  &lt;% @results.each_with_index do |result, index| %&gt;
+    table += &quot;&lt;tr&gt;&lt;td&gt;&lt;%= index + 1 %&gt;&lt;/td&gt;&lt;td&gt;&lt;%= result %&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+  &lt;% end %&gt;
+  table += &quot;&lt;/table&gt;&quot;;
+  if (&quot;&lt;%= @results.last.to_s %&gt;&quot; == &quot;&lt;%= @results.last.to_s.reverse %&gt;&quot;) {
+    table += &quot;&lt;p&gt;The hypothesis is confirmed&lt;/p&gt;&quot;;
+  } else {
+    table += &quot;&lt;p&gt;The hypothesis has not been confirmed&lt;/p&gt;&quot;;
+  }
+  $(&quot;#results&quot;).html(table);
+&lt;% end %&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 7 を使用している場合は、Stimulus
+                    に切り替えることをお勧めします。 Rails アプリで
+                    Javascript
+                    コードを実行する場合は、この方がはるかに優れています。私はすべての
+                    Rails アプリでこれを使用しており、すべての Rails 7
+                    アプリにすでにインストールされています。</p>
+                    <p>次のチュートリアルをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

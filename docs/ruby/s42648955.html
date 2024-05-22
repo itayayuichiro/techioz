@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>AWS と Rails: 認証ヘッダーの形式が正しくありません。資格情報の形式が正しくありません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "AWS と Rails: 認証ヘッダーの形式が正しくありません。資格情報の形式が正しくありません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>AWS と Rails:
+認証ヘッダーの形式が正しくありません。資格情報の形式が正しくありません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>運用サーバーから S3
+                    バケットにアクセスしようとしています。開発中はすべて問題なく動作しますが、本番コンソールでは次のような結果が得られます。</p>
+                    <pre><code>Aws::S3::Errors::AuthorizationHeaderMalformed: The authorization header is malformed; the Credential is mal-formed; expecting &quot;&lt;YOUR-AKID&gt;/YYYYMMDD/REGION/SERVICE/aws4_request&quot;.
+</code></pre>
+                    <p>私のコード:</p>
+                    <pre><code>class AwsFileDownloader
+  def initialize(args)
+    @s3 = Aws::S3::Client.new
+    @aws_file_path = ...
+  end
+
+  def get_file
+    temp_file = File.new(&#39;temp.csv&#39;, &#39;r+&#39;)
+    @s3.get_object({bucket: Rails.application.secrets.aws_bucket, key: @aws_file_path}, target: temp_file)
+    ...
+  end
+end
+</code></pre>
+                    <p>私の aws イニシャライザ
+                    (どちらの環境でも正常に動作するようです):</p>
+                    <pre><code>require &#39;aws-sdk&#39;
+
+Aws.config.update({
+  region: Rails.application.secrets.aws_region,
+  credentials: Aws::Credentials.new(Rails.application.secrets.access_key_id, Rails.application.secrets.secret_access_key)
+})
+</code></pre>
+                    <p>アドバイスをよろしくお願いします！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この回答は非常に遅れていますが、誰かが役立つと思うかもしれません。上記のエラーは、AWS
+                    KEY ID と AWS ACCESS KEY
+                    を切り替えるときに発生します。</p>
+                    <p>適切な場所で正しい資格情報を使用すると、問題が解決されるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同じテーブルとの複数の has_many 関連付け | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同じテーブルとの複数の has_many 関連付け",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同じテーブルとの複数の has_many 関連付け</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>各 User に Caregivers テーブルへの 2
+                    つの参照を持たせたいのですが、関係は双方向の
+                    has_many になります。問題は、変数 current_user に
+                    User
+                    があり、次の行を実行するとき、定義に何か間違っているはずであるということです。コントローラー:
+                    current_user .reported_caregivers &lt;&lt; <span
+                    class="citation"
+                    data-cites="caregiver">@caregiver</span>,
+                    current_user.save、何も保存されません。</p>
+                    <p>モデルは次のとおりです。</p>
+                    <pre><code>class Caregiver &lt; ApplicationRecord
+   has_many :users, dependent: :nullify #first reference to User
+   has_many :reporters, :class_name =&gt; &#39;User&#39;, dependent: :nullify #new reference
+end
+
+class User &lt; ApplicationRecord
+   has_many :caregivers, dependent: :nullify #first reference
+   has_many :reported_caregivers, :class_name =&gt; &#39;Caregiver&#39;, dependent: :nullify #new reference
+...
+</code></pre>
+                    <p>そしてこれらが移行です</p>
+                    <pre><code>class AddReportersToCaregivers &lt; ActiveRecord::Migration[7.0]
+   def change
+     add_reference :caregivers, :reporters, foreign_key: { to_table: :users}, default: []
+   end
+end
+
+class AddReportedCaregiversToUsers &lt; ActiveRecord::Migration[7.0]
+   def change
+     add_reference :users, :reported_caregivers, foreign_key: { to_table: :caregivers}, default: []
+   end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>activerecord の双方向 has_many
+                    関連付けは使用されません。 User
+                    テーブルに介護者が多数いる場合、Caregiver
+                    テーブルはbelongs_to :user
+                    である必要があります。</p>
+                    <p>各テーブルに他の多くのレコードを持たせたい場合は、has_and_belongs_to_many
+                    関連付けの使用を検討する必要があります。 has_many
+                    関係を双方向に使用する唯一の方法は :through
+                    を使用することですが、そのためには別のテーブルが必要です。協会の詳細については、こちらをご覧ください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

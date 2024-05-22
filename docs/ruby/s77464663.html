@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby gemの依存関係がラムダ関数にインストールされていない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby gemの依存関係がラムダ関数にインストールされていない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+gemの依存関係がラムダ関数にインストールされていない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby アプリを AWS Lambda
+                    関数にデプロイしようとしていますが、一部の gem
+                    が正しくバンドルされていません。</p>
+                    <p>ログ内のエラー メッセージは次のとおりです。</p>
+                    <pre><code>INIT_START Runtime Version: ruby:3.2.v9 Runtime Version ARN: arn:aws:lambda:eu-central-1::runtime:b96ddb9b1905c3979339d7706a5f7cfda1d851593b1255eb0f15ff573c17fd28
+Ignoring bigdecimal-3.1.4 because its extensions are not built. Try: gem pristine bigdecimal --version 3.1.4
+Ignoring pg-1.5.4 because its extensions are not built. Try: gem pristine pg --version 1.5.4
+Ignoring psych-5.1.1.1 because its extensions are not built. Try: gem pristine psych --version 5.1.1.1
+Ignoring racc-1.7.3 because its extensions are not built. Try: gem pristine racc --version 1.7.3
+Ignoring bigdecimal-3.1.4 because its extensions are not built. Try: gem pristine bigdecimal --version 3.1.4
+Ignoring stringio-3.0.9 because its extensions are not built. Try: gem pristine stringio --version 3.0.9
+Ignoring stringio-3.0.9 because its extensions are not built. Try: gem pristine stringio --version 3.0.9
+</code></pre>
+                    <p>バンドル構成セット –local
+                    デプロイメントを「true」に設定しました。ベンダーフォルダーには必要なすべての
+                    gem が含まれています。 Bundle Pristine
+                    も試しましたが、同じ結果が得られました。</p>
+                    <p>私に何が欠けているのかについてのご指摘があれば、大変感謝いたします。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際には gem
+                    をベンダーしていないため、適切なプラットフォームをターゲットにしていない、または
+                    Lambda
+                    イメージに適切なビルド依存関係を持っていない可能性があります。代わりに、事前に構築されたベンダーの
+                    gem
+                    を使用してデプロイすることを検討してください。</p>
+                    <p>Bundler
+                    の環境変数の一部を確認し、使用する動的ライブラリとプラットフォームに対して
+                    gem が構築されていることを確認してください
+                    (たとえば、多くのイメージでは glibc の代わりに muscl
+                    が使用されています)。また、開発環境と AWS Lambda
+                    イメージの両方をターゲットとする明示的なプラットフォームを
+                    Gemfile
+                    に含める必要がある場合もありますが、これらは異なる場合があります。</p>
+                    <p>まず、ベンダーの gem (ローカル gem
+                    とは異なります)
+                    に関連する特定の環境変数を具体的に調べることから始めたい場合があります。
+                    Bundler v2.4
+                    で使用される環境変数には次のものがあります。</p>
+                    <p>AWS Lambda 上で実行時に gem
+                    をビルドすることに関係するものはすべて依存関係の問題に遭遇する可能性があるため、私の個人的な経験では、実行時に
+                    Bundler に依存するのではなく、gem
+                    を事前にビルドして直接ベンダーすることが本当に最善です。可能であれば、デプロイ先と同じイメージまたはランタイム環境に対して開発することもお勧めします。これは、Lambda
+                    と同じように構成された Docker
+                    コンテナを使用して、「私のマシンでは動作する」という問題全体を回避することを意味します。これらのシナリオでは非常に一般的です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

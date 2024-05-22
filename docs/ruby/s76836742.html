@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rbenv ビルドに失敗しました (ruby-build 20230717-7-gf170c16 を使用した Raspbian 11) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rbenv ビルドに失敗しました (ruby-build 20230717-7-gf170c16 を使用した Raspbian 11)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rbenv ビルドに失敗しました (ruby-build
+20230717-7-gf170c16 を使用した Raspbian 11)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ラズベリーパイ 4 に Ruby 3.2.2
+                    をインストールしようとしています。 GitHub
+                    リポジトリ、git clone
+                    メソッドを使用してすべての手順を実行しましたが、rbenv
+                    install 3.2.2 に到達すると、ARM
+                    関連と思われるエラーが表示されます。それはこう言っています：</p>
+                    <p>ログ</p>
+                    <pre><code>pi@raspberrypi:~ $ rbenv install 3.2.2
+To follow progress, use &#39;tail -f /tmp/ruby-build.20230804022323.9672.log&#39; or pass --verbose
+Downloading ruby-3.2.2.tar.gz...
+-&gt; https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz
+Installing ruby-3.2.2...
+
+BUILD FAILED (Raspbian 11 using ruby-build 20230717-7-gf170c16)
+
+Inspect or clean up the working tree at /tmp/ruby-build.20230804022323.9672.8D2OlO
+Results logged to /tmp/ruby-build.20230804022323.9672.log
+
+Last 10 log lines:
+coroutine/arm64/Context.S:56: Error: bad instruction `ldp x21,x22,[sp,0x50]&#39;
+coroutine/arm64/Context.S:57: Error: bad instruction `ldp x23,x24,[sp,0x60]&#39;
+coroutine/arm64/Context.S:58: Error: bad instruction `ldp x25,x26,[sp,0x70]&#39;
+coroutine/arm64/Context.S:59: Error: bad instruction `ldp x27,x28,[sp,0x80]&#39;
+coroutine/arm64/Context.S:60: Error: bad instruction `ldp x29,x30,[sp,0x90]&#39;
+coroutine/arm64/Context.S:63: Error: ARM register expected -- `ldr x4,[sp,0xa0]&#39;
+coroutine/arm64/Context.S:66: Error: shift expression expected -- `add sp,sp,0xb0&#39;
+coroutine/arm64/Context.S:69: Error: bad instruction `ret x4&#39;
+make: *** [Makefile:468: coroutine/arm64/Context.o] Error 1
+make: *** Waiting for unfinished jobs....
+</code></pre>
+                    <p>それは、aarch64 (私が使用しているもの) に armv7
+                    をインストールしようとすることに関係があることがわかりました。そこで、それに関連することをいくつか調べたところ、次のような情報が得られました。</p>
+                    <p>ユーザービルド</p>
+                    <pre><code>pi@raspberrypi:~ $ uname -m
+aarch64
+</code></pre>
+                    <p>ツールチェーン</p>
+                    <pre><code>pi@raspberrypi:~ $ gcc -v
+...
+Target: arm-linux-gnueabihf
+...
+</code></pre>
+                    <p>ツールチェーンがシステム
+                    パスにあることを確認しました</p>
+                    <pre><code>pi@raspberrypi:~ $ which arm-linux-gnueabihf-gcc
+/usr/bin/arm-linux-gnueabihf-gcc
+</code></pre>
+                    <p>これらの情報を確認したので、次のようにインストールしてみました。</p>
+                    <pre><code>pi@raspberrypi1:~ $ CC=arm-linux-gnueabihf-gcc rbenv install 3.2.2
+To follow progress, use &#39;tail -f /tmp/ruby-build.20230804035531.14026.log&#39; or pass --verbose
+Downloading ruby-3.2.2.tar.gz...
+-&gt; https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz
+Installing ruby-3.2.2...
+
+BUILD FAILED (Raspbian 11 using ruby-build 20230717-7-gf170c16)
+
+Inspect or clean up the working tree at /tmp/ruby-build.20230804035531.14026.Mf7gAz
+Results logged to /tmp/ruby-build.20230804035531.14026.log
+
+Last 10 log lines:
+coroutine/arm64/Context.S:56: Error: bad instruction `ldp x21,x22,[sp,0x50]&#39;
+coroutine/arm64/Context.S:57: Error: bad instruction `ldp x23,x24,[sp,0x60]&#39;
+coroutine/arm64/Context.S:58: Error: bad instruction `ldp x25,x26,[sp,0x70]&#39;
+coroutine/arm64/Context.S:59: Error: bad instruction `ldp x27,x28,[sp,0x80]&#39;
+coroutine/arm64/Context.S:60: Error: bad instruction `ldp x29,x30,[sp,0x90]&#39;
+coroutine/arm64/Context.S:63: Error: ARM register expected -- `ldr x4,[sp,0xa0]&#39;
+coroutine/arm64/Context.S:66: Error: shift expression expected -- `add sp,sp,0xb0&#39;
+coroutine/arm64/Context.S:69: Error: bad instruction `ret x4&#39;
+make: *** [Makefile:468: coroutine/arm64/Context.o] Error 1
+make: *** Waiting for unfinished jobs....
+</code></pre>
+                    <p>それが失敗したら、次のような別の方法を試しました。</p>
+                    <pre><code>pi@raspberrypi:~ $ export CC=arm-linux-gnueabihf-gcc
+pi@raspberrypi:~ $ rbenv install 3.2.2
+To follow progress, use &#39;tail -f /tmp/ruby-build.20230804040854.7501.log&#39; or pass --verbose
+Downloading ruby-3.2.2.tar.gz...
+-&gt; https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz
+Installing ruby-3.2.2...
+
+BUILD FAILED (Raspbian 11 using ruby-build 20230717-7-gf170c16)
+
+Inspect or clean up the working tree at /tmp/ruby-build.20230804040854.7501.FKpHuL
+Results logged to /tmp/ruby-build.20230804040854.7501.log
+
+Last 10 log lines:
+coroutine/arm64/Context.S:56: Error: bad instruction `ldp x21,x22,[sp,0x50]&#39;
+coroutine/arm64/Context.S:57: Error: bad instruction `ldp x23,x24,[sp,0x60]&#39;
+coroutine/arm64/Context.S:58: Error: bad instruction `ldp x25,x26,[sp,0x70]&#39;
+coroutine/arm64/Context.S:59: Error: bad instruction `ldp x27,x28,[sp,0x80]&#39;
+coroutine/arm64/Context.S:60: Error: bad instruction `ldp x29,x30,[sp,0x90]&#39;
+coroutine/arm64/Context.S:63: Error: ARM register expected -- `ldr x4,[sp,0xa0]&#39;
+coroutine/arm64/Context.S:66: Error: shift expression expected -- `add sp,sp,0xb0&#39;
+coroutine/arm64/Context.S:69: Error: bad instruction `ret x4&#39;
+make: *** [Makefile:468: coroutine/arm64/Context.o] Error 1
+make: *** Waiting for unfinished jobs....
+</code></pre>
+                    <p>それも失敗し、rbenvを使用してRubyをインストールする方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく 64 ビット カーネル上で 32 ビット
+                    ユーザーランドを実行しており、ビルド スクリプトは
+                    uname -a
+                    から間違ったアーキテクチャを選択します。アーチを明示的に
+                    32 ビットに設定すると、ビルド
+                    スクリプトが正しいものを選択します。</p>
+                    <pre><code>setarch armv7l bash  # child shell now reports 32bit arch
+rbenv install 3.2.2 # in the child shell
+</code></pre>
+                    <p>明示的なアーチ設定は、インストール自体にのみ必要です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

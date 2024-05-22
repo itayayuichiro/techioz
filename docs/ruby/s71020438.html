@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyのセパレータを使用してハッシュ値内のテキストを新しいハッシュに分割する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyのセパレータを使用してハッシュ値内のテキストを新しいハッシュに分割する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyのセパレータを使用してハッシュ値内のテキストを新しいハッシュに分割する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私が持っているものと同様の別の質問を見つけましたが、それを再現することはできませんでした（おそらく、ハッシュを扱わず、シンボルも持たないためです）。</p>
+                    <p>したがって、次のようなハッシュ配列があるとします。</p>
+                    <pre><code>[{:id=&gt;1, :name=&gt;&quot;AA;AB;AC&quot;, :title=&gt;&quot;A row&quot;},
+ {:id=&gt;2, :name=&gt;&quot;BA;BB&quot;, :title=&gt;&quot;B row&quot;},
+ {:id=&gt;3, :name=&gt;&quot;CA&quot;, :title=&gt;&quot;C row&quot;}]
+</code></pre>
+                    <p>次の結果を達成したいと考えています。</p>
+                    <pre><code>[{:id=&gt;1, :name=&gt;&quot;AA&quot;, :title=&gt;&quot;A row&quot;},
+ {:id=&gt;1, :name=&gt;&quot;AB&quot;, :title=&gt;&quot;A row&quot;},
+ {:id=&gt;1, :name=&gt;&quot;AC&quot;, :title=&gt;&quot;A row&quot;},
+ {:id=&gt;2, :name=&gt;&quot;BA&quot;, :title=&gt;&quot;B row&quot;},
+ {:id=&gt;2, :name=&gt;&quot;BB&quot;, :title=&gt;&quot;B row&quot;},
+ {:id=&gt;3, :name=&gt;&quot;CA&quot;, :title=&gt;&quot;C row&quot;}]
+</code></pre>
+                    <p>簡単に言うと、ハッシュをセミコロンで分割して完全に複製したいと考えています。この場合、:name
+                    には 1 つ以上のセミコロンを含む 2
+                    つのハッシュがあり、これらを分割して別のハッシュで構成する必要があります。</p>
+                    <p>私の質問を理解していただければ幸いです。ご協力をよろしくお願いいたします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ハッシュの配列を反復処理して名前の値を分割し、その結果を現在のハッシュとマージしてマップできます。次に、結果を平坦化できます。</p>
+                    <pre><code>[
+  {:id=&gt;1, :name=&gt;&quot;AA;AB;AC&quot;, :title=&gt;&quot;A row&quot;},
+  {:id=&gt;2, :name=&gt;&quot;BA;BB&quot;, :title=&gt;&quot;B row&quot;},
+  {:id=&gt;3, :name=&gt;&quot;CA&quot;, :title=&gt;&quot;C row&quot;}
+].flat_map do |hsh|
+  hsh[:name].split(&quot;;&quot;).map do |name|
+    hsh.merge(name: name)
+  end
+end
+
+# [{:id=&gt;1, :name=&gt;&quot;AA&quot;, :title=&gt;&quot;A row&quot;},
+#  {:id=&gt;1, :name=&gt;&quot;AB&quot;, :title=&gt;&quot;A row&quot;},
+#  {:id=&gt;1, :name=&gt;&quot;AC&quot;, :title=&gt;&quot;A row&quot;},
+#  {:id=&gt;2, :name=&gt;&quot;BA&quot;, :title=&gt;&quot;B row&quot;},
+#  {:id=&gt;2, :name=&gt;&quot;BB&quot;, :title=&gt;&quot;B row&quot;},
+#  {:id=&gt;3, :name=&gt;&quot;CA&quot;, :title=&gt;&quot;C row&quot;}]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

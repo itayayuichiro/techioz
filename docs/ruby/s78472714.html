@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>読み取り時に誤ってエンコードされたバイト シーケンスを消去する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "読み取り時に誤ってエンコードされたバイト シーケンスを消去する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>読み取り時に誤ってエンコードされたバイト
+シーケンスを消去する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ファイルを Ruby
+                    文字列に読み込んでおり、これらの文字列は後で
+                    (たとえば、CSV モジュールを使用して)
+                    さらに処理されます。ファイルの外部エンコーディングはパラメータであり、おそらく、処理されるファイルは指定されたエンコーディングである必要があります。</p>
+                    <p>読み取り中に、ファイルを想定されている外部エンコードから
+                    UTF-8 に変換します。</p>
+                    <p>場合によっては、指定されたエンコードとは異なる方法でエンコードされた誤ったファイルを取得することがあります。</p>
+                    <p>もちろん、エンコーディングが間違っていれば、プログラムはゴミのみを読み取りますが、エンコーディングが間違っているだけでなく、想定されているエンコーディングでは不正なバイト
+                    シーケンスが含まれている場合、ファイルの処理時に例外が発生します。</p>
+                    <p>仕様では、エンコードが正しくないために解読できないバイト
+                    シーケンスは、プログラムを強制終了させるのではなく、入力ファイルから単純に削除する必要があります。</p>
+                    <p>これを実装するには、次のような文字列にファイルを読み込みます。</p>
+                    <pre><code> UTF8_CONVERTER = -&gt;(field) { field.encode(&#39;utf-8&#39;, invalid: :replace, undef: :replace, replace: &quot;&quot;) }
+
+read_flags = {
+   external_encoding: ext_enc, # i.e. Encoding::ISO_8859_1
+   internal_encoding: Encoding::UTF_8,
+   converters: UTF8_CONVERTER
+}
+
+file_content = IO.read(file_path, read_flags)
+</code></pre>
+                    <p>IMO、これは file_content を UTF-8
+                    でエンコードされた有効な文字列にする必要があります。後でプログラムがこの文字列を
+                    CSV 解析する必要があると判断した場合、次のように csv
+                    パーサーを呼び出します。</p>
+                    <pre><code>e_enc = file_content.encoding
+i_enc = Encoding::UTF_8
+...
+csv_opt = { col_sep: &#39;;&#39;, row_sep: :auto, external_encoding: e_enc, internal_encoding: i_enc}
+CSV.foreach(file_content, csv_opt) { .... }
+</code></pre>
+                    <p>ここでもエンコーディングを重複して指定する理由は、CSV
+                    を処理するメソッドには汎用性があり、文字列のエンコーディングが異なる場合にも機能するはずであるためです。</p>
+                    <p>ただし、これは機能しません。</p>
+                    <p>UTF-8 (つまり、ext_enc が Encoding::UTF_8
+                    と等しい)
+                    であるはずのファイルを処理しているが、実際には
+                    Windows-1252
+                    などでエンコードされており、その中にいくつかのバイト
+                    シーケンスが含まれている場合、これは以下では不正になります。
+                    UTF、CSV.foreach は例外 ArgumentError: UTF-8
+                    の無効なバイト シーケンスを発生させます。</p>
+                    <p>このことから、私の UTF8_CONVERTER
+                    は間違ったバイトを削除しなかったと結論付けられます。</p>
+                    <p>誰か私がここで間違っていることを理解できますか？</p>
+                    <p>アップデート</p>
+                    <p><span class="citation"
+                    data-cites="Stefan">@Stefan</span>
+                    はコメントの中で、IO.read ではコンバーター
+                    オプションを使用できないことを指摘し、変換オプションを直接渡すことを提案しました。これも機能しません
+                    (Ruby 1.9.3 と同等の JRuby 1.7.21
+                    を使用する必要があります)。少なくとも、再現可能な小さな例を作成することはできます。</p>
+                    <p>次の内容のファイルillegal.txtを作成します。</p>
+                    <pre><code>&gt; xxd illegal.txt
+00000000: 66fc 720a                                f.r.
+</code></pre>
+                    <p>これには、正当な UTF-8 ではないバイト シーケンス
+                    FC 72 が含まれていることがわかります。</p>
+                    <p>今、私はファイルを読みました</p>
+                    <pre><code>fc=IO.read(&#39;illegal.txt&#39;, {:external_encoding=&gt;#&lt;Encoding:UTF-8&gt;, :internal_encoding=&gt;#&lt;Encoding:UTF-8&gt;, :invalid=&gt;:replace, :undef=&gt;:replace, :replace=&gt;&quot;&quot;}
+</code></pre>
+                    <p>これにより少なくとも FC
+                    が削除され、結果の文字列が “fr”
+                    になると予想していました。 “、あるいは単に”f
+                    “。しかし、私が</p>
+                    <pre><code>puts fc.bytes.to_a
+</code></pre>
+                    <p>まだ [102, 252, 114, 10] が印刷されています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>IO.read
+                    経由でファイルを読み取るときは、無効または未定義のバイト
+                    シーケンスを置換するために、外部エンコーディングを
+                    ASCII として指定し、内部エンコーディングを UTF-8
+                    として指定する必要があります
+                    (デモ用に置換文字列として ’_’
+                    を使用しています)ここでの目的は空の文字列でも機能します)</p>
+                    <pre><code>data = IO.read(&#39;invalid.txt&#39;, encoding: &#39;ASCII:UTF-8&#39;,
+                                 undef: :replace,
+                               invalid: :replace,
+                               replace: &#39;_&#39;)
+
+data          #=&gt; &quot;f_r\n&quot;
+data.bytes    #=&gt; [102, 95, 114, 10]
+data.encoding #=&gt; #&lt;Encoding:UTF-8&gt;
+</code></pre>
+                    <p>あるいは、ファイルをバイナリ読み取りすることもできます。</p>
+                    <pre><code>data = IO.binread(&#39;invalid.txt&#39;)
+
+data          #=&gt; &quot;f\xFCr\n&quot;
+data.bytes    #=&gt; [102, 252, 114, 10]
+data.encoding #=&gt; #&lt;Encoding:ASCII-8BIT&gt;
+</code></pre>
+                    <p>…そしてエンコードしてください！その後の文字列:</p>
+                    <pre><code>data.encode!(&#39;utf-8&#39;, undef: :replace, invalid: :replace, replace: &#39;_&#39;)
+
+data          #=&gt; &quot;f_r\n&quot;
+data.bytes    #=&gt; [102, 95, 114, 10]
+data.encoding #=&gt; #&lt;Encoding:UTF-8&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

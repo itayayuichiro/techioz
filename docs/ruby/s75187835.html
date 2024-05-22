@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec は、合格したテストも含め、–only-failure を指定してすべてのテストを再実行します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec は、合格したテストも含め、–only-failure を指定してすべてのテストを再実行します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec は、合格したテストも含め、–only-failure
+を指定してすべてのテストを再実行します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Selenium テスト用の rspec をラップする Ruby gem
+                    があります。以前の実行での失敗を再実行することで再試行ロジックを実装しようとしていますが、2
+                    回目の実行ではすべてが再試行されるだけで、2
+                    回目の実行で example_status_persistence_file_path
+                    の場所を含む spec_helper
+                    が読み込まれていないためだと思います。</p>
+                    <p>デバッグ用の Puts ステートメントを spec_helper
+                    に追加しました。これが 2 回呼び出されず、1
+                    回だけ呼び出されていることがわかります。ただし、example_status_persistence_file_path
+                    が設定されていない場合に表示されるエラーも表示されないため、どうすればよいかわかりません。</p>
+                    <p>spec_helper.rb</p>
+                    <pre><code>RSpec.configure do |config|
+  config.example_status_persistence_file_path = &quot;logs/LO_RunResults.txt&quot;
+end
+</code></pre>
+                    <p>my_spec.rb</p>
+                    <pre><code>it &quot;should pass&quot; do
+  expect(true).to be true
+end
+
+it &quot;should fail&quot; do
+  expect(false).to be true
+end
+</code></pre>
+                    <p>rspec_runner.rb</p>
+                    <pre><code>test_results_file = &quot;#{File.expand_path(Dir.pwd)}/logs/RunResults.txt&quot;
+File.delete(test_results_file) if File.exist?(test_results_file)
+
+args = %w(-r spec_helper --order defined --format CustomFormatter --format documentation)
+RSpec::Core::Runner.run(args, $stderr, $stdout)
+
+# RunResults.txt is generated from previous run
+
+args = %w(-r spec_helper --order defined --format CustomFormatter --format documentation --only-failures)
+RSpec::Core::Runner.run(args, $stderr, $stdout)
+</code></pre>
+                    <p>Ruby rspec_runner.rb
+                    を実行すると、次の出力が得られます。</p>
+                    <pre><code>#################### Running spec_helper ####################
+
+Test Suite - my_spec
+  Positive Tests
+    should pass
+    should fail (FAILED - 1)
+
+Failures:
+
+  1) Test Suite - my_spec Positive Tests should fail
+     Failure/Error: expect(false).to be true
+     
+       expected true
+            got false
+     # ./spec/my_spec.rb:59:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+Finished in 0.06265 seconds (files took 0.71696 seconds to load)
+2 examples, 1 failure
+
+Failed examples:
+
+rspec ./spec/my_spec.rb:58 # Test Suite - my_spec Positive Tests should fail
+
+Run options: include {:last_run_status=&gt;&quot;failed&quot;}
+
+Test Suite - my_spec
+  Positive Tests
+    should pass
+    should fail (FAILED - 2)
+
+Failures:
+
+  1) Test Suite - my_spec Positive Tests should fail
+     Got 2 failures:
+
+     1.1) Failure/Error: expect(false).to be true
+          
+            expected true
+                 got false
+          # ./spec/my_spec.rb:59:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+     1.2) Failure/Error: expect(false).to be true
+          
+            expected true
+                 got false
+          # ./spec/my_spec.rb:59:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+  2) Test Suite - my_spec Positive Tests should fail
+     Got 2 failures:
+
+     2.1) Failure/Error: expect(false).to be true
+          
+            expected true
+                 got false
+          # ./spec/my_spec.rb:59:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+     2.2) Failure/Error: expect(false).to be true
+          
+            expected true
+                 got false
+          # ./spec/my_spec.rb:59:in `block (3 levels) in &lt;top (required)&gt;&#39;
+
+Finished in 0.03786 seconds (files took 0.79882 seconds to load)
+4 examples, 2 failures
+
+Failed examples:
+
+rspec ./spec/my_spec.rb:58 # Test Suite - my_spec Positive Tests should fail
+rspec ./spec/my_spec.rb:58 # Test Suite - my_spec Positive Tests should fail
+
+
+Process finished with exit code 0
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RSpec にサンプルのリロードを強制するために、2
+                    つの実行の間に RSpec.clear_examples
+                    を使用してみてください。</p>
+                    <pre><code>test_results_file = &quot;#{File.expand_path(Dir.pwd)}/logs/RunResults.txt&quot;
+File.delete(test_results_file) if File.exist?(test_results_file)
+
+args = %w(-r spec_helper --order defined --format CustomFormatter --format documentation)
+RSpec::Core::Runner.run(args, $stderr, $stdout)
+
+RSpec.clear_examples
+
+# RunResults.txt is generated from previous run
+
+args = %w(-r spec_helper --order defined --format CustomFormatter --format documentation --only-failures)
+RSpec::Core::Runner.run(args, $stderr, $stdout)
+</code></pre>
+                    <p>ドキュメントは参考のためにここにあります:
+                    https://www.rubydoc.info/github/rspec/rspec-core/RSpec.clear_examples。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails検証の包含エラー「リストに含まれていません」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails検証の包含エラー「リストに含まれていません」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails検証の包含エラー「リストに含まれていません」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>MySQL
+                    データベースにこのモデルのテーブルがあります。</p>
+                    <pre><code>class Client&lt; ActiveRecord::Base
+
+  validates :name, :length =&gt; {:maximum =&gt; 255}, :presence =&gt; true
+  validates :client_status, inclusion: { in: 0..2, :presence =&gt; true }
+  validates :client_type, inclusion: { in: 0..2, :presence =&gt; true}
+end
+</code></pre>
+                    <p>したがって、 client_status と client_type を 0
+                    から 2
+                    までの数値のみにしたいのですが、これに対応するために私が書いた
+                    rspec は次のとおりです。</p>
+                    <pre><code>describe Client do
+  before do
+    @client = Client.new
+  end
+
+  it &quot;should allow name that is less than 255 characters&quot; do
+    long_char = &#39;a&#39; *254
+    @client.name = long_char
+    @client.client_status = 0
+    @client.client_type = 1
+    @client.should be_valid
+  end
+
+end
+</code></pre>
+                    <p>これは非常に単純なテストです。 client_status と
+                    client_type の両方に true があるため、それらを RSPEC
+                    に追加する必要があります。ただし、この rspec
+                    を実行すると、次のエラー
+                    メッセージが表示されます。</p>
+                    <pre><code>got errors: Value type is not included in the list, Status is not included in the list
+</code></pre>
+                    <p>出力が何であるかを確認するためにこれを試しました:</p>
+                    <pre><code>puts &quot;client type is: #{@client.client_type} and status is: #{@client.client_status} .&quot;
+</code></pre>
+                    <p>次の出力を受け取りました。</p>
+                    <pre><code>client type is: false and status is:  .
+</code></pre>
+                    <p>注: 会社の NDA に違反しないように、モデル/rspec
+                    の名前と一部のフィールドを変更しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>    validates :client_status, presence: true, inclusion: { in: 0..2 }</code></pre>
+                    <pre><code>    validates :client_status, inclusion: { in: 0..2 }</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

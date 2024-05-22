@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec はフックの前、後、周囲でどのような順序で実行されますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec はフックの前、後、周囲でどのような順序で実行されますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec
+はフックの前、後、周囲でどのような順序で実行されますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>いくつかの問題に直面したので、フックが実行される前後の順序を確認することにしました。これが私がやったことです:</p>
+                    <pre><code>require &quot;spec_helper&quot;
+
+describe &quot;The order:&quot; do
+
+  before(:all) {
+    puts &quot;before_all&quot;
+  }
+
+  after(:all) {
+    puts &quot;after_all&quot;
+  }
+
+  before(:each) {
+    puts &quot;before_each&quot;
+  }
+
+  after(:each) {
+    puts &quot;after_each&quot;
+  }
+
+  describe &quot;DESC A&quot; do
+    before {
+      puts &quot;A_before&quot;
+    }
+    it &quot;A_it_1&quot; do      
+      expect(1).to eq(1)
+    end
+    it &quot;A_it_2&quot; do
+      expect(1).to eq(1)
+    end
+  end
+
+  describe &quot;DESC B&quot; do
+    before {
+      puts &quot;B_before&quot;
+    }
+    it &quot;B_it_1&quot; do      
+      expect(1).to eq(1)
+    end
+    it &quot;B_it_2&quot; do
+      expect(1).to eq(1)
+    end
+  end  
+end
+</code></pre>
+                    <p>そして私が得たもの：</p>
+                    <pre><code>The order:
+
+before_all
+
+  DESC A
+before_each
+A_before
+after_each
+    A_it_1
+before_each
+A_before
+after_each
+    A_it_2
+  DESC B
+before_each
+B_before
+after_each
+    B_it_1
+before_each
+B_before
+after_each
+    B_it_2
+
+after_all
+</code></pre>
+                    <p>ここで何が起こっているのですか？ after_each が
+                    A_it_1 より前に実行されるのはなぜですか?</p>
+                    <p>アップデート：</p>
+                    <p>around(:each) を追加するとさらに楽しいです。</p>
+                    <pre><code> around(:each) do |example|
+    puts &quot;around_in&quot;
+    example.run
+    puts &quot;around_out&quot;
+  end
+</code></pre>
+                    <p>そして結果：</p>
+                    <pre><code>The order:
+before_all
+  DESC A
+around_in
+before_each
+A_before
+after_each
+around_out
+    A_it_1
+around_in
+before_each
+A_before
+after_each
+around_out
+    A_it_2
+  DESC B
+around_in
+before_each
+B_before
+after_each
+around_out
+    B_it_1
+around_in
+before_each
+B_before
+after_each
+around_out
+    B_it_2
+after_all
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの出力、および relishapp.com
+                    に文書化されている公式出力は正しいです。何が起こっているかというと、after(:each)
+                    で例外が発生するとサンプルが失敗するため、rspec
+                    は各サンプルの後に after(:each)
+                    を実行する必要があります。 rspec
+                    は出力に例を表示する前に、それが緑か赤かを知る必要があります。つまり、例の説明が出力に表示される前に
+                    after(:eaches) を実行する必要があります。</p>
+                    <p>ただし、実際の例に Puts
+                    ステートメントを挿入すると、その前に before(:each)es
+                    が発生し、次にサンプル コードが (puts を含む)
+                    実行され、次に after(:each)es
+                    が実行されることがわかります。ご想像のとおり、最後に例の説明が画面に出力されます。</p>
+                    <p>あなたと同じように、私も混乱していましたが、サンプルのラベルを出力する
+                    rspec
+                    が実際に行っていることと一致しないことに気づきました。ラベルは、すべての
+                    before(:all) と before(:each) の 1
+                    回だけ出力されます。この例では、es および
+                    after(:each)es が実行されます。</p>
+                    <p>注: after(:all)
+                    は、サンプルのラベルが出力された後に実行されます。これは、テストの結果に影響を与えないためです
+                    (after(:all)
+                    フックで例外が発生したという警告が生成されますが、これは影響しません)テストを赤にします）。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

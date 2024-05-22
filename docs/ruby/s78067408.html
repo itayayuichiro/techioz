@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュのキーをキャメルケースに変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュのキーをキャメルケースに変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュのキーをキャメルケースに変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュ = {test_user: ‘1’、user_details:
+                    {first_name: “テスト”}}</p>
+                    <p>出力 = {testUser: ‘1’、userDetails: {firstName:
+                    “Test”}}</p>
+                    <p>プログラム：</p>
+                    <pre><code>  new_hash = {}
+  if hash.values.map{|x| x.class}.include?(Hash)
+    hash.each do |k,v|
+      if v.class == Hash
+        new_hash[k.to_s.upcase] = hash.transform_keys{ |key| key.to_s.upcase }
+      else
+        new_hash[k.to_s.upcase] = v
+      end
+    end
+   puts new_hash
+  end
+</code></pre>
+                    <p>次のような出力が得られます。</p>
+                    <pre><code>{&quot;TEST_USER&quot;=&gt;&quot;1&quot;, &quot;USER_DETAILS&quot;=&gt;{&quot;TEST_USER&quot;=&gt;&quot;1&quot;, &quot;USER_DETAILS&quot;=&gt;{:first_name=&gt;&quot;Test&quot;}}}
+</code></pre>
+                    <p>誰かが正しい出力を得るのを手伝ってくれませんか。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby on Rails
+                    には、深くネストされたハッシュのキーを変換するメソッドが組み込まれています。</p>
+                    <p>次のように、その Hash#deep_transform_keys を
+                    String#camelize と組み合わせて使用できます。</p>
+                    <pre><code>hash = { test_user: &#39;1&#39;, user_details: { first_name: &quot;Test&quot; }}
+
+hash.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+#=&gt; { :testUser =&gt; &quot;1&quot;, :userDetails =&gt; { :firstName=&gt;&quot;Test&quot; }}
+</code></pre>
+                    <p>Camelize を呼び出す前に、to_s
+                    を使用してシンボル化されたキーを文字列に変換し、to_sym
+                    を使用してシンボルに戻す必要があることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

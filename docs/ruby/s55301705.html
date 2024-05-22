@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails での空のパスワードに対する検証 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails での空のパスワードに対する検証",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails での空のパスワードに対する検証</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>User モデルにパスワードの検証を追加しました。</p>
+                    <pre><code>validates :password, presence: true
+validates :password, confirmation: { case_sensitive: true }
+</code></pre>
+                    <p>しかし、ユーザーの他のフィールドを更新しようとすると、パスワードが存在しないため、それらの検証によりトランザクションが無効になってしまいました。</p>
+                    <p>少し調べた結果、パスワードが存在しない場合はこれらの検証をスキップできることがわかりました。</p>
+                    <pre><code>validates :password, presence: true, if: :validate_password?
+validates :password, confirmation: { case_sensitive: true }, if: :validate_password?
+
+
+def validate_password?
+  password.present? || password_confirmation.present?
+end
+</code></pre>
+                    <p>ただし、空のパスワードとパスワードの確認を送信すると、
+                    validate_password?
+                    falseを返します。何が起こっているのかよくわかりません。</p>
+                    <p><span class="citation"
+                    data-cites="user.update_attributes">@user.update_attributes</span>(password_reset_edit_params)
+                    は true を返します</p>
+                    <p>どこ</p>
+                    <p>password_reset_edit_params は
+                    &lt;ActionController::Parameters
+                    {“password”=&gt;““,”password_confirmation”=&gt;““}
+                    が許可されています: true&gt;</p>
+                    <p>でも内側では</p>
+                    <pre><code>def validate_password?
+  password.present? || password_confirmation.present?
+end
+</code></pre>
+                    <p>パスワードとパスワード確認は nil
+                    と評価され、<span class="citation"
+                    data-cites="user">@user</span>
+                    パスワードは空の文字列に更新されません。</p>
+                    <p>私は Bcrypt
+                    を使用していることに言及しておく必要がありますが、<span
+                    class="citation"
+                    data-cites="user.password">@user.password</span>
+                    は実際には常に nil
+                    として評価されますが、password_digest
+                    は利用可能です。</p>
+                    <p>それで、解決策は何でしょうか？結局のところ、私の質問は単純に次のとおりだと思います。</p>
+                    <p>パスワードを送信しようとしていないときにパスワード検証を無視し、空の文字列の送信時にパスワード検証を許可するにはどうすればよいですか?</p>
+                    <p>空の文字列を渡さないようにコントローラーに条件を追加できることを思いつきましたが、この問題を解決する適切な方法が必要です。</p>
+                    <p>ご協力をよろしくお願いいたします。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Bcrypt
+                    とダイジェストを使用する場合、たとえばモデルで使用できます。</p>
+                    <pre><code>has_secure_password
+validates :password, length: { minimum: 8 }, allow_blank: true
+</code></pre>
+                    <p>この場合、検証はパスワードの設定と変更に対してのみ機能します。</p>
+                    <p>パスワードを変更しない場合は、パスワードを入力する必要はありません。</p>
+                    <p>別の方法</p>
+                    <pre><code>validates :password, presence: true, on: :create
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで一時関数を定義するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで一時関数を定義するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで一時関数を定義するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テストやその他の場合に繰り返しコードを記述することは避けたいと考えています。</p>
+                    <p>不便なドット呼び出し構文test_parse_tag.(…)でラムダを使用する以外に良い方法はありますか?</p>
+                    <pre><code>def test(name) = yield
+def assert_equal(expected, actual) = p :tested
+
+class El
+  def self.parse_tag(s) = [:div, { class: &#39;some&#39; }]
+end
+
+# I don&#39;t want to type `assert_equal El.parse_tag` every time
+test &#39;El.parse_tag&#39; do
+  assert_equal El.parse_tag(&#39;span&#39;),      [:span, {}]
+  assert_equal El.parse_tag(&#39;#id&#39;),       [:div,  { id: &#39;id&#39; }]
+  assert_equal El.parse_tag(&#39;div  a=b&#39;),  [:div,  { a: &#39;b&#39; }]
+end
+
+# So I use shortcut `test_parse_tag`
+test &#39;El.parse_tag&#39; do
+  def test_parse_tag(actual, expected)
+    assert_equal El.parse_tag(actual), expected
+  end
+
+  test_parse_tag &#39;span&#39;,      [:span, {}]
+  test_parse_tag &#39;#id&#39;,       [:div,  { id: &#39;id&#39; }]
+  test_parse_tag &#39;div  a=b&#39;,  [:div,  { a: &#39;b&#39; }]
+end
+
+# PROBLEM, I don&#39;t want `test_parse_tag` to be available here
+test_parse_tag &#39;span&#39;, [:span, {}]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>事前に作成したオブジェクトのコンテキストで、テストに渡されたブロックを実行できます。以下は、必要に応じてオブジェクトをブロック引数として渡す、instance_exec
+                    を使用した単純なバージョンです。</p>
+                    <pre><code>def test(name, &amp;block)
+  obj = Object.new
+  obj.instance_exec(obj, &amp;block)
+end
+</code></pre>
+                    <p>オブジェクト内でブロックを実行すると、メソッドはオブジェクトのシングルトン
+                    クラスで定義され、外部に漏れることはありません。</p>
+                    <pre><code>test &#39;one&#39; do |context|
+  def foo ; end
+
+  defined? foo       #=&gt; &quot;method&quot;
+  context            #=&gt; &lt;Object:0x00007fd3b002c2f0&gt;
+  method(:foo).owner #=&gt; #&lt;Class:#&lt;Object:0x00007fd3b002c2f0&gt;&gt;
+end
+
+test &#39;two&#39; do |context|
+  defined? foo       #=&gt; nil
+  context            #=&gt; #&lt;Object:0x00007fd3b0026fd0&gt;
+end
+
+defined? foo #=&gt; nil
+</code></pre>
+                    <p>RSpec
+                    はこのアプローチをさらに一歩進めています。各サンプル
+                    グループがクラスを作成し、各サンプルがそのクラスのインスタンス内で評価されます。スコープについての説明を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

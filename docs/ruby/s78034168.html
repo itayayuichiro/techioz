@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>exifr の何が原因でこの Tempfile が閉じられるのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "exifr の何が原因でこの Tempfile が閉じられるのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>exifr の何が原因でこの Tempfile
+が閉じられるのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>exifr を使用して、UploadedFile を処理する Ruby
+                    コードのこの部分</p>
+                    <pre><code>f = uploaded_file.tempfile
+p &quot;1 #{f.closed?} #{f.instance_variable_get(:&#39;@unlinked&#39;)}&quot;
+#1 EXIFR::JPEG.new(StringIO.new(f.read))
+#2 EXIFR::JPEG.new(f)
+p &quot;2 #{f.closed?} #{f.instance_variable_get(:&#39;@unlinked&#39;)}&quot;
+GC.start
+sleep 0.01
+p &quot;3 #{f.closed?} #{f.instance_variable_get(:&#39;@unlinked&#39;)}&quot;
+p &quot;4 #{f.size}&quot;
+</code></pre>
+                    <p>注： GC.start/sleep
+                    は、問題を確実に再現するためにあります。</p>
+                    <p>#1
+                    のコメントを解除すると、すべて問題ありません。</p>
+                    <pre><code>&quot;1 false false&quot;
+&quot;2 false false&quot;
+&quot;3 false false&quot;
+&quot;4 3822528&quot;
+</code></pre>
+                    <p>ただし、#1 ではなく #2
+                    のコメントを解除した結果は次のようになります。</p>
+                    <pre><code>&quot;1 false false&quot;
+&quot;2 false false&quot;
+&quot;3 true false&quot;
+[c4b7ce6b-5492-43db-8c64-726cafaccce0] [Thread: 24800] Errno::ENOENT (No such file or directory @ rb_file_s_size - /var/folders/vx/v0rn818s0257_3l491_v48bm0000gn/T/RackMultipart20240221-71765-acbi7v.JPG):
+</code></pre>
+                    <p>exifr が行っていることは次のとおりです。</p>
+                    <pre><code>    def initialize(file, load_thumbnails: true)
+...
+        examine(file.dup, load_thumbnails: load_thumbnails)
+...
+      end
+    end
+
+    class Reader &lt; SimpleDelegator
+      def readbyte; readchar; end unless File.method_defined?(:readbyte)
+      def readint; (readbyte &lt;&lt; 8) + readbyte; end
+      def readframe; read(readint - 2); end
+      def readsof; [readint, readbyte, readint, readint, readbyte]; end
+      def next
+        c = readbyte while c != 0xFF
+        c = readbyte while c == 0xFF
+        c
+      end
+    end
+
+    def examine(io, load_thumbnails: true)
+      io = Reader.new(io)
+...
+</code></pre>
+                    <p>ioからの読み取りも少しあるので、ファイルが閉じられる原因がわかりません。</p>
+                    <p>これは、puma 上で実行されている Rails
+                    アプリで発生します。</p>
+                    <p>#2
+                    は、ファイルをメモリに完全にロードする必要がないため、推奨されます
+                    (私の場合は最大 50 MB です)。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この問題が発生する理由は、Tempfile
+                    ドキュメントの次の説明による可能性が高いです。</p>
+                    <p>EXIFR は、examine を呼び出すときにファイル
+                    オブジェクトに対して file.dup
+                    を実行するようになりました。 EXIFR
+                    によるファイルの読み取りが完了すると、この複製されたオブジェクトはガベージ
+                    コレクションされ、このガベージ
+                    コレクションの副作用として、一時ファイルは削除されます。</p>
+                    <p>この問題を Tempfile 競合状態と呼びましょう。
+                    Tempfile はおそらく「dup-safe」ではなく、EXIFR
+                    はおそらく File
+                    オブジェクトを期待してプログラムされており、その場合にはこの問題は発生しません。</p>
+                    <p>したがって、後の処理のために一時ファイルを保持したい場合、解決策は
+                    EXIFR::JPEG.new(f) を使用しないことです。</p>
+                    <p>もう 1 つの解決策は、File
+                    オブジェクトを使用して一時ファイルを自分で開き、代わりにそのオブジェクトを
+                    EXIFR::JPEG.new に渡すことです。</p>
+                    <p>この方法では、f
+                    への参照をどこかに保持している限り、ファイルをメモリに読み取る必要がなく、ガベージ
+                    コレクションによって一時ファイルが削除されることもありません。</p>
+                    <p>そして、おそらく最も簡単な最後の解決策は、EXIFR
+                    が初期化メソッドへのファイル
+                    パス文字列も受け入れることに気づくことです。したがって、これはおそらく最も簡単な修正になります。</p>
+                    <pre><code>EXIFR::JPEG.new(f.path)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 認証: Devise サインアップが機能しない [終了] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 認証: Devise サインアップが機能しない [終了]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 認証: Devise
+サインアップが機能しない [終了]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby と Rails を初めて使用しており、Devise
+                    gem
+                    を使用して認証を設定しています。新しいアカウントにサインアップしようとすると、次のエラーが表示されます。</p>
+                    <p>トランザクション (0.2ms) BEGIN
+                    ユーザーは存在しますか? (0.5ミリ秒) SELECT 1 AS one
+                    FROM “users” WHERE “users”.”email” = LIMIT
+                    [[“email”, “[email protected]”], [“LIMIT”, 1]]
+                    TRANSACTION (0.2ミリ秒) ROLLBACK</p>
+                    <p>なぜこのエラーが発生するのか理解できません。 User
+                    テーブルにはユーザーがいません。既存のユーザーをすべて削除しました。</p>
+                    <p>以下はユーザーモデルです</p>
+                    <pre><code>class User &lt; ApplicationRecord
+
+  belongs_to :department
+  belongs_to :jobrole
+  belongs_to :empappraisalrating
+  belongs_to :empcategory
+  belongs_to :empofficelocation
+  belongs_to :empwork
+  belongs_to :empworkshift
+  belongs_to :gender
+  belongs_to :companyname
+  belongs_to :empsocialstatus
+  ############################################################################################
+  ## PeterGate Roles                                                                        ##
+  ## The :user role is added by default and shouldn&#39;t be included in this list.             ##
+  ## The :root_admin can access any page regardless of access settings. Use with caution!   ##
+  ## The multiple option can be set to true if you need users to have multiple roles.       ##
+  petergate(roles: [:admin, :employee, :hr, :companypresident, :approver, :manager, :supervisor, :externalclient], multiple: false)                                      ##
+  ############################################################################################ 
+ 
+
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+
+
+
+  #Method to search employees
+  def self.search_employee(employee_name)
+    
+    if employee_name.nil?
+      User.all
+    else
+      User.where(name: employee_name)
+    end
+  end
+
+
+  #Method to Import employees into the software.
+  #Uses inbuilt Ruby CSV library. 
+  def self.import(file)
+     CSV.foreach(file.path, headers:true) do |row|
+       User.create! row.to_hash
+     end
+  end
+
+  
+  #Method to Export employees into the software.
+  #Uses inbuilt Ruby CSV library.
+  def self.to_csv
+    CSV.generate do |csv|
+      csv &lt;&lt; column_names
+        User.all.each do |employee|
+          csv &lt;&lt; employee.attributes.values_at(*column_names)
+        end
+    end
+  end
+
+  #Method to archive existing employee.
+  def self.archive_employee(employeeid)
+    employeeIdentity = employeeid
+    employeetobearchived = User.find(employeeIdentity)
+    employeetobearchived.estatus = &quot;true&quot;
+    employeetobearchived.save
+  end
+
+end
+
+</code></pre>
+                    <p>以下は、Rails コンソールで User.all
+                    を実行したときの詳細です。ゼロであることがわかります。</p>
+                    <pre><code>Loading development environment (Rails 7.0.6)
+irb(main):001:0&gt; User.all
+  User Load (22.7ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot;
+=&gt; []
+irb(main):002:0&gt;
+</code></pre>
+                    <p>私が間違っていることを理解するのを手伝ってもらえますか？</p>
+                    <p>新しいユーザーが作成されることを期待していました。</p>
+                    <p>User
+                    テーブルにはユーザーがいません。既存のユーザーをすべて削除しました。</p>
+                    <p>形状：</p>
+                    <pre><code>&lt;div class = &quot;container&quot;&gt;
+
+
+&lt;%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %&gt;
+&lt;div class = &quot;container&quot;&gt;
+  
+    &lt;div class = &quot;row&quot;&gt;
+
+        &lt;p class=&quot;display-6&quot;&gt;ACCOUNT INFORMATION&lt;/p&gt;
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                  &lt;b&gt;USERNAME:&lt;/b&gt;
+                 &lt;%= f.email_field :email, placeholder: &quot;Enter username&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                 &lt;/div&gt;
+
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;DEFAULT PASSWORD&lt;/b&gt;
+                 &lt;%= f.password_field :password, placeholder: &quot;Enter password (Minimum length: 6 characters)&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                 &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class = &quot;row&quot;&gt;
+                &lt;div class=&quot;form-group col-6&quot;&gt;
+                &lt;b&gt;CONFIRM DEFAULT PASSWORD:&lt;/b&gt;
+                &lt;%= f.password_field :password_confirmation, placeholder: &quot;Re-enter password to confirm&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;form-group col-6&quot;&gt;
+                &lt;b&gt;ROLE:&lt;/b&gt;
+                &lt;%= f.text_field :role, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;hr/&gt;
+  
+    &lt;div class = &quot;row&quot;&gt;
+          &lt;p class=&quot;display-6&quot;&gt;BASIC DETAILS&lt;/p&gt;
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;NAME:&lt;/b&gt;
+                 &lt;%= f.text_field :name, placeholder: &#39;Enter employee name&#39;, class: &#39;form-content form-content w-100 p-1&#39;%&gt;
+                 &lt;/div&gt;
+
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;DEPARTMENT:&lt;/b&gt;
+                 &lt;%= select_tag(:department, options_from_collection_for_select(Department.all, :id, :name), include_blank: &quot;Select department&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+                 &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+  
+
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;JOB ROLE:&lt;/b&gt;
+                 &lt;%= select_tag(:post, options_from_collection_for_select(Jobrole.all, :id, :name), include_blank: &quot;Select employee&#39;s current designation&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;                 
+                &lt;/div&gt;
+
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;REPORTS TO:&lt;/b&gt;
+                 &lt;%= select_tag(:manager, options_from_collection_for_select(User.all, :id, :name), include_blank: &quot;Select employee&#39;s direct manager&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+                 &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+  
+
+                &lt;div class=&quot;form-group col-6&quot;&gt;
+                &lt;b&gt;EMPLOYEE NUMBER:&lt;/b&gt;
+                &lt;%= f.number_field :empnumber, :size =&gt; 80, class: &#39;form-content w-100 p-1&#39; %&gt;
+                &lt;/div&gt;
+
+ 
+                &lt;div class=&quot;form-group col-6&quot;&gt;
+                &lt;b&gt;EMPLOYEE TYPE:&lt;/b&gt;
+               &lt;%= select_tag(:empcategory, options_from_collection_for_select(Empcategory.all, :id, :name), include_blank: &quot;Select Employee Category&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+                &lt;/div&gt;
+  
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+  
+
+               &lt;div class=&quot;form-group col-6&quot;&gt;
+               &lt;b&gt;OFFICE LOCATION:&lt;/b&gt;
+              &lt;%= select_tag(:officelocation, options_from_collection_for_select(Empofficelocation.all, :id, :name), include_blank: &quot;Select employee&#39;s current office location&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+               &lt;/div&gt;
+
+               &lt;div class=&quot;form-group col-6&quot;&gt;
+               &lt;b&gt;WORK PREFERENCE:&lt;/b&gt;
+               &lt;%= select_tag(:workstyle, options_from_collection_for_select(Empwork.all, :id, :name), include_blank: &quot;Select employee&#39;s working preference&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+               &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+  
+
+              &lt;div class=&quot;form-group col-6&quot;&gt;
+              &lt;b&gt;GENDER:&lt;/b&gt;
+              &lt;%= select_tag(:gender, options_from_collection_for_select(Gender.all, :id, :name), include_blank: &quot;Select employee&#39;s gender&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+              &lt;/div&gt;
+
+              &lt;div class=&quot;form-group col-6&quot;&gt;
+              &lt;b&gt;COMPANY NAME:&lt;/b&gt;
+             &lt;%= select_tag(:companyname, options_from_collection_for_select(Companyname.all, :id, :name), include_blank: &quot;Select Company name&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+              &lt;/div&gt;
+
+    &lt;/div&gt;
+
+
+    &lt;div class=&quot;row&quot;&gt;
+  
+
+              &lt;div class=&quot;form-group col-6&quot;&gt;
+              &lt;b&gt;START DATE:&lt;/b&gt;
+              &lt;%= f.date_field :employedon, :size =&gt; 80, class: &#39;form-content w-100 p-1&#39; %&gt;
+              &lt;/div&gt;
+
+              &lt;div class=&quot;form-group col-6&quot;&gt;
+              &lt;b&gt;WORK SHIFT:&lt;/b&gt;
+              &lt;%= select_tag(:workshift, options_from_collection_for_select(Empworkshift.all, :id, :name), include_blank: &quot;Select employee&#39;s working hours&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+              &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;hr/&gt;
+
+
+         &lt;p class=&quot;display-6&quot;&gt;EMPLOYEE PERSONAL DETAILS&lt;/p&gt;
+
+
+  
+             &lt;div class=&quot;form-group&quot;&gt;
+             &lt;b&gt;PERMANENT ADDRESS:&lt;/b&gt;
+             &lt;%= f.text_area :address, class: &#39;form-content form-content w-100 p-3&#39; %&gt;
+             &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+
+             &lt;div class=&quot;form-group col-6&quot;&gt;
+             &lt;b&gt;DATE OF BIRTH:&lt;/b&gt;
+             &lt;%= f.date_field :DOB, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+             &lt;/div&gt;
+
+  
+             &lt;div class=&quot;form-group col-6&quot;&gt;
+             &lt;b&gt;LANDLINE/MOBILE:&lt;/b&gt;
+             &lt;%= f.number_field :contact, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+             &lt;/div&gt;
+
+    &lt;/div&gt;
+
+             &lt;div class=&quot;form-group&quot;&gt;
+             &lt;b&gt;PERSONAL EMAIL ADDRESS:&lt;/b&gt;
+             &lt;%= f.email_field :personalemail, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+             &lt;/div&gt;
+
+             &lt;div class=&quot;form-group&quot;&gt;
+             &lt;b&gt;SOCIAL STATUS:&lt;/b&gt;
+             &lt;%= select_tag(:socialstatus, options_from_collection_for_select(Empsocialstatus.all, :id, :name), include_blank: &quot;Select employee&#39;s social status&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+             &lt;/div&gt;
+
+
+    &lt;hr/&gt;
+
+
+          &lt;p class=&quot;display-6&quot;&gt;EMPLOYEE MEDICAL RECORDS&lt;/p&gt;
+
+   
+            &lt;div class=&quot;form-group&quot;&gt;
+            &lt;b&gt;DECLARED PERMANENT ILLNESS (IF ANY):&lt;/b&gt;
+            &lt;%= f.text_area :employeepermanentillness, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+            &lt;/div&gt;
+
+            &lt;div class=&quot;form-group&quot;&gt;
+            &lt;b&gt;PHYSICALLY HANDICAPPED:&lt;/b&gt;
+            &lt;%= f.text_field :phstatus, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+            &lt;/div&gt;
+  
+
+    &lt;hr/&gt;
+
+
+        &lt;p class=&quot;display-6&quot;&gt;COMPENSATION DETAILS&lt;/p&gt;
+
+            
+    &lt;div class=&quot;row&quot;&gt;
+            
+           &lt;div class=&quot;form-group col-6&quot;&gt;
+           &lt;b&gt;BASIC PAY:&lt;/b&gt;
+           &lt;%= f.number_field :bpay, class: &#39;form-content w-100 p-1&#39; %&gt;
+           &lt;/div&gt;
+
+           &lt;div class=&quot;form-group col-6&quot;&gt;
+           &lt;b&gt;ANNUAL CTC&lt;/b&gt;
+           &lt;%= f.number_field :ctc, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+           &lt;/div&gt;
+
+    &lt;/div&gt;
+
+    &lt;div class=&quot;row&quot;&gt;
+          
+
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;SALARY LAST REVISION:&lt;/b&gt;
+          &lt;%= f.date_field :lastrevision, class: &#39;form-content w-100 p-1&#39; %&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;LATEST APPRAISAL RATING:&lt;/b&gt;
+          &lt;%= select_tag(:appraisalrating, options_from_collection_for_select(Empappraisalrating.all, :id, :name), include_blank: &quot;Select employee&#39;s last appraisal rating&quot;, class: &#39;form-content form-content w-100 p-1&#39;) %&gt;
+          &lt;/div&gt;
+
+  &lt;/div&gt;
+  
+          &lt;div class=&quot;form-group&quot;&gt;
+          &lt;b&gt;LATEST APPRAISAL COMMENTS&lt;/b&gt;
+          &lt;%= f.text_area :appraisalcomments, class: &#39;form-content form-content w-100 p-3&#39; %&gt;
+          &lt;/div&gt;
+  
+  &lt;hr/&gt;
+
+
+
+        &lt;p class=&quot;display-6&quot;&gt;OTHER DETAILS&lt;/p&gt;
+
+  &lt;div class=&quot;row&quot;&gt;
+  
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;OTHER SUPERVISORS - 1&lt;/b&gt;
+          &lt;%= f.text_field :sup1, class: &#39;form-content w-100 p-1&#39; %&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;OTHER SUPERVISORS - 2&lt;/b&gt;
+          &lt;%= f.text_field :sup2, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+         &lt;/div&gt;
+ &lt;/div&gt;
+
+ &lt;div class=&quot;row&quot;&gt;
+  
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;OTHER SUPERVISORS - 3&lt;/b&gt;
+          &lt;%= f.text_field :sup3, class: &#39;form-content w-100 p-1&#39; %&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;form-group col-6&quot;&gt;
+          &lt;b&gt;OTHER SUPERVISORS - 4&lt;/b&gt;
+          &lt;%= f.text_field :sup4, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+         &lt;/div&gt;
+ &lt;/div&gt;
+ 
+  &lt;hr/&gt;
+
+  &lt;div class=&quot;actions&quot;&gt;
+     &lt;%= f.submit &#39;CREATE RECORD&#39;, class: &#39;btn btn-sm btn-block btn-secondary rounded-0&#39; %&gt;
+  &lt;/div&gt;
+
+&lt;% end %&gt;
+
+&lt;/div
+
+</code></pre>
+                    <p>ユーザーテーブルスキーマ</p>
+                    <pre><code>  create_table &quot;users&quot;, force: :cascade do |t|
+    t.string &quot;email&quot;, default: &quot;&quot;, null: false
+    t.string &quot;encrypted_password&quot;, default: &quot;&quot;, null: false
+    t.string &quot;reset_password_token&quot;
+    t.datetime &quot;reset_password_sent_at&quot;
+    t.datetime &quot;remember_created_at&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;roles&quot;
+    t.string &quot;name&quot;
+    t.string &quot;department&quot;
+    t.date &quot;employedon&quot;
+    t.string &quot;manager&quot;
+    t.integer &quot;appraisalrating&quot;
+    t.bigint &quot;ctc&quot;
+    t.string &quot;empcategory&quot;
+    t.integer &quot;empnumber&quot;
+    t.string &quot;post&quot;
+    t.date &quot;DOB&quot;
+    t.string &quot;personalemail&quot;
+    t.bigint &quot;contact&quot;
+    t.string &quot;officelocation&quot;
+    t.string &quot;workstyle&quot;
+    t.string &quot;gender&quot;
+    t.string &quot;companyname&quot;
+    t.string &quot;workshift&quot;
+    t.text &quot;address&quot;
+    t.string &quot;socialstatus&quot;
+    t.text &quot;employeepermanentillness&quot;
+    t.string &quot;phstatus&quot;
+    t.bigint &quot;bpay&quot;
+    t.date &quot;lastrevision&quot;
+    t.text &quot;appraisalcomments&quot;
+    t.string &quot;sup1&quot;
+    t.string &quot;sup2&quot;
+    t.string &quot;skillcategory&quot;
+    t.boolean &quot;estatus&quot;
+    t.string &quot;role&quot;
+    t.string &quot;sup3&quot;
+    t.string &quot;sup4&quot;
+    t.bigint &quot;department_id&quot;
+    t.bigint &quot;jobrole_id&quot;
+    t.bigint &quot;empcategory_id&quot;
+    t.bigint &quot;empwork_id&quot;
+    t.bigint &quot;empworkshift_id&quot;
+    t.bigint &quot;companyname_id&quot;
+    t.bigint &quot;empofficelocation_id&quot;
+    t.bigint &quot;gender_id&quot;
+    t.bigint &quot;empsocialstatus_id&quot;
+    t.bigint &quot;empappraisalrating_id&quot;
+    t.index [&quot;companyname_id&quot;], name: &quot;index_users_on_companyname_id&quot;
+    t.index [&quot;department_id&quot;], name: &quot;index_users_on_department_id&quot;
+    t.index [&quot;email&quot;], name: &quot;index_users_on_email&quot;, unique: true
+    t.index [&quot;empappraisalrating_id&quot;], name: &quot;index_users_on_empappraisalrating_id&quot;
+    t.index [&quot;empcategory_id&quot;], name: &quot;index_users_on_empcategory_id&quot;
+    t.index [&quot;empofficelocation_id&quot;], name: &quot;index_users_on_empofficelocation_id&quot;
+    t.index [&quot;empsocialstatus_id&quot;], name: &quot;index_users_on_empsocialstatus_id&quot;
+    t.index [&quot;empwork_id&quot;], name: &quot;index_users_on_empwork_id&quot;
+    t.index [&quot;empworkshift_id&quot;], name: &quot;index_users_on_empworkshift_id&quot;
+    t.index [&quot;gender_id&quot;], name: &quot;index_users_on_gender_id&quot;
+    t.index [&quot;jobrole_id&quot;], name: &quot;index_users_on_jobrole_id&quot;
+    t.index [&quot;reset_password_token&quot;], name: &quot;index_users_on_reset_password_token&quot;, unique: true
+  end
+</code></pre>
+                    <p>サーバ</p>
+                    <pre><code>Started POST &quot;/users&quot; for ::1 at 2023-08-02 20:26:38 +0530
+Processing by Devise::RegistrationsController#create as TURBO_STREAM
+  Parameters: {&quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, &quot;user&quot;=&gt;{&quot;email&quot;=&gt;&quot;[email protected]&quot;, &quot;password&quot;=&gt;&quot;[FILTERED]&quot;, &quot;password_confirmation&quot;=&gt;&quot;[FILTERED]&quot;, &quot;role&quot;=&gt;&quot;user&quot;, &quot;name&quot;=&gt;&quot;&quot;, &quot;empnumber&quot;=&gt;&quot;&quot;, &quot;employedon&quot;=&gt;&quot;&quot;, &quot;address&quot;=&gt;&quot;Flat 601, Block A, Umiya Habitat\nZuarinagar&quot;, &quot;DOB&quot;=&gt;&quot;&quot;, &quot;contact&quot;=&gt;&quot;&quot;, &quot;personalemail&quot;=&gt;&quot;&quot;, &quot;employeepermanentillness&quot;=&gt;&quot;&quot;, &quot;phstatus&quot;=&gt;&quot;&quot;, &quot;bpay&quot;=&gt;&quot;&quot;, &quot;ctc&quot;=&gt;&quot;&quot;, &quot;lastrevision&quot;=&gt;&quot;&quot;, &quot;appraisalcomments&quot;=&gt;&quot;&quot;, &quot;sup1&quot;=&gt;&quot;&quot;, &quot;sup2&quot;=&gt;&quot;&quot;, &quot;sup3&quot;=&gt;&quot;&quot;, &quot;sup4&quot;=&gt;&quot;&quot;}, &quot;department&quot;=&gt;&quot;&quot;, &quot;post&quot;=&gt;&quot;&quot;, &quot;manager&quot;=&gt;&quot;&quot;, &quot;empcategory&quot;=&gt;&quot;&quot;, &quot;officelocation&quot;=&gt;&quot;&quot;, &quot;workstyle&quot;=&gt;&quot;&quot;, &quot;gender&quot;=&gt;&quot;&quot;, &quot;companyname&quot;=&gt;&quot;&quot;, &quot;workshift&quot;=&gt;&quot;&quot;, &quot;socialstatus&quot;=&gt;&quot;&quot;, &quot;appraisalrating&quot;=&gt;&quot;&quot;, &quot;commit&quot;=&gt;&quot;CREATE RECORD&quot;}
+  TRANSACTION (0.8ms)  BEGIN
+  User Exists? (0.7ms)  SELECT 1 AS one FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;email&quot; = $1 LIMIT $2  [[&quot;email&quot;, &quot;[email protected]&quot;], [&quot;LIMIT&quot;, 1]]
+  TRANSACTION (0.5ms)  ROLLBACK
+  Rendering layout layouts/application.html.erb
+  Rendering devise/registrations/new.html.erb within layouts/application
+  Department Load (0.4ms)  SELECT &quot;departments&quot;.* FROM &quot;departments&quot;
+  ↳ app/views/devise/registrations/new.html.erb:43
+  Jobrole Load (0.4ms)  SELECT &quot;jobroles&quot;.* FROM &quot;jobroles&quot;
+  ↳ app/views/devise/registrations/new.html.erb:53
+  User Load (0.7ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot;
+  ↳ app/views/devise/registrations/new.html.erb:58
+  Empcategory Load (0.6ms)  SELECT &quot;empcategories&quot;.* FROM &quot;empcategories&quot;
+  ↳ app/views/devise/registrations/new.html.erb:74
+  Empofficelocation Load (0.5ms)  SELECT &quot;empofficelocations&quot;.* FROM &quot;empofficelocations&quot;
+  ↳ app/views/devise/registrations/new.html.erb:84
+  Empwork Load (0.5ms)  SELECT &quot;empworks&quot;.* FROM &quot;empworks&quot;
+  ↳ app/views/devise/registrations/new.html.erb:89
+  Gender Load (0.4ms)  SELECT &quot;genders&quot;.* FROM &quot;genders&quot;
+  ↳ app/views/devise/registrations/new.html.erb:99
+  Companyname Load (0.6ms)  SELECT &quot;companynames&quot;.* FROM &quot;companynames&quot;
+  ↳ app/views/devise/registrations/new.html.erb:104
+  Empworkshift Load (1.5ms)  SELECT &quot;empworkshifts&quot;.* FROM &quot;empworkshifts&quot;
+  ↳ app/views/devise/registrations/new.html.erb:120
+  Empsocialstatus Load (0.4ms)  SELECT &quot;empsocialstatuses&quot;.* FROM &quot;empsocialstatuses&quot;
+  ↳ app/views/devise/registrations/new.html.erb:159
+  Empappraisalrating Load (0.3ms)  SELECT &quot;empappraisalratings&quot;.* FROM &quot;empappraisalratings&quot;
+  ↳ app/views/devise/registrations/new.html.erb:210
+  Rendered devise/registrations/new.html.erb within layouts/application (Duration: 41.0ms | Allocations: 12537)
+  Rendered layout layouts/application.html.erb (Duration: 138.0ms | Allocations: 18866)
+Completed 422 Unprocessable Entity in 801ms (Views: 133.3ms | ActiveRecord: 8.4ms | Allocations: 24436)
+</code></pre>
+                    <p>ルート</p>
+                    <pre><code>devise_for :users
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>デフォルトでbelongs_toを必須にしたのはRails5だったと思います。そのため、ユーザーは、欠落している関連付けすべてで検証エラーが発生して保存に失敗しています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

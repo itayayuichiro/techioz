@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>明確な多態性の関連付けを取得する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "明確な多態性の関連付けを取得する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>明確な多態性の関連付けを取得する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>重複を持たずにポリモーフィックな関係のリストを表示しようとしています。</p>
+                    <p>viewable という多態性フィールドを持つ StoreViews
+                    テーブルがあります (つまり、テーブルには viewable_id
+                    と viewable_type
+                    列があります)。ここで、各多態性リレーションが重複せずに
+                    1
+                    回だけ表示されるビューを表示したいと考えています。</p>
+                    <pre><code>@views = StoreView.
+    .distinct(:viewable_id)
+    .distinct(:viewable_type)
+    .order(&quot;created_at DESC&quot;)
+    .limit(10)
+</code></pre>
+                    <p>したがって、StoreViews に 2
+                    つのレコードがあり、両方とも同じ表示可能な関係を持つ場合、<span
+                    class="citation" data-cites="views">@views</span>
+                    は最新のもののみを返す必要があります。しかし、そうではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>unique
+                    は、レコードが一意であるかどうかを指定するパラメーターとしてブール値のみを受け入れます。したがって、distinct(:viewable_id)
+                    は、distinct(true)
+                    と同等であり、必要なことを実行しません。 Distinct
+                    を使用する代わりに、group
+                    属性に基づいて個別のレコードを含む配列を返す group
+                    を使用する必要があります。最新のものを返すには、created_at
+                    による順序付け (order 付き)
+                    とは別に、グループにフィールドを追加する必要があります。</p>
+                    <pre><code>@views = StoreView
+         .order(viewable_id: :desc, viewable_type: :desc, created_at: :desc)
+         .group(:viewable_id, :viewable_type)
+</code></pre>
+                    <p>返されたレコードを created_at
+                    で並べ替える必要がある場合は、これを追加する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

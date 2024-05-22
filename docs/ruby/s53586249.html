@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveStorage CSV ファイルは強制的にエンコードされますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveStorage CSV ファイルは強制的にエンコードされますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveStorage CSV
+ファイルは強制的にエンコードされますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アップロードしている CSV
+                    ファイルがありますが、データベースに行をインポートするときに問題が発生します。</p>
+                    <p>Encoding::UnknownConversionError (ASCII-8BIT から
+                    UTF-8 への「�」)</p>
+                    <p>各列がデータベースに配置されるように適切にエンコードされるか無視されるかを確認する最も効率的な方法は何でしょうか?</p>
+                    <p>最も基本的なアプローチは、各行と各フィールドを調べて文字列を強制的にエンコードすることですが、これは非常に非効率的です。これに対処するより良い方法は何でしょうか?</p>
+                    <p>現在はパラメータ (:csv_file)
+                    としてアップロードされるだけです。次に、次のようにアクセスします。</p>
+                    <p>モデル内の CSV.parse(csv_file.download)。</p>
+                    <p>CSV.parseがactivestorageファイルで呼び出されたときにエンコードを強制する方法があると思いますが、その方法はわかりません。何か案は？</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最新バージョンの ActiveStorage (6.0.0.rc1)
+                    では、ファイルを一時ファイルにダウンロードして、そこから読み取ることができる
+                    API が追加されています。 Ruby
+                    は正しいエンコーディングを使用してファイルを読み取ると想定しています。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://edgeguides.rubyonrails.org/active_storage_overview.html#downloading-files</p>
+                    <p>Rails 6 の RC にアップグレードしたくない場合は
+                    (私もそうではありませんが)、このメソッドを使用して、ファイル内に存在する可能性のあるバイト
+                    オーダー マークを削除しながら文字列を UTF-8
+                    に変換できます。</p>
+                    <pre><code>wrongly_encoded_string = active_record_model.attachment.download
+correctly_encoded_string = wrongly_encoded_string.bytes.pack(&quot;c*&quot;).force_encoding(&quot;UTF-8&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

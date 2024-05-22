@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspecs テストで HTTP 動詞を使用すると、float の配列が間違って解析される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspecs テストで HTTP 動詞を使用すると、float の配列が間違って解析される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspecs テストで HTTP 動詞を使用すると、float
+の配列が間違って解析される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のクラスを定義しました。</p>
+                    <p>ショップ.rb:</p>
+                    <pre><code>class Shop
+    field: :reputation, Float
+    embeds_one :location, class_name: &quot;Location&quot;
+    accepts_nested_attributes_for :location
+end
+</code></pre>
+                    <p>場所.rb:</p>
+                    <pre><code>class Location
+  include Mongoid::Document
+
+  field :address, type: String
+  field :coordinates, type: Array
+  field :place_id, type: String
+
+  validate :coordinates_must_be_pair_of_float
+
+  private
+
+  def coordinates_must_be_pair_of_float
+    unless coordinates.is_a?(Array) &amp;&amp; coordinates.size == 2
+      errors.add(:coordinates, &quot;must be an array with exactly two elements&quot;)
+      return
+    end
+
+    coordinates.each do |coord|
+      unless coord.is_a?(Float)
+        errors.add(:coordinates, &quot;must contain only integers&quot;)
+        return
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>shop_controller.rb 内:</p>
+                    <pre><code>  def create
+    shop = Shop.new(shop_params)
+
+    if shop.save
+      render json: { message: &#39;Shop created successfully&#39;, shop: shop }, status: :created
+    else
+      render json: { errors: shop.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def shop_params
+    params.require(:shop).permit(
+      :reputation,
+      location_attributes: [:address, :place_id, coordinates: []],
+    )
+  end
+</code></pre>
+                    <p>最後に、shop_spect.rb で次のようにします。</p>
+                    <pre><code>  let(:location) { { address: &quot;St. My Street&quot;, coordinates: [-100.0, 100.0], place_id: &quot;12345&quot; } }
+
+  describe &quot;POST /shop&quot; do
+    it &quot;creates a new shop&quot; do
+      shop_data = {
+        reputation: 800
+        location_attributes: location,
+      }
+
+      post &quot;/shop&quot;, params: { shop: shop_data }
+
+      if response.status == 422
+        errors = JSON.parse(response.body)[&quot;errors&quot;]
+        puts &quot;Validation errors: #{errors.join(&#39;, &#39;)}&quot; # Display the error messages
+      end
+
+      expect(response).to have_http_status(201)
+</code></pre>
+                    <p>次のようにcurlを使用してPOSTを作成すると、次のようになります。</p>
+                    <pre><code>curl -X POST \                   
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;shop&quot;: {
+      &quot;reputation&quot;: 800,
+      &quot;location_attributes&quot;: {
+        &quot;address&quot;: &quot;My Street&quot;,
+        &quot;coordinates&quot;: [-100.0, 100.0],
+        &quot;place_id&quot;: &quot;12345&quot;
+      },
+    }
+  }&#39; \
+  &quot;http://localhost:3000/shop&quot;
+</code></pre>
+                    <p>すべて正常に動作しますが、テストはエラー コード
+                    422
+                    で失敗しました。つまり、インスタンスを保存できませんでした。しばらくして、私は問題に気づきました。座標配列は、レピュテーションが処理されるのと同じ方法で処理されていません。座標配列に含まれる値のタイプは、エンコーディング、UTF8
+                    でした。 。</p>
+                    <p>また、これはテストの params の値です。</p>
+                    <pre><code>{:shop=&gt;{:price=&gt;800, :location_attributes=&gt;{:address=&gt;&quot;My Street&quot;, :coordinates=&gt;[-100.0, 100.0], :place_id=&gt;&quot;12345&quot;}}}
+</code></pre>
+                    <p>これはコントローラーの params の値です。</p>
+                    <pre><code>{&quot;shop&quot;=&gt;{&quot;reputation&quot;=&gt;&quot;800&quot;, &quot;location_attributes&quot;=&gt;{&quot;address&quot;=&gt;&quot;My Street&quot;, &quot;coordinates&quot;=&gt;[&quot;-100.0&quot;, &quot;100.0&quot;], &quot;place_id&quot;=&gt;&quot;12345&quot;} }, &quot;price&quot;=&gt;&quot;800&quot;}, &quot;controller&quot;=&gt;&quot;advert&quot;, &quot;action&quot;=&gt;&quot;create&quot;}
+</code></pre>
+                    <p>最後に、これは、curl
+                    を使用してリクエストを作成したときのコントローラーの
+                    params の値です。</p>
+                    <pre><code>{&quot;shop&quot;=&gt;{&quot;reputation&quot;=&gt;800, &quot;location_attributes&quot;=&gt;{&quot;address&quot;=&gt;&quot;My Street&quot;, &quot;coordinates&quot;=&gt;[-100.0, 100.0], &quot;place_id&quot;=&gt;&quot;12345&quot;}}, &quot;controller&quot;=&gt;&quot;advert&quot;, &quot;action&quot;=&gt;&quot;create&quot;}
+</code></pre>
+                    <p>明らかにタグは文字列に変換されますが、rspec で
+                    post
+                    を使用するときに整数と浮動小数点も文字列に変換されるのはなぜですか?</p>
+                    <p>したがって、場所クラスの検証は成功しませんでした。この問題を解決するには、コントローラーを次のように変更する必要がありました。
+                    ショップコントローラー.rb:</p>
+                    <pre><code>  def create
+    shop = Shop.new(shop_params)
+    shop.location.coordinates.map!(&amp;:to_f)
+
+    if shop.save
+      render json: { message: &#39;Shop created successfully&#39;, shop: shop }, status: :created
+    else
+      render json: { errors: shop.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def shop_params
+    params.require(:shop).permit(
+      :reputation,
+      location_attributes: [:address, :place_id, coordinates: []],
+    )
+  end
+</code></pre>
+                    <p>なぜこんなことが起こるのか分かりません。レピュテーション
+                    フィールドの場合と同様に、パーサーが配列の内容を
+                    Float 値としてではなく、エンコードされた UTF8
+                    データとして解釈するのはなぜですか?</p>
+                    <p>また、shop_paramsを定義する方法はありますか?次の定義が無効である理由:</p>
+                    <pre><code>  def shop_params
+    params.require(:shop).permit(
+      :reputation,
+      location_attributes: [:address, :place_id, :coordinates],
+    )
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは RSpec とはほとんど関係がありません。</p>
+                    <p>post メソッドのデフォルトは
+                    application/x-www-form-urlencoded (Rails では :html
+                    形式として扱われる) であるため、仕様では実際には
+                    JSON リクエストを送信していません。</p>
+                    <p>JSON を送信するには、以下を使用します。</p>
+                    <pre><code>post &quot;/shop&quot;, params: { shop: shop_data }, format: :json
+</code></pre>
+                    <p>これは実際には、RSpec
+                    がラップするだけの基礎となる
+                    ActionDispatch::IntegrationTest
+                    によって提供されるヘルパーです。</p>
+                    <p>文字列を取得しているのは、HTTP フォーム データ
+                    パラメーターが実際には入力されていないためです。これらは文字列形式のキーと値の単なるペアです。</p>
+                    <p>さらに、コントローラーは実際にはリクエスト形式を
+                    JSON
+                    に制限していないため、このバグがすり抜けてしまいます。代わりに
+                    MimeResponds
+                    を使用して、ActionController::UnknownFormat
+                    例外が確実に発生するようにします。</p>
+                    <pre><code>class ShopsController &lt; ApplicationController
+  # ...
+  def create
+    shop = Shop.new(shop_params)
+    # don&#39;t do this - it&#39;s just silly to make the controller fix 
+    # bad modeling 
+    # shop.location.coordinates.map!(&amp;:to_f)
+
+    # this will raise if the client requests HTML
+    respond_to :json do 
+      if shop.save
+        render json: { message: &#39;Shop created successfully&#39;, shop: shop }, status: :created
+      else
+        render json: { errors: shop.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>配列型を使用するのは明らかに悪い考えです。あまり不安定ではなく、型キャストと
+                    2 つの個別の属性を提供するため、2 つの float
+                    型フィールドを定義するだけで、配列から取得せずに実際にコード内で
+                    lat または lng を取得できるようになります。</p>
+                    <pre><code>class Location
+  include Mongoid::Document
+
+  field :address, type: String
+  field :place_id, type: String
+  field :latitude, type: Float
+  field :longitude, type: Float
+
+  validates :longitude, :latitude, presence: true,
+                                   numericality: true
+
+  # Sets the latitude and longitude from an array or list
+  def coordinates=(*args)
+    self.latitude, self.longitude = *args.flatten
+  end
+
+  def coordinates
+    [self.latitude, self.longitude]
+  end
+end
+</code></pre>
+                    <p>本当にパラメータを配列として受け入れたい場合は、それをホワイトリストに登録する必要があります。また、配列は許可されたスカラー型ではありません。</p>
+                    <pre><code>  def shop_params
+    params.require(:shop).permit(
+      :reputation,
+      location_attributes: [
+        :address, 
+        :place_id, 
+        coordinates: []
+      ]
+    )
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

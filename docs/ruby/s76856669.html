@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「バンドルインストール」CA 証明書 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「バンドルインストール」CA 証明書",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「バンドルインストール」CA 証明書</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Github Pages Web
+                    サイトを作成しようとしていますが、次のことが必要です。</p>
+                    <pre><code>bundle install
+</code></pre>
+                    <p>これを試してみたところ、次のようなエラーメッセージが表示されました。</p>
+                    <pre><code>Fetching source index from https://rubygems.org/
+There is a chance you are experiencing a man-in-the-middle attack, but most likely your system doesn&#39;t have the CA certificates needed for verification. For information about OpenSSL certificates, see
+https://railsapps.github.com/openssl-certificate-verify-failed.html. To connect without using SSL, edit your Gemfile sources and change &#39;https&#39; to &#39;http&#39;
+</code></pre>
+                    <p>この問題を解決するために「http」を使用することには慎重です。
+                    SSL
+                    証明書ファイルをダウンロードしてこのガイドに従ってみましたが、残念ながら問題を解決できません:
+                    https://bundler.io/guides/rubygems_tls_ssl_troubleshooting_guide.html</p>
+                    <p>これらは私が実行した 2 つのコマンドです。</p>
+                    <pre><code>sudo cp ~/GlobalSignRootCA_R3.pem /usr/lib/ruby/vendor_ruby/rubygems/ssl_certs/rubygems.org
+sudo cp ~/GlobalSignRootCA_R3.pem /usr/lib/ruby/3.0.0/rubygems/ssl_certs
+</code></pre>
+                    <p>他にできることはありますか?他の StackExchange
+                    の投稿を見てみたところ、これは古いものの解決された問題のようで、途方に暮れています。
+                    Linuxマシンを使用しています。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>どこでそのエラーが発生するのか、正確にどのリクエストが失敗するのかについて詳しく教えていただけますか。ログを見ると、github
+                    にあるもののようです。このエラーは、少し前の証明書のローテーションが原因である可能性があります。</p>
+                    <p>RSA SSH ホストキーを更新しました</p>
+                    <p>彼らが説明しているように、古いものを削除します。</p>
+                    <pre><code>ssh-keygen -R github.com
+</code></pre>
+                    <p>…そして現在のホストを ~/.ssh/known_hosts
+                    に追加します。以下を実行して:</p>
+                    <pre><code>ssh-keygen -R github.com
+curl -L https://api.github.com/meta | jq -r &#39;.ssh_keys | .[]&#39; | sed -e &#39;s/^/github.com /&#39; &gt;&gt; ~/.ssh/known_hosts
+</code></pre>
+                    <p>フィンガープリントは
+                    SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s
+                    です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

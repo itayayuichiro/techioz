@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>char* と size_t を C から Ruby に取得し、FFI なしで Ruby から C に渡します (SWIG を使用) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "char* と size_t を C から Ruby に取得し、FFI なしで Ruby から C に渡します (SWIG を使用)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>char* と size_t を C から Ruby に取得し、FFI
+なしで Ruby から C に渡します (SWIG を使用)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここでアイデアが尽きたので質問があります。
+                    SWIGでラップされたCライブラリがあります。 GEM
+                    にサードパーティの依存関係を持たせたくないため、FFI
+                    は使用しません。問題は、私がいくつかの問題に直面したということです。
+                    Cにはchar
+                    <em>バッファを作成し、そのサイズを返す関数があります。バッファとバッファ自体の
+                    Ruby サイズに戻す必要があります。 size_t
+                    は大きな問題ではないので、Ruby 側に int
+                    として保存し、C
+                    に戻ってからキャストできますが、char</em>
+                    に問題があります。</p>
+                    <p>char* を C から Ruby
+                    に返すと、文字列に変換されます。したがって、それを
+                    char* として C に返すことはできなくなりました。
+                    char*
+                    のメモリアドレスを取得して文字列として保存し、C
+                    に戻すなどの汚いことをしようとしましたが、どちらも機能しません。</p>
+                    <p>ユースケースとは何ですか。サードパーティの C
+                    ライブラリを使用して 2 つの Ruby
+                    スレッドをリンクする必要があります。したがって、スレッド
+                    1 にリンク インスタンスを作成し、char* と size_t
+                    ポインタをスレッド 2 (初期化リンク)
+                    に渡す必要があります。したがって、このアプローチを変更するという選択肢はありません。</p>
+                    <p>問題は、char* ポインター C -&gt; Ruby -&gt; C
+                    への参照を渡すことが可能か、そしてその方法です。
+                    2日前から解決策を探していますが、良いアイデアはありません。</p>
+                    <p>事前にお願いします:)</p>
+                    <p>C から Ruby に char* を返す関数の例</p>
+                    <pre><code>char* link_rb() {
+    size_t in_process_link_size = 0;
+    link_create(NULL, 0, &amp;in_process_link_size);
+    unsigned char* in_process_link = NULL;
+        if (in_process_link_size != 0) {
+            in_process_link = (unsigned char*)malloc(in_process_link_size);
+            if (in_process_link != NULL)
+                in_process_link_size = link_create(in_process_link, in_process_link_size, NULL);
+        }
+    
+    return in_process_link;
+}
+</code></pre>
+                    <p>link_create
+                    は私の関数ではないので、ここで使用する必要があります（変更できません）。</p>
+                    <p>そして反対側では、次のようなことを行う必要があります。</p>
+                    <pre><code>tracer_handle_t tracer_create_rb(unsigned char const* link) {
+    size_t link_size = 40;
+
+    char* buffer = (char*) &amp;link;
+    
+    size_t tracer = inprocesslinktracer_create(link, link_size);
+    return tracer;
+}
+</code></pre>
+                    <p>inprocesslinktracer_create
+                    も私の関数ではありません。 SDKから来ました</p>
+                    <p>ここでは、char*
+                    のみを返し、それを単一のパラメータと同様に渡すと仮定しましょう。一般に、バッファのサイズも必要です。ここで構造体に移動できますが、最初にここでそれを理解したいと思います。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい。</p>
+                    <p>SWIG
+                    はデフォルトで、ポインタ自体ではなく、ポイント先のデータにアクセスできるように
+                    char *
+                    型のオブジェクトをラップする必要があると想定します。これは、他のポインターの処理方法とは異なります。ただし、SWIG
+                    のマッピング動作は Typemap
+                    を介してカスタマイズでき、必要に応じて shim
+                    を作成することで対応できます
+                    (ここで示した例では必要ありません)。</p>
+                    <p>サンプル
+                    コードは、単純な入力および出力タイプマップを使用して提供できます。</p>
+                    <p>mymodule.i</p>
+                    <pre><code>%module mymodule
+
+/* Relying on SWIG to #include &lt;ruby.h&gt; */
+%typemap(in) unsigned char const *AS_NUMBER {
+    $1 = (unsigned char const *) NUM2ULL($input);
+}
+%typemap(out) char *link_rb {
+    $result = ULL2NUM((unsigned long long) $1);
+}
+
+%{
+#include &quot;tracer.h&quot;
+%}
+
+/*
+ * We don&#39;t want SWIG to process all of tracer.h.  This is what we actually
+ * want wrapped, and any additional declarations needed to fully define that.
+ * These declarations need to be compatible with the those in tracer.h:
+ */
+#include &lt;stddef.h&gt;
+typedef size_t tracer_handle_t;
+
+char *link_rb(void);
+tracer_handle_t tracer_create_rb(unsigned char const *AS_NUMBER);
+</code></pre>
+                    <p>in
+                    タイプマップは、指定された名前とデータ型に一致するパラメーターまたはオブジェクトの
+                    Ruby から C への変換を指定します。同様に、out
+                    タイプマップは、指定された名前とデータ型に一致する戻り値またはオブジェクトに対する
+                    C から Ruby への変換を指定します。 AS_NUMBER
+                    には、そのインターフェイス
+                    ファイルによって与えられた意味だけが含まれることに注意してください。それは
+                    SWIG にとって特別なことではありません。</p>
+                    <p>好きなように。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec リクエストスペックは空の配列をポストします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec リクエストスペックは空の配列をポストします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec
+リクエストスペックは空の配列をポストします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、Rails で API
+                    エンドポイントを開発しています。必要なデータが無効な場合、エンドポイントが正しいエラーステータスで応答することを確認したいと考えています。
+                    ID の配列が必要です。無効な値の 1
+                    つは空の配列です。</p>
+                    <pre><code>{ vendor_district_ids: [2, 4, 5, 6]}
+</code></pre>
+                    <pre><code>{ vendor_district_ids: []}
+</code></pre>
+                    <p>したがって、動作を制御するためのリクエスト仕様が必要です。</p>
+                    <pre><code>require &#39;rails_helper&#39;
+
+RSpec.describe Api::PossibleAppointmentCountsController, type: :request do
+  let(:api_auth_headers) do
+    { &#39;Authorization&#39; =&gt; &#39;Bearer this_is_a_test&#39; }
+  end
+
+  describe &#39;POST /api/possible_appointments/counts&#39; do
+    subject(:post_request) do
+      post api_my_controller_path,
+        params: { vendor_district_ids: [] },
+        headers: api_auth_headers
+    end
+
+    before { post_request }
+
+    it { expect(response.status).to eq 400 }
+  end
+end
+</code></pre>
+                    <p>ご覧のとおり、件名ブロック内のパラメータで空の配列を使用しています。</p>
+                    <p>私のコントローラーではデータをフェッチしています</p>
+                    <pre><code>params.require(:vendor_district_ids)
+</code></pre>
+                    <p>値は次のとおりです</p>
+                    <pre><code>&lt;ActionController::Parameters {&quot;vendor_district_ids&quot;=&gt;[&quot;&quot;], &quot;controller&quot;=&gt;&quot;api/my_controller&quot;, &quot;action&quot;=&gt;&quot;create&quot;} permitted: false&gt;
+</code></pre>
+                    <p>Vendor_district_ids
+                    の値は、空の文字列を含む配列です。 postman
+                    で投稿するときは同じ値がありません。</p>
+                    <p>投稿したら</p>
+                    <pre><code>{ &quot;vendor_district_ids&quot;: [] }
+</code></pre>
+                    <p>コントローラーが受信します</p>
+                    <pre><code>&lt;ActionController::Parameters {&quot;vendor_district_ids&quot;=&gt;[], &quot;controller&quot;=&gt;&quot;api/my_controller&quot;, &quot;action&quot;=&gt;&quot;create&quot;} permitted: false&gt;
+</code></pre>
+                    <p>そして、これは空の配列です。</p>
+                    <p>リクエスト仕様内で何か間違ったことをしているのでしょうか、それともこれは
+                    RSpec のバグなのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>答えが見つかりました！</p>
+                    <p>問題は、前の回答が示しているように、実際にはrack-test内ではなく、Rackのquery_parser内で見つかりました。</p>
+                    <p>“paramName[]= から {”paramName”:[“”]}
+                    への実際の変換は、Rack の query_parser
+                    で行われます。</p>
+                    <p>問題の例:</p>
+                    <pre><code>post &#39;/posts&#39;, { ids: [] }
+{&quot;ids&quot;=&gt;[&quot;&quot;]} # By default, Rack::Test will use HTTP form encoding, as per docs: https://github.com/rack/rack-test/blob/master/README.md#examples
+</code></pre>
+                    <p>「require ’json」を使用して JSON gem
+                    をアプリケーションに要求し、param ハッシュに
+                    .to_json を追加することで、params を JSON
+                    に変換します。</p>
+                    <p>RSPEC リクエストで、このリクエストのコンテンツ
+                    タイプが JSON であることを指定します。</p>
+                    <p>上記の例を変更した例:</p>
+                    <pre><code>post &#39;/posts&#39;, { ids: [] }.to_json, { &quot;CONTENT_TYPE&quot; =&gt; &quot;application/json&quot; }
+{&quot;ids&quot;=&gt;[]} # explicitly sending JSON will work nicely
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

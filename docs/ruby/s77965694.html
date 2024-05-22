@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定のバージョンとプラットフォームで gem を検索するにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定のバージョンとプラットフォームで gem を検索するにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定のバージョンとプラットフォームで gem
+を検索するにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby:2.5.1 x86_64 Docker
+                    コンテナーで、sorbet-static:0.5.10346-x86_64-linux
+                    が Bundle install と gem install
+                    sorbet-static:0.5.10346 –platform x86_64-linux
+                    のどちらでもインストールできないという問題が発生しました。</p>
+                    <p>そこで、Docker
+                    コンテナー内の特定のバージョンとプラットフォームで
+                    sorbet-static gem
+                    の可用性を確認したいと考えています。</p>
+                    <p>問題の部分</p>
+                    <pre><code>FROM ruby:2.5.1
+# To be able to install old packages from archive.
+ADD ./docker/web/sources.list /etc/apt/sources.list
+RUN apt-get update -qq &amp;&amp; apt-get install -y build-essential nodejs &amp;&amp; rm -rf /var/lib/apt/lists/*
+ENV APP_PATH /opt/app
+WORKDIR $APP_PATH
+ADD Gemfile $APP_PATH
+ADD Gemfile.lock $APP_PATH
+ADD gems $APP_PATH/gems
+RUN bundle install --jobs `expr $(cat /proc/cpuinfo | grep -c &quot;cpu cores&quot;) - 1` --retry 3
+Fetching gem metadata from https://rubygems.org/........
+Could not find sorbet-static-0.5.10346-x86_64-linux in any of the sources
+</code></pre>
+                    <p>以下のコマンドを試しましたが、結果は役に立ちませんでした。</p>
+                    <p>最新バージョンを入手しました。</p>
+                    <pre><code>gem search sorbet-static
+</code></pre>
+                    <p>バージョンとプラットフォームの組み合わせが多すぎる結果が得られました。</p>
+                    <pre><code>gem search sorbet-static --all
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>🗎 Dockerfile</p>
+                    <pre><code>FROM ruby:2.5.1
+
+RUN echo &quot;deb http://archive.debian.org/debian/ stretch main contrib non-free&quot; &gt; /etc/apt/sources.list &amp;&amp; \
+    echo &quot;deb-src http://archive.debian.org/debian/ stretch main contrib non-free&quot; &gt;&gt; /etc/apt/sources.list
+
+RUN apt-get update -qq &amp;&amp; \
+    apt-get install -y build-essential nodejs &amp;&amp; \
+    rm -rf /var/lib/apt/lists/*
+
+ADD Gemfile .
+
+RUN bundle install --jobs `expr $(cat /proc/cpuinfo | grep -c &quot;cpu cores&quot;) - 1` --retry 3
+</code></pre>
+                    <p>🗎 ジェムファイル</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+gem &#39;sorbet-static&#39;, &#39;0.5.10346&#39;
+</code></pre>
+                    <p>以下のスクリーンショットは、必要なバージョンがインストールされていることを確認します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

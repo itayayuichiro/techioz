@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>MYSQL グループ化における奇妙な動作 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "MYSQL グループ化における奇妙な動作",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>MYSQL グループ化における奇妙な動作</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>説明列のあるトランザクション表があります。テスト中に、異常な動作を観察しました。
+                    別の取引では「Circle K Skövde」と「Circle K
+                    Skovde」という完全に類似した記述はありませんでした。
+                    group_by クエリを実行すると、「Circle K
+                    Skövde」の説明は見つかりませんでしたが、「Circle K
+                    Skovde」トランザクションのみが見つかりました。
+                    そこで、金額が「Circle K
+                    Skövde」の説明を持つトランザクションからのものである別の金額フィルターを追加しました。今度は正しい説明が返されました。</p>
+                    <p>私のアプリケーションは Ruby on Rails
+                    フレームワーク上で実行され、MYSQL
+                    データベースを使用します。最初に思ったのは、これは
+                    Rails によるものですが、MYSQL
+                    ワークベンチでは同じように動作しているということです。これは、MYSQL
+                    が原因であることを意味します。</p>
+                    <p>以下は SQL クエリです。</p>
+                    <pre><code>    SELECT 
+    SUM(`Transaction`.`amount`) AS sum_amount,
+    `Transaction`.`original_description` collate utf8mb3_bin transaction_original_description,
+    `Transaction`.`category_id` AS transaction_category_id,
+    CAST(DATE_FORMAT(CONVERT_TZ(`Transaction`.`transaction_at`,
+                        &#39;+00:00&#39;,
+                        &#39;Etc/UTC&#39;),
+                &#39;%Y-%m-01&#39;)
+        AS DATE) AS cast_date_format_convert_tz_transaction_transaction_at_00_00_etc_utc_y_m_01_as_date
+FROM
+    `Transaction`
+        INNER JOIN
+    `Account` ON `Account`.`id` = `Transaction`.`account_id`
+        INNER JOIN
+    `Provider` ON `Provider`.`id` = `Account`.`provider_id_id`
+        INNER JOIN
+    `UserDetail` ON `UserDetail`.`id` = `Provider`.`user_detail_id`
+        INNER JOIN
+    `categories` ON `categories`.`id` = `Transaction`.`category_id`
+        INNER JOIN
+    `categories` `parents_categories` ON `parents_categories`.`id` = `categories`.`parent_category_id`
+WHERE
+    `UserDetail`.`raw_response_id` = &#39;cf0cc9dfb9dd481d8682e7a41e8c3068&#39;
+        AND (transaction_at &gt;= &#39;2022-11-01 00:00:00&#39;)
+        AND `parents_categories`.`transaction_type` = &#39;expenses&#39;
+        AND `parents_categories`.`parent_category_id` IS NULL
+        AND `Transaction`.`id` != &#39;mysql_temporary_query_fix&#39;
+        AND (`Transaction`.`transaction_at` &gt;= &#39;2022-11-01 00:00:00&#39;
+        AND `Transaction`.`transaction_at` &lt;= &#39;2023-11-01 09:24:39.198035&#39;)
+GROUP BY `Transaction`.`original_description` , `Transaction`.`category_id` , CAST(DATE_FORMAT(CONVERT_TZ(`Transaction`.`transaction_at`,
+                    &#39;+00:00&#39;,
+                    &#39;Etc/UTC&#39;),
+            &#39;%Y-%m-01&#39;)
+    AS DATE);
+</code></pre>
+                    <p>これに対する解決策はありますか?
+                    前もって感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>他の人が述べたように、これは照合設定が原因です。</p>
+                    <p>「Skövde」と「Skovde」は異なる単語であるため、別個に扱いました。</p>
+                    <p>クエリ自体もサンプル
+                    データセットも示していないため、クエリ結果についてコメントするのは困難ですが、一般に、照合設定がすべての要素
+                    (サーバー設定
+                    (サーバー、データベース、テーブル、列))
+                    にわたって意味をなすものであることを確認してください。およびクライアント設定
+                    (RoR)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

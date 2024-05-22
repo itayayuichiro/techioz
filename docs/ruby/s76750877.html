@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>これは Ruby のスローで予期される動作ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "これは Ruby のスローで予期される動作ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>これは Ruby
+のスローで予期される動作ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はトラップやキャッチ/スローメソッドを使用して、それらがどのように使用できるか、使用されるべきかをよりよく理解しているときにこの動作に気づきました。</p>
+                    <p>Ruby では、catch メソッドと throw
+                    メソッドはペアで使用することを意図しているようです。</p>
+                    <pre><code>catch(:ctrl_c) do
+  trap(&quot;SIGINT&quot;) { throw :ctrl_c }
+  (1.. ).each {|n| print &quot;.&quot;; sleep 0.5 }
+end
+
+# SIGINT trapped -&gt; throw called -&gt; catch block exits
+#   ruby covthrow1p.rb
+#   =&gt; ........
+</code></pre>
+                    <p>または、throw メソッドに 2
+                    番目のパラメータを指定します。</p>
+                    <pre><code>def stop_script
+  puts &#39;CTRL_C seen&#39;
+  exit
+end
+
+catch(:ctrl_c) do
+  trap(&quot;SIGINT&quot;) { throw :ctrl_c, stop_script }
+  (1.. ).each {|n| print &quot;.&quot;; sleep 0.5 }
+end
+
+# SIGINT trapped -&gt; throw called -&gt; catch executes stop_script &amp; exits block
+#   ruby covthrow2p.rb
+#   =&gt; ......CTRL_C seen
+</code></pre>
+                    <p>キーパラメータのみを指定して throw を単独 (裸)
+                    で使用すると、失敗します。</p>
+                    <pre><code>def stop_script
+  puts &#39;CTRL_C seen&#39;
+  exit
+end
+
+trap(&quot;SIGINT&quot;) { throw :ctrl_c }
+(1.. ).each {|n| print &quot;.&quot;; sleep 0.5 }
+
+# SIGINT trapped -&gt; throw called -&gt; No catch block -&gt; UncaughtThrowError
+#   ruby nkdthrow1p.rb
+#   =&gt; .......nkdthrow1p.rb:8:in `throw&#39;: uncaught throw :ctrl_c (UncaughtThrowError)
+</code></pre>
+                    <p>ただし、2
+                    番目のパラメーターを指定して裸のスローを使用すると、成功します。</p>
+                    <pre><code>def stop_script
+  puts &#39;CTRL_C seen&#39;
+  exit
+end
+
+trap(&quot;SIGINT&quot;) { throw :ctrl_c, stop_script }
+(1.. ).each {|n| print &quot;.&quot;; sleep 0.5 }
+
+
+# SIGINT trapped -&gt; throw called -&gt; No catch block -&gt; call stop_script ???
+#   ruby nkdthrow2p.rb
+#   =&gt; ......CTRL_C seen
+</code></pre>
+                    <p>これは意図された動作ですか?実装の成果物?バグ？一般的には無害に見えますが、混乱を招く動作を引き起こす可能性があります。</p>
+                    <p>この例は、Windows 10 上で実行されている Ruby
+                    3.2.2 でのものです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>2
+                    番目の例の解釈は間違っています。完全な実行を確認できるように、今のところ
+                    exit をコメントアウトしましょう。</p>
+                    <pre><code>def stop_script
+  puts &#39;CTRL_C seen&#39;
+  # exit
+end
+
+catch(:ctrl_c) do
+  trap(&quot;SIGINT&quot;) { throw :ctrl_c, stop_script }
+  (1.. ).each {|n| print &quot;.&quot;; sleep 0.5 }
+end
+</code></pre>
+                    <p>実際に何が起こるか:</p>
+                    <p>4
+                    番目の例は同等ですが、最初と最後のステップが欠けているだけです。</p>
+                    <p>重要なのは、スローする 2
+                    番目のパラメーターは、戻り値として catch
+                    に渡される値のみであるということです。これには「後でこれを評価する」という魔法の機能はありません。メソッドの引数と同様に、throw
+                    が呼び出される前に評価されます。</p>
+                    <p>スクリプトが自然な終了に達するまでにスローが
+                    catch
+                    によってキャッチされなかった場合、例外が出力されます。ただし、最後の例では、exit
+                    が実行され、スクリプトがその場で終了すると、例外状況は発生しません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

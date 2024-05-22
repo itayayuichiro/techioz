@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>yahoofinance Ruby API の戻り値の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "yahoofinance Ruby API の戻り値の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>yahoofinance Ruby API の戻り値の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列と文字列の結合は知っていますが、この問題は非常に特定のものです。
+                    私が取り組んでいるAPI:</p>
+                    <p>私が欲しいのは、配列内のすべての hq.close
+                    値です。例えば：</p>
+                    <pre><code>[
+ {&#39;GOOG&#39; =&gt; [744.75,751.48,744.56,744.09,757.84]},
+ {&#39;MSFT&#39; =&gt; {value1,value2, .....}}
+]
+</code></pre>
+                    <p>上記のハッシュ配列を取得できない理由は、 hq.close
+                    の印刷用の個別の値を設定しますが、取得方法がわかりません
+                    すべての hq.close を 1 つの配列にまとめる</p>
+                    <p>以下のコードに基づいて、私の出力は行で区切られています:(しかし、私はそれを上記の形式にしたい)</p>
+                    <pre><code>GOOG -&gt; 744.75
+GOOG -&gt; 751.48
+GOOG -&gt; 744.56
+GOOG -&gt; 744.09
+GOOG -&gt; 757.84
+MSFT -&gt; 29.2
+MSFT -&gt; 28.95
+MSFT -&gt; 28.98
+MSFT -&gt; 29.28
+MSFT -&gt; 29.78
+</code></pre>
+                    <p>++++++++++++++++++++++++++ コード：</p>
+                    <pre><code>require &#39;yahoofinance&#39;
+#Stock symbols
+user_input = [&#39;GOOG&#39;,&#39;MSFT&#39;]
+
+user_input.each do|symb|
+ YahooFinance::get_HistoricalQuotes( symb,
+                                     Date.parse(&#39;2012-10-06&#39;),
+                                     Date.today()) do |hq|
+   puts &quot;#{symb} -&gt; #{hq.close}&quot;
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>各値を注入してハッシュを構築できます。</p>
+                    <pre><code>require &#39;yahoofinance&#39;
+
+company_symbols = [&#39;GOOG&#39;,&#39;MSFT&#39;]
+start_date = Date.parse(&#39;2012-10-06&#39;)
+stop_date = Date.today()
+
+company_symbols.inject({}) do |memo, value|
+  memo[value] ||= []
+  YahooFinance.get_HistoricalQuotes(value, start_date, stop_date) do |hq|
+    memo[value] &lt;&lt; hq.close
+  end
+  memo
+end
+# =&gt; {&quot;GOOG&quot;=&gt;[744.75, 751.48, 744.56, 744.09, 757.84], &quot;MSFT&quot;=&gt;[29.2, 28.95, 28.98, 29.28, 29.78]}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

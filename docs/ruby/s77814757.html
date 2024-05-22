@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsでカスタムモジュールアプリを作成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsでカスタムモジュールアプリを作成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsでカスタムモジュールアプリを作成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRailsの初心者なので、APIのみのアプリを試し始めました。次のような構造のモジュール型アプリを試してみたいと思います。</p>
+                    <pre><code>├── app
+│   ├── channels
+│   │   └── application_cable
+│   │       ├── channel.rb
+│   │       └── connection.rb
+│   ├── controllers
+│   │   ├── application_controller.rb
+│   │   └── concerns
+│   ├── jobs
+│   │   └── application_job.rb
+│   ├── mailers
+│   │   └── application_mailer.rb
+│   ├── models
+│   │   ├── application_record.rb
+│   │   └── concerns
+│   ├── users
+│   │   ├── controllers
+│   │   │   └── auth_controller.rb
+│   │   ├── models
+│   │   │   └── user_model.rb
+│   │   ├── routes
+│   │   │   └── user_routes.rb
+│   │   ├── schema
+│   │   │   └── request
+│   │   │       └── auth_request.rb
+│   │   └── usecase
+│   │       └── auth_usecase.rb
+</code></pre>
+                    <p>しかし、auth_controller.rbが作成したルートにマッピングできないこれらの構造に問題があります。以下にコードをリストします。</p>
+                    <p>auth_controller.rb</p>
+                    <pre><code>module Users
+  class AuthController &lt; ActionController::API
+    def login
+      body = JSON.parse(request.body.read)
+
+      login_request = LoginRequest.new(body[:email],body[:password])
+      if login_request.valid?
+
+      else
+        render json: { error: &#39;email or password can\&#39;t be empty&#39; }, status: :bad_request
+      end
+
+    rescue JSON::ParserError
+      render json: { error: &#39;Invalid JSON format&#39; }, status: :bad_request
+    end
+  end
+end
+
+</code></pre>
+                    <p>ユーザーモデル.rb</p>
+                    <pre><code>module Users
+    class UserModel &lt; ApplicationRecord
+      this.table_name = &quot;users&quot;
+
+      def create_user(users)
+        save(users)
+      end
+
+      def find_user_by_id(id)
+      end
+
+      def find_user_by_email_password(email, password)
+      end
+    end
+end
+
+</code></pre>
+                    <p>ユーザールート.rb</p>
+                    <pre><code>module Users
+  module Routes
+    def self.draw
+      Rails.application.routes.draw do
+        namespace :users do
+            post &#39;auth/login&#39;, to: &#39;auth#login&#39;
+            post &#39;auth/register&#39;, to: &#39;auth#register&#39;
+            post &#39;auth/reset-password&#39;, to: &#39;auth#reset_password&#39;
+            post &#39;auth/send-otp&#39;, to: &#39;auth#send_otp&#39;
+        end
+      end
+    end
+  end
+end
+
+</code></pre>
+                    <p>auth_request.rb</p>
+                    <pre><code>module Users
+  module Schema
+    module Request
+      LoginRequest = Struct.new(:email,:password) do
+        def valid?
+          valid_email? &amp;&amp; password.present?
+        end
+      end
+
+      RegisterRequest = Struct.new(:first_name,:last_name,:email,:password,:phone) do
+        def valid?
+          first_name.present? &amp;&amp; last_name.present? &amp;&amp; valid_email? &amp;&amp; password.present? &amp;&amp; phone.present?
+        end
+
+        def valid_email?
+          email =~ /\A[^@\s]+@[^@\s]+\z/
+        end
+      end
+    end
+  end
+end
+
+</code></pre>
+                    <p>auth_usecase.rb</p>
+                    <pre><code>module Users
+  module Usecase
+    class AuthUsecase
+      def initialize(user_model)
+        @user_model = user_model
+      end
+
+      def login(email, password)
+        _ = user_model.find_user_by_email_password(email,password)
+      end
+
+      def register(user)
+        user = user_model.create_user(user)
+      end
+    end
+  end
+end
+
+</code></pre>
+                    <p>config/routes.rb</p>
+                    <pre><code>Rails.application.routes.draw do
+  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  # users routing /v1/users/*
+  require_relative &#39;../app/users/routes/user_routes&#39;
+  Users::Routes.draw
+
+  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
+  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  get &quot;up&quot; =&gt; &quot;rails/health#show&quot;, as: :rails_health_check
+
+  # Defines the root path route (&quot;/&quot;)
+  # root &quot;posts#index&quot;
+end
+
+</code></pre>
+                    <p>いつもこのようなエラーが発生します</p>
+                    <pre><code>{
+    &quot;status&quot;: 404,
+    &quot;error&quot;: &quot;Not Found&quot;,
+    &quot;exception&quot;: &quot;#&lt;ActionController::RoutingError: uninitialized constant Users::AuthController&gt;&quot;,
+    &quot;traces&quot;: {
+        &quot;Application Trace&quot;: [],
+        &quot;Framework Trace&quot;: [],
+        &quot;Full Trace&quot;: []
+    }
+}
+</code></pre>
+                    <p>誰がこれらのエラーを解決できるか教えていただけますか?そして、コントローラーフォルダー内にモジュール名コントローラーを作成する必要がありますか?
+                    Rails7.1.2を使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは行わないでください。ただし、Rails
+                    での自動ロードがどのように機能するかを学ぶと役立つかもしれません。</p>
+                    <pre><code>app/
+└── users/
+    ├── controllers/
+    │   └── auth_controller.rb
+    ├── models/
+    │   └── user_model.rb
+    └── schema/
+        └── request/
+            └── auth_request.rb
+</code></pre>
+                    <pre><code># config/application.rb
+
+Users = Module.new
+Rails.autoloaders.main.push_dir(Rails.root.join(&quot;app/users&quot;), namespace: Users)
+Rails.autoloaders.main.collapse(Rails.root.join(&quot;app/users/controllers&quot;))
+Rails.autoloaders.main.collapse(Rails.root.join(&quot;app/users/models&quot;))
+</code></pre>
+                    <p>定数を定義するときは、ここでも何らかの構造に従う必要があります。モデルとコントローラーのディレクトリは折りたたまれているため、対応する定数は必要ありません。</p>
+                    <pre><code># app/users/controllers/user_controller.rb
+module Users
+  class AuthController
+  end
+end      
+</code></pre>
+                    <pre><code># app/users/models/user_model.rb
+module Users
+  class UserModel
+  end
+end   
+</code></pre>
+                    <pre><code># app/users/schema/request/auth_request.rb
+module Users
+  module Schema
+    module Request
+      module AuthRequest
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>テスト：</p>
+                    <pre><code>&gt;&gt; Users::AuthController
+=&gt; Users::AuthController
+&gt;&gt; Users::UserModel
+=&gt; Users::UserModel
+&gt;&gt; Users::Schema::Request::AuthRequest
+=&gt; Users::Schema::Request::AuthRequest
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/fxn/zeitwerk</p>
+                    <p>ルートについては、routes.rb
+                    を複数のファイルに分割する描画メソッドがあります。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

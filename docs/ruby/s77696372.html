@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでこのフィルタを実行して一緒に並べ替えるより良い方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでこのフィルタを実行して一緒に並べ替えるより良い方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでこのフィルタを実行して一緒に並べ替えるより良い方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <ol type="a">
+                    <li>以下のような行があります</li>
+                    </ol>
+                    <pre><code>......, start Mon 10/30 10:08
+......, start Thu 12/21 9:21
+</code></pre>
+                    <ol start="2" type="a">
+                    <li><p>やりたいこと:
+                    日付と時刻で行を並べ替えますが、今日から始まる行を削除したいです。</p></li>
+                    <li><p>以下は、この関数を実装するための Ruby
+                    コードです。</p></li>
+                    </ol>
+                    <pre><code>time = Time.new
+
+$mon = time.month
+$mday = time.day
+
+# ......
+
+array_tmp = results_all.lines.reject do |x|
+    times = x.split(/,/)[1].scan(/\d+/).map(&amp;:to_i)
+    times[0] == $mon &amp;&amp;  times[1] == $mday
+end
+
+array_tmp.sort_by {|x| x.split(/,/)[1].scan(/\d+/).map(&amp;:to_i)}]
+</code></pre>
+                    <p>私の質問は次のとおりです。</p>
+                    <p>Rubyでこのフィルタとソートを同時に実行する、より優れたエレガントな方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように与えられたとします。</p>
+                    <pre><code>arr = [
+  &quot;has , start Mon 10/30 10:08&quot;,
+  &quot;dog , start Thu 9/24 4:08&quot;,4
+  &quot;fleas , start Thu 12/21 9:21&quot;,
+  &quot;Saffi , start Thu 10/29 19:33&quot;,
+  &quot;My , start Thu 9/7 9:54&quot;
+]
+</code></pre>
+                    <pre><code>today = Date.today
+  #=&gt; #&lt;Date: 2023-12-21 ((2460300j,0s,0n),+0s,2299161j)&gt;
+</code></pre>
+                    <p>次に、次のように書くことができます。</p>
+                    <pre><code>RGX = /
+      \d{1,2}   # match 1 or 2 digits
+      \/        # match a forward slash
+      \d{1,2}   # match 1 or 2 digits
+      [ ]+      # match 1 or more spaces
+      \d{1,2}   # match 1 or 2 digits
+      :         # match a colon
+      \d{2}     # match two digits
+      $         # match the end of the string
+      /x        # invoke free-spacing regex definition mode
+</code></pre>
+                    <pre><code>arr.filter_map do |s|
+  dt = string_to_datetime(s)
+  [dt, s] unless dt.to_date == today 
+end.sort.map(&amp;:last)
+  #=&gt; [&quot;My , start Thu 9/7 9:54&quot;,
+  #    &quot;dog , start Thu 9/24 4:08&quot;,
+  #    &quot;Saffi , start Thu 10/29 19:33&quot;,
+  #    &quot;has , start Mon 10/30 10:08&quot;]
+</code></pre>
+                    <pre><code>def string_to_datetime(str)
+  DateTime.strptime(str[RGX], &#39;%m/%d %H:%M&#39;)
+end
+</code></pre>
+                    <p>途中の計算</p>
+                    <pre><code>arr.filter_map do |s|
+  dt = string_to_datetime(s)
+  [dt, s] unless dt.to_date == today 
+end
+  #=&gt; [[#&lt;DateTime: 2023-10-30T10:08:00+00:00 ((2460248j,36480s,0n),+0s,2299161j)&gt;,
+  #     &quot;has , start Mon 10/30 10:08&quot;],
+  #    [#&lt;DateTime: 2023-09-24T04:08:00+00:00 ((2460212j,14880s,0n),+0s,2299161j)&gt;,
+  #     &quot;dog , start Thu 9/24 4:08&quot;],
+  #    [#&lt;DateTime: 2023-10-29T19:33:00+00:00 ((2460247j,70380s,0n),+0s,2299161j)&gt;,
+  #     &quot;Saffi , start Thu 10/29 19:33&quot;],
+  #    [#&lt;DateTime: 2023-09-07T09:54:00+00:00 ((2460195j,35640s,0n),+0s,2299161j)&gt;,
+  #     &quot;My , start Thu 9/7 9:54&quot;]]
+</code></pre>
+                    <p>ソート中の配列を表示します。各要素は 2
+                    要素の配列です。 2
+                    番目の要素は、並べ替えられる文字列の 1 つです。 1
+                    つ目は、その文字列の月-日-時刻表現から計算された
+                    DateTime
+                    インスタンスです。並べ替えは主に最初の要素で行われ、2
+                    番目の要素は 2 つの DateTime
+                    インスタンスが等しい場合に結合を解除するためにのみ使用されます。ドキュメント「配列#sort」を参照してください。</p>
+                    <p>あるいは次のように書くこともできます。</p>
+                    <pre><code>arr.reject do |s|
+  string_to_datetime(s).to_date == today 
+end.sort_by { |s| string_to_datetime(s) }
+  #=&gt; [&quot;My , start Thu 9/7 9:54&quot;,
+  #    &quot;dog , start Thu 9/24 4:08&quot;,
+  #    &quot;Saffi , start Thu 10/29 19:33&quot;,
+  #    &quot;has , start Mon 10/30 10:08&quot;]
+</code></pre>
+                    <p>これは、最初の方法よりもいくらか高速であることが期待できます
+                    (string_to_datetime が 2 回呼び出されても、sort_by
+                    のブロックによって行われる計算は 1
+                    回だけ行われるため)。 Enumerable#sort_by
+                    を参照してください。</p>
+                    <p>Date::today、Enumerable#filter_map、DateTime::strptime、String#[]、および
+                    DateTime#to_date も参照してください。
+                    DateTime::strptime で使用されるフォーマット
+                    ディレクティブについては、Time#strftime
+                    を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Keycloak API 経由でユーザーを追加する場合、「realmRoles」パラメータは無視されます | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Keycloak API 経由でユーザーを追加する場合、「realmRoles」パラメータは無視されます",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Keycloak API
+経由でユーザーを追加する場合、「realmRoles」パラメータは無視されます</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Keycloak API
+                    を介してユーザーを作成しようとしていますが、最初に追加されたときにレルムレベルのロールをユーザーに割り当てたいと考えています。ただし、ドキュメントに記載されているようには機能しないようです。</p>
+                    <p>最初のユーザー作成 API
+                    リクエストの後に、単にユーザーへの 2
+                    番目のロール追加 API
+                    リクエストを作成できることはわかっていますが、次のとおりです。</p>
+                    <p>これを irb でテストするには、keycloak Ruby gem
+                    を使用して、まず Keycloak からアクセス
+                    トークンをリクエストします。</p>
+                    <pre><code>require &#39;keycloak&#39;
+json = Keycloak::Client.get_token_by_client_credentials
+access_token = JSON.parse(json)[&#39;access_token&#39;]
+</code></pre>
+                    <p>以下のすべては Keycloak
+                    内にユーザーを作成しますが、「所有者」ロールはありません。</p>
+                    <pre><code>Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: [&#39;owner&#39;] }, access_token)
+Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: [&#39;1fff5f5f-7357-4f73-b45d-65ccd01f3bc8&#39;] }, access_token)
+Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: [&#39;{&quot;id&quot;:&quot;1fff5f5f-7357-4f73-b45d-65ccd01f3bc8&quot;,&quot;name&quot;:&quot;owner&quot;,&quot;description&quot;:&quot;Indicates that a user is the owner of an organisation.&quot;,&quot;composite&quot;:false,&quot;clientRole&quot;:false,&quot;containerId&quot;:&quot;MyRealmName&quot;}&#39;] }, access_token)
+</code></pre>
+                    <p>文字列の代わりにロール
+                    ハッシュを使用しようとすると、エラーが発生します。</p>
+                    <pre><code>Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: [{&quot;id&quot;=&gt;&quot;1fff5f5f-7357-4f73-b45d-65ccd01f3bc8&quot;, &quot;name&quot;=&gt;&quot;owner&quot;, &quot;description&quot;=&gt;&quot;Indicates that a user is the owner of an organisation.&quot;, &quot;composite&quot;=&gt;false, &quot;clientRole&quot;=&gt;false, &quot;containerId&quot;=&gt;&quot;MyRealmName&quot;}] }, access_token)
+
+Traceback (most recent call last):
+      16: from /home/thomas/.rvm/rubies/ruby-2.6.3/lib/ruby/gems/2.6.0/gems/irb-1.0.0/exe/irb:11:in `&lt;top (required)&gt;&#39;
+      15: from (irb):8
+      14: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/keycloak-3.0.0/lib/keycloak.rb:541:in `generic_post&#39;
+      13: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/keycloak-3.0.0/lib/keycloak.rb:943:in `generic_request&#39;
+      12: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/keycloak-3.0.0/lib/keycloak.rb:915:in `block in generic_request&#39;
+      11: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient.rb:71:in `post&#39;
+      10: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/request.rb:52:in `execute&#39;
+        9: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/request.rb:145:in `execute&#39;
+        8: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/request.rb:715:in `transmit&#39;
+        7: from /home/thomas/.rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:920:in `start&#39;
+        6: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/request.rb:725:in `block in transmit&#39;
+        5: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/request.rb:807:in `process_result&#39;
+        4: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/keycloak-3.0.0/lib/keycloak.rb:916:in `block (2 levels) in generic_request&#39;
+        3: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/keycloak-3.0.0/lib/keycloak.rb:958:in `rescue_response&#39;
+        2: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/abstract_response.rb:103:in `return!&#39;
+        1: from /home/thomas/.rvm/gems/ruby-2.6.3/gems/rest-client-2.0.2/lib/restclient/abstract_response.rb:223:in `exception_with_response&#39;
+RestClient::InternalServerError (500 Internal Server Error)
+</code></pre>
+                    <p>Keycloak
+                    は以下を出力します。これは、予想どおり、ロールがハッシュではなく文字列の配列である必要があることを示しています。</p>
+                    <pre><code>08:53:27,889 ERROR [org.keycloak.services.error.KeycloakErrorHandler] (default task-22) Uncaught server error: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.lang.String` out of START_OBJECT token
+at [Source: (io.undertow.servlet.spec.ServletInputStreamImpl); line: 1, column: 37] (through reference chain: org.keycloak.representations.idm.UserRepresentation[&quot;realmRoles&quot;]-&gt;java.util.ArrayList[0])
+</code></pre>
+                    <p>次のように、配列の代わりに単一の文字列を渡しても、同じことが起こります。</p>
+                    <pre><code>Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: &#39;owner&#39; }, access_token)
+</code></pre>
+                    <p>何か間違ったことをしているのでしょうか、それともこれは単に
+                    Keycloak API のバグなのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたは何も間違ったことはしていません。これは
+                    Keycloak API のバグです。</p>
+                    <p>このリクエストは機能するはずです。</p>
+                    <pre><code>Keycloak::Admin.generic_post(&#39;users&#39;, nil, { username: &#39;someone&#39;, realmRoles: [&#39;owner&#39;] }, access_token)
+</code></pre>
+                    <p>残念ながら、ユーザー/グループを作成/更新しようとすると「realmRoles」属性が機能しないため、API
+                    ドキュメントは間違っています。</p>
+                    <p>この動作に関する詳細情報は、Keycloak の公式バグ
+                    トラッカーで見つけることができます。</p>
+                    <p>現時点での唯一の解決策は、RoleMappers
+                    を使用してロールをユーザーにマップし、API
+                    で複数のリクエストを行うことです。</p>
+                    <p>これらの操作に関するドキュメント:
+                    https://www.keycloak.org/docs-api/18.0/rest-api/index.html#_role_mapper_resource</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Trix エディターがレンダリングされなくなりました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Trix エディターがレンダリングされなくなりました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Trix
+エディターがレンダリングされなくなりました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails ブログアプリケーションに actiontext/trix
+                    を追加しようとしています。現在 3
+                    つのモデルがあり、そのうち 2
+                    つの記事とコメントにアクション
+                    テキストを使用したいと考えています (3
+                    番目のモデルは認証をデバイスします)。ドキュメントのインストールとセットアップを何度も繰り返しましたが、何が間違っているのかわかりません。
+                    trix
+                    エディタの代わりに、これは新しい記事ページまたは編集記事ページのビューがレンダリングされるときに得られるものです。</p>
+                    <p>これが私のフォームの一部です _form.html.erb</p>
+                    <pre><code>&lt;%= form_with model: [ @article, @article.comments.build ] do |form| %&gt;
+    &lt;p&gt;
+      &lt;%= form.label :commenter %&gt;&lt;br&gt;
+      &lt;%= form.text_field :commenter, class:&quot;form-control&quot; %&gt;
+    &lt;/p&gt;
+    &lt;div class=&quot;&quot;&gt;
+    &lt;%= form.label :body %&gt;
+    &lt;%= form.rich_text_area :body %&gt;
+  &lt;/div&gt;
+    &lt;p&gt;
+        &lt;%= form.label :status %&gt;&lt;br&gt;
+        &lt;%= form.select :status, [&#39;public&#39;, &#39;private&#39;, &#39;archived&#39;], selected: &#39;public&#39;, 
+         :class =&gt; &#39;form-select&#39; %&gt;
+    &lt;/p&gt;
+  
+    &lt;p&gt;
+      &lt;%= form.submit &#39;Create Comment&#39;, :class =&gt; &#39;btn btn-outline-primary&#39; %&gt;
+    &lt;/p&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <p>記事.rb</p>
+                    <pre><code>class Article &lt; ApplicationRecord
+    include Visible
+    
+    belongs_to :user
+    has_many :comments, dependent: :destroy
+    has_rich_text :body
+    validates :title, presence: true
+    validates :body, presence: true, length: { minimum: 10 }
+  end
+</code></pre>
+                    <p>コメント.rb</p>
+                    <pre><code>class Comment &lt; ApplicationRecord
+  include Visible
+  belongs_to :article
+  has_rich_text :body
+  validates :commenter, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
+end
+</code></pre>
+                    <p>私の記事の管理者の重要な部分
+                    記事_コントローラー.rb</p>
+                    <pre><code>private
+    def article_params
+      params.require(:article).permit(:title, :body, :status, :user_id)
+    end
+</code></pre>
+                    <p>コメントコントローラーの重要な部分
+                    コメントコントローラー.rb</p>
+                    <pre><code>private
+      def comment_params
+        params.require(:comment).permit(:commenter, :body, :status)
+      end
+</code></pre>
+                    <p>アプリケーション.js</p>
+                    <pre><code>// This file is automatically compiled by Webpack, along with any other files
+// present in this directory. You&#39;re encouraged to place your actual application logic in
+// a relevant structure within app/javascript and only use these pack files to reference
+// that code so it&#39;ll be compiled.
+//= require jquery_ujs 
+import Rails from &quot;@rails/ujs&quot;
+import Turbolinks from &quot;turbolinks&quot;
+import * as ActiveStorage from &quot;@rails/activestorage&quot;
+import &quot;channels&quot;
+import &quot;trix&quot;
+import &quot;@rails/actiontext&quot;
+import &quot;bootstrap&quot;
+
+Rails.start()
+Turbolinks.start()
+ActiveStorage.start()
+
+require(&quot;trix&quot;)
+require(&quot;@rails/actiontext&quot;)
+</code></pre>
+                    <p>パッケージ.json</p>
+                    <pre><code>{
+  &quot;name&quot;: &quot;blog&quot;,
+  &quot;private&quot;: true,
+  &quot;dependencies&quot;: {
+    &quot;@rails/actioncable&quot;: &quot;^6.0.0&quot;,
+    &quot;@rails/actiontext&quot;: &quot;^6.1.4-1&quot;,
+    &quot;@rails/activestorage&quot;: &quot;^6.0.0&quot;,
+    &quot;@rails/ujs&quot;: &quot;^6.0.0&quot;,
+    &quot;@rails/webpacker&quot;: &quot;5.4.3&quot;,
+    &quot;bootstrap&quot;: &quot;4.3.1&quot;,
+    &quot;jquery&quot;: &quot;^3.6.0&quot;,
+    &quot;popper.js&quot;: &quot;^1.16.1&quot;,
+    &quot;trix&quot;: &quot;^1.2.0&quot;,
+    &quot;turbolinks&quot;: &quot;^5.2.0&quot;,
+    &quot;webpack&quot;: &quot;^4.46.0&quot;,
+    &quot;webpack-cli&quot;: &quot;^3.3.12&quot;
+  },
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;devDependencies&quot;: {
+    &quot;webpack-dev-server&quot;: &quot;^3&quot;
+  }
+}
+</code></pre>
+                    <p>trix
+                    エディターが適切にレンダリングされない原因は何ですか?よろしくお願いします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントアウトすることでこの問題を回避できました。</p>
+                    <pre><code>#app/javascript/application.js
+
+import &quot;bootstrap&quot;
+</code></pre>
+                    <p>そのインポートで目に見えないエラーが発生し、他のインポートが適切に実行されなくなったのだと思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

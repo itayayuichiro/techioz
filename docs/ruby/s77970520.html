@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Github CI/CD 作成時の Rails 7 ESbuild エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Github CI/CD 作成時の Rails 7 ESbuild エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Github CI/CD 作成時の Rails 7 ESbuild
+エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>非常に基本的な CI/CD
+                    を作成しました。初めてで未経験です。</p>
+                    <p>これは私の ci.yml のコピーです</p>
+                    <pre><code>name: Tests
+
+on:
+  pull_request:
+    branches:
+      - &quot;*&quot;
+  push:
+    branches:
+      - &quot;main&quot;
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports: [&quot;5432:5432&quot;]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/test
+          RAILS_ENV: test
+        run: |
+          bin/rails test:prepare
+          bin/rails db:test:prepare
+          bin/rails test
+</code></pre>
+                    <p>これは問題なく動作しているように見えますが、このプロセスのどこかで次のエラーがスローされます。</p>
+                    <pre><code>Run bin/rails test:prepare
+yarn install v1.22.21
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+warning [email protected]: The engine &quot;pnpm&quot; appears to be invalid.
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+success Saved lockfile.
+Done in 9.18s.
+yarn run v1.22.21
+$ esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets
+Error: R] Could not resolve &quot;stimulus-clipboard&quot;
+
+    app/javascript/application.js:8:22:
+      8 │ import Clipboard from &#39;stimulus-clipboard&#39;
+        ╵                       ~~~~~~~~~~~~~~~~~~~~
+
+  You can mark the path &quot;stimulus-clipboard&quot; as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+</code></pre>
+                    <p>この問題を調査するには、ESbuild
+                    にこの「スティミュラス
+                    クリップボード」を通知する必要があります。
+                    esbuild.config.js
+                    を作成してコードを追加しようとしましたが、うまくいきませんでした。
+                    「rails
+                    stimulus:manifest:update」も実行してみましたが、どちらも成功しませんでした。</p>
+                    <p>このエラーを解決し、パッケージを除外するか適切に含めることで
+                    CI を使用しようとしています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これに対する答えは、「stimulus-clipboard」が正しくインストールされていないことがわかりました。</p>
+                    <p>プロジェクトのルート ディレクトリにあるyarn.lock
+                    ファイルを表示して、これを確認しました。そのファイルで「クリップボード」を検索したところ、結果が
+                    0 件あり、存在しないことが確認されました。 「yarn
+                    add
+                    stimulus-clipboard」を使用すると、正しく追加され、再構築されました。</p>
+                    <p>これは、今後同様の問題が発生した場合の一般的なトラブルシューティング
+                    プロセスとなるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

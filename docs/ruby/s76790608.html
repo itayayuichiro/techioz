@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 - リッチテキストに添付されたメディアコンテンツが表示されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 - リッチテキストに添付されたメディアコンテンツが表示されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 -
+リッチテキストに添付されたメディアコンテンツが表示されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、ActionText/Trix エディターを使用する Rails
+                    7 アプリに取り組んでいます。ファイルの保存には
+                    Amazon AWS / S3 を使用しています。メディア
+                    ファイルが S3
+                    にアップロードされていることを確認しましたが、何らかの理由でメディア
+                    ファイルが表示されません
+                    (コンテンツを編集しようとするときも、コンテンツを提示したいときにもエディターに表示されません)。通常の画像/メディアのアップロードには
+                    S3
+                    を使用していますが、その他の場合でも画像は適切に表示されます。</p>
+                    <p>私の構成は次のようになります。</p>
+                    <pre><code># storage.yml
+amazon:
+  service: S3
+  access_key_id: &lt;%= Rails.application.credentials.dig(:aws, :access_key_id) %&gt;
+  secret_access_key: &lt;%= Rails.application.credentials.dig(:aws, :secret_access_key) %&gt;
+  region: eu-north-1
+  bucket: &lt;app name&gt;-&lt;%= Rails.env %&gt;
+
+# credentials.yml
+aws:
+  access_key_id: xxx
+  secret_access_key: xxx
+</code></pre>
+                    <p>テキストは適切に表示されますが、表示されないのはメディア
+                    ファイルだけです (開発でも運用でも)。</p>
+                    <p>私の _blob.html.erb
+                    ファイルは次のようになります。</p>
+                    <pre><code>&lt;figure class=&quot;attachment attachment--&lt;%= blob.representable? ? &quot;preview&quot; : &quot;file&quot;   %&gt; attachment--&lt;%= blob.filename.extension %&gt;&quot;&gt;
+  &lt;% if blob.image? %&gt;
+    &lt;%= image_tag blob.representation(resize_to_limit: local_assigns[:in_gallery] ? [ 800, 600 ] : [ 1024, 768 ]) %&gt;
+  &lt;% end %&gt;
+
+  &lt;% if blob.video? %&gt;
+    &lt;%= video_tag url_for(blob.attachable),
+    preload: &quot;auto&quot;,
+    ... %&gt;
+  &lt;% end %&gt;
+
+  &lt;% if blob.audio? %&gt;
+    &lt;%= audio_tag url_for(blob.attachable), controls: &quot;controls&quot; %&gt;
+  &lt;% end %&gt;
+
+  &lt;figcaption class=&quot;attachment__caption&quot;&gt;
+    &lt;% if caption = blob.try(:caption) %&gt;
+      &lt;%= caption %&gt;
+    &lt;% end %&gt;
+  &lt;/figcaption&gt;
+&lt;/figure&gt;
+</code></pre>
+                    <p>Trix エディターでメディア
+                    ファイルをアップロードした後、メディア
+                    ファイルが表示されません。</p>
+                    <p>次のようにフォーム要素をレンダリングします。</p>
+                    <pre><code>&lt;%= rich_content_form.rich_text_area :content %&gt;
+&lt;%= rich_content_form.hidden_field :id if rich_content_form.object.persisted? %&gt;
+</code></pre>
+                    <p>私のモデルにこれを入れます:</p>
+                    <pre><code>has_rich_text :content
+</code></pre>
+                    <p>私のメディア
+                    ファイルが表示されない理由について何かアイデアやヒントはありますか?</p>
+                    <p>アップデート</p>
+                    <p>ブラウザのコンソールを見ると、次のエラーが表示されます。</p>
+                    <pre><code>[Error] Failed to load resource: Origin http://localhost:3000   is not allowed by Access-Control-Allow-Origin. Status code: 200   (bo2qo7q0diw0juxl9v85y63nv771, line 0)
+
+[Error] XMLHttpRequest cannot load https://&lt;bucket-name&gt;.s3.eu-north- 1.amazonaws.com/bo2qo7q0diw0juxl9v85y63nv771?X-Amz-Algorithm=AWS4- HMAC-SHA256&amp;X-Amz-Credential=AKIAUP7MDHHNOBYGZXSA%2F20230731%2Feu- north-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20230731T103209Z&amp;X-Amz- Expires=300&amp;X-Amz-SignedHeaders=content-length%3Bcontent- md5%3Bcontent-type%3Bhost&amp;X-Amz- Signature=a0f1b1cc9be7cf2a4618095379fda05bde5418707c280ca2473cad604 6d6a671 due to access control checks.
+
+[Error] Error: Direct upload failed: Error storing &quot;grooveland-  designs-8kkTIumkHxU-unsplash.jpg&quot;. Status: 0
+nrWrapper (860.03a8b7a5-1.236.0.min.js:1:6259)
+</code></pre>
+                    <p>アップデート 2 - Chrome</p>
+                    <p>上記のコンソール ログは Safari
+                    からのもので、Chrome では次のようになります。</p>
+                    <pre><code>edit:1 Access to XMLHttpRequest at &#39;https://&lt;bucket-name&gt;.s3.eu-north- 1.amazonaws.com/qkqx3qd8gq9a4uogojg8dvh3vyvu?X-Amz-Algorithm=AWS4- HMAC-SHA256&amp;X-Amz-Credential=AKIAUP7MDHHNOBYGZXSA%2F20230731%2Feu- north-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20230731T104633Z&amp;X-Amz- Expires=300&amp;X-Amz-SignedHeaders=content-length%3Bcontent- md5%3Bcontent-type%3Bhost&amp;X-Amz- Signature=5c68bee1732d950470c0fccc203a5f8d3895bd7122f3e4667ca82ee63 210242f&#39; from origin &#39;http://localhost:3000&#39; has been blocked by  CORS policy: Response to preflight request doesn&#39;t pass access  control check: No &#39;Access-Control-Allow-Origin&#39; header is present  on the requested resource.
+ 
+860.03a8b7a5-1.236.0.min.js:1 Uncaught Error: Direct upload  failed: Error storing &quot;grooveland-designs-8kkTIumkHxU- unsplash.jpg&quot;. Status: 0
+at AttachmentUpload.directUploadDidComplete (actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :849:13)
+at BlobUpload.callback (actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :624:17)
+at BlobUpload.requestDidError (actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :597:12)
+at XMLHttpRequest.&lt;anonymous&gt; (actiontext-28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js:582:57)
+at XMLHttpRequest.nrWrapper (860.03a8b7a5- 1.236.0.min.js:1:6208)
+
+directUploadDidComplete @ actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :849
+(anonymous) @ actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :624
+requestDidError @ actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :597
+
+[...]
+
+actiontext- 28c61f5197c204db043317a8f8826a87ab31495b741f854d307ca36122deefce.js :586     PUT https://&lt;bucket-name&gt;.s3.eu-north- 1.amazonaws.com/qkqx3qd8gq9a4uogojg8dvh3vyvu?X-Amz-Algorithm=AWS4- HMAC-SHA256&amp;X-Amz-Credential=AKIAUP7MDHHNOBYGZXSA%2F20230731%2Feu- north-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20230731T104633Z&amp;X-Amz- Expires=300&amp;X-Amz-SignedHeaders=content-length%3Bcontent- md5%3Bcontent-type%3Bhost&amp;X-Amz- Signature=5c68bee1732d950470c0fccc203a5f8d3895bd7122f3e4667ca82ee63 210242f net::ERR_FAILED
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントで述べたように、この問題は CORS
+                    構成に関連していました。ここで動作する構成が見つかりました。</p>
+                    <pre><code>[
+{
+    &quot;AllowedHeaders&quot;: [
+        &quot;*&quot;
+    ],
+    &quot;AllowedMethods&quot;: [
+        &quot;HEAD&quot;,
+        &quot;GET&quot;,
+        &quot;PUT&quot;,
+        &quot;POST&quot;,
+        &quot;DELETE&quot;
+    ],
+    &quot;AllowedOrigins&quot;: [
+        &quot;https://&lt;domain&gt;&quot;,
+        &quot;https://www.&lt;domain&gt;&quot;
+    ],
+    &quot;ExposeHeaders&quot;: []
+}
+]
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/76244924/756148</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

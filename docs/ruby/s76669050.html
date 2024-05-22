@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ストレージと対話するときにフォグプロバイダーを動的に選択するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ストレージと対話するときにフォグプロバイダーを動的に選択するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ストレージと対話するときにフォグプロバイダーを動的に選択するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>画像を含む単純な Rails
+                    モデルがあります。現在、イメージは AWS S3
+                    に保存されていますが、Backblaze
+                    に移動する必要があります。次のようなアップローダー
+                    クラスもあります。</p>
+                    <pre><code>class CarImage &lt; ApplicationRecord
+  VALID_BACKENDS = [:s3, :backblaze].freeze
+  enum backend: VALID_BACKENDS
+  mount_uploader :image, CarImageUploader
+
+  belongs_to :car
+end
+
+class CarImageUploader &lt; CarrierWave::Uploader::Base
+  configure do |config|
+    config.fog_credentials = {
+      provider: &quot;AWS&quot;,
+      aws_access_key_id: Rails.application.credentials.aws_access_key_id,
+      aws_secret_access_key: Rails.application.credentials.aws_secret_access_key,
+      region: Rails.application.credentials.aws_region
+    }
+    config.fog_directory  = Rails.application.credentials.aws_image_bucket
+    config.fog_public     = true
+    config.fog_attributes = { &quot;Cache-Control&quot; =&gt; &quot;max-age=315576000&quot; }
+    config.remove_previously_stored_files_after_update = false
+  end
+
+  def store_dir
+    &quot;uploads/car_images/#{model.car_id}&quot;
+  end
+end
+</code></pre>
+                    <p>ここで私の問題は、model.backend に基づいて
+                    config.fog_credentials
+                    を動的に変更する必要があることです。どうすればこれを達成できますか?
+                    1
+                    つのアップローダー内から実行できますか、それとも別のアップローダー
+                    クラスが必要ですか。その場合、バックエンド属性に基づいて
+                    CarImage
+                    モデルに使用するクラスを選択するにはどうすればよいですか?</p>
+                    <p>よろしく</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデルのバックエンドを確認し、資格情報を適切に設定できます。</p>
+                    <pre><code>class CarImage &lt; ApplicationRecord
+  VALID_BACKENDS = [:s3, :backblaze].freeze
+  enum backend: VALID_BACKENDS
+  mount_uploader :image, CarImageUploader
+
+  belongs_to :car
+end
+
+class CarImageUploader &lt; CarrierWave::Uploader::Base
+  configure do |config|
+    config.fog_public     = true
+    config.fog_attributes = { &quot;Cache-Control&quot; =&gt; &quot;max-age=315576000&quot; }
+    config.remove_previously_stored_files_after_update = false
+  end
+
+  def fog_credentials
+    model.s3? ? s3_fog_credentials : backblaze_fog_credentials
+  end
+
+  def fog_directory 
+    model.s3? ? Rails.application.credentials.aws_image_bucket : Rails.application.credentials.backblaze_image_bucket
+  end
+
+  def store_dir
+    &quot;uploads/car_images/#{model.car_id}&quot;
+  end
+
+  private
+
+  def s3_fog_credentials
+    {
+      provider: &quot;AWS&quot;,
+      aws_access_key_id: Rails.application.credentials.aws_access_key_id,
+      aws_secret_access_key: Rails.application.credentials.aws_secret_access_key,
+      region: Rails.application.credentials.aws_region
+    }
+  end
+
+  def backblaze_fog_credentials
+    # your backblaze go here
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

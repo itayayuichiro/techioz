@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>関数「create」を使用する場合、Enum のマッピング値が正しくありません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "関数「create」を使用する場合、Enum のマッピング値が正しくありません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>関数「create」を使用する場合、Enum
+のマッピング値が正しくありません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在、Railsをフレームワークとして使用するプロジェクトに取り組んでいますが、オブジェクトを初期化し、enum関数を組み合わせてデータベースに保存する過程で、別の作成者のコードに起因する問題があります。その作者のコードは次のようになります。</p>
+                    <pre><code>   notification = Notification.personal.create!(
+    {
+      user:         target,
+      template:     template,
+      title:        template_language.title_pattern % opts,
+      content:      template_language.content_pattern % opts,
+      click_action: template.click_action.to_s % opts
+    }
+  )
+</code></pre>
+                    <p>通知.rb</p>
+                    <pre><code>class Notification &lt; ApplicationRecord
+include Partition
+
+ belongs_to :template
+ belongs_to :user, optional: true
+
+ delegate :notification_category, to: :template, allow_nil: true
+
+ has_many :notification_reads, dependent: :destroy
+ has_many :users, through: :notification_reads
+
+ validates :user_id, presence: true, if: :personal?
+ validates :user_id, absence: true, if: :general?
+
+ delegate :notify_partition, to: :user, allow_nil: true
+ alias_attribute :partition_name, :notify_partition
+ enum category: {
+  general: 0,
+  personal: 1
+ }
+
+  scope :personal_for_user, -&gt;(user_id) { personal.where(user_id: user_id) }
+  scope :for_user, -&gt;(user_id) { general.or(personal_for_user(user_id)) }
+
+  scope :read_personal_notifications, lambda { |user_id, is_read = true|
+       personal_for_user(user_id).where(is_read: is_read)
+  }
+
+  after_create :increase_total_unread
+
+  def be_read_by_user?(reader_id = nil)
+    return is_read if personal? &amp;&amp; user_id == reader_id
+
+    if general?
+      NotificationRead.reset_table_name
+      return notification_reads.by_user(reader_id).exists?
+    end
+
+    false
+   end
+
+   def read_by(reader_id)
+     if general?
+     notification_reads.build(user_id: reader_id)
+     elsif personal?
+     user_id == reader_id &amp;&amp; self.is_read = true
+      self
+     end
+   end
+
+     private
+
+     def increase_total_unread
+      if general?
+       User.available.update_all(&#39;total_unread = total_unread + 1&#39;)
+       elsif personal?
+        user.increment!(:total_unread)
+       end
+      end
+     end
+</code></pre>
+                    <p>問題が発生しています。その人が書いたコードは
+                    Notice.personal ですが、カテゴリ値 0
+                    のレコードがデータベースに格納されるという問題が時折発生します。</p>
+                    <p>また、いくつかのソースを調べたところ、「create」関数によってオブジェクトがデータベースに即座に保存されることが分かりました。したがって、処理に分岐がある場合、未定義エラーに関する潜在的な問題が発生しますが、新規
+                    + 保存を使用する場合には発生しません。</p>
+                    <p>「create」関数と組み合わせた場合の作成者による列挙型の使用法が正しいのか、それともオブジェクト内の検証関数が原因でこれらの不可解なエラーが発生したのかはわかりません。</p>
+                    <p>私は Java プログラマーで、最近 Ruby
+                    プロジェクトに移行したため、Ruby ライブラリのソース
+                    コードを読んで理解するのが少し困難です。誰かが私を助けてくれることを願っています。大変感謝しております。</p>
+                    <p>どうもありがとうございます！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Notice.personal.create!( hash: without, category:
+                    :general ) がカテゴリを 0
+                    に設定して通知を作成することはできません。そのレコードは他の呼び出しによって作成されているか、作成後に更新されています。
+                    。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

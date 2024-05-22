@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>変数から Unicode エスケープ コードを出力します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "変数から Unicode エスケープ コードを出力します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>変数から Unicode エスケープ
+コードを出力します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rumojiで出力したいUnicode文字コードのリストがあります。データを反復処理するために使用しているコードは次のとおりです。</p>
+                    <pre><code>require &quot;rumoji&quot;
+
+# this works
+puts Rumoji.decode(&quot;\u{1F600}&quot;)
+
+# feed some data
+data = [
+    &quot;1F600&quot;,
+    &quot;1F476&quot;,
+    &quot;1F474&quot;
+]
+
+data.each do |line|
+    # this doesn&#39;t work
+    puts Rumoji.decode(&quot;\u{#{line}}&quot;)
+    puts Rumoji.decode(&quot;\u{&quot; + line + &quot;}&quot;)
+end
+</code></pre>
+                    <p>エスケープされた文字列内で変数名を使用する方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>優先されるため、文字列補間と一緒に使用することはできません。できることは、整数の配列を
+                    Array#pack することです。</p>
+                    <pre><code>▶ data.map { |e| e.to_i(16) }.pack &#39;U*&#39;
+#⇒ &quot;😀👶👴&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

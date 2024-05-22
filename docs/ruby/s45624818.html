@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>すでにお気づきのとおり、SQL の実行には厳密な順序があり、意図したとおりに動作します。 順序は、where によってすでにフィルターされた結果セットにのみ適用されます。 データを取得してフィルタリングする方法について、アプローチを再考することをお勧めします。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "すでにお気づきのとおり、SQL の実行には厳密な順序があり、意図したとおりに動作します。 順序は、where によってすでにフィルターされた結果セットにのみ適用されます。 データを取得してフィルタリングする方法について、アプローチを再考することをお勧めします。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>すでにお気づきのとおり、SQL
+の実行には厳密な順序があり、意図したとおりに動作します。 順序は、where
+によってすでにフィルターされた結果セットにのみ適用されます。
+データを取得してフィルタリングする方法について、アプローチを再考することをお勧めします。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>三目並べボードの表示をテストする仕様を作成しようとしています。メソッドキャプチャを使用していますが、仕様を実行するとエラーがスローされます。メソッド呼び出しの出力を取得するためにキャプチャを使用しています。
+                    https://apidock.com/rails/Kernel/capture
+                    私の方法は次のとおりです。</p>
+                    <pre><code>  def display_board
+    puts &quot; #{grid[0]} | #{grid[1]} | #{grid[2]} &quot;
+    puts &quot;-----------&quot;
+    puts &quot; #{grid[3]} | #{grid[4]} | #{grid[5]} &quot;
+    puts &quot;-----------&quot;
+    puts &quot; #{grid[6]} | #{grid[7]} | #{grid[8]} &quot;
+  end
+</code></pre>
+                    <p>私のRspecテストは次のとおりです。</p>
+                    <pre><code>context &quot;#display_board&quot; do
+     output = capture(:stdout) { board.display_board}
+     rows = output.split(&quot;\n&quot;)
+     binding.pry
+     expect(rows[0]).to eq(&quot;   |   |   &quot;)
+     expect(rows[1]).to eq(&quot;-----------&quot;)
+     expect(rows[2]).to eq(&quot;   |   |   &quot;)
+     expect(rows[3]).to eq(&quot;-----------&quot;)
+     expect(rows[4]).to eq(&quot;   |   |   &quot;)
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、#capture
+                    が非推奨となり削除されたことです。</p>
+                    <p>個人的には、I/O をゲーム
+                    コンテンツの生成から分離するほうが作業とテストが容易になるためです。したがって、puts
+                    の代わりに、ボードを含む文字列を構築するだけです (
+                    各行の末尾に)
+                    を入力して、それが正しいかどうかをテストします。実際のゲームでは、1
+                    回の put
+                    呼び出しでボードをコンソールに出力します。</p>
+                    <p>本当に STDOUT
+                    をキャプチャしたい場合は、方法があります。現在の
+                    STDOUT
+                    ストリームへの参照を含むグローバルです。デフォルトでは、これは常に
+                    STDOUT (プログラムの実際の STDOUT を表す定数)
+                    に設定されますが、別の IO ストリーム (たとえば
+                    StringIO オブジェクト) にリダイレクトできます。 put
+                    は、STDOUT
+                    に直接書き込む代わりに、参照するものに書き込みます
+                    (そこには微妙な違いがあります!)。</p>
+                    <pre><code>$stdout = StringIO.new
+puts &#39;this is my output&#39;
+captured_output = $stdout.string
+$stdout = STDOUT # restore it when you&#39;re done
+</code></pre>
+                    <p>これで、「これは私の出力です」（その後に改行文字が続きます）がcaptured_outputにキャプチャされました。ただし、その間に
+                    STDOUT
+                    に出力された他のものもあるため、理想的ではありません
+                    (Ruby
+                    コンソールのコンソール出力など)。常に復元されることを保証するメソッドでそれをラップする必要があります。</p>
+                    <pre><code>def capture() 
+  $stdout = StringIO.new
+  yield
+  $stdout.string
+ensure
+  $stdout = STDOUT
+end
+</code></pre>
+                    <p>これをブロックと一緒に使用できます。</p>
+                    <pre><code>capture { puts &#39;xyz&#39; } 
+=&gt; &#39;xyz\n&#39;
+</code></pre>
+                    <p>(ただし、このアプローチを忘れて、ボードを文字列として構築した方が楽になります。)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 5 ActiveRecord クエリ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 5 ActiveRecord クエリ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 5 ActiveRecord クエリ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>モデルユーザーと記事。</p>
+                    <p>Article
+                    モデルのリレーションシップでは、belongs_to:user
+                    が定義されています。ユーザーモデルのリレーションシップで
+                    has_many :articles が定義されています</p>
+                    <p>以下のクエリをトリガーすると、成功した結果が得られます</p>
+                    <pre><code>Article.select(:name, :id).where(user_id:&quot;fb157fc-a9353453cb95&quot;, name:&quot;first&quot;)
+</code></pre>
+                    <p>しかし、以下のクエリをトリガーすると、エラーが発生します</p>
+                    <pre><code>Article.select(:name, :id).where(&quot;user_id (?)&quot;,&quot;1bf4c2fc-35c37e15d4b5&quot;)
+</code></pre>
+                    <p>エラー ActiveRecord::StatementInvalid ヒント:
+                    指定された名前と引数の型に一致する関数はありません。明示的な型キャストの追加が必要になる場合があります。</p>
+                    <p>ただし、以下のクエリをトリガーすると、エラーも発生します</p>
+                    <pre><code>Article.select(:name, :id).where(&quot;articles.user_id (?)&quot;,&quot;1bf4c2fc-35c37e15d4b5&quot;)
+</code></pre>
+                    <p>エラー ActiveRecord::StatementInvalid</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらくINクエリを探していると思います
+                    その構文は次のとおりです: -</p>
+                    <pre><code>user_ids = [1bf4c2fc-35c37e15d4b5,2nd_user_id, 3rd_user_id]
+Article.select(:name, :id).where(&quot;user_id IN (?)&quot;,user_ids)
+</code></pre>
+                    <p>このようなSQLクエリを作成します</p>
+                    <pre><code>SELECT &quot;articles&quot;.&quot;name&quot;,&quot;articles&quot;.&quot;id&quot;  FROM &quot;articles&quot; WHERE (user_id IN (1bf4c2fc-35c37e15d4b5,2nd_user_id, 3rd_user_id))
+</code></pre>
+                    <p>where ブロックで 1 つの user_id
+                    に対するクエリを探している場合、その構文は次のようになります。</p>
+                    <pre><code>user_id = 1bf4c2fc-35c37e15d4b5
+Article.select(:name, :id).where(&quot;user_id = ?&quot;,user_id)
+</code></pre>
+                    <p>次のようなSQLクエリを作成します: -</p>
+                    <pre><code>SELECT &quot;articles&quot;.&quot;name&quot;,&quot;articles&quot;.&quot;id&quot;  FROM &quot;articles&quot; WHERE (user_id =
+ &quot;1bf4c2fc-35c37e15d4b5&quot;)
+</code></pre>
+                    <p>上記の 2 つのクエリにより、複数の user_id
+                    を検索する IN と 1 つの user_id を検索する IN
+                    の違いが明確になることを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

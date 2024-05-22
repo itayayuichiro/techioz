@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec 3.12 リクエストで属性を連結するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec 3.12 リクエストで属性を連結するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec 3.12
+リクエストで属性を連結するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>アプリケーションの編集ビューは、予期されるデータ
+                    フィールドに加えて、注釈や翻訳などのモデルに属さない追加フィールドも提供します。これらは、編集されたレコードを保存する前にコントローラー
+                    メソッドによって処理されます。</p>
+                    <p>リクエストのテストを作成するときは、モデル
+                    フィールドに加えて、次の追加フィールドを Post
+                    メソッドに提供する必要があります。</p>
+                    <pre><code>RSpec.describe &quot;Playgrounds&quot;, type: :request do
+  include Warden::Test::Helpers 
+  # Playground. As you add validations to Playground, be sure to
+  # adjust the attributes here as well.
+
+  let(:user) { create(:user, is_admin: true) }
+  let(:playground) {FactoryBot.create(:playground)}
+
+  # User login 
+  before do
+    login_as user, scope: :user
+  end
+
+  describe &quot;POST /playgrounds&quot; do
+    context &quot;with valid attributes&quot; do
+      # Use per context let instead 
+      let(:attributes) { attributes_for(:playground) }
+      it &quot;creates a playground&quot; do
+        expect {
+          post &#39;/entities&#39;, params: {
+            playground: attributes, 
+            playground_name_fr: &quot;Donnée de test&quot;, 
+            playground_name_de: &quot;&quot;, 
+            playground_name_en: &quot;Test data&quot;, 
+            playground_name_it: &quot;Dati del test&quot;, 
+            playground_description_fr: &quot;Ceci n&#39;est qu&#39;un test&quot;, 
+            playground_description_de: &quot;&quot;, 
+            playground_description_en: &quot;This is just a test&quot;, 
+            playground_description_it: &quot;Questo è solo un test&quot;
+          }
+        }.to change(Playground, :count).by(1)
+        expect(response).to have_http_status 302
+      end
+    end 
+  end
+end
+</code></pre>
+                    <p>翻訳に使用されるこれら 8 つのフィールドを 1
+                    回だけ定義するために、ハッシュ変数を定義し、それをプレイグラウンド
+                    ハッシュに追加したいと思います。</p>
+                    <pre><code>RSpec.describe &quot;Playgrounds&quot;, type: :request do
+  include Warden::Test::Helpers 
+  # Playground. As you add validations to Playground, be sure to
+  # adjust the attributes here as well.
+
+  let(:user) { create(:user, is_admin: true) }
+  let(:playground) {FactoryBot.create(:playground)}
+  let(:fields) do 
+    { 
+      playground_name_fr: &quot;Donnée de test&quot;, 
+      playground_name_de: &quot;&quot;, 
+      playground_name_en: &quot;Test data&quot;, 
+      playground_name_it: &quot;Dati del test&quot;, 
+      playground_description_fr: &quot;Ceci n&#39;est qu&#39;un test&quot;, 
+      playground_description_de: &quot;&quot;, 
+      playground_description_en: &quot;This is just a test&quot;, 
+      playground_description_it: &quot;Questo è solo un test&quot; 
+    }
+  end
+
+    # User login 
+    before do
+        login_as user, scope: :user
+    end
+
+  describe &quot;POST /playgrounds&quot; do
+    context &quot;with valid attributes&quot; do
+      # Use per context let instead 
+      let(:attributes) { attributes_for(:playground) }
+      it &quot;creates a playground&quot; do
+        expect {
+          post &#39;/entities&#39;, params: {
+            playground: attributes &lt; fields 
+          }
+        }.to change(Playground, :count).by(1)
+        expect(response).to have_http_status 302
+      end
+    end 
+  end
+end 
+</code></pre>
+                    <p>しかし、次のエラーが表示されます。</p>
+                    <pre><code> Failure/Error:
+   params.require(:playground)
+         .permit(:code,
+                 :status_id,
+                 :logo,
+                 :organisation_id,
+                 :responsible_id,
+                 :deputy_id,
+                 :sort_code,
+                 name: {},
+                 description: {}
+
+ NoMethodError:
+   undefined method `permit&#39; for &quot;false&quot;:String
+</code></pre>
+                    <p>最初の構文は期待どおりに機能しますが、2
+                    番目の構文は期待どおりに機能しないため、フィールドを間違った場所またはレベルに挿入した可能性がありますが、これを解決する方法がわかりません。</p>
+                    <p>助けてくれてありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ハッシュをマージするには、Hash#merge
+                    を使用します。</p>
+                    <pre><code>expect {
+  post &#39;/entities&#39;, params: {
+    playground: attributes.merge(fields)
+  }
+}.to change(Playground, :count).by(1)
+</code></pre>
+                    <p>Ruby にはこれを表す演算子の短縮形がありません。
+                    Hash#&lt;
+                    は、実際には、ハッシュが別のハッシュのサブセットであるかどうかをテストするために使用され、ブール値を返します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

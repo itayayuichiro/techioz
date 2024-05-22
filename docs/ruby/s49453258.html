@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>メッセージを未確認状態から準備完了状態にプッシュする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "メッセージを未確認状態から準備完了状態にプッシュする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>メッセージを未確認状態から準備完了状態にプッシュする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の質問は以前に尋ねられた質問と似ていますが、答えは見つかりません。Web
+                    サービスと呼ばれるアクションを処理したいコンシューマーがありますが、この
+                    Web
+                    サービスが何らかの理由で応答しない場合は、コンシューマは
+                    RabbitMQ
+                    のメッセージを処理しませんが、後で処理するようにエンコールします。私のコンシューマは次のとおりです。</p>
+                    <pre><code>require File.expand_path(&#39;../config/environment.rb&#39;, __FILE__)
+conn=Rabbit.connect
+conn.start
+ch = conn.create_channel
+x = ch.exchange(&quot;d_notification_ex&quot;, :type=&gt; &quot;x-delayed-message&quot;, :arguments=&gt; { &quot;x-delayed-type&quot; =&gt; &quot;direct&quot;})
+q  = ch.queue(&quot;d_notification_q&quot;, :durable =&gt;true)
+q.bind(x)
+p &#39;Wait ....&#39;
+q.subscribe(:manual_ack =&gt; true, :block =&gt; true) do |delivery_info, properties, body|
+ 
+  datos=JSON.parse(body)
+  if datos[&#39;status&#39;]==&#39;request&#39;
+    #I call a web service and process the json
+    result=Notification.send_payment_notification(datos.to_json)
+  else
+    #I call a web service and process the body
+    result=Notification.send_payment_notification(body)
+  end
+   #if the call to the web service, the web server is off the result will be equal to nil
+   #therefore, he did not notify RabbitMQ, but he puts the message in UNACKED status
+   # and does not process it later, when I want him to keep it in the queue and evaluate it afterwards.
+  unless result.nil?
+  ch.ack(delivery_info.delivery_tag)
+  end
+
+end
+</code></pre>
+                    <p>RabbitMQのイメージ、</p>
+                    <p>ステートメントには、次のような方法があります: c
+                    hack
+                    (delivery_info.delivery_tag)、これにより、キューの要素を削除する代わりに、後で処理できるようになります。何かアイデアはありますか?ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「コンシューマー内のプロデューサー」というスタイルでデータをキューに送り返すことにしました。コードは次のようになります。</p>
+                    <pre><code>  if result.eql? &#39;ok&#39;
+  ch.ack(delivery_info.delivery_tag)
+  else
+    if(datos[&#39;count&#39;] &lt; 5)
+      datos[&#39;count&#39;] += 1
+      d_time=1000
+      x.publish(datos.to_json,  :persistent =&gt; true, :headers=&gt;{&quot;x-delay&quot; =&gt; d_time})
+    end
+  end
+</code></pre>
+                    <p>ただし、JSON 属性にもう 1
+                    つの属性を含める必要がありました。Count!無限サイクルに留まらないように。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

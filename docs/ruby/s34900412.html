@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>別個のデータベースを使用した PaperTrail のバージョン管理 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "別個のデータベースを使用した PaperTrail のバージョン管理",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>別個のデータベースを使用した PaperTrail
+のバージョン管理</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Papertrail
+                    を使用して、モデルの変更イベントを別のデータベースに記録しようとしています。</p>
+                    <p>使っています レール 4.1.2</p>
+                    <p>ルビー2.1</p>
+                    <p>ペーパートレイル 4.0.0</p>
+                    <p>以下は懸念事項に追加したコードです</p>
+                    <pre><code>module Foo
+  class Base &lt; ActiveRecord::Base
+  end
+
+ class Version &lt; Base
+  include PaperTrail::VersionConcern
+ end
+
+ class Topic &lt; Base
+   has_paper_trail class_name: &#39;Foo::Version&#39;
+ end
+end
+Foo::Base.establish_connection(:trail_development)
+</code></pre>
+                    <p>この Foo を topic.rb に含めました</p>
+                    <pre><code>class Topic &lt; ActiveRecord::Base
+  include Foo
+end
+</code></pre>
+                    <p>トピックを作成、編集、または削除しようとすると、機能しません。</p>
+                    <p>参考
+                    https://github.com/airblade/paper_trail/pull/289</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 6.0
+                    以降では、次のように別のデータベースに接続する抽象
+                    Version
+                    クラスを作成することでこれを行うことができます。</p>
+                    <pre><code>class AbstractVersion &lt; PaperTrail::Version
+  self.abstract_class = true
+  connects_to database: { writing: :my_database, reading: :my_database }
+end
+
+class MyVersion &lt; AbstractVersion
+  # Optional: specify a different table name.
+  # self.table_name = :my_versions
+end
+
+class Topic &lt; ApplicationRecord
+  has_paper_trail versions: {
+    class_name: &quot;MyVersion&quot;
+  }
+end
+</code></pre>
+                    <p>Rails
+                    では、別のデータベース接続を使用するには、モデルを抽象として定義する必要があります。</p>
+                    <p>PaperTrail を使用すると、PaperTrail::Version
+                    基本クラスを拡張することでカスタム Version
+                    クラスを定義できます。</p>
+                    <p>これは、 has_paper_trail
+                    呼び出しを追加するモジュールを作成することでさらに抽象化できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

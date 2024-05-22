@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails ルートが見つからないというエラーが発生することがありました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails ルートが見つからないというエラーが発生することがありました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+ルートが見つからないというエラーが発生することがありました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    ルートで「見つからない」エラーが発生することがありますが、数秒後に自動的に解決されます。</p>
+                    <pre><code>undefined local variable or method owner_root_path&#39; for #&lt;Owner::SessionsController:0x00007f30408d46f0&gt;
+/myapp/app/controllers/owner/sessions_controller.rb:30:increate’
+/ruby/2.5.0/gems/actionpack-5.1.6.2/lib/action_controller/metal/basic_implicit_render.rb:4:in send_action&#39;
+/ruby/2.5.0/gems/actionpack-5.1.6.2/lib/abstract_controller/base.rb:186:inprocess_action’
+
+</code></pre>
+                    <p>私のルート設定</p>
+                    <pre><code># routes/owner.rb
+Rails.application.routes.draw do
+  constraints subdomain: /^owner/ do
+    root to: &quot;owner/top_pages#show&quot;, as: :owner_root
+    ...
+  end
+end
+
+# application.rb
+
+config.paths[&quot;config/routes.rb&quot;] = %w(
+  config/routes/owner.rb
+  config/routes.rb
+).map {|relative_path| Rails.root.join(relative_path)}
+
+</code></pre>
+                    <p>なぜそれが起こったのか知っている人はいますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 6.1 ガイドでは、大きなルート
+                    ファイルを小さなファイルに分割するために使用できる描画マクロが導入されました。これについては、ここで読むことができます:
+                    非常に大きなルート ファイルを複数の小さなルート
+                    ファイルに分割する</p>
+                    <p>お使いの Rails
+                    のバージョンがこのマクロをサポートしているかどうかはわかりません。そうでない場合は、ソースを使用して自分で描画メソッドを簡単に定義できます。それは次のようなものになります:</p>
+                    <pre><code>  def draw(routes_name)
+    instance_eval(File.read(Rails.root.join(&quot;config/routes/#{routes_name}.rb&quot;)))
+  end
+</code></pre>
+                    <p>追伸:
+                    このメソッド/マクロを導入したコミットを必ずチェックしてください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

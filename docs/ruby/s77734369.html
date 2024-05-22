@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec を使用してネストされたブロックの中間層のみをモックする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec を使用してネストされたブロックの中間層のみをモックする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec
+を使用してネストされたブロックの中間層のみをモックする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は kubernetes_leader_election と呼ばれるこの
+                    gem を使用してコードを書いています。この gem の
+                    README
+                    には、使い方を示す完全な例が記載されています。私の使い方は基本的に
+                    README
+                    に記載されている内容と同じですが、最も関連性の高い行は次のとおりです。</p>
+                    <pre><code>lease_name = self.class.name.underscore.gsub(/[\/_]+/, &quot;=&quot;)
+is_leader = false
+elector = KubernetesLeaderElection.new(lease_name, kubeclient, logger: Rails.logger)
+Thread.new { elector.become_leader_for_life { is_leader = true } }
+sleep 1 until is_leader
+</code></pre>
+                    <p>渡したリース名が期待どおりであること、およびブロック
+                    { is_leader = true }
+                    が実行された場合にコードが永久にスリープしないことをテストする仕様を書こうとしています。
+                    KubernetesLeaderElection.new
+                    をモックする方法は知っていますが、rspec
+                    モックの使用には慣れていないため、elector.become_leader_for_life
+                    を同じ堅牢性 (何が渡されるかをテストできる)
+                    でモックするのに非常に苦労しています。この全体的な概念についてさまざまなバリエーションを試しましたが、どれも私が必要とするものを完全に満たすものはなく、ほとんどがエラーを引き起こします。これが私の最新の試みです。これは失敗しませんでしたが、必要なものすべてをテストしたわけではありません。</p>
+                    <pre><code>describe LeaderElectionMixin
+  class MixinUser
+    include LeaderElectionMixin
+  end
+
+  describe &quot;#wait_to_be_leader&quot; do
+    let(:dummy_client) { double(Kubeclient::Client) }
+    let(:dummy_elector) { double(KubernetesLeaderElection) }
+
+    before do
+      allow(Kubeclient::Client).to receive(:new).and_return(dummy_client)
+      expect(dummy_elector).to receive(:become_leader_for_life) do |&amp;block|
+        # only checks that the actual block and this proc return the same thing
+        expect(block).to match(Proc.new { true })
+      end.and_yield
+    end
+
+    it &quot;should create leases based on the class name&quot; do
+      expect(KubernetesLeaderElection).to receive(:new)
+        .with(&quot;mixin-user&quot;, dummy_client, logger: Rails.logger)
+        .and_return(dummy_elector)
+      MixinUser.new.wait_to_be_leader
+    end
+  end
+end
+</code></pre>
+                    <p>(更新を伴う編集: .and_yield を使用すると、rspec
+                    のハングの問題を回避できますが、まだ完全な解決策ではありません。.and_yield
+                    によってブロックが無効になるため、ブロックの内容の実際の一致をテストできないためです。チェーンの終わり、詳細については、ここを参照してください。ブロックの前に
+                    .and_yield を移動すると、expect(block) はexpect(nil)
+                    になります。)</p>
+                    <p>私のアプローチで私が抱えていた問題は、is_leader =
+                    true が実行されないために rspec
+                    がハングすること、つまり is_leader
+                    が永遠に実行されるまでスリープ 1 すること、または
+                    (最新の実装では)
+                    元のブロックを実行できるが、そうなったと断言することはできません。仕様が終了したためそうなったと推測することしかできません。
+                    StackOverflow と GitHub
+                    のスレッドからのさまざまな提案を試しましたが、expect(block).to
+                    をブロック
+                    コードの正確な内容である文字列、または同じコードを含む
+                    Proc
+                    のいずれかにすることができるはずですが、アプローチは適切ではありません。実際の値は
+                    Proc
+                    であり（文字列を使用するという提案は機能しません）、同じ
+                    Proc オブジェクトではないため（つまり be と eq
+                    は機能しません）、機能しません。また、.and_wrap_original
+                    をさまざまな場所にアタッチしようとしましたですが、エラーが発生するか、この例と同じ動作が発生します。私にできる最善のことは、少なくともブロックの戻り値が私が作成した
+                    Proc
+                    と同じであることを確認するために照合することです。まったく道に迷ってしまいました。インスタンス変数の使用に切り替えることができることはわかっていますが、それをミックスインを含むクラスに公開したくありません。</p>
+                    <p>要約すると、私は次のように言います。</p>
+                    <p>インスタンス変数を使用するようなモック臭でコードを汚染することなく、この「中央のブロックのみをモックする」動作を実現するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが何をするのかよくわかりません:</p>
+                    <pre><code>expect(block).to be(&quot;is_leader = true&quot;)
+</code></pre>
+                    <p>しかし、コード:</p>
+                    <pre><code>expect(dummy_elector).to receive(:become_leader_for_life) do |&amp;block|
+  expect(block).to be(&quot;is_leader = true&quot;)
+end
+</code></pre>
+                    <p>は受信したブロックを実行しないので、 is_leader
+                    が変更されることはありません。</p>
+                    <p>ブロックのソースを取得できると仮定すると、次のようなことができますか?</p>
+                    <pre><code>expect(dummy_elector).to receive(:become_leader_for_life) do |&amp;block|
+  block.call
+end
+</code></pre>
+                    <p>ブロックソースの block.call
+                    条件を使用する可能性はありますか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

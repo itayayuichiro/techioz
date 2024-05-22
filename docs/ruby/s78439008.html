@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7: jsonapi-serializer にネストされた関連付けを含める方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7: jsonapi-serializer にネストされた関連付けを含める方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7: jsonapi-serializer
+にネストされた関連付けを含める方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7
+                    APIには、多くの本を持っている著者と、その著者に属する本があります。私は「jsonapi-serializer」、「~&gt;
+                    2.2」を使用して著者とその書籍を取得しようとしています。
+                    json ファイルを見ると、次のようになります。</p>
+                    <pre><code>{
+  &quot;id&quot;: &quot;1&quot;,
+  &quot;type&quot;: &quot;author&quot;,
+  &quot;attributes&quot;: {
+    &quot;id&quot;: 1,
+    &quot;fname&quot;: &quot;John&quot;,
+    &quot;lname&quot;: &quot;Doe&quot;
+  },
+  &quot;relationships&quot;: {
+    &quot;books&quot;: {
+      &quot;data&quot;: [
+        {
+          &quot;id&quot;: &quot;1&quot;,
+          &quot;type&quot;: &quot;books&quot;
+        },
+        {
+          &quot;id&quot;: &quot;2&quot;,
+          &quot;type&quot;: &quot;books&quot;
+        },
+        {
+          &quot;id&quot;: &quot;3&quot;,
+          &quot;type&quot;: &quot;books&quot;
+        },
+        {
+          &quot;id&quot;: &quot;4&quot;,
+          &quot;type&quot;: &quot;books&quot;
+        },
+        {
+          &quot;id&quot;: &quot;5&quot;,
+          &quot;type&quot;: &quot;books&quot;
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+                    <p>関係にあるものを展開して完全な情報を表示するか、少なくとも
+                    ID とタイプだけではなく
+                    ID、名前、リリース年などを表示するようにカスタマイズしたいと考えています。本を取得するために別のデータベース
+                    クエリを作成する必要はありません。</p>
+                    <p>AuthorSerializer は次のようになります。</p>
+                    <pre><code>class AuthorSerializer
+  include JSONAPI::Serializer
+  attributes :id, :fname, :lname
+  has_many :books
+end
+</code></pre>
+                    <p>BookSerializer は次のようになります。</p>
+                    <pre><code>class BooksSerializer
+  include JSONAPI::Serializer
+  attributes :id, :name, :release_year, :awards, :genre, :price, :blurb, :isbn
+  belongs_to :author
+end
+</code></pre>
+                    <p>Author コントローラーは次のようになります。</p>
+                    <pre><code>class AuthorController &lt; ApplicationController
+  before_action :set_author, only: %i[ show update destroy ]
+
+  # GET /authors
+  def index
+    @authors = Author.includes(:books).all
+
+    render json: AuthorSerializer.new(@authors)
+  end
+
+  # GET /authors/1
+  def show
+    render json: AuthorSerializer.new(@author)
+  end
+
+  # POST /authors
+  def create
+    @author = Author.new(hospital_params)
+
+    if @author.save
+      render json: @author, status: :created, location: @author
+    else
+      render json: @author.errors, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH/PUT /authors/1
+  def update
+    if @author.update(author_params)
+      render json: @author
+    else
+      render json: @author.errors, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /authors/1
+  def destroy
+    @author.destroy
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_author
+      @author= Author.find(params[:id])
+    end
+
+    # Only allow a list of trusted parameters through.
+    def author_params
+      params.require(:author).permit(:id, :fname, :lname, :avatar[])
+    end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが求めているものは JSON:API
+                    仕様に違反しています。</p>
+                    <p>ご覧のとおり、リソース識別子には、タイプ、ID、メタ以外のものを含めることはできません
+                    (ID
+                    の代わりに蓋を含める必要がある非永続オブジェクトを除く)</p>
+                    <p>jsonapi-serializer gem
+                    は仕様に厳密に従っており、「リソース識別子オブジェクト」、つまりタイプと
+                    ID (コード ソース) のみを返します。</p>
+                    <p>Book
+                    オブジェクトをインクルードされたメンバーに追加する
+                    AuthorSerializer.new(<span class="citation"
+                    data-cites="authors">@authors</span>, include:
+                    [:books])
+                    を使用することもできますが、これは明らかに最もクリーンな表現ではありません</p>
+                    <p>例：</p>
+                    <pre><code>{:data=&gt;
+  {:id=&gt;&quot;1&quot;,
+   :type=&gt;:author,
+   :attributes=&gt;{:id=&gt;1, :fname=&gt;&quot;John&quot;, :lname=&gt;&quot;Doe&quot;},
+   :relationships=&gt;
+    {:books=&gt;
+      {:data=&gt;
+        [{:id=&gt;&quot;1&quot;, :type=&gt;:book},
+         {:id=&gt;&quot;2&quot;, :type=&gt;:book},
+         {:id=&gt;&quot;3&quot;, :type=&gt;:book},
+         {:id=&gt;&quot;4&quot;, :type=&gt;:book},
+         {:id=&gt;&quot;5&quot;, :type=&gt;:book}]}}},
+ :included=&gt;
+  [{:id=&gt;&quot;1&quot;,
+    :type=&gt;:book,
+    :attributes=&gt;{:id=&gt;1, :name=&gt;&quot;Book 1&quot;, :release_year=&gt;2011},
+    :relationships=&gt;{:author=&gt;{:data=&gt;{:id=&gt;&quot;1&quot;, :type=&gt;:author}}}},
+   {:id=&gt;&quot;2&quot;,
+    :type=&gt;:book,
+    :attributes=&gt;{:id=&gt;2, :name=&gt;&quot;Book 2&quot;, :release_year=&gt;2012},
+    :relationships=&gt;{:author=&gt;{:data=&gt;{:id=&gt;&quot;1&quot;, :type=&gt;:author}}}},
+   {:id=&gt;&quot;3&quot;,
+    :type=&gt;:book,
+    :attributes=&gt;{:id=&gt;3, :name=&gt;&quot;Book 3&quot;, :release_year=&gt;2013},
+    :relationships=&gt;{:author=&gt;{:data=&gt;{:id=&gt;&quot;1&quot;, :type=&gt;:author}}}},
+   {:id=&gt;&quot;4&quot;,
+    :type=&gt;:book,
+    :attributes=&gt;{:id=&gt;4, :name=&gt;&quot;Book 4&quot;, :release_year=&gt;2014},
+    :relationships=&gt;{:author=&gt;{:data=&gt;{:id=&gt;&quot;1&quot;, :type=&gt;:author}}}},
+   {:id=&gt;&quot;5&quot;,
+    :type=&gt;:book,
+    :attributes=&gt;{:id=&gt;5, :name=&gt;&quot;Book 5&quot;, :release_year=&gt;2015},
+    :relationships=&gt;{:author=&gt;{:data=&gt;{:id=&gt;&quot;1&quot;, :type=&gt;:author}}}}
+  ]}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

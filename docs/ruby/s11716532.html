@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails/Ruby/Postgres - LoadError はそのようなファイルをロードできません – pg_ext | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails/Ruby/Postgres - LoadError はそのようなファイルをロードできません – pg_ext",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails/Ruby/Postgres - LoadError
+はそのようなファイルをロードできません – pg_ext</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下の Rails コントローラーを使用して Ruby
+                    スクリプト (postgres データベースに接続する)
+                    を呼び出そうとしていますが、PG gem ファイルの 1
+                    つをロードするときに問題が発生しているようです。
+                    require
+                    ステートメントを「pg」を要求するように設定し、絶対パスも試しました（require
+                    /usr/local/rvm/gems/ruby-1.9.3-p194@railsTest/gems/pg-0.14.0/lib/pg）
+                    /)。ファイル「pg_ext」は実際にはディレクトリ内に存在します。さらに、Ruby
+                    スクリプト (dbrubyscript.rb)
+                    をスタンドアロンで問題なく実行できますが、この方程式に
+                    Rails
+                    を追加すると、「そのようなファイルを読み込めません –
+                    pg_ext」エラーが発生します。</p>
+                    <p>この問題を解決するものをオンラインで見つけることができなかったので、ここでの指示をいただければ幸いです。</p>
+                    <p>Railsコントローラー:</p>
+                    <pre><code>class TestdlController &lt; ApplicationController
+def runmyscript
+  load &quot;/usr/local/rvm/my_app/ruby_scripts/reports/dbrubyscript.rb&quot;
+  send_file &#39;/usr/local/rvm/tmp/failedtests.csv&#39;, :type =&gt; &#39;text/csv&#39;, :disposition =&gt; &#39;inline&#39;
+  flash[:notice] = &quot;Reports are being processed...&quot;
+end
+end
+</code></pre>
+                    <p>.rb ファイル (dbrubyscript.rb)
+                    には次のものが含まれます。</p>
+                    <pre><code>require &#39;rubygems&#39;
+require &#39;pg&#39;
+
+connects to (production) database
+@conn = PGconn.connect(&quot;zzzzz.test.prod&quot;, 5432,&quot;&quot;,&quot;&quot;,&quot;yyyyy_prod&quot; ,&quot;postgres&quot;, &quot;xxxxxx&quot;)
+.....
+</code></pre>
+                    <p>トレースエラー: TestdlController#runmyscript の
+                    LoadError</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    /usr/local/rvm/gems/ruby-1.9.3-p194@railsTest/gems/pg-0.14.0/lib/pg/ext/extconf.rb
+                    を実行して、どのようなエラーが発生するかを確認してください。これにより、私の場合、PostgreSQL
+                    クライアントが古すぎることがわかりました。現在のバージョンがインストールされていると思われるため、エラーは異なる可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

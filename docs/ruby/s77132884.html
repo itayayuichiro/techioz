@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>mongoDB の 1 つのドキュメント内に多数の json ファイルを挿入する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "mongoDB の 1 つのドキュメント内に多数の json ファイルを挿入する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>mongoDB の 1 つのドキュメント内に多数の json
+ファイルを挿入する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>質問があります： しかし、1 つのドキュメント
+                    コレクション内に多数の json
+                    ファイルを挿入するにはどうすればよいでしょうか? 各
+                    ID 製品の json ファイルを生成する mongoDB
+                    に接続された Ruby スクリプトがあります。 mongo
+                    では、次のような構造が必要です。</p>
+                    <pre><code>Id(document&#39;s name) : {
+
+many json for same ID
+
+} 
+</code></pre>
+                    <p>Rubyでこの構造を取得するにはどうすればよいですか?</p>
+                    <p>DBの名前は「test_db」、コレクションの名前は「test_coll」です。</p>
+                    <p>コードは次のとおりです:</p>
+                    <pre><code>Client = Mongo::Client.new([127.0.0.1:27017], :dtaabase =&gt; paperino)
+json_array ={}
+my_hash =Hash.new{}
+my_array = Array.new
+coll = Client[:ID_product]
+</code></pre>
+                    <p>Json
+                    ファイルを作成するための機密データを追加します</p>
+                    <pre><code>my_hash = JSON.parse(json_array.to_json)
+my_array = my_hash
+coll.update({{id: single_id_product} {&quot;$push&quot; =&gt; {json: 
+my_array}},{upsert:true})
+</code></pre>
+                    <p>Ruby スクリプトは 1 つの id_product
+                    に対してさらに json ファイルを生成します</p>
+                    <p>1つの製品のすべてのjsonファイルを1つのドキュメント内に保存したいのですが、
+                    古典的な insert.many または insert one
+                    を試してみましたが、1 つの json に対して 1
+                    つのドキュメントを生成するため、機能しませんでした。</p>
+                    <p>1つのドキュメント内にすべてのjson配列を追加する方法を試しましたが、うまくいきません。</p>
+                    <p>どのようにできるのか？ ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>MongoDB
+                    のドキュメントはフィールドと値のペアで構成されます。通常、ドキュメントを識別するための
+                    ObjectID 値を含む _id
+                    フィールドと、ドキュメントのデータを保持する追加フィールドがあります。例:</p>
+                    <pre><code>doc =  {
+  _id: BSON::ObjectId(&#39;650aeca18772677bb6613a89&#39;),
+  name: &quot;foo&quot;
+}
+</code></pre>
+                    <p>上記のドキュメントは、insert_one
+                    を介してコレクションに挿入できます。</p>
+                    <pre><code>coll.insert_one(doc)
+</code></pre>
+                    <p>埋め込みデータについても同様です。 data
+                    という配列:</p>
+                    <pre><code>doc =  {
+  _id: BSON::ObjectId(&#39;650aee198772677bb6613a8a&#39;),
+  data: [
+    { name: &#39;foo&#39; },
+    { name: &#39;bar&#39; }
+  ]
+}
+
+coll.insert_one(doc)
+</code></pre>
+                    <p>既存の配列に新しい値を追加するには、次の演算子があります。</p>
+                    <pre><code>coll.update_one(
+  { _id: BSON::ObjectId(&#39;650aee198772677bb6613a8a&#39;) },
+  { &#39;$push&#39;: { data: { name: &#39;baz&#39; } } }
+)
+</code></pre>
+                    <p>複数の値を配列に追加するには、修飾子とともに使用できます。</p>
+                    <pre><code>coll.update_one(
+  { _id: BSON::ObjectId(&#39;650aee198772677bb6613a8a&#39;) },
+  { &#39;$push&#39;: { data: { &#39;$each&#39;: [ { name: &#39;qux&#39; }, { name: &#39;quux&#39; } ] } } }
+)
+</code></pre>
+                    <p>上記の変更後のドキュメントは次のようになります。</p>
+                    <pre><code>coll.find(_id: BSON::ObjectId(&#39;650aee198772677bb6613a8a&#39;)).first
+#=&gt; {
+#     &quot;_id&quot;=&gt;BSON::ObjectId(&#39;650aee198772677bb6613a8a&#39;),
+#     &quot;data&quot;=&gt;[
+#       {&quot;name&quot;=&gt;&quot;foo&quot;},
+#       {&quot;name&quot;=&gt;&quot;bar&quot;},
+#       {&quot;name&quot;=&gt;&quot;baz&quot;},
+#       {&quot;name&quot;=&gt;&quot;qux&quot;},
+#       {&quot;name&quot;=&gt;&quot;quux&quot;}
+#     ]
+#   }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

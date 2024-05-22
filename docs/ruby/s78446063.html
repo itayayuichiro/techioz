@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Linux では Open3.popen3 がコマンドをラップしているのに MacOS ではラップしていないのはなぜですか? [閉まっている] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Linux では Open3.popen3 がコマンドをラップしているのに MacOS ではラップしていないのはなぜですか? [閉まっている]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Linux では Open3.popen3
+がコマンドをラップしているのに MacOS ではラップしていないのはなぜですか?
+[閉まっている]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このコード</p>
+                    <pre><code>Open3.popen3(&#39;mydir/myscript&#39;)
+</code></pre>
+                    <p>Linux では sh -c でラップされていますが、MacOS
+                    ではラップされていません。なぜ？</p>
+                    <p>ルビー3.3</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの結果を再現することはできません。</p>
+                    <p>Ruby
+                    がシェルを使用するかどうかに関するルールは、ドキュメントで詳しく説明されています。</p>
+                    <p>mydir/myscript
+                    とは正確には何なのか、また、mydir/myscript
+                    が両方のシステムで同様に条件をトリガーするかどうかを詳しく知らなければ、これ以上答えることはできません。</p>
+                    <p>ただし、一般的なケースでは、あなたが説明したシナリオが起こっていないことを示すのは簡単です（または、少なくとも私はそれを引き出すことができませんでした）。以下を使用してテストします。</p>
+                    <p>test.rb 内:</p>
+                    <pre><code>#!/usr/bin/env ruby
+
+require &#39;open3&#39;
+
+i, o, e, t = Open3.popen3(&#39;./test.sh&#39;)
+puts o.read
+</code></pre>
+                    <p>test.sh 内:</p>
+                    <pre><code>#!/bin/bash
+
+echo -n &quot;  PID: &quot;
+ps -o command= -p $$
+echo -n &quot; PPID: &quot;
+ps -o command= -p $PPID
+pppid=$(ps -o ppid= -p $PPID)
+echo -n &quot;PPPID: &quot;
+ps -o command= -p $pppid
+</code></pre>
+                    <p>OSX 上の Ruby test.rb の出力 (bash):</p>
+                    <pre><code>  PID: /bin/bash ./test.sh
+ PPID: ruby test.rb
+PPPID: -bash --posix
+</code></pre>
+                    <p>Ubuntu での Ruby test.rb の出力 (bash):</p>
+                    <pre><code>  PID: /bin/bash ./test.sh
+ PPID: ruby test.rb
+PPPID: -bash
+</code></pre>
+                    <p>2
+                    つの出力は、些細な詳細が異なるだけのようです。一方のプロセスに存在せず、もう一方のプロセスには存在しない余分なプロセスを見つけることができません。どちらの場合も、Ruby
+                    はシェルを使用せず、実行可能ファイルを直接呼び出しました
+                    (./test.sh
+                    は文字列ですが、シェルの予約語や組み込み語で始まっておらず、メタキャラクターも含まれていません)。その後、実行可能ファイル内のシバン行により、OS
+                    が /bin/bash を呼び出しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

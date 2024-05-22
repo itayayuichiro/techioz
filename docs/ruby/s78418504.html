@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Regex: Ruby で一致する代替のみをキャプチャする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Regex: Ruby で一致する代替のみをキャプチャする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Regex: Ruby
+で一致する代替のみをキャプチャする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はこれで頭をかち割っています。
+                    ユーザーが作成したパターンを使用する単純なパスワードジェネレーターを構築しています。パターンには、6
+                    つの文字グループを表す文字 a ～ f
+                    が含まれています。</p>
+                    <p>したがって、ユーザーが ababcd と入力すると、abce1
+                    のような結果が得られます。 パターン Ababababababccd
+                    は Robuxejiqu23# のようなものを生成します。
+                    「Ababababababccd」はほとんど読みにくいので、これを繰り返して省略できるようにしたいと思います。
+                    Ababababababccd は、Ab(ab){5}ccd または
+                    Ab(ab){5}c{2}d と書くこともできます
+                    (これは愚かですが、完全を期すために)。 グループ a
+                    またはグループ b
+                    のいずれかのキャラクターを使用したい場合は、[ab]
+                    が機能します。</p>
+                    <p>次の組み合わせで繰り返しをキャプチャする適切な正規表現を「構築」しました。</p>
+                    <p>これまでに作成した正規表現では、上記のすべてのケースが検出されます。
+                    /(?:([[abcdef]+])|(([[]abcdef]+))|([abcdef])){()}/i</p>
+                    <p>私の作業中の Ruby
+                    コードは次のようになりますが、より洗練された解決策を見つけたいと考えています。</p>
+                    <pre><code># class
+REPETITION = /(?:(\[[abcdef]+\])|\(([\[\]abcdef]+)\)|([abcdef]))\{(\d+)\}/i
+GROUPS = /\[([abcdefxyz]+)\]/i;
+
+# method generate
+pattern = params[:pattern]
+group = {
+  &#39;A&#39; =&gt; params[:group_a].upcase,
+  &#39;a&#39; =&gt; params[:group_a],
+  &#39;B&#39; =&gt; params[:group_b].upcase,
+  &#39;b&#39; =&gt; params[:group_b],
+  &#39;C&#39; =&gt; params[:group_c].upcase,
+  &#39;c&#39; =&gt; params[:group_c],
+  &#39;D&#39; =&gt; params[:group_d].upcase,
+  &#39;d&#39; =&gt; params[:group_d],
+  &#39;E&#39; =&gt; params[:group_e].upcase,
+  &#39;e&#39; =&gt; params[:group_e],
+  &#39;F&#39; =&gt; params[:group_f].upcase,
+  &#39;f&#39; =&gt; params[:group_f]
+}
+
+# Evaluate repetitions: ...{n}
+if pattern =~ REPETITION
+  pattern.gsub!(REPETITION) do
+    match = $1 != nil ? $1 : $2 != nil ? $2 : $3
+    count=$4.to_i
+    expanded=&quot;&quot;
+    count.times do
+      expanded+=match
+    end
+    expanded
+  end
+end
+
+# Evaluate character groups [...]
+if pattern =~ GROUPS
+  pattern.gsub!(GROUPS) do
+    $1[rand($1.length)]
+  end
+end
+
+# Evaluate the final pattern (repetitions and []-groups processed)
+password=&quot;&quot;
+pattern.each_char do |c|
+  password+=group[c][rand(group[c].length)]
+end
+@password=password;
+</code></pre>
+                    <p>私のアイデアは、すべての出現を検索し、繰り返しを拡張された繰り返しに置き換えて、Ab(ab){5}ccd
+                    を後で処理する Abababababab Ccd にすることです。</p>
+                    <p>私の仮定は、.gsub
+                    は各出現を個別に処理し、各一致を適切なパターンとカウントに置き換えることができるということです。
+                    gsub
+                    がそれらすべてを一度に置き換えようとすると、それは間違った方法になります。</p>
+                    <p>私にとって、(?:a|b|c){count}
+                    内のどのグループが一致するかは関係ありませんが、一致は
+                    として返され、カウントは
+                    として返される必要があります。</p>
+                    <p>上記の正規表現は、 、 、および
+                    に一致します。は常に私の繰り返し回数です。しかし、その後、どれが
+                    nil
+                    ではないかを見つけて、それを使用して展開する必要があります。
+                    「安価な」ケースやケースを使用することもできますが、エレガントな解決策が必要です。</p>
+                    <p>regex101 では (?|
+                    で動作するようになりましたが、Ruby
+                    はそれを理解できません。</p>
+                    <p>私が何を望んでいるのかが明確だといいのですが!?</p>
+                    <p>Typescript と C#
+                    では動作するようになりましたが、Ruby
+                    でも動作させたいと考えています… :-)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>提供されたケースを処理するために私が思いついたものは次のとおりです。</p>
+                    <pre><code>REPETITION = /(\[[abcdef]+\]|\([\[\]abcdef]+\)|[abcdef])(?:\{(\d+)\})?/i
+
+GROUPS = {
+  &#39;a&#39; =&gt; &#39;bcdfghjklmnpqrstvwxyz&#39;,
+  &#39;b&#39; =&gt; &#39;aeiou&#39;,
+  &#39;c&#39; =&gt; &#39;0123456789&#39;,
+  &#39;d&#39; =&gt; &#39;!$%&amp;/()=?*+#_.,:;_&#39;
+}.then {|h| h.merge(h.map {|k,v| [k.upcase,v.upcase]}.to_h)}
+
+def expand(str)
+  str.scan(REPETITION).map do |group, count|
+    sub_pattern = group.start_with?(&#39;(&#39;) ? group[/(?&lt;=\()(.*)(?=\))/, 1] : group
+    count ? sub_pattern * count.to_i : sub_pattern
+  end.join.gsub(/\[.*?\]/) {|match| match[1..-2].chars.shuffle.first}
+end 
+
+def generate(str, groups=GROUPS)
+  expanded = expand(str)
+  puts &quot;Expansion: #{expanded}&quot;
+  expanded.each_char.sum(&quot;&quot;){|c| groups[c][rand(groups[c].length)]}
+end 
+</code></pre>
+                    <p>出力例:</p>
+                    <pre><code>patterns = [&#39;(ab){2}&#39;,&#39;a{3}&#39;,&#39;[ab]{2}&#39;,&#39;(a[bc]d){16}&#39;,&#39;Ab(ab){5}ccd&#39;,&#39;Ab(ab){5}c{2}d&#39;]
+
+patterns.each do |pattern|
+  puts &quot;-------Pattern: #{pattern}-------&quot;
+  puts &quot;Generated: #{generate(pattern)}&quot;
+end
+
+# -------Pattern: (ab){2}-------
+# Expansion: abab
+# Generated: niha
+# -------Pattern: a{3}-------
+# Expansion: aaa
+# Generated: svh
+# -------Pattern: [ab]{2}-------
+# Expansion: ba
+# Generated: ak
+# -------Pattern: (a[bc]d){16}-------
+# Expansion: abdacdabdabdabdabdabdacdacdacdacdabdabdacdabdabd
+# Generated: lu+s5$cu%ye#re+mo%qu)s4?c1*h8(l5!ja*zu?g9_lu/ze!
+# -------Pattern: Ab(ab){5}ccd-------
+# Expansion: Ababababababccd
+# Generated: Meqonicovala75!
+# -------Pattern: Ab(ab){5}c{2}d-------
+# Expansion: Ababababababccd
+# Generated: Pezotuwegona98#
+</code></pre>
+                    <p>繰り返しを照合し、回数によって展開し、XOR
+                    を置き換えて完全なパターンを展開します。</p>
+                    <p>次に、単純に GROUPS
+                    ハッシュから各文字を検索し、ランダムな要素を選択します。</p>
+                    <p>注:
+                    これは、次のような他のケースには対応しません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

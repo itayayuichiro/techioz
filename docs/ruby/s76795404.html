@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 3.2 より前の Enumerator::Product の実装 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 3.2 より前の Enumerator::Product の実装",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 3.2 より前の Enumerator::Product
+の実装</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>enumerator のデカルト積は、バージョン 3.2
+                    以降、クラス Enumerator::Product で最新の Ruby
+                    コアに含まれています。</p>
+                    <p>私の質問は、Ruby の以前のリリースでの最良の
+                    (パフォーマンス、メモリ、オーバーヘッドなど)
+                    実装を再検討することです。</p>
+                    <p>より正確に言うと、私の質問は基本的に、左と右の再帰バージョンの比較に関するものです。</p>
+                    <pre><code>def left_cartesian_product((*f, e))
+  Enumerator.new do |y|
+    if e.nil?
+      y &lt;&lt; []
+    else
+      left_cartesian_product(f).each { |u|
+        e.each { |x|
+          y &lt;&lt; [*u, x]
+        }
+      }
+    end
+  end
+end
+</code></pre>
+                    <pre><code>def right_cartesian_product((e, *f))
+  Enumerator.new do |y|
+    if e.nil?
+      y &lt;&lt; []
+    else
+      e.each { |x|
+        right_cartesian_product(f).each { |u|
+          y &lt;&lt; [x, *u]
+        }
+      }
+    end
+  end
+end
+</code></pre>
+                    <pre><code># usage sample
+xxxx_cartesian_product([&#39;a&#39;..&#39;h&#39;, 1..8]).each { |c, r| puts &quot;%s%d&quot; % [c,r] }
+</code></pre>
+                    <p>より少ないオーバーヘッドとより少ないコードでそれを実装するより賢い方法があれば、私も興味があります…
+                    左の場合は (*f, e= nil)
+                    では適切に動作せず、少なくとも 1
+                    つのパラメーターを要求し続けるため、両方の場合の配列をパラメーター
+                    リストに保持しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>右のものは、より多くの Enumerator
+                    オブジェクトを初期化しているため、時間がかかります。</p>
+                    <pre><code>def recursive_right((e, *f))
+  Enumerator.new do |y|
+    puts &quot;right - new enumerator&quot;
+    if e.nil?
+      y &lt;&lt; []
+    else
+      e.each { |x|
+        recursive_right(f).each { |u|
+          y &lt;&lt; [x, *u]
+        }
+      }
+    end
+  end
+end
+
+def recursive_left((*f, e))
+  Enumerator.new do |y|
+    puts &quot;left - new enumerator&quot;
+    if e.nil?
+      y &lt;&lt; []
+    else
+      recursive_left(f).each { |u|
+        e.each { |x|
+          y &lt;&lt; [*u, x]
+        }
+      }
+    end
+  end
+end
+</code></pre>
+                    <pre><code>input = [&quot;a&quot;..&quot;c&quot;, [1, 2, 3]]
+recursive_left(input).to_a
+recursive_right(input).to_a
+
+# =&gt;
+# left - new enumerator
+# left - new enumerator
+# left - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+# right - new enumerator
+</code></pre>
+                    <p>理想的には、1
+                    つだけを初期化する必要があります。</p>
+                    <pre><code>def enum_product(args, m = [], &amp;)
+  first, *rest = args
+  unless first
+    yield m
+    return
+  end
+  first.each do |i|
+    enum_product(rest, m + [i], &amp;)
+  end
+end
+
+def product(*args)
+  Enumerator.new do |y|
+    puts &quot;product - new enumerator&quot;
+    enum_product(args) do |enum|
+      y &lt;&lt; enum
+    end
+  end
+end
+
+input = [&quot;a&quot;..&quot;c&quot;, [1, 2, 3]]
+product(*input).to_a
+# =&gt;
+# product - new enumerator
+# [[&quot;a&quot;, 1], [&quot;a&quot;, 2], [&quot;a&quot;, 3], [&quot;b&quot;, 1], [&quot;b&quot;, 2], [&quot;b&quot;, 3], [&quot;c&quot;, 1], [&quot;c&quot;, 2], [&quot;c&quot;, 3]]
+</code></pre>
+                    <p>または、Enumerable を使用します。</p>
+                    <pre><code>class Product
+  include Enumerable
+
+  def initialize(*args)
+    @args = args
+  end
+
+  def each
+    enum_product(@args) do |enum|
+      yield enum
+    end
+  end
+
+  private
+
+  def enum_product(args, m = [], &amp;)
+    first, *rest = args
+    unless first
+      yield m
+      return
+    end
+    first.each do |i|
+      enum_product(rest, m + [i], &amp;)
+    end
+  end
+end
+</code></pre>
+                    <p>ここに小さなベンチマークがあります:</p>
+                    <pre><code>input    = [&quot;a&quot;..&quot;c&quot;, [1, 2, 3], :x..:z]
+expected = Enumerator::Product.new(*input).to_a
+puts &quot;Test:&quot;
+p recursive_left(input).to_a  == expected
+p recursive_right(input).to_a == expected
+p product(*input).to_a        == expected
+p Product.new(*input).to_a    == expected
+
+require &quot;benchmark&quot;
+n = 100_000
+Benchmark.bmbm(10) do |x|
+  x.report(:right)   { n.times { recursive_right(input).to_a } }
+  x.report(:left)    { n.times { recursive_left(input).to_a } }
+  x.report(:product) { n.times { product(*input).to_a } }
+  x.report(:Product) { n.times { Product.new(*input).to_a } }
+end
+</code></pre>
+                    <pre><code>Test:
+true
+true
+true
+true
+Rehearsal ----------------------------------------------
+right       16.247681   0.044432  16.292113 ( 16.301701)
+left         4.062121   0.004015   4.066136 (  4.068666)
+product      3.086748   0.012002   3.098750 (  3.100267)
+Product      2.399628   0.004009   2.403637 (  2.404921)
+------------------------------------ total: 25.860636sec
+
+                 user     system      total        real
+right       16.419361   0.039966  16.459327 ( 16.470319)
+left         3.988729   0.011989   4.000718 (  4.002679)
+product      3.098028   0.003985   3.102013 (  3.104423)
+Product      2.364256   0.007983   2.372239 (  2.373399)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

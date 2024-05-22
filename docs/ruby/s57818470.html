@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec: 含まれているモジュールではメソッドのみが利用可能になり、定数は利用できないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec: 含まれているモジュールではメソッドのみが利用可能になり、定数は利用できないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec:
+含まれているモジュールではメソッドのみが利用可能になり、定数は利用できないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>テスト
+                    スイート全体の単体テストで使用したい定数を含むモジュールがあります。</p>
+                    <p>私が理解できないのは、モジュールを含めると定数が使用できないのに、メソッド
+                    (モジュールに追加した場合)
+                    が使用できる理由です。</p>
+                    <p>例：</p>
+                    <pre><code>module Namespace
+  module Constants
+    K = 1
+    def mymethod; end
+  end
+end
+
+describe Namespace::Subject do
+  include Namespace::Constants
+  context &quot;Context&quot; do
+    it &quot;should execute&quot; do
+      mymethod # succeeds
+      K        # fails
+    end
+  end
+end
+</code></pre>
+                    <p>同じ原則がコンソールでも機能します。</p>
+                    <pre><code>2.5.5 :008 &gt; include Namespace::Constants
+ =&gt; Object 
+2.5.5 :010 &gt; K
+ =&gt; 1 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>名前空間内で定義された定数は、名前空間内から定数を先頭に置くことで呼び出すことができます。継承は、それが定義されているレベルで行われます。新しいモジュールまたはクラスにメソッドを含める場合、それらのメソッドは、定義されているオブジェクト
+                    レベルで呼び出すことができます。</p>
+                    <p>K が Ruby
+                    コンソール内で機能したのは、それらをデフォルトまたはグローバル
+                    スコープに含めたためです。たとえばこれを実行した場合は、異なる結果が得られるでしょう。</p>
+                    <pre><code>class A
+  include Namespace::Constants
+end
+
+K
+NameError: uninitialized constant K
+A::K
+=&gt;1
+
+a = A.new
+
+a.class::K
+=&gt;1
+</code></pre>
+                    <p>これも説明できる仕様です</p>
+                    <pre><code>require &#39;pry&#39;
+
+module Namespace
+  module Constants
+    def mymethod; end
+    K = 1
+  end
+end
+
+module Namespace
+  module Subject
+    include Namespace::Constants
+  end
+end
+
+class A
+  include Namespace::Constants
+end
+
+describe Namespace::Subject do
+  describe &#39;Inherited Constants&#39; do
+    it &#39;is defined module level&#39; do
+      # Check if K is defined at the class level
+      expect(Namespace::Subject.const_get(:K)).to eq(1)
+      expect(Namespace::Subject::K).to eq(1)
+    end
+  end
+end
+
+describe A do
+  describe &#39;instance methods&#39; do
+    it &#39;defines mymethod&#39; do
+      a = A.new
+      expect(a).to respond_to(:mymethod)
+    end
+  end
+  describe &#39;inherits&#39; do
+    it &#39;inherits class definitions&#39; do
+      expect(A::K).to eq(1)
+    end
+  end
+end
+
+describe &#39;Global Scope&#39;  do
+  it &#39;K is not defined&#39; do
+    include Namespace::Constants
+    begin
+      K
+    rescue NameError =&gt; e
+      puts e
+    end
+  end
+end
+
+</code></pre>
+                    <p>これが Ruby
+                    での継承の仕組みを説明できれば幸いです。あなたが直面している問題は、Rspec
+                    自体とは何の関係もありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

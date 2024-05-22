@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>インスタンスメソッドからクラスメソッドにアクセスする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "インスタンスメソッドからクラスメソッドにアクセスする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>インスタンスメソッドからクラスメソッドにアクセスする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はモデルを持っています:</p>
+                    <pre><code>class UserWeight &lt; ActiveRecord::Base
+
+  self.table_name = &#39;Weight&#39;
+
+  scope :logged_between, lambda { |start_date, end_date|
+    where(weight_date: start_date.to_date...(end_date.to_date.end_of_day)) unless
+    start_date.nil? || end_date.nil?
+  }
+
+  # returns the sum of points 
+  def total_points
+      self.class.Userweight
+    (UserWeight.blank?) ? 0 : UserWeight.inject(0) {|a, e| a + e.points}
+  end
+end
+</code></pre>
+                    <p>コントローラ：</p>
+                    <pre><code>@weights = weight_usages.logged_between(params[:start_date], end_date)
+</code></pre>
+                    <p>重みで次のデータを取得します。</p>
+                    <pre><code>weights: [
+{
+weight: &quot;170.0&quot;,
+weight_date: &quot;2016-12-28&quot;,
+points: 1
+},
+{
+weight: &quot;185.0&quot;,
+weight_date: &quot;2017-01-04&quot;,
+points: 1
+}
+.......
+ ]
+</code></pre>
+                    <p>アクティブなレコードが配列のコレクションを返しています。クラスメソッドにアクセスして、インスタンスメソッドで合計を実行したいと考えています。データに基づいて、インスタンスメソッドから合計ポイント2を返したいと考えています。どうすればそれができるでしょうか？</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>total_points はインスタンス
+                    メソッドであるため、このメソッドはほとんど意味がないようですが、なぜすべてのレコードのポイントの合計をインスタンス
+                    メソッドで表示するのでしょうか?</p>
+                    <p>上記の注意に加えて、ActiveRecord
+                    のメソッドを使用してください。合計を探しています:</p>
+                    <pre><code>UserWeight.sum(:points)
+</code></pre>
+                    <p>メソッド内:</p>
+                    <pre><code>self.class.sum(:points)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

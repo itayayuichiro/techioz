@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>二重コロンをメソッド呼び出しに使用する場合、二重コロンは内部でどのように機能するのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "二重コロンをメソッド呼び出しに使用する場合、二重コロンは内部でどのように機能するのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>二重コロンをメソッド呼び出しに使用する場合、二重コロンは内部でどのように機能するのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは理論的な質問です。 ::
+                    を使用してメソッドを呼び出すことができることはわかっています。めったに使用されませんが、使用される可能性があります。例えば：</p>
+                    <pre><code>user = User.new
+user::name
+</code></pre>
+                    <p>問題は、内部でどのように動作しているのかということです。
+                    user::name を実行できる実装の詳細は何ですか?</p>
+                    <p>このメソッドの呼び出し方法が次のように言及されている場所をいくつか見つけました。</p>
+                    <p>しかし、実装の詳細は提供されていません。これは私にとって興味深いトピックです。
+                    Ruby
+                    のソースコードも調べてみましたが、今のところは成功しませんでした。</p>
+                    <p>これらのスレッドもチェックしました:</p>
+                    <p>彼らは :: がどのように機能するか、および :: と ..
+                    の違いについて説明しています。そして、これは私が探しているものではありません。</p>
+                    <p>::
+                    について詳しく知り、深く理解するのに役立つ情報があれば幸いです。私の質問は、::
+                    の使用方法ではなく、内部でどのように動作するかについてです。
+                    :: の実装の詳細を知りたいです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それを知るための 1 つの方法:</p>
+                    <pre><code>puts RubyVM::InstructionSequence.compile(&quot;M::M&quot;).disasm
+puts
+
+puts RubyVM::InstructionSequence.compile(&quot;M.m&quot;).disasm
+puts
+puts RubyVM::InstructionSequence.compile(&quot;M::m&quot;).disasm
+</code></pre>
+                    <pre><code># this one does a constant lookup only
+
+== disasm: #&lt;ISeq:&lt;compiled&gt;@&lt;compiled&gt;:1 (1,0)-(1,4)&gt; (catch: false)
+0000 opt_getconstant_path                   &lt;ic:0 M::M&gt;               (   1)[Li]
+0002 leave
+
+
+# these two are identical and do a method call
+
+== disasm: #&lt;ISeq:&lt;compiled&gt;@&lt;compiled&gt;:1 (1,0)-(1,3)&gt; (catch: false)
+0000 opt_getconstant_path                   &lt;ic:0 M&gt;                  (   1)[Li]
+0002 opt_send_without_block                 &lt;calldata!mid:m, argc:0, ARGS_SIMPLE&gt;
+0004 leave
+
+== disasm: #&lt;ISeq:&lt;compiled&gt;@&lt;compiled&gt;:1 (1,0)-(1,4)&gt; (catch: false)
+0000 opt_getconstant_path                   &lt;ic:0 M&gt;                  (   1)[Li]
+0002 opt_send_without_block                 &lt;calldata!mid:m, argc:0, ARGS_SIMPLE&gt;
+0004 leave
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://rubyapi.org/3.2/o/rubyvm/instructionsequence</p>
+                    <p>opt_getconstant_path を検索して、::
+                    がコンパイルされる場所を見つけることができます。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/ruby/ruby/blob/v3_2_2/compile.c#L9112</p>
+                    <p>c の知識がゼロの私の場合、 ^ は if
+                    何かが定数であること、else
+                    関数が呼び出されることを明確に示しています
+                    (コメントにそう書いてあるので :)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

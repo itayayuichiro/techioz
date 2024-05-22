@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ユーザーとプロジェクトを関連付けるときに has_many による関連付けエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ユーザーとプロジェクトを関連付けるときに has_many による関連付けエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ユーザーとプロジェクトを関連付けるときに
+has_many による関連付けエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>2つのモデル、つまりユーザーとプロジェクトの間の多対多の関係に
+                    has_many :through association
+                    を使用しましたが、多対一の関係でうまく機能したクエリがエラーをスローしているため、それには何らかの間違いがあるようです。誰かチェックしてもらえませんか！スキーマファイルは以下のとおりです。</p>
+                    <pre><code>    ActiveRecord::Schema.define(version: 2018_12_19_170114) do
+
+  create_table &quot;project_users&quot;, force: :cascade do |t|
+    t.integer &quot;user_id&quot;
+    t.integer &quot;project_id&quot;
+    t.index [&quot;project_id&quot;], name: &quot;index_project_users_on_project_id&quot;
+    t.index [&quot;user_id&quot;], name: &quot;index_project_users_on_user_id&quot;
+  end
+
+  create_table &quot;projects&quot;, force: :cascade do |t|
+    t.text &quot;content&quot;
+    t.integer &quot;user_id&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;picture&quot;
+    t.string &quot;title&quot;
+    t.index [&quot;user_id&quot;], name: &quot;index_projects_on_user_id&quot;
+  end
+
+  create_table &quot;users&quot;, force: :cascade do |t|
+    t.string &quot;name&quot;
+    t.string &quot;email&quot;
+    t.integer &quot;enroll&quot;
+    t.datetime &quot;created_at&quot;, null: false
+    t.datetime &quot;updated_at&quot;, null: false
+    t.string &quot;password_digest&quot;
+    t.boolean &quot;admin&quot;, default: false
+    t.index [&quot;email&quot;], name: &quot;index_users_on_email&quot;, unique: true
+  end
+
+end
+</code></pre>
+                    <p>user.rb
+                    ファイルには次のコードが含まれています。</p>
+                    <p>クラス ユーザー &lt; ApplicationRecord has_many
+                    :project_users has_many
+                    :projects、経由::project_users デフフィード
+                    プロジェクト 終わり 終わり</p>
+                    <pre><code>The project.rb file has the code:
+
+    class Project &lt; ApplicationRecord
+      has_many :project_users
+      has_many :users, :through =&gt; :project_users
+</code></pre>
+                    <p>project_user.rb
+                    ファイルには次のコードがあります。</p>
+                    <pre><code>class ProjectUser &lt; ApplicationRecord
+    belongs_to :project, foreign_key: true
+    belongs_to :user, foreign_key: true
+end
+class StaticPagesController &lt; ApplicationController
+  def home
+    if logged_in?
+      @project = current_user.projects.build
+      @feed_items = current_user.feed.paginate(page: params[:page])
+    end
+  end
+</code></pre>
+                    <p>エラーは次のコードによってスローされます。</p>
+                    <pre><code>&lt;% if @user.projects.any? %&gt;
+    &lt;h3&gt;Projects (&lt;%= @user.projects.count() %&gt;)&lt;/h3&gt;
+</code></pre>
+                    <p>エラーは次のとおりです。</p>
+                    <pre><code> SQLite3::SQLException: no such column: project_users.true: SELECT  1 AS one FROM &quot;projects&quot; INNER JOIN &quot;project_users&quot; ON &quot;projects&quot;.&quot;id&quot; = &quot;project_users&quot;.&quot;true&quot; WHERE &quot;project_users&quot;.&quot;user_id&quot; = ? LIMIT ?
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コメントで示唆されているように、これはひどい言葉遣いの質問です。エラー
+                    メッセージを含めてください。そうしないとデバッグできません。</p>
+                    <p>一目見ただけで、スキーマに次の問題があることがわかります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

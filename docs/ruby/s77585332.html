@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 範囲を遅延連結するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 範囲を遅延連結するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+範囲を遅延連結するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>非常に広い範囲を反復処理して、特定の制約を満たす最初の要素を見つける必要があります。それはすでに
+                    Ruby で効率的に行うことができます。</p>
+                    <pre><code># Runs until memory is exhausted _without_ lazy!
+(1..).lazy.select { |i| i &gt; 5 }.first
+# =&gt; 6
+</code></pre>
+                    <p>ただし、私のユースケースでは、範囲のランダムな間隔で反復を開始し、範囲の終わりに到達したときにチェックに合格した要素がない場合は、範囲の先頭から（ランダムな間隔に到達するまで）継続したいと考えています。必要に応じてもう一度)。
+                    Ruby で 2 つの異なる「範囲」を 1
+                    つに結合することを参考にして、私は次のようになりました…</p>
+                    <pre><code>letter = (&#39;b&#39;..&#39;y&#39;).to_a.sample
+[*letter..&#39;z&#39;, *&#39;a&#39;...letter].map { |c| c.capitalize }.join
+# =&gt; &quot;FGHIJKLMNOPQRSTUVWXYZABCDE&quot;
+</code></pre>
+                    <p>もちろん、反復する範囲としてアルファベットはありません。これは単なる小規模な例であり、私のユースケースでは失敗します。</p>
+                    <p>さらにグーグルで調べて実験した結果、次の構成にたどり着きました。</p>
+                    <pre><code># lazy version of previous alphabet example
+[(letter..&#39;z&#39;), (&#39;a&#39;...letter)].lazy.flat_map { |r| r.each.lazy }.map { |c| c.capitalize }.force.join
+=&gt; &quot;FGHIJKLMNOPQRSTUVWXYZABCDE&quot;
+
+# Comparable to what I want
+start = rand(2**64)
+# =&gt; 15282219649142738977
+[(start..2**64), (0...start)].lazy.flat_map { |r| r.each.lazy }.select { |i| i % 7 == 0 }.first(5)
+# =&gt; [15282219649142738978, 15282219649142738985, 15282219649142738992, 15282219649142738999, 15282219649142739006]
+iter = [(start..2**64), (0...start)].lazy.flat_map { |r| r.each.lazy }.select { |i| i % 7 == 0 }
+# =&gt; #&lt;Enumerator::Lazy: #&lt;Enumerator::Lazy: #&lt;Enumerator::Lazy: [15282219649142738977..18446744073709551616, 0...15282219649142738977]&gt;:flat_map&gt;:select&gt;
+iter.next
+# =&gt; 15282219649142738978
+iter.next
+# =&gt; 15282219649142738985
+</code></pre>
+                    <p>それは私には複雑すぎるように思えますが、誰かがもっと良いアイデアを持っているでしょうか？</p>
+                    <p>お時間をいただきありがとうございます。
+                    ザビエル。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <ul>
+                    <li>を使用して列挙子を連結できます。範囲は列挙子ではありませんが、Range#each
+                    を使用して列挙子を取得できます。次に例を示します。</li>
+                    </ul>
+                    <pre><code>enum = (-3..0).each + (1..)
+</code></pre>
+                    <p>結合された列挙子は、連結された各列挙子を反復します。</p>
+                    <pre><code>enum.take(10)
+#=&gt; [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+</code></pre>
+                    <p>Ruby には、まさにこれを行う専用のメソッド
+                    Enumerable#find
+                    があります。コレクションを反復し、ブロックが
+                    (それ以上反復せずに)
+                    真実の結果を返す最初の要素を返します。</p>
+                    <pre><code>enum.find { |i| i &gt; 5 }
+#=&gt; 6
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

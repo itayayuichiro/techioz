@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq と Rails での初期化されていない定数エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq と Rails での初期化されていない定数エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq と Rails
+での初期化されていない定数エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、初期化されていない一定のエラーが大量に発生するようになりましたが、その理由がわかりません。以下に具体的な例を示します。この例では、ジョブ内からジョブを呼び出しています。しかし、他の多くのジョブでも同様の初期化されていない定数エラーが発生します。すべてのジョブはアプリ/ジョブ内にあります。何かが足りないのでしょうか？
+                    Sidekiq は最近まで問題なく動作していました。</p>
+                    <p>Heroku キャッシュを削除し、Sidekiq
+                    でのすべての再試行を強制終了しましたが、依然としてこれらの問題が発生します。ここには本当に奇妙なことがあります。
+                    Sidekiq
+                    ジョブに関連する別のエラーで、「引数の数が間違っています
+                    (2 が指定され、1
+                    が期待されます)」というエラーが発生します。数週間前に、2
+                    つの引数を受け取るように問題の関数を更新しました。
+                    Sidekiq
+                    がコードベースのキャッシュされたバージョンに何らかの理由でスタックしている可能性はありますか?</p>
+                    <p>Rubyのバージョン：ruby 2.5.3p105 Sidekiq
+                    バージョン: 6.0.7</p>
+                    <p>app/jobs/process_email_notifications_job.rb</p>
+                    <pre><code>class ProcessEmailNotificationsJob &lt; ApplicationJob
+  queue_as :default
+
+  def perform
+    user_ids = UserNotification.where(is_read: false).pluck(:user_id).uniq
+    user_ids.each do |user_id|
+      ProcessIndividualEmailNotificationsJob.perform_later user_id
+    end
+  end
+end
+</code></pre>
+                    <p>app/jobs/process_individual_email_notifications_job.rb</p>
+                    <pre><code>class ProcessIndividualEmailNotificationsJob &lt; ApplicationJob
+queue_as :default
+  def perform(user_id)
+     ...
+  end
+end
+</code></pre>
+                    <p>エラーメッセージ：</p>
+                    <pre><code>2020-05-06T20:07:45.720Z pid=56028 tid=owp0sdcm8 DEBUG: enqueued retry: {&quot;retry&quot;:true,&quot;queue&quot;:&quot;production_default&quot;,&quot;class&quot;:&quot;ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper&quot;,&quot;wrapped&quot;:&quot;ProcessIndividualEmailNotificationsJob&quot;,&quot;args&quot;:[{&quot;job_class&quot;:&quot;ProcessIndividualEmailNotificationsJob&quot;,&quot;job_id&quot;:&quot;4b31bc4f-d034-4190-b24f-d0464cf81df0&quot;,&quot;provider_job_id&quot;:null,&quot;queue_name&quot;:&quot;production_default&quot;,&quot;priority&quot;:null,&quot;arguments&quot;:[988],&quot;executions&quot;:0,&quot;locale&quot;:&quot;en&quot;}],&quot;jid&quot;:&quot;0ecc861f5870a7b9a70f176f&quot;,&quot;creat
+4:07:45 PM sidekiq.1 |  &gt;  ed_at&quot;:1588794273.2726498,&quot;enqueued_at&quot;:1588795006.4009435,&quot;error_message&quot;:&quot;uninitialized constant ProcessIndividualEmailNotificationsJob\nDid you mean?  ProcessEmailNotificationsJob&quot;,&quot;error_class&quot;:&quot;NameError&quot;,&quot;failed_at&quot;:1588794279.9911764,&quot;retry_count&quot;:5,&quot;retried_at&quot;:1588795006.763224}
+</code></pre>
+                    <p>イニシャライザ:</p>
+                    <pre><code>require &#39;sidekiq&#39;
+require &#39;sidekiq/web&#39;
+
+Sidekiq.configure_client do |config|
+  config.redis = { :size =&gt; 5 }
+end
+
+Sidekiq.configure_server do |config|
+  config.redis = { :size =&gt; 25 }
+end
+
+Sidekiq::Web.set :sessions, false
+</code></pre>
+                    <p>サイドキック.yml</p>
+                    <pre><code>:concurrency: 18
+
+development:
+  :verbose: true
+  :queues:
+    - [development_priority, 2]
+    - development_default
+    - development_mailers
+
+staging:
+  :queues:
+    - [staging_priority, 2]
+    - staging_default
+    - staging_mailers
+
+production:
+  :queues:
+    - [production_priority, 2]
+    - production_default
+    - production_mailers
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>わかりました。ここで提案されているように、redis
+                    のsidekiqに名前空間を追加することで問題を解決したようです:
+                    https://github.com/mperham/sidekiq/issues/2834</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

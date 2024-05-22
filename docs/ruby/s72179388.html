@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュ配列 Ruby の重複したフィールドを削除する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュ配列 Ruby の重複したフィールドを削除する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュ配列 Ruby
+の重複したフィールドを削除する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>重複したフィールドを含む JSON
+                    を含むハッシュの配列があり、重複したフィールドを削除したいと考えています。</p>
+                    <pre><code>[ {
+  &quot;code&quot; : &quot;32F&quot;,
+  &quot;lon&quot; : 0.963335,
+  &quot;fint&quot; : &quot;2022-05-03T13:00:00&quot;,
+  &quot;prec&quot; : 0.0,
+},{
+  &quot;code&quot; : &quot;32F&quot;,
+  &quot;lon&quot; : 0.963335,
+  &quot;fint&quot; : &quot;2022-05-03T13:00:00&quot;,
+  &quot;prec&quot; : 0.0,
+},{
+  &quot;code&quot; : &quot;90X&quot;,
+  &quot;lon&quot; : 0.963335,
+  &quot;fint&quot; : &quot;2022-05-03T13:00:00&quot;,
+  &quot;prec&quot; : 0.0,
+}]
+</code></pre>
+                    <p>これは望ましい出力です:</p>
+                    <pre><code>[{
+  &quot;code&quot; : &quot;32F&quot;,
+  &quot;lon&quot; : 0.963335,
+  &quot;fint&quot; : &quot;2022-05-03T13:00:00&quot;,
+  &quot;prec&quot; : 0.0,
+},{
+  &quot;code&quot; : &quot;90X&quot;,
+  &quot;lon&quot; : 0.963335,
+  &quot;fint&quot; : &quot;2022-05-03T13:00:00&quot;,
+  &quot;prec&quot; : 0.0,
+}]
+</code></pre>
+                    <p>何か案は？</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず構文が間違っています</p>
+                    <p>“code” : “32F”, – ここに空白は必要ありません</p>
+                    <p>右側のバリアントは「コード」:「32F」です。</p>
+                    <p>そして、ここでは引用符さえ必要ありません。
+                    「32F」とコードを入力するだけです。</p>
+                    <p>配列から重複を削除するには – uniq
+                    を使用してください。</p>
+                    <p>気をつけて</p>
+                    <pre><code>ary = [1, 1]
+ary.uniq! # =&gt; [1]
+ary # =&gt; [1]
+
+
+ary = [1, 2]
+ary.uniq! # =&gt; nil
+ary # =&gt; [1, 2]
+</code></pre>
+                    <p>または、bang なしで uniq
+                    を使用して新しい配列を返します</p>
+                    <pre><code>ary = [1, 1]
+ary.uniq # =&gt; [1]
+ary # =&gt; [1, 1]
+
+
+ary = [1, 2]
+ary.uniq # =&gt; [1, 2]
+ary # =&gt; [1, 2]
+</code></pre>
+                    <p>あなたの場合</p>
+                    <pre><code>ary =
+  [{
+    code: &quot;32F&quot;,
+    lon: 0.963335,
+    fint: &quot;2022-05-03T13:00:00&quot;,
+    prec: 0.0,
+  },{
+    code: &quot;32F&quot;,
+    lon: 0.963335,
+    fint: &quot;2022-05-03T13:00:00&quot;,
+    prec: 0.0,
+  },{
+    code: &quot;90X&quot;,
+    lon: 0.963335,
+    fint: &quot;2022-05-03T13:00:00&quot;,
+    prec: 0.0,
+  }]
+
+ary.uniq!
+# =&gt; [{:code=&gt;&quot;32F&quot;, :lon=&gt;0.963335, :fint=&gt;&quot;2022-05-03T13:00:00&quot;, :prec=&gt;0.0}, {:code=&gt;&quot;90X&quot;, :lon=&gt;0.963335, :fint=&gt;&quot;2022-05-03T13:00:00&quot;, :prec=&gt;0.0}]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

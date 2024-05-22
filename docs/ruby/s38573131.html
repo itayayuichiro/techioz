@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>FactoryBot 工場のブロックの目的は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "FactoryBot 工場のブロックの目的は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>FactoryBot
+工場のブロックの目的は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>FactoryBot
+                    工場における一時的な実行の目的は何ですか?</p>
+                    <p>以下のような言葉で始まる工場をたくさん見てきました。</p>
+                    <pre><code>factory :car do
+  owner nil
+  other_attribute nil
+end
+...
+</code></pre>
+                    <p>このブログでいくつかの情報を見つけました。
+                    FactoryGirl を使用して Rails
+                    で複雑なデータセットを簡単に作成する</p>
+                    <p>しかし、私はまだこれをどのように、そしてなぜ行うのか完全には理解していません。私の
+                    FactoryBot の経験は最小限です。</p>
+                    <p>FactoryBot
+                    の使用経験がある方は洞察を共有していただけますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一時属性を使用すると、モデルの属性ではないデータを渡すことができます。</p>
+                    <p>次の属性を持つ car
+                    というモデルがあるとします。</p>
+                    <p>工場で車種を作成するときに、車の名前を大文字にしたいと考えています。私たちにできることは次のとおりです。</p>
+                    <pre><code>factory :car do
+  transient do
+    # capitalize is not an attribute of the car
+    capitalize  false
+  end
+
+  name           { &quot;Jacky&quot; }
+  purchase_price { 1000 }
+  model          { &quot;Honda&quot; }
+ 
+  after(:create) do |car, evaluator|
+    car.name.upcase! if evaluator.capitalize
+  end
+end
+</code></pre>
+                    <p>したがって、自動車工場を作成するときは常に名前を大文字にする必要があります。できるよ</p>
+                    <pre><code>car = FactoryGirl.create(:car, capitalize: true)
+car.name
+# =&gt; &quot;JACKY&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

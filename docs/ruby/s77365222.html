@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails はイメージを再生成せずに Active Storage を Image Magick から Libvips に移行します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails はイメージを再生成せずに Active Storage を Image Magick から Libvips に移行します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails はイメージを再生成せずに Active Storage
+を Image Magick から Libvips に移行します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 システムには約 50,000 枚の写真が Active
+                    Storage
+                    に保存されており、バリアントを使用してさまざまなサイズに変換しています。現在、image_processing
+                    のバックエンドとして Image Magick
+                    を使用していますが、最近の Rails
+                    バージョンのデフォルトでもある libvips
+                    に変更したいと考えています
+                    (たとえば、これを参照)</p>
+                    <p>残念ながら、バリアントに渡されるオプション
+                    ハッシュは、アプリケーションの libvips
+                    用に変更する必要があります。例:
+                    (さらに多くの例がここにあります)</p>
+                    <pre><code>variant(format: :jpg, strip: true, quality: 80) # imagemagick
+variant(format: :jpg, saver: { strip: true, quality: 80 }) # libvips / image_processing
+</code></pre>
+                    <p>Rails
+                    はこのハッシュを内部で使用してバリアントを一意に識別します。したがって、libvips
+                    に適合するようにバリアントの説明を変更すると、Rails
+                    はそれ以上ではないにしても 100,000
+                    枚のイメージを再生成することになりますが、これは明らかに避けたいことです。</p>
+                    <p>この問題に対する標準的な解決策はありますか?</p>
+                    <p>私が検討していたオプションの 1 つは、最初に
+                    imagemagick
+                    バリアントが既に存在するかどうかをテストし、存在する場合はそれを使用することです。</p>
+                    <pre><code>def create_variant
+  magick_variant = image.variant(format: :jpg, strip: true, quality: 80)
+  return magick_variant.processed.url if magick_variant.processed?
+  
+  image.variant(format: :jpg, saver: { strip: true, quality: 80 }).processed.url
+end
+</code></pre>
+                    <p>残念ながら、VariantWithRecord#processed? Rails
+                    7.1
+                    ではプライベートになったため、持続可能なソリューションではありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>使用するバリアント変換の大部分 (約 80%)
+                    を収集し、移行前と移行後にダイジェストを計算し、active_storage_variant_records
+                    に保存されているダイジェストを手動で更新することで移行を実行しました。</p>
+                    <p>例えば：</p>
+                    <pre><code>UPDATE `active_storage_variant_records` 
+SET `variation_digest` = CASE `variation_digest`
+   WHEN &#39;8HYTSoAKrOz5PQZaB5rF21hDWks=&#39; THEN &#39;ols+mvCHaSFFmjPwGcc9zwr6A6Y=&#39;
+   WHEN &#39;LzJ443LpJ9ZNnqCVgpoG3j43nC0=&#39; THEN &#39;Safska55MupNqvs4kO2JOJxLNoU=&#39;
+END
+WHERE `active_storage_variant_records`.`variation_digest` 
+IN (&#39;8HYTSoAKrOz5PQZaB5rF21hDWks=&#39;, &#39;LzJ443LpJ9ZNnqCVgpoG3j43nC0=&#39;);
+</code></pre>
+                    <p>これが機能するのは、VariantRecord が
+                    has_one_attached を再度使用し、バリアント BLOB
+                    が格納されるキーがダイジェストから独立しているためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

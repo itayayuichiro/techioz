@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyによるJSONオブジェクトまたはハッシュのフラット化 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyによるJSONオブジェクトまたはハッシュのフラット化",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyによるJSONオブジェクトまたはハッシュのフラット化</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>// JSON オブジェクトのフラット化 //
+                    (すべてのキーをネストされたハッシュの文字列としてマージし、配列リストに出力したい)</p>
+                    <pre><code>input1 = {a: {b: {c: {} }, d:[] }, e: &quot;e&quot;, f: nil, g: -2}
+input2 = {a: {b: {c: {h: {j: &#39;&#39;}, m: {n: &#39;&#39;}}}, d: {k: {l: &#39;&#39; } }},e: &quot;e&quot;,f: nil,g: -2}
+</code></pre>
+                    <p>//
+                    上記の入力に対して期待される出力は、これらすべてのキーを任意の順序で含む配列である必要があります</p>
+                    <pre><code>output1 = [&quot;g&quot;, &quot;f&quot;, &quot;e&quot;, &quot;a.b.c&quot;, &quot;a.d&quot;]
+output2 = [&quot;a.b.c.h.j&quot;, &quot;a.b.c.m.n&quot;, &quot;a.d.k.l&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot;]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>メソッドを 1 つ作成する</p>
+                    <pre><code>def flatten_hash_keys(hash, prefix = nil)
+  flat_keys = []
+
+  hash.each do |key, value|
+    current_key = prefix ? &quot;#{prefix}.#{key}&quot; : key.to_s
+
+    if value.is_a?(Hash) &amp;&amp; !value.empty?
+      flat_keys.concat(flatten_hash_keys(value, current_key))
+    else
+      flat_keys &lt;&lt; current_key
+    end
+  end
+
+  flat_keys
+end
+</code></pre>
+                    <p>このコードは、ハッシュとオプションのプレフィックスを取る
+                    flatten_hash_keys
+                    メソッドを定義します。ハッシュを再帰的に走査し、キーを
+                    flat_keys
+                    配列に追加します。値が空ではないハッシュの場合、メソッドは新しいプレフィックスを使用して再帰的に呼び出されます。それ以外の場合は、現在のキーが配列に追加されます</p>
+                    <pre><code>input1 = {a: {b: {c: {} }, d:[] }, e: &quot;e&quot;, f: nil, g: -2}
+input2 = {a: {b: {c: {h: {j: &#39;&#39;}, m: {n: &#39;&#39;}}}, d: {k: {l: &#39;&#39; } }},e: &quot;e&quot;,f: nil,g: -2}
+
+output1 = flatten_hash_keys(input1) #[&quot;a.b.c&quot;, &quot;a.d&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot;]
+output2 = flatten_hash_keys(input2) #[&quot;a.b.c.h.j&quot;, &quot;a.b.c.m.n&quot;, &quot;a.d.k.l&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

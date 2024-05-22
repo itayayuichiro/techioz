@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby におけるハッシュのスレッドセーフ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby におけるハッシュのスレッドセーフ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby におけるハッシュのスレッドセーフ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby のハッシュのスレッド
+                    セーフについて興味があります。コンソールから次のコマンドを実行します
+                    (Ruby 2.0.0-p247)。</p>
+                    <pre><code>h = {}
+10.times { Thread.start { 100000.times {h[0] ||= 0; h[0] += 1;} } }
+</code></pre>
+                    <p>戻り値</p>
+                    <pre><code>{0=&gt;1000000}
+</code></pre>
+                    <p>これは正しい期待値です。</p>
+                    <p>なぜ効果があるのでしょうか?このバージョンの Ruby
+                    ではハッシュがスレッドセーフであると信頼できますか?</p>
+                    <p>編集: 100 回テスト:</p>
+                    <pre><code>counter = 0
+100.times do
+  h={}
+  threads = Array.new(10) { Thread.new { 10000.times { h[0] ||= 0; h[0] += 1 } } }
+  threads.map { |thread| thread.join }
+  counter += 1 if h[0] != 100000
+end
+puts counter
+</code></pre>
+                    <p>最後までカウンターは0のままです。最大 10,000
+                    回試しましたが、このコードではスレッド
+                    セーフティの問題が 1 つも発生しませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いいえ、ハッシュがスレッド
+                    セーフであることに依存することはできません。おそらくパフォーマンス上の理由から、ハッシュはスレッド
+                    セーフになるように構築されていないからです。標準ライブラリのこれらの制限を克服するために、スレッド
+                    セーフ (コンカレント Ruby) または不変 (ハムスター)
+                    データ構造を提供する Gem
+                    が作成されました。これらにより、データへのアクセスがスレッドセーフになりますが、コードにはそれに加えて別の問題もあります。</p>
+                    <p>出力は決定的ではありません。実際、私はあなたのコードを数回試したところ、結果として
+                    544988
+                    が得られました。コードでは、個別の読み取りステップと書き込みステップが関係している
+                    (つまり、アトミックではない)
+                    ため、古典的な競合状態が発生する可能性があります。
+                    h[0] ||= 0
+                    という式を考えてみましょう。これは基本的に h[0] ||
+                    に変換されます。 h[0] = 0。
+                    ここで、競合状態が発生するケースを簡単に構築できます。</p>
+                    <p>データが破損しないことを確認したい場合は、ミューテックスを使用して操作をロックできます。</p>
+                    <pre><code>require &#39;thread&#39;
+semaphore = Mutex.new
+
+h = {}
+
+10.times do
+  Thread.start do
+    semaphore.synchronize do
+      100000.times {h[0] ||= 0; h[0] += 1;}
+    end
+  end
+end
+</code></pre>
+                    <p>注:
+                    この回答の以前のバージョンでは、「thread_safe」gem
+                    について言及していました。 「thread_safe」は 2017 年
+                    2 月以降非推奨となり、「concurrent-ruby」gem
+                    の一部になりました。代わりにそれを使用してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

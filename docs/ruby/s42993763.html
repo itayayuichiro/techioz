@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>数値のバイトを文字列に変換するにはどうすればよいですか? (数値の文字表現) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "数値のバイトを文字列に変換するにはどうすればよいですか? (数値の文字表現)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>数値のバイトを文字列に変換するにはどうすればよいですか?
+(数値の文字表現)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>数値を簡単に変換するにはどうすればよいですか。
+                    0x616263、つまり基数 10 の 6382179
+                    を、数値を連続したバイトに分割して文字列に変換しますか?したがって、上記の例は「abc」に変換されるはずです。</p>
+                    <p>Array.pack
+                    を試してみましたが、数値内の複数のバイトを変換する方法がわかりません。
+                    [0x616263].pack(“C*“) は ‘c’ を返します。
+                    0x616263.to_s(256)
+                    も試しましたが、ArgumentError:無効な基数がスローされます。何らかのエンコード情報が必要だと思いますか？</p>
+                    <p>(注: N
+                    などのパック内の他のデータ型は、上で示した例で動作しますが、それが
+                    4 バイト以内に収まるためにのみ、たとえば
+                    [0x616263646566].pack(“N”) は abcdef ではなく cdef
+                    を与えます)</p>
+                    <p>この質問はこの質問となんとなく似ていますが、実際には似ていません。また、
+                    “abcde”.unpack(“c*“).map{|c| を使って文字列から 16
+                    進表現の文字列を取得する方法もなんとなくわかりました。
+                    c.to_s(16)}.join(”“)、「6162636465」が得られます。基本的には後戻りしたいと思っています。</p>
+                    <p>これは X-Y
+                    の問題ではないと思いますが、問題である場合に備えて、RSA
+                    でデコードした数値を文字列に変換しようとしています。</p>
+                    <p>助けていただきありがとうございます。私は Ruby
+                    の経験があまりありません。 (趣味で) Python
+                    ソリューションにも興味がありますが、この質問に 2
+                    つの異なるプログラミング言語のタグを追加することが正しいかどうかはわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>1 つの数値 0x00616263 を 3
+                    つの文字に変換するには、まずそれらを 3
+                    つの数値、0x00000061、0x00000062、および 0x00000063
+                    に分割する必要があります。</p>
+                    <p>最後の数値については、必要な 16
+                    進数がすでに正しい位置にあります。ただし、他の 2
+                    つの場合は、それぞれ &gt;&gt; 16 と &gt;&gt; 8
+                    を使用してビットシフトを行う必要があります。</p>
+                    <p>その後、ビットごとの AND (&amp;)
+                    を使用して他の数字を削除します。</p>
+                    <pre><code>num1 = (0x616263 &gt;&gt; 16) &amp; 0xFF
+num2 = (0x616263 &gt;&gt; 8) &amp; 0xFF
+num3 = 0x616263 &amp; 0xFF
+</code></pre>
+                    <p>文字については、次のようにすることができます。</p>
+                    <pre><code>char1 = ((0x616263 &gt;&gt; 16) &amp; 0xFF).chr
+char2 = ((0x616263 &gt;&gt; 8) &amp; 0xFF).chr
+char3 = (0x616263 &amp; 0xFF).chr
+</code></pre>
+                    <p>もちろん、ビット単位の演算はあまり Ruby
+                    らしくありません。おそらく、他の誰かが提供する Ruby
+                    に似た答えがもっとあるかもしれません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

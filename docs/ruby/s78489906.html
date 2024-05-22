@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails ボタンを使用して、表示される配列要素を段階的に増やすにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails ボタンを使用して、表示される配列要素を段階的に増やすにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+ボタンを使用して、表示される配列要素を段階的に増やすにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p><span class="citation"
+                    data-cites="necklines">@necklines</span> と <span
+                    class="citation"
+                    data-cites="スカート">@スカート</span> という 2
+                    つの配列があり、それぞれすべてのネックライン
+                    モデルとスカート モデルで構成されています。</p>
+                    <p>一度に 1 つのネックラインと 1
+                    つのスカートを表示しようとしています。現在表示されている要素を段階的に増加または減少させるための
+                    2 つのボタンがあります。</p>
+                    <p>ページレイアウトは次のようになります。</p>
+                    <p><span class="citation"
+                    data-cites="necklines ni">@necklines [@ni]</span> と
+                    <span class="citation"
+                    data-cites="スカート si">@スカート [@si]</span>
+                    を呼び出し、ボタンを使用して <span class="citation"
+                    data-cites="ni">@ni</span> と <span class="citation"
+                    data-cites="si">@si</span>
+                    の値を増減することでこれを実行しようとしています。</p>
+                    <p>ただし、どのボタンをクリックしても要素は変わりません。</p>
+                    <p>これが私のMainController.rbです</p>
+                    <pre><code>    def home
+        @necklines = Neckline.all
+        @skirts = Skirt.all
+        
+        if @ni.nil?
+            @ni = 0
+        end
+
+        if @si.nil?
+            @si = 0
+        end
+
+    end
+
+    def increase_neck
+        if @ni &gt;= @necklines.count - 1
+            @ni = 0
+        else
+            @ni += 1
+        end
+        redirect_to root_path    
+    end
+
+    def decrease_neck
+        if @ni &lt;= 0
+            @ni = @necklines.count - 1
+        else
+            @ni -= 1
+        end
+        redirect_to root_path
+    end
+
+    def increase_skirt
+        if @si &gt;= @skirts.count - 1
+            @si = 0
+        else
+            @si += 1
+        end 
+        redirect_to root_path   
+    end
+
+    def decrease_skirt
+        if @si &lt;= 0
+            @si = @skirts.count - 1
+        else
+            @si -= 1
+        end   
+        redirect_to root_path 
+    end
+</code></pre>
+                    <p>ここが私のhome.html.erbです</p>
+                    <pre><code>&lt;h1&gt; Main#home &lt;/h1&gt;
+
+
+&lt;div&gt;
+  &lt;div class=&#39;neckline&#39;&gt;
+    &lt;h3&gt; &lt;%= @necklines[@ni].style_name %&gt; &lt;/h3&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= button_to &quot;&lt;&quot;, &quot;/home/decrease_neck&quot;, method: :post %&gt; &lt;/div&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= image_tag @necklines[@ni].image %&gt; &lt;/div&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= button_to &quot;&gt;&quot;, &quot;/home/increase_neck&quot;, method: :post %&gt; &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&#39;skirt&#39;&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= button_to &quot;&lt;&quot;, &quot;/home/decrease_skirt&quot;, method: :post %&gt; &lt;/div&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= image_tag @skirts[@si].image %&gt; &lt;/div&gt;
+    &lt;div class=&#39;child inline-block-child&#39;&gt; &lt;%= button_to &quot;&gt;&quot;, &quot;/home/increase_skirt&quot;, method: :post %&gt; &lt;/div&gt;
+    &lt;h3&gt; &lt;%= @skirts[@si].style_name %&gt; &lt;/h3&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>これが私のルートです。rb</p>
+                    <pre><code>Rails.application.routes.draw do
+  get &#39;/necklines&#39;, to: &#39;neckline#index&#39;
+  get &quot;/necklines/:id&quot;, to: &quot;neckline#show&quot;
+  get &#39;/skirts&#39;, to: &#39;skirt#index&#39;
+  get &#39;/skirts/:id&#39;, to: &#39;skirt#show&#39;
+
+  # Defines the root path route (&quot;/&quot;)
+  root &quot;main#home&quot;
+end
+</code></pre>
+                    <p>エラーは、ボタンをクリックするたびに <span
+                    class="citation" data-cites="ni">@ni</span> と <span
+                    class="citation" data-cites="si">@si</span> が 0
+                    に戻されるのではないかと思いますが、次に進む方法がわかりません。</p>
+                    <p>初めてのアプリでつまずいてしまい、コードが汚くて申し訳ありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>インスタンス変数は各リクエストを処理しません。インデックスに自動インクリメントされるフィールドを追加します
+                    (現時点では ID
+                    を使用するだけかもしれません)。これをルート
+                    パラメーターとして渡します。</p>
+                    <p>したがって、インデックスには次のようなものになります。</p>
+                    <pre><code>def index 
+  @neckline = params[:neckline_idx] ? Neckline.find_by(id: params[:neckline_idx]) : Neckline.first
+  @skirt = params[:skirt_idx] ? Skirt.find_by(id: params[:skirt_idx]) : Skirt.first
+end
+</code></pre>
+                    <p>インクリメント/デクリメントへのリンクは次のようになります。</p>
+                    <pre><code># neckline increment/decrement links
+link_to &quot;&lt;&quot;, root_path(neckline_idx: @neckline.id - 1, skirt_idx: params[:skirt_idx]) 
+link_to &quot;&gt;&quot;, root_path(neckline_idx: @neckline.id + 1, skirt_idx: params[:skirt_idx])
+
+# skirt increment/decrement links
+link_to &quot;&lt;&quot;, root_path(skirt_idx: @skirt.id - 1, neckline_idx: params[:neckline_idx]) 
+link_to &quot;&gt;&quot;, root_path(skirt_idx: @skirt.id + 1, neckline_idx: params[:neckline_idx])
+</code></pre>
+                    <p>最終的には、リンクを進化させて #next_id や
+                    #previous_id
+                    のようなメソッドを呼び出すことが必要になる場合があります。</p>
+                    <pre><code>link_to &quot;&lt;&quot;, root_path(skirt_idx: @skirt.previous_id, neckline_idx: params[:neckline_idx]) 
+link_to &quot;&gt;&quot;, root_path(skirt_idx: @skirt.next_id, neckline_idx: params[:neckline_idx])
+</code></pre>
+                    <p>レコードの破棄を許可する場合にインデックス内のギャップを処理できるようにするには、次のようにします。</p>
+                    <pre><code>def next_id
+  self.where(&quot;id &gt; ?&quot;, self.id).minimum(:id)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

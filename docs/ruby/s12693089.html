@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PG::エラー: SELECT DISTINCT、ORDER BY 式は選択リストに含める必要があります | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PG::エラー: SELECT DISTINCT、ORDER BY 式は選択リストに含める必要があります",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PG::エラー: SELECT DISTINCT、ORDER BY
+式は選択リストに含める必要があります</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>イベント Web
+                    サイトを作成しており、レンダリングされた RSVPS
+                    をイベントの開始時間で並べ替えようとしています。
+                    RSVPS
+                    がたくさんあるので、個別にグループ化していますが、ここ数日間、PG
+                    でこのエラーが表示されずに結果を並べ替えるのに非常に苦労していました。このトピックに関する以前の質問をいくつか見ましたが、まだかなり迷っています。どうすればこれを機能させることができますか?どうもありがとうございます！</p>
+                    <pre><code>@rsvps = Rsvp.where(:voter_id =&gt; current_user.following.collect {|f| f[&quot;id&quot;]}, :status =&gt; &#39;going&#39;).where(&quot;start_time &gt; ? AND start_time &lt; ?&quot;, Time.now, Time.now + 1.month).order(&quot;count_all desc&quot;).count(:group =&gt; :event_id).collect { |f| f[0] }
+
+&lt;%= render :partial =&gt; &#39;rsvps/rsvp&#39;, :collection =&gt; Rsvp.where(:event_id =&gt; @rsvps).select(&quot;DISTINCT(event_id)&quot;).order(&#39;start_time asc&#39;) %&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはかなり古い質問であることは承知していますが、Postgres
+                    に SELECT DISTINCT / ORDER BY
+                    列に対してこの一見奇妙な制限がある理由を理解するのに役立つ小さな例を頭の中で検討しました。</p>
+                    <p>Rsvp
+                    テーブルに次のデータがあると想像してください。</p>
+                    <pre><code> event_id |        start_time
+----------+------------------------
+    0     | Mar 17, 2013  12:00:00
+    1     |  Jan 1, 1970  00:00:00
+    1     | Aug 21, 2013  16:30:00
+    2     |  Jun 9, 2012  08:45:00
+</code></pre>
+                    <p>ここで、それぞれの start_time
+                    順に並べられた個別のevent_id
+                    のリストを取得したいとします。しかし、1はどこに行けばよいでしょうか？
+                    1 つのタプルは 1970 年 1 月 1
+                    日に始まるため、それを最初に置くべきでしょうか、それとも
+                    2013 年 8 月 21
+                    日を理由に最後に置くべきでしょうか?</p>
+                    <p>データベース
+                    システムはその決定を行うことができず、クエリの構文は操作対象となる実際のデータに依存できないため
+                    (event_id が一意であると仮定して)、並べ替えは SELECT
+                    句の列によるもののみに制限されます。 。</p>
+                    <p>実際の質問に関しては、マシューの答えに代わる方法は、並べ替えに
+                    MIN や MAX などの集計関数を使用することです。</p>
+                    <pre><code>  SELECT event_id
+    FROM Rsvp
+GROUP BY event_id
+ORDER BY MIN(start_time)
+</code></pre>
+                    <p>start_time
+                    での明示的なグループ化と集計により、データベースは結果タプルの明確な順序付けを行うことができます。ただし、この場合、読みやすさが間違いなく問題になることに注意してください
+                    ;)</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

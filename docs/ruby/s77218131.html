@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby PKCS7: を追加しました「バイトが復号化を破壊しています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby PKCS7: を追加しました「バイトが復号化を破壊しています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby PKCS7:
+を追加しました「バイトが復号化を破壊しています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の OpenSSL
+                    ライブラリを使用して、メッセージを PKCS7
+                    として暗号化して署名しようとすると、余分な部分が発生することがわかりました。
+                    文字が挿入され、メッセージを解読できません。</p>
+                    <p>以下におもちゃの例を示します。より完全な例はこのペーストにあります。</p>
+                    <pre><code># The sender encrypts the message
+crypted = OpenSSL::PKCS7.encrypt([recipient_cert], &quot;message&quot;).to_der
+# The sender signs the message
+signed = OpenSSL::PKCS7.sign(sender_cert, sender_key, crypted).to_der
+
+# The recipient extracts data from the signed PKCS7
+p7_signed = OpenSSL::PKCS7.new(signed)
+store = OpenSSL::X509::Store.new
+p7_signed.verify(nil, store, nil, OpenSSL::PKCS7::NOVERIFY)
+unsigned = p7_signed.data
+
+# The tries to decrypt the data
+OpenSSL::PKCS7.new(unsigned).decrypt(recipient_key, recipient_cert)
+# =&gt; ArgumentError: Could not parse the PKCS7: nested asn1 error
+</code></pre>
+                    <p>これについてはどうすればよいでしょうか?p7_signed
+                    から抽出されたデータが crypted
+                    のデータと一致しないのはなぜですか? 2
+                    つを調べてみると、署名されていない部分にはいくつかの内容が含まれていることがわかりました。
+                    暗号化されていない文字があちこちにあります。</p>
+                    <p>(CRLF と LF の問題が生じた場合に備えて、私は
+                    Linux でこれを行っています。)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>PKCS7_BINARY フラグを PKCS7.sign()
+                    に指定する必要があります。おそらく
+                    OpenSSL::PKCS7::BINARY として利用可能です。私は Ruby
+                    のことはまったく知りませんが、ruby-doc.org
+                    のドキュメントと openssl のマニュアル
+                    ページを読むと、これが問題だと思います。</p>
+                    <p>PKCS7 の openssl man ページから
+                    (私による若干の修正あり):</p>
+                    <p>OpenSSL::PKCS7.sign(…) への入力は
+                    OpenSSL::PKCS7.encrypt(…) からの DER
+                    エンコードされた出力であるため、これは本質的にテキストではなくバイナリ形式です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

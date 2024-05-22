@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsで簡単なログインページを作成できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsで簡単なログインページを作成できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsで簡単なログインページを作成できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ルート.rb</p>
+                    <pre><code>Rails.application.routes.draw do
+  get &#39;/login&#39; , to: &#39;sessions#new&#39;
+  post &#39;/login&#39;, to: &quot;sessions#create&quot;
+end
+</code></pre>
+                    <p>セッションコントローラー.rb</p>
+                    <pre><code>class SessionsController &lt; ApplicationController
+  def new
+  end
+
+  def create
+    user = User.find_by(email: params[:session][:email].downcase)
+    if user &amp;&amp; user.authenticate(params[:session][:password])
+      log_in user
+      redirect_to user
+    else
+      flash.now[:danger]=&#39;Invalid login id&#39;
+      render &#39;new&#39;
+    end
+  end
+
+  def destroy
+    log_out
+    redirect_to root_url
+  end
+end
+</code></pre>
+                    <p>ビュー/セッション/new.html.erb</p>
+                    <pre><code>&lt;%= form_with url: login_path, local: true do |form| %&gt;
+    &lt;%= form.label :email %&gt;
+    &lt;%= form.email_field :email %&gt;
+    &lt;%= form.label :password %&gt;
+    &lt;%= form.password_field :password %&gt;
+    &lt;%= form.submit &quot;LogIn&quot;%&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <pre><code>Error: 
+NoMethodError in SessionsController#create
+undefined method `[]&#39; for nil:NilClass
+Extracted source (around line #6):
+5.def create
+6. user = User.find_by(email: params[:session][:email].downcase)
+7. if user &amp;&amp; user.authenticate(params[:session][:password])
+</code></pre>
+                    <p>なぜこんなことが起こるのか、まだ理解できません。</p>
+                    <p>自分で解決しようとあらゆることを試みましたが、できません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>form_with ヘルパーを URL
+                    で使用していますが、クラスのインスタンスでは使用していません。これはあなたのユースケースではまったく問題ありませんが、パラメータをネストしないように設定します。</p>
+                    <p>create メソッドから [:session]
+                    ネストを削除すると、機能するはずです。</p>
+                    <pre><code>def create
+  user = User.find_by(email: params[:email].downcase)
+  if user &amp;&amp; user.authenticate(params[:password])
+    # ...
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

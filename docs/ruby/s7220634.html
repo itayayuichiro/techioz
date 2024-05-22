@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>クラスで Enumerable ミックスインを使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "クラスで Enumerable ミックスインを使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>クラスで Enumerable
+ミックスインを使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Note というクラスがあり、これには time_spent
+                    というインスタンス変数が含まれています。次のようなことができるようにしたいです:</p>
+                    <pre><code>current_user.notes.inject{|total_time_spent,note| total_time_spent + note.time_spent}
+</code></pre>
+                    <p>Enumerable
+                    モジュールを混ぜることでこれは可能ですか? include
+                    Enumerable
+                    をクラスに追加してから各メソッドを定義する必要があることはわかっていますが、各メソッドはクラス
+                    メソッドまたはインスタンス
+                    メソッドのどちらにする必要がありますか?それぞれのメソッドでは何が行われるのでしょうか?</p>
+                    <p>Ruby 1.9.2を使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは簡単です。Enumerable
+                    モジュールをインクルードし、各インスタンス
+                    メソッドを定義するだけです。これは多くの場合、他のクラスの各メソッドを使用するだけです。非常に単純化した例を次に示します。</p>
+                    <pre><code>class ATeam
+  include Enumerable
+
+  def initialize(*members)
+    @members = members
+  end
+
+  def each(&amp;block)
+    @members.each do |member|
+      block.call(member)
+    end
+    # or
+    # @members.each(&amp;block)
+  end
+end
+
+ateam = ATeam.new(&quot;Face&quot;, &quot;B.A. Barracus&quot;, &quot;Murdoch&quot;, &quot;Hannibal&quot;)
+#use any Enumerable method from here on
+p ateam.map(&amp;:downcase)
+</code></pre>
+                    <p>さらに詳しい情報については、「Ruby Enumerable
+                    Magic: The Basics」という記事をお勧めします。</p>
+                    <p>あなたの質問の文脈では、アクセサーを通じて公開するものがすでにコレクションである場合、おそらく
+                    Enumerable をわざわざ含める必要はありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

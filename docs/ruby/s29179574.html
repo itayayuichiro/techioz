@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 3 を使用してブログ アプリケーションですべての投稿を表示するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 3 を使用してブログ アプリケーションですべての投稿を表示するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 3 を使用してブログ
+アプリケーションですべての投稿を表示するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>自分のアプリにブログ
+                    アプリケーションを実装しようとしていますが、投稿を保存した後に次のエラーが発生します。</p>
+                    <pre><code>NoMethodError in Homes#blog
+
+Showing C:/Site/library_management1/app/views/homes/blog.html.erb where line #19 raised:
+
+undefined method `name&#39; for #&lt;Array:0x21896a0&gt;
+</code></pre>
+                    <p>実際に私のブログ実装ストーリーは次のとおりです。ログインしたユーザーが必要な場所に自分の名前とコメントを追加し、送信ボタンをクリックすると、すべてのブログが表示されるだけでなく保存されます。すべてのコメントは、このアプリに属しているすべてのログインユーザーに表示される必要がありますあるユーザーが返信/編集したいとすると、そのユーザーはこれを行うことができます。</p>
+                    <p>私のコードは次のとおりです。</p>
+                    <pre><code>&lt;% if current_user %&gt;
+&lt;div class=&quot;totaldiv&quot;&gt;
+  &lt;div class=&quot;navdiv&quot;&gt;&lt;span&gt;STUDENT INFORMATION&lt;/span&gt;&lt;span&gt;Logged in as &lt;%= current_user.email %&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;div class=&quot;wrapper&quot;&gt;
+  &lt;div id=&quot;leftsidebtn&quot;&gt;
+ &lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/homes/issuebooks&quot;&gt;Book issue&lt;/a&gt;&lt;/li&gt;
+   &lt;li&gt;&lt;a href=&quot;/homes/availablebooks&quot;&gt;Books Available&lt;/a&gt;&lt;/li&gt;
+   &lt;li&gt;&lt;a href=&quot;/homes/magazines?user_id=&lt;%= current_user.id %&gt;&quot;&gt;Magazines Purchase&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/sessions/removeuser&quot;&gt;Log Out&lt;/a&gt;&lt;/li&gt;
+ &lt;/ul&gt;  
+&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;restdiv&quot; id=&quot;ex3&quot; &gt;
+&lt;center&gt;
+ &lt;%= form_for :blogs,:url =&gt; {:action =&gt; &#39;savecomments&#39;,:id =&gt; current_user.id } do |f| %&gt;
+ &lt;p&gt;
+  &lt;label for=&quot;name&quot;&gt;Name:&lt;/label&gt;
+  &lt;%= f.text_field :name,placeholder:&quot;Enter your name&quot; %&gt;
+&lt;/p&gt;
+&lt;p&gt;
+  &lt;label for=&quot;Comment&quot;&gt;Comment:&lt;/label&gt;
+  &lt;%= f.text_area :body,:class =&gt; &quot;blog-navigation&quot;,placeholder:&quot;Type your comment here&quot; %&gt;
+&lt;/p&gt;
+&lt;p&gt;
+  &lt;%= f.submit &quot;Add Comments&quot;,:class =&gt;&quot;btn btn-success&quot; %&gt;
+&lt;/p&gt;
+ &lt;% end %&gt;
+ &lt;% if params[:id] %&gt;
+ &lt;h1&gt;Comments&lt;/h1&gt;
+ &lt;% @blogs.each do |blog| %&gt;
+&lt;div class=&quot;blog-site&quot;&gt;
+&lt;div class=&quot;name-site&quot;&gt;
+ &lt;%= blog.name %&gt;
+&lt;/div&gt;
+&lt;div class=&quot;message-site&quot;&gt;
+  &lt;%= blog.body %&gt;
+&lt;/div&gt;
+&lt;div class=&quot;reply-site&quot;&gt;
+  &lt;%= link_to &#39;Replay&#39;,homes_blog_path %&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;% end %&gt;
+&lt;% end %&gt;
+&lt;/center&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <pre><code>class HomesController &lt; ApplicationController
+     before_filter :authenticate_admin!,only: [:admin]
+    def index
+
+    end
+    def admin
+
+    end
+    def managebooks
+        @books=Book.new
+        if params[:id]
+            @books=Book.find(params[:id])
+            @book=Book.all
+        end
+    end
+    def savebooks
+        @books=Book.new(params[:books])
+        if @books.save
+            flash[:notice]=&quot;Data has submitted successfully&quot;
+            flash[:color]=&quot;valid&quot;
+            redirect_to :action =&gt; &#39;managebooks&#39;,:id =&gt; @books.id
+        else
+            flash[:notice]=&quot;Data couldnot submitted successfully&quot;
+            flash[:color]=&quot;invalid&quot;
+            render &#39;managebooks&#39;
+        end
+    end
+    def remove
+        @books=Book.find(params[:id])
+        @books.destroy
+    end
+    def books
+
+    end
+    def showbooks
+        @books=Book.all
+    end
+    def searchbooks
+        @books=Book.all
+    end
+    def member
+        @users=User.new
+    end
+    def registration
+        @users=User.new
+    end
+    def savedata
+        @users=User.new(params[:users])
+        if @users.save
+            flash[:notice]=&quot;Data has submitted successfully&quot;
+            flash[:color]=&quot;valid&quot;
+            redirect_to :action =&gt; &#39;member&#39;
+        else
+            flash[:notice]=&quot;Data could not submitted successfully&quot;
+            flash[:color]=&quot;invalid&quot;
+            render &#39;registration&#39;
+        end
+    end
+    def issuebooks
+        @issues=Issue.new
+    end
+    def savedissuebooks
+        @issues=Issue.new(params[:issues])
+        if @issues.save
+            flash[:notice]=&quot;information has saved successfully&quot;
+            flash[:color]=&quot;valid&quot;
+            redirect_to :action =&gt; &#39;member&#39;
+        else
+            flash[:notice]=&quot;Data couldnot saved&quot;
+            flash[:color]=&quot;invalid&quot;
+            render &#39;issuebooks&#39;
+        end
+    end
+    def availablebooks
+
+        @books=Book.all
+    end
+    def userissues
+        @issues=Issue.all
+    end
+    def magazine
+        @magazines=Magazine.new
+    end
+    def savemagazines
+        @users=User.find(params[:id])
+        @magazines=Magazine.new(params[:magazines])
+        @[email protected]
+        if @magazines.save
+            flash[:notice]=&quot;Data submitted successfully&quot;
+            flash[:color]=&quot;valid&quot;
+            redirect_to :action =&gt; &quot;member&quot;
+        else
+            flash[:notice]=&quot;Data could not saved&quot;
+            flash[:color]=&quot;invalid&quot;
+            render &#39;magazines&#39;
+        end
+    end
+    def magazineissue
+        @magazines=Magazine.all
+        @users=User.find @magazines.first.user_id
+    end
+    def blog
+        if params[:id]
+            @blogs=Blog.find(params[:id])
+            @blogs=Blog.all
+        else
+        @blogs=Blog.new
+        end
+    end
+    def savecomments
+        @users=User.find(params[:id])
+        @blogs=Blog.new(params[:blogs])
+        @[email protected]
+        if @blogs.save
+            flash[:notice]=&quot;Comment has been posted successfully&quot;
+            flash[:color]=&quot;valid&quot;
+            redirect_to :action =&gt; &quot;blog&quot;,:id =&gt; params[:id]
+        else
+            flash[:notice]=&quot;Comment could not saved&quot;
+            flash[:color]=&quot;invalid&quot;
+            render &#39;blog&#39;
+        end
+    end
+end
+</code></pre>
+                    <pre><code>class Blog &lt; ActiveRecord::Base
+  attr_accessible :body, :name
+  validates :name, :presence =&gt; true, :length =&gt; {:in =&gt; 3..10}
+  belongs_to :user
+end
+</code></pre>
+                    <p>私のすべてのコードをチェックして、どこで間違いを犯したかを教えてください。また、上で説明した私のストーリーに従ってこのブログ
+                    アプリケーションを正しく作成できるよう協力してください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    アプリケーションを自分でデバッグする方法を説明したブログ投稿を紹介します:
+                    http://nofail.de/2013/10/debugging-rails-applications-in-development/</p>
+                    <p>Rails のエラー
+                    メッセージが何を伝えようとしているのかを理解することが重要です。</p>
+                    <p>何らかの配列で .name を呼び出しています。</p>
+                    <p>blog.html.erb の 19
+                    行目でこれを行っています。これがこの部分だと思います。</p>
+                    <pre><code> &lt;%= form_for :blogs,:url =&gt; {:action =&gt; &#39;savecomments&#39;,:id =&gt; current_user.id } do |f| %&gt;
+ &lt;p&gt;
+  &lt;label for=&quot;name&quot;&gt;Name:&lt;/label&gt;
+  &lt;%= f.text_field :name,placeholder:&quot;Enter your name&quot; %&gt;
+&lt;/p&gt;
+</code></pre>
+                    <p>このフォームは、f.text_field の :name
+                    プロパティを取得するために、:blogs
+                    として定義したネストされたオブジェクトの .name
+                    を呼び出そうとしています。それでは、フォームが操作しようとしているオブジェクトは何でしょうか?</p>
+                    <p>Homes#blog のコントローラー
+                    コードを調べて、考えられるフォーム
+                    オブジェクトがどこから来たのかを確認します。</p>
+                    <pre><code>def blog
+    if params[:id]
+        @blogs=Blog.find(params[:id])
+        @blogs=Blog.all
+    else
+    @blogs=Blog.new
+    end
+end
+</code></pre>
+                    <p>したがって、配列にできるのは <span
+                    class="citation" data-cites="blogs">@blogs</span> =
+                    Blog.all
+                    だけです。そして、このコードは私にはあまり意味がないようです。次の行の
+                    Blog.all に置き換えるためだけに Blog.find
+                    を実行するのはなぜですか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

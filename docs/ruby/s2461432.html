@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyの遅延評価 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyの遅延評価",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyの遅延評価</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    ではオブジェクトを作成する必要がある可能性がありますが、それはわかりません。また、オブジェクトの作成にはコストがかかる可能性があるため、あまり熱心に作成するつもりはありません。これは明らかに遅延読み込みのケースだと思います。誰かがメッセージを送信したときにのみ作成されないオブジェクトを定義するにはどうすればよいですか?オブジェクトはブロック内に作成されます。
+                    Rubyで単純な遅延ロード/初期化を行う方法はありますか?これらは、オブジェクトの遅延初期化のさまざまなケースに対してさまざまなソリューションを提供するいくつかの
+                    gem
+                    でサポートされていますか?ご提案いただきありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>方法は 2 つあります。</p>
+                    <p>1
+                    つ目は、呼び出し元に遅延オブジェクトの作成を処理させることです。これは最も単純な解決策であり、Ruby
+                    コードでは非常に一般的なパターンです。</p>
+                    <pre><code>class ExpensiveObject
+  def initialize
+    # Expensive stuff here.
+  end
+end
+
+class Caller
+  def some_method
+    my_object.do_something
+  end
+
+  def my_object
+    # Expensive object is created when my_object is called. Subsequent calls
+    # will return the same object.
+    @my_object ||= ExpensiveObject.new
+  end
+end
+</code></pre>
+                    <p>2
+                    番目のオプションは、オブジェクト自体を遅延初期化させることです。これを実現するために、実際のオブジェクトの周囲にデリゲート
+                    オブジェクトを作成します。このアプローチは少し注意が必要であり、たとえば、変更できない既存の呼び出しコードがある場合を除き、お勧めできません。</p>
+                    <pre><code>class ExpensiveObject        # Delegate
+  class RealExpensiveObject  # Actual object
+    def initialize
+      # Expensive stuff here.
+    end
+
+    # More methods...
+  end
+
+  def initialize(*args)
+    @init_args = args
+  end
+
+  def method_missing(method, *args)
+    # Delegate to expensive object. __object method will create the expensive
+    # object if necessary.
+    __object__.send(method, *args)
+  end
+
+  def __object__
+    @object ||= RealExpensiveObject.new(*@init_args)
+  end
+end
+
+# This will only create the wrapper object (cheap).
+obj = ExpensiveObject.new
+
+# Only when the first message is sent will the internal object be initialised.
+obj.do_something
+</code></pre>
+                    <p>stdlib
+                    デリゲートを使用してこれを構築することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

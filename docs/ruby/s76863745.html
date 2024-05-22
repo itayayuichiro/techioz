@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Kiba は 1 つずつではなく「一括」宛先をサポートできますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Kiba は 1 つずつではなく「一括」宛先をサポートできますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Kiba は 1
+つずつではなく「一括」宛先をサポートできますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Kiba のコアは行を 1
+                    つずつ処理することであると理解しています。そして、目的のステップまでこれが必要です。
+                    変換されたデータを Kafka
+                    トピックにプッシュしたいのですが、個別ではなく一括で行うことをお勧めします。これは可能でしょうか?</p>
+                    <p>次のクラスがあると仮定すると、</p>
+                    <pre><code>class TransactionProducer
+  def intialize(data: [])
+    @data = data
+  end
+
+  def push_to_kafka
+    $kafka.push(data)
+  end
+end
+</code></pre>
+                    <p>post_process
+                    を使用し、変換されたデータを配列に保存することでこれが可能だと思います。</p>
+                    <pre><code>data = []
+
+job = Kiba.parse do
+  source MySource, source_config
+
+  transform do |row|
+    row = Transform...
+    data &lt;&lt; row
+  end
+
+  post_process do
+    TransactionProducer.new(data).push_to_kafka
+  end
+end
+</code></pre>
+                    <p>しかし、別の方法があるのではないかと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これには post_process
+                    を使用することもできますが、代わりに宛先が close
+                    メソッドを実装できるという事実を活用することをお勧めします
+                    (https://github.com/thbar/kiba/wiki/Implementing-ETL-destinations
+                    を参照)。これをターゲットに「バッファアウト」するために使用します
+                    (https://thibautbarrere.com/2020/03/05/new-in-kiba-etl-v3
+                    の集約変換で示されているものと少し似ています)。</p>
+                    <p>行数が多い場合は、write と close
+                    の両方を使用して、指定された行数に達したらすぐにバッファーをフラッシュすることもできます
+                    (ただし、close
+                    呼び出しに残っているすべての行を必ずフラッシュしてください)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

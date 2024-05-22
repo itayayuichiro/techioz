@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7、2 つの個別の条件 (親に 1 つ、子に 1 つ) を使用してアクティブなレコードの関連付けを返します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7、2 つの個別の条件 (親に 1 つ、子に 1 つ) を使用してアクティブなレコードの関連付けを返します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7、2 つの個別の条件 (親に 1 つ、子に 1
+つ) を使用してアクティブなレコードの関連付けを返します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>申請者モデルがあります。これは、プロジェクト所有者とそのプロジェクトへの申請者間の場所またはチャットになります。</p>
+                    <p>申請者テーブルの applicant.user
+                    参照を使用して申請者を追跡します。</p>
+                    <p>applicant.project.user
+                    を使用してプロジェクト所有者を追跡します。これは、Project
+                    テーブル (Applicant の親) 内の参照です。</p>
+                    <p>先ほども言いましたが、Applicant テーブルには
+                    Messages の子もあり、Applicant は基本的に 2
+                    人のユーザー間のチャット ビューです。</p>
+                    <p>ユーザーは Devise を使用して管理されます。</p>
+                    <p>Applicant テーブルで言及すべきもう 1
+                    つのフィールドは、ユーザーがその Applicant
+                    レコードに対して新しいメッセージを作成するたびに更新される
+                    last_message フィールドです。</p>
+                    <pre><code>class Applicant &lt; ApplicationRecord
+  belongs_to :project
+  belongs_to :user
+  has_many :messages, dependent: :destroy
+end
+</code></pre>
+                    <pre><code>class Project &lt; ApplicationRecord
+  belongs_to :user
+  has_many :applicants, dependent: :destroy
+  has_rich_text :description
+end
+</code></pre>
+                    <pre><code>class User &lt; ApplicationRecord
+  has_many :projects, dependent: :destroy
+  has_many :applicants, dependent: :destroy
+  has_rich_text :about
+
+  devise :database_authenticatable, :registerable, :confirmable, :trackable,
+         :recoverable, :rememberable, :validatable
+end
+</code></pre>
+                    <pre><code>class Message &lt; ApplicationRecord
+  belongs_to :applicant
+end
+</code></pre>
+                    <p>ユーザーの「チャット」（または申請者）のリストを取得したいと考えています。これは彼らのプロジェクトであり、応募者でもあります。</p>
+                    <p>私は現在これを行っています：</p>
+                    <pre><code>project_messages = []
+
+current_user.projects.each do |project|
+  project.applicants.each do |applicant|
+    project_messages &lt;&lt; applicant
+  end
+end
+
+@chats = Applicant
+  .where(id: (current_user.applicants + project_messages)
+  .map(&amp;:id))
+  .order(last_message: :desc)
+</code></pre>
+                    <p>ここでは、current_user
+                    プロジェクトのリストを取得し、各応募者 (チャット
+                    ルーム) を配列に追加します。次に、これを
+                    current_user.applicants
+                    に追加します。次に、両方をアクティブなレコードの関連付けとしてマージします。</p>
+                    <p>これは機能しますが、これは悪い方法だと感じます。誰かこれを行うより効率的な方法を知っていますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、応募者とプロジェクトのテーブルを結合して、現在のユーザーが応募者であるかプロジェクトの「所有者」であるかを確認できます。</p>
+                    <pre><code>applicants =
+  Applicant
+    .joins(:project)
+    .where(&#39;applicants.user_id = :id OR projects.user_id = :id&#39;, id: current_user.id)
+    .order(last_message: :desc)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

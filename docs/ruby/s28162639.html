@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ファイルを一行ずつ読み込みます、 または 行区切りとして | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ファイルを一行ずつ読み込みます、 または 行区切りとして",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ファイルを一行ずつ読み込みます、 または
+行区切りとして</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ファイルを一行ずつ処理したい。ただし、これらのファイルの行区切り文字は異なります:
+                    ““、” ” または ”
+                    “。どれを使用しているのか、どの種類の OS
+                    なのかはわかりません。</p>
+                    <p>解決策は 2 つあります。</p>
+                    <p>ただし、ファイルが大きい場合、2
+                    番目の解決策は適切ではありません。参考資料を参照してください。他にRubyの慣用的で効率的な解決策はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初に行区切り文字を決定することをお勧めします。
+                    「」に遭遇するまでは文字を読むことでそれができると思っていました。
+                    ” または “” (またはファイルの最後に到達した場合、” ”
+                    を行区切り文字として使用します)。文字 ” の場合、 ”
+                    が見つかった場合は、それが区切り文字であると仮定します。”
+                    の場合は、”
+                    が見つかったので、次の文字を読み取ろうとします。読み取れた場合は
+                    ” “、 私は返す” 「」を区切り文字として使用します。”
+                    はファイルの最後の文字であるか、その後に ”
+                    以外の文字が続きます。 “、
+                    私は返す”“を区切り文字として使用します。</p>
+                    <pre><code>def separator(fname)
+  f = File.open(fname)
+  enum = f.each_char
+  c = enum.next
+  loop do
+    case c[/\r|\n/]
+    when &quot;\n&quot; then break
+    when &quot;\r&quot;
+      c &lt;&lt; &quot;\n&quot; if enum.peek==&quot;\n&quot;
+      break
+    end
+    c = enum.next
+  end
+  c[0][/\r|\n/] ? c : &quot;\n&quot;
+end
+</code></pre>
+                    <p>次に、ファイルを 1 行ずつ処理します</p>
+                    <pre><code>def process(fname)
+  sep = separator(fname)
+  IO.foreach(fname, sep) { |line| puts line }
+end
+</code></pre>
+                    <p>変換してないよ」” または ” ” に ”
+                    」と書かれていますが、もちろんそれは簡単に行うことができます。書き込み用にファイルを開き、プロセス中に各行を読み取り、デフォルトの行区切り文字を使用して出力ファイルに書き込むだけです。</p>
+                    <p>試してみましょう
+                    (わかりやすくするために、セパレータによって返される値を示します)。</p>
+                    <pre><code>fname = &quot;temp&quot;
+
+IO.write(fname, &quot;slash n line 1\nslash n line 2\n&quot;)
+  #=&gt; 30 
+separator(fname)                                    
+  #=&gt; &quot;\n&quot; 
+process(fname)
+  # slash n line 1
+  # slash n line 2
+
+IO.write(fname, &quot;slash r line 1\rslash r line 2\r&quot;, )
+  #=&gt; 30 
+separator(fname)
+  #=&gt; &quot;\r&quot; 
+process(fname)
+  # slash r line 1
+  # slash r line 2
+
+IO.write(fname, &quot;slash r slash n line 1\r\nslash r slash n line 2\r\n&quot;)
+  #=&gt; 48 
+separator(fname)
+  #=&gt; &quot;\r\n&quot; 
+process(fname)
+  # slash r slash n line 1
+  # slash r slash n line 2
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

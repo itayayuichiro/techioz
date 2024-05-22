@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails : activerecord クエリから配列を作成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails : activerecord クエリから配列を作成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails : activerecord
+クエリから配列を作成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>特定の基準で物件を検索するクエリがあります。プロパティの所有者
+                    (user_id)
+                    にアクセスして、プロパティに関する電子メールを送信できるように、クエリに
+                    Users テーブルを含めています。</p>
+                    <pre><code>@testproperties.users.each do |property|
+  UserMailer.with(property: property, user: property.user).check_listing.deliver
+  property.update_columns(property_reminder_date: Time.now )
+end
+</code></pre>
+                    <p>これは正常に機能しますが、プロパティをループしているため、ユーザーが複数のプロパティを持っている場合、X
+                    通の電子メールを受信することになります。これをユーザーごとにバンドルしたいと考えています。</p>
+                    <p>したがって、ユーザーが 2
+                    つのプロパティを持っている場合、メーラーにユーザーとその複数のプロパティを送信したいと考えています。電子メールは
+                    2 通ではなく 1 通受信されます。電子メール
+                    ビューにはプロパティの配列が供給されます。</p>
+                    <p>しかし、どうすればよいのかわかりません。ユーザーをループし、ユーザーのプロパティをユーザーに接続する必要があります。</p>
+                    <p>編集：</p>
+                    <p>次のようなクエリを実行すると:</p>
+                    <pre><code>      @testusers = User.joins(:properties)
+      .where(&quot;properties.updated_at &lt; :date&quot;, date: 30.days.ago)
+      .where(&quot;properties.property_reminder_date &lt; :date OR properties.property_reminder_date IS NULL&quot;, date: 30.days.ago)
+      .where(&#39;properties.id NOT IN (SELECT DISTINCT(property_id) FROM transactions)&#39;)
+</code></pre>
+                    <p>これにより、電子メールを送信する必要があるユーザーが得られますが、各ユーザーのプロパティにアクセスすると、SQL
+                    クエリに基づいて必要なプロパティではなく、すべてのプロパティが表示されます。</p>
+                    <p>再度編集します:</p>
+                    <p>本当に厄介な方法で私が望んでいたものを達成することができました。</p>
+                    <pre><code>      @testusers = User.joins(:properties)
+      .where(&quot;properties.updated_at &lt; :date&quot;, date: 30.days.ago)
+      .where(&quot;properties.property_reminder_date &lt; :date OR properties.property_reminder_date IS NULL&quot;, date: 30.days.ago)
+      .where(&#39;properties.id NOT IN (SELECT DISTINCT(property_id) FROM transactions)&#39;)
+      @testusers = @testusers.uniq
+
+      @testusers.each do |user|
+        propertyList = user.properties.active.has_not_updated
+        UserMailer.with(properties: propertyList, user: user).check_listing.deliver
+        propertyList.each do |property|
+          property.update_columns(property_reminder_date: Time.now )
+        end
+      end
+</code></pre>
+                    <p>プロパティモデル:</p>
+                    <pre><code>...
+   scope :active, -&gt; { where(&#39;expires_at &gt;= ?&#39;, Time.now) }
+  scope :has_not_updated, -&gt; {active.where(&quot;updated_at &lt; :date&quot;, date: 30.days.ago).where(&quot;property_reminder_date &lt; :date OR property_reminder_date IS NULL&quot;, date: 30.days.ago).where(&#39;id NOT IN (SELECT DISTINCT(property_id) FROM transactions)&#39;) }
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のようなことができます。</p>
+                    <pre><code>properties.group_by(&amp;:user).each do |user,  properties|
+  UserMailer.send_email(user, properties).deliver_later
+end
+</code></pre>
+                    <p>各反復で、ユーザーとユーザーのプロパティの配列が得られます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

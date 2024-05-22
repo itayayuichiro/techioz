@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>2 つのテーブル間の双方向の関係をレールします | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "2 つのテーブル間の双方向の関係をレールします",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>2
+つのテーブル間の双方向の関係をレールします</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails では、2
+                    つのテーブル間に双方向の多対多の関係を作成できるようにしようとしています。ルートとコントローラーの関係が必要です。たとえば、以下の両方を実行できるようにしたいと考えています。</p>
+                    <p>教師 = school_class.Teachers.all school_classes =
+                    Teacher.school_classes.all
+                    したがって、この問題のルーティング設定、コントローラー、モデルについて手伝っていただければ幸いです。</p>
+                    <p>has_and_belongs_to_many
+                    関連付けを使用してみました。それが正しい方法だと思いますが、他に何もわかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>2
+                    つのテーブル間に多対多のリレーションシップがある場合、必然的にそれらの間にリレーションシップ
+                    テーブルが必要になります。</p>
+                    <p>したがって、最初に関係テーブルを作成するモデルを作成します。</p>
+                    <pre><code>rails g model TeacherSchoolClass teacher:reference school_class:reference
+</code></pre>
+                    <p>次に、models/Teacher_school_class.rb
+                    に、belongs_to 行を追加します。</p>
+                    <pre><code>class TeacherSchoolClass &lt; ApplicationRecord
+  belongs_to :teacher
+  belongs_to :school_class
+end
+</code></pre>
+                    <p>最後に、models/Teacher.rb と
+                    models/school_class.rb の両方に、 has_many/through
+                    行を追加します。</p>
+                    <pre><code>class Teacher &lt; ApplicationRecord
+  has_many :teacher_school_classes, dependent: :destroy # Will destroy the related teacher_school_classes when teacher is destroyed
+  has_many :school_classes, through: :teacher_school_classes # Will get all the school_classes for this teacher through the teacher_school_classes table
+end
+
+class SchoolClass &lt; ApplicationRecord
+  has_many :teacher_school_classes, dependent: :destroy # Will destroy the related teacher_school_classes when school_class is destroyed
+  has_many :teachers, through: :teacher_school_classes # Will get all the teachers for this school_class through the teacher_school_classes table
+end
+</code></pre>
+                    <p>その後、以下を取得できるようになります。</p>
+                    <pre><code>teacher.school_classes # Returns an ActiveRecord::Relation of SchoolClass
+school_class.teachers # Returns an ActiveRecord::Relation of Teacher
+</code></pre>
+                    <p>参考：https://guides.rubyonrails.org/association_basics.html#the-has-many-through-association</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

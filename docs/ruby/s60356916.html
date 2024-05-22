@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails を使用して PostgreSQL コンテナに接続する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails を使用して PostgreSQL コンテナに接続する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails を使用して PostgreSQL
+コンテナに接続する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>nginx と PostgreSQL データベースを使用して Ruby
+                    on Rails アプリケーションを宣言する Docker
+                    ファイルがあります。</p>
+                    <p>Rails アプリケーションが PostgreSQL
+                    コンテナにまったく接続しないため、どのように接続するかを理解するのに苦労しています。</p>
+                    <p>イメージをリンクする Docker
+                    ファイルを構築しました。</p>
+                    <pre><code>web:
+  build: .
+  command: bundle exec puma -C config/puma.rb
+  volumes:
+    - /tmp:/tmp
+    # - /log:/data
+    - .:/my_project_folder
+  links:
+    - nginx
+    - db
+
+nginx:
+  build: ./nginx
+  volumes:
+    - /tmp:/tmp
+  ports:
+    - 80:80
+
+db:
+  image: postgres
+  environment:
+      POSTGRES_PASSWORD: &quot;Postgres2019!&quot;
+  ports:
+    - &quot;15432:5432&quot;
+  volumes:
+    - /Users/fred/Documents/Postgres/data:/var/lib/postgresql/data
+</code></pre>
+                    <p>そして、database.ymlを次のように設定しました。</p>
+                    <pre><code>default: &amp;default
+  adapter: postgresql
+  encoding: unicode
+  host: 0.0.0.0
+  port: 15432
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  username: postgres
+  password: Postgres2019!
+development:
+  &lt;&lt;: *default
+  database: mos_development
+</code></pre>
+                    <p>しかし、アプリケーションを実行しようとするたびに、Rails
+                    はデータベースに接続できず、</p>
+                    <pre><code>ActiveRecord::ConnectionTimeoutError
+</code></pre>
+                    <p>しかし、コンテナを確認すると、すべてが正常に実行されています。</p>
+                    <pre><code>CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                     NAMES
+1cfbc010829a        project_web           &quot;bundle exec puma -C…&quot;   19 minutes ago      Up 13 minutes                                 project_web_1
+1774e2b89452        postgres              &quot;docker-entrypoint.s…&quot;   20 minutes ago      Up 13 minutes       0.0.0.0:15432-&gt;5432/tcp   project_db_1
+0ce7dbb6d735        project_nginx         &quot;nginx -g &#39;daemon of…&quot;   3 hours ago         Up 13 minutes       0.0.0.0:80-&gt;80/tcp        project_nginx_1
+</code></pre>
+                    <p>PostgreSQL コンテナが 0.0.0.0:15432
+                    で実行されている場合、Rails コンテナも 0.0.0.0:15432
+                    で接続できるはずですよね。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを試して：</p>
+                    <pre><code>default: &amp;default
+  adapter: postgresql
+  encoding: unicode
+  host: db    # &lt;-- change this line
+  port: 15432
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  username: postgres
+  password: Postgres2019!
+development:
+  &lt;&lt;: *default
+  database: mos_development
+</code></pre>
+                    <p>Rails アプリケーションは db、db:15432
+                    にリンクされています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

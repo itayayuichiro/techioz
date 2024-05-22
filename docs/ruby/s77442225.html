@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>フィールドにエラーが表示されないのはなぜですか?マイケル・ハートル チュートリアル ch. 7.3.3 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "フィールドにエラーが表示されないのはなぜですか?マイケル・ハートル チュートリアル ch. 7.3.3",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>フィールドにエラーが表示されないのはなぜですか?マイケル・ハートル
+チュートリアル ch. 7.3.3</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>リストに示されているようにすべてのファイルを入力しましたが、無効なデータを入力してもエラー
+                    フィールドが表示されません。
+                    Railsサーバーを数回再起動しましたが、何も変わりませんでした。
+                    無効なデータを含むテストは必要に応じてパスされます。</p>
+                    <p>私の「app/views/users/new.html.erb」ファイル：</p>
+                    <pre><code>&lt;% title &quot;Sign up&quot; %&gt;
+&lt;h1&gt;Sign up&lt;/h1&gt;
+
+&lt;div class=&quot;row&quot;&gt;
+  &lt;div class=&quot;col-md-6 col-md-offset-3&quot;&gt;
+    &lt;%= form_for(@user) do |f| %&gt;
+      &lt;%= render &#39;shared/error_messages&#39; %&gt;
+
+      &lt;%= f.label :name %&gt;
+      &lt;%= f.text_field :name, class: &#39;form-control&#39; %&gt;
+
+      &lt;%= f.label :email %&gt;
+      &lt;%= f.email_field :email, class: &#39;form-control&#39; %&gt;
+
+      &lt;%= f.label :password %&gt;
+      &lt;%= f.password_field :password, class: &#39;form-control&#39; %&gt;
+
+      &lt;%= f.label :password_confirmation, &quot;Confirmation&quot; %&gt;
+      &lt;%= f.password_field :password_confirmation, class: &#39;form-control&#39; %&gt;
+
+      &lt;%= f.submit &quot;Create my account&quot;, class: &quot;btn btn-primary&quot; %&gt;
+    &lt;% end %&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+</code></pre>
+                    <p>私の「app/controllers/users_controller.rb」ファイル：</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  
+  def show
+    @user = User.find(params[:id])
+  end
+
+  def new
+    @user = User.new
+  end
+
+  def create
+    @user = User.new(user_params)
+    if @user.save
+      #
+    else
+      render &#39;new&#39;
+    end
+  end
+
+  private
+
+    def user_params
+      params.require(:user).permit(:name, :email, :password, 
+                                   :password_confirmation)
+    end
+end
+
+</code></pre>
+                    <p>私の「app/models/user.rb」ファイル：</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  before_save { email.downcase! }
+  validates :name, presence: true, length: { maximum: 50 }
+  VALID_EMAIL_REGEXP = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
+  validates :email, presence: true, length: { maximum: 255 },
+    format: { with: VALID_EMAIL_REGEXP },
+    uniqueness: { case_sensitive: false }
+  has_secure_password
+  validates :password, length: { minimum: 6 }
+end
+
+</code></pre>
+                    <p>そして私の「app/views/shared/_error_messages.html.erb」ファイル：</p>
+                    <pre><code>&lt;% if @user.errors.any? %&gt;
+  &lt;div id=&quot;error_explanation&quot;&gt;
+    &lt;div class=&quot;alert alert-danger&quot;&gt;
+      The form contains &lt;%= pluralize(@user.errors.count, &quot;error&quot;) %&gt;.
+    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;% @user.errors.full_messages.each do |msg| %&gt;
+        &lt;li&gt;&lt;%= msg %&gt;&lt;/li&gt;
+      &lt;% end %&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+</code></pre>
+                    <p>タップ
+                    「アカウントの作成」をクリックすると、このページが更新されるだけです</p>
+                    <p>upd: Michael Hartl
+                    のリポジトリのコードを使用して自分のコードを注意深くチェックしましたが、何もおかしな点は見つかりませんでした。おそらく、私が使用している
+                    gem で何かが変更されたのでしょう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あるリポジトリで、Rails バージョン 7
+                    のソリューションを見つけました。Rails 5
+                    では、上記で提供したコードですべてが機能しましたが、バージョン
+                    7 では、エラー フィールドを表示するには、HTTP
+                    ステータス コードを追加する必要があります。
+                    コントローラーファイルに「new」をレンダリングした後に
+                    status: :unprocessable_entity
+                    を追加すると、問題が解決しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

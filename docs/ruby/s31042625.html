@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 3.2 - best_in_place - 編集中の日付値形式の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 3.2 - best_in_place - 編集中の日付値形式の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 3.2 - best_in_place -
+編集中の日付値形式の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 3.2 Web アプリケーションでは、best_in_place
+                    gem
+                    を使用して基本的な履歴書テンプレートを作成しました。タイプ:date
+                    に問題があります。デフォルトでは日付が yyyy-mm-dd
+                    形式で表示されますが、表示と編集の両方で mm/dd/yyyy
+                    形式が必要です。表示形式を変更するには、best_in_place
+                    のヘルパー display_as:
+                    を使用しました。形式が変更されたことがわかりました。</p>
+                    <p>問題は、値をクリックして編集すると、再び古い形式
+                    (yyyy-mm-dd)
+                    に戻ってしまうということです。これがそのコードです。</p>
+                    <p>ビュー：</p>
+                    <pre><code>&lt;div id=&quot;resume_template&quot;&gt;
+    &lt;div id=&quot;user_personal_info&quot; class=&quot;sub_template&quot; align=&quot;center&quot;&gt;
+        &lt;div class=&quot;title_section&quot;&gt;&lt;b&gt;PERSONAL PROFILE&lt;/b&gt;&lt;/div&gt;
+        &lt;hr&gt;
+        &lt;table width=&quot;100%&quot;&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;NAME&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= get_user_content(&#39;name&#39;) %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;EMAIL&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= get_user_content(&#39;email&#39;) %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;DATE OF BIRTH&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= best_in_place @resume, :dob, url: resume_path(@resume), type: :date, display_as: :format_dob %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;GENDER&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= best_in_place @resume, :gender, type: :select, collection: [[0, &#39;Male&#39;], [1, &quot;Female&quot;]], value: @resume.gender %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;MARITAL STATUS&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= best_in_place @resume, :marital_status, type: :select, collection: [[0, &#39;Single&#39;], [1, &quot;Married&quot;]] %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;LINGUISTIC ABILITY&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= best_in_place @resume, :linguistic_ability %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td valign=&quot;middle&quot;align=&quot;right&quot; width=&quot;35%&quot;&gt;NATIONALITY&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;10%&quot; class=&quot;colon_td&quot;&gt;:&lt;/td&gt;
+                &lt;td valign=&quot;middle&quot;width=&quot;55%&quot;&gt;&lt;%= best_in_place @resume, :nationality %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;user_education_info&quot; class=&quot;sub_template&quot; &gt;
+        &lt;div class=&quot;title_section&quot;&gt;&lt;b&gt;EDUCATIONAL BACK GROUND/QUALIFICATION&lt;/b&gt;&lt;/div&gt;
+        &lt;hr&gt;
+        &lt;%= best_in_place @resume, :educational_info, type: :textarea %&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;user_prof_exp_info&quot; class=&quot;sub_template&quot; &gt;
+        &lt;div class=&quot;title_section&quot;&gt;&lt;b&gt;WORK EXPERIENCE&lt;/b&gt;&lt;/div&gt;
+        &lt;hr&gt;
+        &lt;%= best_in_place @resume, :work_experience_info, type: :textarea %&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;user_certification_info&quot; class=&quot;sub_template&quot; &gt;
+        &lt;div class=&quot;title_section&quot;&gt;&lt;b&gt;CERTIFICATION&lt;/b&gt;&lt;/div&gt;
+        &lt;hr&gt;
+        &lt;%= best_in_place @resume, :certification_info, type: :textarea %&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script type=&quot;text/javascript&quot;&gt;
+    $( document ).ready( function (){
+        // $.extend($.fn.datepicker.defaults, { format: &#39;mm/dd/yy&#39; });
+        /* $.datepicker.setDefaults({
+            dateFormat: &#39;mm/dd/yy&#39;
+        });*/
+        
+        jQuery(&quot;.best_in_place&quot;).best_in_place();
+    });
+&lt;/script&gt;
+</code></pre>
+                    <p>モデル：</p>
+                    <pre><code>class Resume &lt; ActiveRecord::Base
+  belongs_to :user
+  attr_accessible :certification_info, :dob, :educational_info, :gender, :linguistic_ability, :marital_status, :nationality, :work_experience_info
+
+  def format_dob
+    self.dob.strftime(&quot;%m/%d/%Y&quot;)
+  end
+end
+</code></pre>
+                    <p>参考のために 2
+                    つのスクリーンショットを添付しました。表示されない場合は、画像をダウンロードして拡大してください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>解決策は見つかりましたが、Rails
+                    の規約に従ってそれがどの程度適切なのかわかりません。</p>
+                    <p>解決：</p>
+                    <p>モデル自体の dob
+                    フィールド値をオーバーライドするだけです。こちらがResumeモデルです。</p>
+                    <pre><code>class Resume &lt; ActiveRecord::Base
+  belongs_to :user
+  attr_accessible :certification_info, :dob, :educational_info, :gender, :linguistic_ability, :marital_status, :nationality, :work_experience_info
+
+  def dob
+    if self.read_attribute(:dob)
+        self.read_attribute(:dob).to_date.strftime(&quot;%m/%d/%Y&quot;)
+    else
+        self.read_attribute(:dob)
+    end
+  end
+end
+</code></pre>
+                    <p>このソリューションを使用すると、best_in_place で
+                    display_as
+                    ヘルパーを使用する必要さえありません。編集可能モードと非編集モードの両方で、値が
+                    mm/dd/yyyy 形式で表示されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

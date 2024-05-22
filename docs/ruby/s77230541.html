@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyスクリプトで配列にハッシュ要素を追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyスクリプトで配列にハッシュ要素を追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyスクリプトで配列にハッシュ要素を追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>k8s画像のJSONを生成するRubyコードがあります</p>
+                    <pre><code>old_versions_json = &quot;[]&quot;
+versions_list = JSON.parse(old_versions_json)
+versions_list.push(&quot;#{namespace}&quot;)
+c = versions_list.find { |h| h[&#39;name&#39;] == name }
+# If the service doesn&#39;t exist in the configmap yet, add it
+if c.nil?
+  puts(&quot;[WARNING] service #{name}:#{version} is not present in the configmap.  Adding it.&quot;)
+  versions_list.push({ &quot;name&quot; =&gt; name, &quot;version&quot; =&gt; version })
+end
+</code></pre>
+                    <p>これが、現在 JSON
+                    構造が登場している方法です。</p>
+                    <pre><code>[
+  &quot;medusa-dev&quot;,
+  {
+    &quot;name&quot;: &quot;pdtk/gravity-device-data-service&quot;,
+    &quot;version&quot;: &quot;3d-dev-1.0.29&quot;
+  },
+  {
+    &quot;name&quot;: &quot;pdtk/medusa_dooku&quot;,
+    &quot;version&quot;: &quot;3d-dev-1.1.11&quot;
+  }
+]
+</code></pre>
+                    <p>期待される出力</p>
+                    <pre><code>{
+  &quot;medusa-dev&quot;: [
+      {
+        &quot;name&quot;: &quot;pdtk/gravity-device-data-service&quot;,
+        &quot;version&quot;: &quot;3d-dev-1.0.29&quot;
+      },
+      {
+        &quot;name&quot;: &quot;pdtk/medusa_dooku&quot;,
+        &quot;version&quot;: &quot;3d-dev-1.1.11&quot;
+      }
+ ]
+}
+</code></pre>
+                    <p>私はここで何を間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それは、versions_list
+                    が配列であるためです。これを、要素をプッシュできる配列にマップする
+                    medusa-dev
+                    のキーを持つマップにする必要があります。</p>
+                    <pre><code>old_versions_json = &quot;{}&quot;
+
+versions_list = JSON.parse(old_versions_json)
+versions_list[namespace] = []
+
+c = versions_list[namespace].find { |h| h[&#39;name&#39;] == name }
+
+# If the service doesn&#39;t exist in the configmap yet, add it
+if c.nil?
+  puts(&quot;[WARNING] service #{name}:#{version} is not present in the configmap.  Adding it.&quot;)
+  versions_list[namespace].push({ &quot;name&quot; =&gt; name, &quot;version&quot; =&gt; version })
+end
+</code></pre>
+                    <p>ところで、最初からリテラルを指定するだけで済むのに、なぜ
+                    JSON を指定してすぐに解析するのかわかりません。</p>
+                    <pre><code>versions_list = { namespace =&gt; [] }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アクティブな管理者でフォームオブジェクトパラメータにアクセスする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アクティブな管理者でフォームオブジェクトパラメータにアクセスする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アクティブな管理者でフォームオブジェクトパラメータにアクセスする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これが実際に可能であることを願っていますが、カスタムアクションで送信するためのフォームパラメーターにアクセスできないようです。</p>
+                    <p>ここでの目的は、ユーザーがフォームに記入し、[プレビュー]
+                    ボタンをクリックして投稿がどのように表示されるかを表示することです。問題ないビューを作成しましたが、パラメーターを渡すだけが問題です。</p>
+                    <p>これが私の現在のフォームです</p>
+                    <pre><code># Create Blog Post
+form do |f|
+  inputs &#39;Blog&#39; do
+    f.semantic_errors
+    f.input :title
+    f.input :category_id, as: :select, collection: Category.all
+    f.input :comments, as: :text, input_html: { rows: 10, cols: 10 }
+    f.input :published, as: :boolean
+  end
+  inputs &#39;Submit&#39; do
+    f.actions do
+    f.action :submit
+    f.action :cancel
+    f.action :reset
+    li do
+      link_to &#39;Preview&#39;, preview_my_admin_panel_posts_path(post: { title: &quot;test&quot;, comments: &#39;comments&#39;, category_id: &#39;1&#39; }) # Hardcoded for now
+    end
+   end
+ end
+end
+
+# Collection Action to handle object
+collection_action :preview, method: :get do
+  @post = Post.new(permitted_params[:post])
+end
+</code></pre>
+                    <p>したがって、すべてがそのまま（ハードコード化されている）パラメータが渡されてプレビュービューに出力されますが、フォームオブジェクト/パラメータにアクセスしようとするとすぐに何も渡されません。</p>
+                    <pre><code># Console Output
+1 - link_to &#39;Preview&#39;, preview_my_admin_panel_posts_path(post: { title: f.object.title, comments: f.object.comments, category_id: f.object.category_id})
+#&lt;Post:0x007f8bbe1fc4c0 id: nil, title: &quot;&quot;, comments: &quot;&quot;, category_id: nil, slug: nil, published: 0, created_at: nil, updated_at: nil&gt;
+2 - link_to &#39;Preview&#39;, preview_my_admin_panel_posts_path(post: { title: f.title, comments: f.comments, category_id: f.category_id })
+# Console Output
+#&lt;Post:0x007f8bbe1fc4c0 id: nil, title: nil, comments: nil, category_id: nil, slug: nil, published: 0, created_at: nil, updated_at: nil&gt;
+3 - link_to &#39;Preview&#39;, preview_my_admin_panel_posts_path(@post)
+# Console Output
+#&lt;Post:0x007f8bbe1fc4c0 id: nil, title: nil, comments: nil, category_id: nil, slug: nil, published: 0, created_at: nil, updated_at: nil&gt;
+</code></pre>
+                    <p>これを他にどこに行えばよいのかわかりません。f.object.param
+                    が近いように見えますが、空の文字列を通過しますか?</p>
+                    <p>どのような代替ソリューションを検討できますか?</p>
+                    <p>パラメータをコンソールに出力すると、これが返されます</p>
+                    <pre><code>{&quot;action&quot;=&gt;&quot;preview&quot;, &quot;controller&quot;=&gt;&quot;my_admin_panel/posts&quot;}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>投稿を作成しようとしていますか?このページをロードするとき、フィールドには値がないため、リンクはパラメータをロードしません（プレビュー
+                    リンクの要素を検査すると、リンクにパラメータがないことが確認できます）。</p>
+                    <p>1
+                    つの方法は、リンクがコントローラーにルーティングされる前に
+                    JavaScript を使用して値を取得することです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

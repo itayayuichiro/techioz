@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Webrick を使用してすべてのインターフェイスでポートを公開する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Webrick を使用してすべてのインターフェイスでポートを公開する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Webrick
+を使用してすべてのインターフェイスでポートを公開する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby を初めて使用します。</p>
+                    <p>WEBrick を使用して HTTPServer
+                    をデプロイするスクリプトを使用しています。</p>
+                    <p>スクリプトが実行されると、ログアウトされます。</p>
+                    <pre><code>check_1  | [2018-12-20 17:51:47] INFO  WEBrick::HTTPServer#start: pid=1 port=4567
+</code></pre>
+                    <p>マシン上で netstat を実行すると、サービスが
+                    127.0.0.1
+                    でのみリッスンしていることがわかります。</p>
+                    <pre><code>$ netstat -tulpn
+
+root@c4a20aa7bd8c:/opt/service# netstat -tulpn
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 127.0.0.1:4567          0.0.0.0:*               LISTEN      1/ruby1.9.3
+</code></pre>
+                    <p>別のコンテナからこのサービスと通信できるように、すべての
+                    IP でリッスンしたいと考えています。</p>
+                    <p>どのような構成が必要ですか?</p>
+                    <p>サーバーのスクリプト定義は次のとおりです。</p>
+                    <pre><code>#!/usr/bin/ruby
+
+
+require &#39;rubygems&#39;
+require &#39;sinatra&#39;
+require &#39;sinatra/reloader&#39; if development?
+also_reload &#39;config.yml&#39;
+require &quot;sinatra/config_file&quot;
+require &#39;mechanize&#39;
+require &quot;json&quot;
+require &#39;open-uri&#39;
+require &#39;mongo&#39;
+require &#39;uri&#39;
+require &#39;addressable/uri&#39;
+require &#39;cgi&#39;
+include Mongo
+require &#39;nokogiri&#39;
+
+set :server, &#39;webrick&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが探している答えは、Sinatra
+                    設定ドキュメントにあります:
+                    http://sinatrarb.com/configuration.html</p>
+                    <p>具体的には、:bind オプションです。例: set :bind,
+                    ‘0.0.0.0’</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

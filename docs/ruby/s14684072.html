@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Prawn: ヘッダー バナーと繰り返しヘッダー テーブルを含む PDF の作成 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Prawn: ヘッダー バナーと繰り返しヘッダー テーブルを含む PDF の作成",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Prawn: ヘッダー バナーと繰り返しヘッダー
+テーブルを含む PDF の作成</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>目的は: ヘッダー バナーと繰り返しヘッダー
+                    テーブルを持つ PDF を作成することです。
+                    問題は、テーブルが新しいページを開始する場合、pdf.move_down
+                    が機能しないことです。</p>
+                    <pre><code>CODE:
+# repeat drawing in every page
+pdf.repeat(:all, :dynamic =&gt; true) do
+    pdf.font(&quot;#{Rails.root}/vendor/pdffonts/ThonburiBold.ttf&quot;) do
+    pdf.font_size = 8 
+
+    pdf.float { pdf.text &quot;Time: #{tt}&quot;, :align =&gt; :left }
+    pdf.float { pdf.text &quot;Page #{pdf.page_number}&quot;, :align =&gt; :right }
+    pdf.float { pdf.text &quot;Inquiry Name: #{page_title}&quot;, :align =&gt; :center }
+
+    pdf.move_down 15
+
+    pdf.float { pdf.text &quot;AS OF #{Time.now.to_date}&quot;, :align =&gt; :center }
+
+
+    pdf.move_down 40      ## move down to draw the following table
+    pdf.stroke_horizontal_rule
+end
+
+## ... building big_data_array for table ...
+
+table_config = {
+    :header =&gt; true,
+    :row_colors =&gt; [&quot;FFFFFF&quot;, &quot;F0F0F0&quot;],
+    :cell_style =&gt; { :padding =&gt; 1 }
+}
+
+# draw a long table
+pdf.table(big_data_array, table_config) do |t|
+    t.before_rendering_page do |c|
+      pdf.move_down 40    ## try to add margin-top before render the table in every page
+    end
+    t.row(0).background_color = &quot;DADADA&quot;
+    # style rows and cells ...
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>オフセット値を受け入れるように、Prawn::Table
+                    メソッドの描画を変更することにしました。</p>
+                    <pre><code>module Prawn
+  class Table
+    def set_before_render_offset(y = 0)
+    @user_offset = y
+  end
+
+  def draw
+    ...
+    # start a new page or column
+    @pdf.bounds.move_past_bottom
+    if cell.row &gt; 0 &amp;&amp; @header
+      header_height = add_header(cells_this_page, @pdf.cursor - @user_offset, cell.row-1)
+    else
+      header_height = 0
+    end
+    offset = @pdf.y - cell.y - header_height - @user_offset
+    started_new_page_at_row = cell.row
+    ...
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

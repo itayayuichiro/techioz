@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails: データベース内の 2 つの列に基づくユーザー認証が機能しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails: データベース内の 2 つの列に基づくユーザー認証が機能しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails: データベース内の 2
+つの列に基づくユーザー認証が機能しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ホワイトラベル
+                    サービスを構築しているのですが、ユーザーが異なるドメイン
+                    (example1.com、example2.com)
+                    を介して同じ電子メールで認証できるようにするロジックが必要です。</p>
+                    <p>Ruby-on-rails 6.1.7、ruby 2.7.0p0、デバイス 4.8.1
+                    を使用しています。</p>
+                    <p>私はこのドキュメントを使用してこれを実行しようとし、デバイス初期化子に次の行
+                    config.authentication_keys = [ :email, :domain ]
+                    を追加しました。その後、インデックスを追加する移行ファイルを作成しました。</p>
+                    <pre><code>add_column :users, :domain, :string, null: false, default: &#39;example.com&#39;
+remove_index :users, :email
+add_index :users, [:email, :domain], unique: true
+</code></pre>
+                    <p>Users モデルにも追加されました。</p>
+                    <pre><code>devise :database_authenticatable, :registerable,
+       :recoverable, :rememberable, :trackable, :validatable,
+       :confirmable, authentication_keys: [:domain, :email]
+
+def self.find_for_authentication
+  where(domain: warden_conditions[:domain], email: warden_conditions[:email]).first
+end
+</code></pre>
+                    <p>新しいアカウントを作成する登録コントローラーは次のようになります。</p>
+                    <pre><code>def create
+    build_resource(sign_up_params)
+    resource.domain = request.domain
+    puts
+    puts &#39;*&#39; * 100
+    p resource
+    puts &#39;*&#39; * 100
+    puts
+    resource.save
+
+    yield resource if block_given?
+
+    if resource.persisted?
+      if resource.active_for_authentication?
+        sign_up(resource_name, resource)
+      else
+        render json: { success: true, location: &#39;/registrations/success&#39; }
+      end
+    else
+      render json: { errors: resource.errors.messages }, status: 422
+    end
+  end
+</code></pre>
+                    <p>今、私は問題に直面しています。データベースには、メールアドレス
+                    [email protected] とドメイン example1.com
+                    のアカウントがあるため、同じメールアドレスを持つ同じ人物に対して、別のドメイン
+                    example2
+                    から新しいアカウントを作成しようとしています。 com
+                    このメールアドレスを持つユーザーが存在するというエラーが発生します。このデバイスがデータベースに対して間違ったクエリを実行していることがわかります。このクエリは次のようになります。
+                    User Exists? (1.6ミリ秒) SELECT 1 AS one FROM
+                    “users” WHERE “users”.”email” = LIMIT [[“email”,
+                    “[email protected]”], [“LIMIT”, 1]]
+                    ですが、次のようになります。このユーザーは存在しますか?
+                    (1.6ミリ秒) SELECT 1 AS one FROM “users” WHERE
+                    “users”.”email” = AND “users”.”domain” = LIMIT
+                    [[“email”, “[email protected]”], [“domain”,
+                    “example.com”]、[“LIMIT”、1]]</p>
+                    <p>見逃してしまったということでしょうか？助けていただきありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>リンク先のページから</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

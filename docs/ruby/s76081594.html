@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mail_Form gem を使用して電子メールを配信するときにファイルの終わり (EOF) エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mail_Form gem を使用して電子メールを配信するときにファイルの終わり (EOF) エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mail_Form gem
+を使用して電子メールを配信するときにファイルの終わり (EOF)
+エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>連絡先オブジェクト用にシンプルなフォームを設定しました</p>
+                    <pre><code>  &lt;%= simple_form_for @contact do |f| %&gt;
+    &lt;%= f.input :name %&gt;
+    &lt;%= f.input :email %&gt;
+    &lt;%= f.input :message %&gt;
+    &lt;%= f.button :submit %&gt;
+  &lt;% end %&gt;
+</code></pre>
+                    <pre><code>class Contact &lt; MailForm::Base
+    attribute :name, validate: true
+    attribute :email, validate: true
+    attribute :message  
+    def headers
+      { 
+        subject: &quot;My Contact Form&quot;,
+        to: &#39;#####gmail.com&#39;,
+        from: %(&quot;#{name}&quot; &lt;#{email}&gt;)
+      }
+    end
+  end
+</code></pre>
+                    <p>オブジェクトは期待どおりに作成されますが、コンタクト
+                    コントローラーで .deliver
+                    を使用してメールを送信するときに作成されます。</p>
+                    <pre><code>class ContactsController &lt; ApplicationController
+    def create
+      @contact = Contact.new()
+      @contact.name = [:name]
+      @contact.email = [:email]
+      @contact.message = [:message]
+      if @contact.deliver
+        render json: {message: &quot;Email sent successfully&quot;}
+      else
+        render json: @contact.errors
+      end
+    end
+  end
+</code></pre>
+                    <p>次のエラーが表示されます -
+                    ContactsController#create の EOFError</p>
+                    <p>IRB 内の連絡先オブジェクトに対して .deliver
+                    を呼び出そうとすると、次のものが表示されます。</p>
+                    <pre><code>  Rendering /home/#####/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/mail_form-1.10.0/lib/mail_form/views/mail_form/contact.erb
+  Rendered /home/#####/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/mail_form-1.10.0/lib/mail_form/views/mail_form/contact.erb (Duration: 7.3ms | Allocations: 1861)
+MailForm::Notifier#contact: processed outbound mail in 62.3ms
+Delivered mail [email protected] (192.0ms)
+Date: Sat, 22 Apr 2023 20:00:30 +0100
+From: ##### &lt;#####@hello.com&gt;
+To: #############@gmail.com
+Message-ID: &lt;[email protected]&gt;
+Subject: My Contact Form
+Mime-Version: 1.0
+Content-Type: text/html;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+&lt;h4 style=&quot;text-decoration:underline&quot;&gt;My Contact Form&lt;/h4&gt;
+
+
+  &lt;p&gt;&lt;b&gt;Name:&lt;/b&gt;
+  #####&lt;/p&gt;
+
+  &lt;p&gt;&lt;b&gt;Email:&lt;/b&gt;
+  #####@hello.com&lt;/p&gt;
+
+  &lt;p&gt;&lt;b&gt;Message:&lt;/b&gt;
+  #####&lt;/p&gt;
+
+
+/home/#####/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/net-protocol-0.2.1/lib/net/protocol.rb:237:in `rbuf_fill&#39;: end of file reached (EOFError)
+</code></pre>
+                    <p>Development.rb の smtp 設定は次のとおりです</p>
+                    <pre><code> config.action_mailer.perform_deliveries = true
+  config.action_mailer.default_url_options = { host: &#39;localhost:3000&#39; }
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+  address: &#39;smtp-relay.gmail.com&#39;,
+  port: 587,
+  domain: &#39;@gmail.com&#39;,
+  authentication: &#39;plain&#39;,
+  enable_starttls_auto: true,
+  user_name: ENV[&#39;username&#39;],
+  password: ENV[&#39;password&#39;]
+</code></pre>
+                    <p>ここにダンプするコードがたくさんあることはありがたいのですが、私はこの問題で本当に途方に暮れています。さらに詳しい情報が必要な方がいらっしゃいましたら、お知らせください。</p>
+                    <p>これまでのところ、EOF
+                    エラーを調べてみましたが、エラー
+                    メッセージが非常に短いため、運は限られていました。ポートとローカルホストアドレスを変更しようとしましたが、何も機能しないようです。</p>
+                    <p>エラーページのパラメータは次のとおりです。</p>
+                    <p>{“authenticity_token”=&gt;“[FILTERED]”、“contact”=&gt;{“name”=&gt;“fff”、“email”=&gt;“ffff”、“message”=&gt;“fffff”}、“commit”=
+                    &gt;「連絡先を作成」}</p>
+                    <p>フルスタックトレース:</p>
+                    <pre><code>net-protocol (0.2.1) lib/net/protocol.rb:237:in `rbuf_fill&#39;
+net-protocol (0.2.1) lib/net/protocol.rb:199:in `readuntil&#39;
+net-protocol (0.2.1) lib/net/protocol.rb:209:in `readline&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:1057:in `recv_response&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:1042:in `block in getok&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:1067:in `critical&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:1040:in `getok&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:935:in `helo&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:703:in `do_helo&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:660:in `do_start&#39;
+net-smtp (0.3.3) lib/net/smtp.rb:611:in `start&#39;
+mail (2.8.1) lib/mail/network/delivery_methods/smtp.rb:109:in `start_smtp_session&#39;
+mail (2.8.1) lib/mail/network/delivery_methods/smtp.rb:100:in `deliver!&#39;
+mail (2.8.1) lib/mail/message.rb:2145:in `do_delivery&#39;
+mail (2.8.1) lib/mail/message.rb:253:in `block in deliver&#39;
+actionmailer (7.0.4.3) lib/action_mailer/base.rb:588:in `block in deliver_mail&#39;
+activesupport (7.0.4.3) lib/active_support/notifications.rb:206:in `block in instrument&#39;
+activesupport (7.0.4.3) lib/active_support/notifications/instrumenter.rb:24:in `instrument&#39;
+activesupport (7.0.4.3) lib/active_support/notifications.rb:206:in `instrument&#39;
+actionmailer (7.0.4.3) lib/action_mailer/base.rb:586:in `deliver_mail&#39;
+mail (2.8.1) lib/mail/message.rb:253:in `deliver&#39;
+actionmailer (7.0.4.3) lib/action_mailer/message_delivery.rb:119:in `block in deliver_now&#39;
+actionmailer (7.0.4.3) lib/action_mailer/rescuable.rb:17:in `handle_exceptions&#39;
+actionmailer (7.0.4.3) lib/action_mailer/message_delivery.rb:118:in `deliver_now&#39;
+mail_form (1.10.0) lib/mail_form/delivery.rb:158:in `deliver!&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:400:in `block in make_lambda&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:236:in `block in halting_and_conditional&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:599:in `block in invoke_after&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:599:in `each&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:599:in `invoke_after&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:108:in `run_callbacks&#39;
+mail_form (1.10.0) lib/mail_form/shim.rb:49:in `deliver&#39;
+app/controllers/contacts_controller.rb:7:in `create&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/basic_implicit_render.rb:6:in `send_action&#39;
+actionpack (7.0.4.3) lib/abstract_controller/base.rb:215:in `process_action&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/rendering.rb:53:in `process_action&#39;
+actionpack (7.0.4.3) lib/abstract_controller/callbacks.rb:234:in `block in process_action&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:118:in `block in run_callbacks&#39;
+actiontext (7.0.4.3) lib/action_text/rendering.rb:20:in `with_renderer&#39;
+actiontext (7.0.4.3) lib/action_text/engine.rb:69:in `block (4 levels) in &lt;class:Engine&gt;&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:127:in `instance_exec&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:127:in `block in run_callbacks&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:138:in `run_callbacks&#39;
+actionpack (7.0.4.3) lib/abstract_controller/callbacks.rb:233:in `process_action&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/rescue.rb:22:in `process_action&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/instrumentation.rb:67:in `block in process_action&#39;
+activesupport (7.0.4.3) lib/active_support/notifications.rb:206:in `block in instrument&#39;
+activesupport (7.0.4.3) lib/active_support/notifications/instrumenter.rb:24:in `instrument&#39;
+activesupport (7.0.4.3) lib/active_support/notifications.rb:206:in `instrument&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/instrumentation.rb:66:in `process_action&#39;
+actionpack (7.0.4.3) lib/action_controller/metal/params_wrapper.rb:259:in `process_action&#39;
+activerecord (7.0.4.3) lib/active_record/railties/controller_runtime.rb:27:in `process_action&#39;
+actionpack (7.0.4.3) lib/abstract_controller/base.rb:151:in `process&#39;
+actionview (7.0.4.3) lib/action_view/rendering.rb:39:in `process&#39;
+actionpack (7.0.4.3) lib/action_controller/metal.rb:188:in `dispatch&#39;
+actionpack (7.0.4.3) lib/action_controller/metal.rb:251:in `dispatch&#39;
+actionpack (7.0.4.3) lib/action_dispatch/routing/route_set.rb:49:in `dispatch&#39;
+actionpack (7.0.4.3) lib/action_dispatch/routing/route_set.rb:32:in `serve&#39;
+actionpack (7.0.4.3) lib/action_dispatch/journey/router.rb:50:in `block in serve&#39;
+actionpack (7.0.4.3) lib/action_dispatch/journey/router.rb:32:in `each&#39;
+actionpack (7.0.4.3) lib/action_dispatch/journey/router.rb:32:in `serve&#39;
+actionpack (7.0.4.3) lib/action_dispatch/routing/route_set.rb:852:in `call&#39;
+rack (2.2.6.4) lib/rack/tempfile_reaper.rb:15:in `call&#39;
+rack (2.2.6.4) lib/rack/etag.rb:27:in `call&#39;
+rack (2.2.6.4) lib/rack/conditional_get.rb:40:in `call&#39;
+rack (2.2.6.4) lib/rack/head.rb:12:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/http/permissions_policy.rb:38:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/http/content_security_policy.rb:36:in `call&#39;
+rack (2.2.6.4) lib/rack/session/abstract/id.rb:266:in `context&#39;
+rack (2.2.6.4) lib/rack/session/abstract/id.rb:260:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/cookies.rb:704:in `call&#39;
+activerecord (7.0.4.3) lib/active_record/migration.rb:603:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/callbacks.rb:27:in `block in call&#39;
+activesupport (7.0.4.3) lib/active_support/callbacks.rb:99:in `run_callbacks&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/callbacks.rb:26:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/executor.rb:14:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/actionable_exceptions.rb:17:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/debug_exceptions.rb:28:in `call&#39;
+web-console (4.2.0) lib/web_console/middleware.rb:132:in `call_app&#39;
+web-console (4.2.0) lib/web_console/middleware.rb:28:in `block in call&#39;
+web-console (4.2.0) lib/web_console/middleware.rb:17:in `catch&#39;
+web-console (4.2.0) lib/web_console/middleware.rb:17:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/show_exceptions.rb:26:in `call&#39;
+railties (7.0.4.3) lib/rails/rack/logger.rb:40:in `call_app&#39;
+railties (7.0.4.3) lib/rails/rack/logger.rb:25:in `block in call&#39;
+activesupport (7.0.4.3) lib/active_support/tagged_logging.rb:99:in `block in tagged&#39;
+activesupport (7.0.4.3) lib/active_support/tagged_logging.rb:37:in `tagged&#39;
+activesupport (7.0.4.3) lib/active_support/tagged_logging.rb:99:in `tagged&#39;
+railties (7.0.4.3) lib/rails/rack/logger.rb:25:in `call&#39;
+sprockets-rails (3.4.2) lib/sprockets/rails/quiet_assets.rb:13:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/remote_ip.rb:93:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/request_id.rb:26:in `call&#39;
+rack (2.2.6.4) lib/rack/method_override.rb:24:in `call&#39;
+rack (2.2.6.4) lib/rack/runtime.rb:22:in `call&#39;
+activesupport (7.0.4.3) lib/active_support/cache/strategy/local_cache_middleware.rb:29:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/server_timing.rb:61:in `block in call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/server_timing.rb:26:in `collect_events&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/server_timing.rb:60:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/executor.rb:14:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/static.rb:23:in `call&#39;
+rack (2.2.6.4) lib/rack/sendfile.rb:110:in `call&#39;
+actionpack (7.0.4.3) lib/action_dispatch/middleware/host_authorization.rb:137:in `call&#39;
+railties (7.0.4.3) lib/rails/engine.rb:530:in `call&#39;
+puma (5.6.5) lib/puma/configuration.rb:252:in `call&#39;
+puma (5.6.5) lib/puma/request.rb:77:in `block in handle_request&#39;
+puma (5.6.5) lib/puma/thread_pool.rb:340:in `with_force_shutdown&#39;
+puma (5.6.5) lib/puma/request.rb:76:in `handle_request&#39;
+puma (5.6.5) lib/puma/server.rb:443:in `process_client&#39;
+puma (5.6.5) lib/puma/thread_pool.rb:147:in `block in spawn_thread&#39; 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>サーバーではなく自分のデスクトップコンピューターでサーバーを実行しているようです。ここでは、Rails
+                    アプリが SMTP helo
+                    コマンドを送信した直後に、「何か」がデスクトップと
+                    Gmail の SMTP ゲートウェイ間の TCP
+                    接続を切断しているようです。</p>
+                    <p>これは多くの場合、デスクトップまたは (企業)
+                    ネットワーク内のファイアウォールまたはウイルス
+                    スキャナーがアウトバウンド
+                    メールの送信を拒否していることが原因で発生します。ネットワーク内の企業ゲートウェイを介してメールを送信することが必要になる場合もあります。</p>
+                    <p>いずれにせよ、これはアプリや Gmail
+                    が原因ではなく、ネットワーク設定または (企業)
+                    ネットワークの設定が原因であるようです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

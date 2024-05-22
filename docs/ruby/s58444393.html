@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>コーディングチャレンジ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "コーディングチャレンジ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>コーディングチャレンジ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>それで、最近私はコーディングチャレンジをチェックしていました。この問題は非常に興味深いものでしたので、時間と空間の複雑さの観点から、より良い方法があるかどうか知りたいだけです。</p>
+                    <p>問題: 数値 x が与えられ、x は 0
+                    より大きい正の数になります。同じ数字を異なる順序で並べ替えた最も近い最小の数値を見つけます。存在する場合は最小の数値を返し、そうでない場合は「最も近い最小の数値は存在しません」と出力します。</p>
+                    <p>そこで、以下にいくつかの例を示します</p>
+                    <p>番号: 8563 出力: 8536</p>
+                    <p>番号 7385 出力7358</p>
+                    <p>番号: 3857 出力: 3785</p>
+                    <p>番号: 123 出力:
+                    最も近い最小の数値は存在しません</p>
+                    <pre><code>number = gets.to_i
+flag = 1
+numbers_array =  number.digits.permutation(Math.log10(number).to_i + 1).sort
+numbers_array.each_with_index do |e, index| 
+  if e.join.to_i == number
+    print numbers_array[index - 1]
+    flag = 0
+    break
+  end
+end
+if flag == 1
+  puts &quot;Nearest Smallest Number not exist&quot;
+end
+</code></pre>
+                    <p>注:
+                    数値が非常に大きい場合、上記の解決策にはさらに時間がかかります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この考え方は、配列の次の順列を生成するのと似ています。</p>
+                    <p>順列があるとしましょう</p>
+                    <pre><code>a1, a2, a3 ... an
+</code></pre>
+                    <p>これの前の順列は何ですか?</p>
+                    <p>観察： 最初の順列 (最小のもの)
+                    には次の特性があります。</p>
+                    <pre><code>a1 &lt;= a2 &lt;= a3 ... &lt;= an
+</code></pre>
+                    <p>そして、最後の順列には次の特性があります。</p>
+                    <pre><code>a1 &gt;= a2 &gt;= a3 ... &gt;= an.
+</code></pre>
+                    <p>この観察から、特定の順列を簡単に行ったり来たりすることができます。</p>
+                    <p>次のような位置 k
+                    が見つかった場合、最後の要素から最初の要素まで繰り返してみましょう。</p>
+                    <pre><code>ak , ak + 1, and ak &gt; ak + 1
+</code></pre>
+                    <p>ak + 1 … an から最大の数を見つけて、ax &lt; ak
+                    を満たす ax と呼び、ax を ak に置き換えます。</p>
+                    <pre><code>a1, a2, ... ax, [...]
+</code></pre>
+                    <p>[…]
+                    については、降順に並べ替える必要があります。そしてなんと、私たちは問題の答えを見つけました。</p>
+                    <p>例：</p>
+                    <pre><code>1, 2, 4, 3 =&gt; k = 3, x = 4 -&gt; Ans = 1, 2, 3, 4
+
+1, 2, 5, 5, 3, 4 =&gt; k = 4, x = 6 -&gt; Ans = 1, 2, 5, 4, 5, 3 
+</code></pre>
+                    <p>Java コード:</p>
+                    <pre><code>public void prevPermutation(int[]data){
+     for(int i = data.length - 2; i &gt;= 0; i--){
+         if(data[i] &gt; data[i + 1]){
+            int index = i + 1;
+            for(int j = i + 2; j &lt; data.length; j++){
+                if (data[j] &gt; data[index] &amp;&amp; data[j] &lt; data[i]){
+                     index = j;
+                }
+            }
+            int tmp = data[i];
+            data[i] = data[index];
+            data[index] = tmp;
+            sortDescending(data, i + 1, data.length);
+            break; 
+         }
+     }
+
+}
+public void sortDescending(int[]data, int from, int to){
+     int[]copy = Arrays.copyOfRange(data, from, to);
+     Arrays.sort(copy);
+     for(int i = from; i &lt; to; i++){
+          data[i] = copy[to - i - 1];
+     }         
+}
+</code></pre>
+                    <p>時間計算量: O (n log n) (n は桁数)。</p>
+                    <p>ライブデモ: https://ideone.com/ZLaSa0</p>
+                    <p>わずかに改良されたバージョン: O (n) 時間の計算量
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://ideone.com/RvmymX</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

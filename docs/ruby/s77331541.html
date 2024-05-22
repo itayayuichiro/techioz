@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Shopifyの注文応答の返金:「任意の返金は許可されません」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Shopifyの注文応答の返金:「任意の返金は許可されません」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Shopifyの注文応答の返金:「任意の返金は許可されません」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>注文を返金していますが、返金される商品には返品送料
+                    (弊社側で使用する変数)
+                    がかかるため、それを金額から差し引いています。
+                    これは生産的なショップでは失敗しますが、テストモードまたは偽の支払い方法を使用すると、エラーは表示されず、返金が行われます。
+                    テスト環境では、払い戻しは order_adjustment
+                    を使用して作成されます。一方、生産的なショップで返金を試みると、返金も
+                    order_adjustment も作成されません。</p>
+                    <p>Shopify shopify-api-ruby の問題</p>
+                    <p>例：</p>
+                    <pre><code>return_shipping_cost_cents = 1 USD
+maximum_refundable = 20 USD
+amount = 19 USD
+</code></pre>
+                    <p>Shopify
+                    は注文に対する調整を作成し、金額を返金する必要があります。</p>
+                    <p>エラーメッセージ:
+                    {“errors”=&gt;{“base”=&gt;[“任意の払い戻しは許可されていません”]}}</p>
+                    <pre><code>{
+&quot;refund_line_items&quot;=&gt;[
+  {
+    &quot;line_item_id&quot;=&gt;&quot;11922901111117&quot;,
+    &quot;quantity&quot;=&gt;1,
+    &quot;restock_type&quot;=&gt;&quot;no_restock&quot;
+  }
+],
+&quot;shipping&quot;=&gt;{
+  &quot;full_refund&quot;=&gt;false
+}
+}
+</code></pre>
+                    <pre><code>return_shipping_cost_cents = 6,95
+{
+  &quot;shipping&quot;: {
+    &quot;amount&quot;: &quot;0.00&quot;,
+    &quot;tax&quot;: &quot;0.00&quot;,
+    &quot;maximum_refundable&quot;: &quot;0.00&quot;
+  },
+  &quot;duties&quot;: [],
+  &quot;total_duties_set&quot;: {
+    &quot;shop_money&quot;: {
+      &quot;amount&quot;: &quot;0.00&quot;,
+      &quot;currency_code&quot;: &quot;USD&quot;
+    },
+    &quot;presentment_money&quot;: {
+      &quot;amount&quot;: &quot;0.00&quot;,
+      &quot;currency_code&quot;: &quot;USD&quot;
+    }
+  },
+  &quot;return&quot;: null,
+  &quot;refund_line_items&quot;:
+  [
+    {
+      &quot;quantity&quot;: 1,
+      &quot;line_item_id&quot;: 11922901111117,
+      &quot;location_id&quot;: null,
+      &quot;restock_type&quot;: &quot;no_restock&quot;,
+      &quot;price&quot;: &quot;62.97&quot;,
+      &quot;subtotal&quot;: &quot;62.97&quot;,
+      &quot;total_tax&quot;: &quot;4.25&quot;,
+      &quot;discounted_price&quot;: &quot;62.97&quot;,
+      &quot;discounted_total_price&quot;: &quot;62.97&quot;,
+      &quot;total_cart_discount_amount&quot;: &quot;0.00&quot;
+    }
+  ],
+  &quot;transactions&quot;: 
+  [
+    {
+      &quot;order_id&quot;: 4786111111837,
+      &quot;kind&quot;: &quot;refund&quot;,
+      &quot;gateway&quot;: &quot;shopify_payments&quot;,
+      &quot;parent_id&quot;: 6017111111269,
+      &quot;amount&quot;: 60.27,
+      &quot;currency&quot;: &quot;USD&quot;,
+      &quot;maximum_refundable&quot;: &quot;67.22&quot;
+    }
+  ],
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;note&quot;: &quot;33HxxxYvLq&quot;
+}
+</code></pre>
+                    <p>return_shipping
+                    を請求する注文を返金しようとしていますが、Shopify が
+                    order_adjustment
+                    を使用して返金を作成することを期待しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このエラーが発生する可能性としては、注文が「部分返金」を許可しないゲートウェイで支払われたことが考えられます。元のゲートウェイの支払いが次のいずれでもないことを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

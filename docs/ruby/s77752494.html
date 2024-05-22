@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>配列のすべての要素の方向が交互になっているかどうかを確認する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "配列のすべての要素の方向が交互になっているかどうかを確認する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>配列のすべての要素の方向が交互になっているかどうかを確認する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    では、配列のすべての要素の方向が交互になっているかどうか、つまり、先行要素と後続要素が各要素より大きいか小さいかをチェックする必要があります。</p>
+                    <p>次の配列を指定すると、結果は示されているとおりになるはずです</p>
+                    <pre><code>[1,3,2,4,3]  # =&gt; true
+[3,2,4,3,5]  # =&gt; true
+[1,2,3,1,3]. # =&gt; false 
+[1,2,2,1,3]. # =&gt; false
+</code></pre>
+                    <p>次のコードを作成しました。これは機能するようですが、非常に理解しやすいものです。</p>
+                    <pre><code>array.each_cons(2)     # get subsequent couple of items
+  .map {|a,b| b-a}.    # get the difference between first and second
+  .map {|n| n &lt;=&gt; 0}   # get the sign (-1/+1)
+  .each_cons(2)        # get couple of signs
+  .map {|a,b| a+b}     # sum each couple
+  .uniq == [0]         # return true if all the couple are 0
+</code></pre>
+                    <p>チェックを簡素化する方法について何か提案はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>def alternate_direction?(arr)
+  return true if arr.size &lt; 3
+  arr.each_cons(3) do |prev, curr, succ|
+    return false unless (curr &gt; prev &amp;&amp; curr &gt; succ) || (curr &lt; prev &amp;&amp; curr &lt; succ)
+  end
+  true
+end
+</code></pre>
+                    <p>さっそく印刷してみましょう</p>
+                    <pre><code>puts alternate_direction?([1,3,2,4,3])  # =&gt; true
+puts alternate_direction?([3,2,4,3,5])  # =&gt; true
+puts alternate_direction?([1,2,3,1,3])  # =&gt; false
+puts alternate_direction?([1,2,2,1,3])  # =&gt; false
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

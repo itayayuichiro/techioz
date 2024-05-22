@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>gem r10k をインストールしようとすると R10K モジュールが間違った Ruby バージョンを取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "gem r10k をインストールしようとすると R10K モジュールが間違った Ruby バージョンを取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>gem r10k をインストールしようとすると R10K
+モジュールが間違った Ruby バージョンを取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>puppetforge puppet-r10k r10k
+                    のモジュールを使用して r10k
+                    をデプロイしようとしていますが、puppet Agent -t
+                    を実行すると、モジュールがマシンにインストールされている間違ったバージョンを取得するようです。エラー：</p>
+                    <pre><code>Error: Execution of &#39;/opt/puppetlabs/puppet/bin/gem install --no-document --no-document r10k&#39; returned 1: ERROR:  Error installing r10k:
+    The last version of faraday-net_http (&gt;= 2.0, &lt; 3.2) to support your Ruby &amp; RubyGems was 3.0.2. Try installing it with `gem install faraday-net_http -v 3.0.2` and then running the current command again
+    faraday-net_http requires Ruby version &gt;= 3.0.0. The current ruby version is 2.7.8.225.
+Error: /Stage[main]/R10k::Install/Package[r10k]/ensure: change from &#39;absent&#39; to &#39;present&#39; failed: Execution of &#39;/opt/puppetlabs/puppet/bin/gem install --no-document --no-document r10k&#39; returned 1: ERROR:  Error installing r10k:
+    The last version of faraday-net_http (&gt;= 2.0, &lt; 3.2) to support your Ruby &amp; RubyGems was 3.0.2. Try installing it with `gem install faraday-net_http -v 3.0.2` and then running the current command again
+    faraday-net_http requires Ruby version &gt;= 3.0.0. The current ruby version is 2.7.8.225.
+</code></pre>
+                    <p>マシン上の現在のバージョン:</p>
+                    <pre><code>root@mpuppetserver:~# ruby -v
+ruby 3.0.2p107 (2021-07-07 revision 0db68f0233) [x86_64-linux-gnu]
+</code></pre>
+                    <p>(彼の言うように) faraday-net_http -v 3.0.2
+                    をインストールしようとしましたが、これでは問題は解決されません。
+                    とにかく、さまざまなソースとリモートリポジトリ（Hiera）を追加しようとしました：</p>
+                    <pre><code>r10k::sources:
+  preprod:
+    remote: &quot;%{lookup(&#39;git_preprod&#39;)}&quot;
+    basedir: &quot;${::settings::codedir}/environments&quot;
+    prefix: false
+</code></pre>
+                    <p>エラーをスキップして、データをファイル
+                    /etc/puppetlabs/r10k/r10k.yaml
+                    に追加できるようです。</p>
+                    <pre><code>root@puppetserver:~# cat /etc/puppetlabs/r10k/r10k.yaml
+---
+pool_size: 6
+deploy:
+  generate_types: true
+  exclude_spec: true
+cachedir: &quot;/opt/puppetlabs/puppet/cache/r10k&quot;
+sources:
+  preprod:
+    remote: git@blabla/bla.git
+    basedir: &quot;${::settings::codedir}/environments&quot;
+    prefix: false
+</code></pre>
+                    <p>エラーが残り、r10k gem
+                    がインストールされません。</p>
+                    <p>ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>gem は、Ruby のシステム インストールや JRuby
+                    Puppet Server インストールではなく、Puppet Server の
+                    C/MRI インタープリター Ruby
+                    インストールと一緒にインストールする必要があります。</p>
+                    <pre><code>/opt/puppetlabs/puppet/bin/gem install --no-document faraday-net_http -v 3.0.2
+</code></pre>
+                    <p>これによりエラーが解決され、続行できるようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

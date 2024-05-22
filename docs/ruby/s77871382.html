@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでCSVコンバータエンコーディングを使用するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでCSVコンバータエンコーディングを使用するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでCSVコンバータエンコーディングを使用するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>require &#39;csv&#39;
+module Expertus
+ class Dataset &lt; Array
+  attr_accessor :data_type, :udc_id, :filename_suffix
+
+# knows its common_udc_id and data type
+
+  def initialize *args
+    CSV::Converters[:non_octal_integer] = lambda { |f|
+     begin
+      e = f.encode(CSV::ConverterEncoding)
+      unless e == &quot;0&quot;
+        if e.starts_with? &quot;0&quot;
+          return f
+        end
+      end
+    rescue
+      return f
+    end
+    Integer(f.encode(CSV::ConverterEncoding)) rescue f
+  }
+
+  CSV::Converters[:non_octal_float] = lambda { |f|
+    begin
+      e = f.encode(CSV::ConverterEncoding)
+      unless e.starts_with? &quot;0.&quot;
+        if e.starts_with? &quot;0&quot;
+          return f
+        end
+      end
+    rescue
+      return f
+    end
+    Float(f.encode(CSV::ConverterEncoding)) rescue f
+  }
+
+  CSV::Converters[:string_to_bool] =-&gt;(f) {
+    [&#39;true&#39;, &#39;false&#39;].include?(f) ? f==&#39;true&#39; : f
+  }
+  @csv_options = {:converters =&gt; [:non_octal_integer, :non_octal_float, :string_to_bool]}
+  @data_type = nil
+  @udc_id = nil
+  @filename_suffix = nil
+  super
+end
+def expected_output_filename
+    return &quot;#{@udc_id}_#{@data_type}#{@filename_suffix}.csv&quot;
+end
+def read_expected_output_file_from_directory! directory
+  if directory.is_a? String
+    p &quot;Directory/File:::: #{File.join(directory, self.expected_output_filename)}&quot;
+    p &quot;@csv_options::: #{@csv_options}&quot;
+    csv_data = CSV.read File.join(directory, self.expected_output_filename), @csv_options
+  else
+    csv_data = CSV.new(directory, @csv_options).read
+  end
+  csv_data[0].map! { |h| h.to_sym }
+  self.clear
+  self.replace csv_data
+end
+</code></pre>
+                    <p>次のように jRuby スクリプトで
+                    read_expected_output_file_from_directory
+                    メソッドを呼び出しています。</p>
+                    <pre><code>expected_dataset.read_expected_output_file_from_directory! File.join($session.script_dir, &#39;..&#39;, &#39;expectedresults&#39;)
+</code></pre>
+                    <p>エラーがスローされます:</p>
+                    <p>[“引数の数が間違っています (2 が指定され、1
+                    が期待されます) (ArgumentError)”]</p>
+                    <p>[“引数の数が間違っています (2 が指定され、1
+                    が期待されます) (ArgumentError)”]</p>
+                    <p>助けていただければ幸いです。ありがとう</p>
+                    <p><span class="citation"
+                    data-cites="Stefanと">@Stefanと</span><span
+                    class="citation" data-cites="Ilmari">@Ilmari</span>
+                    Karonenが提案したように、これで機能したもの:</p>
+                    <pre><code>def read_expected_output_file_from_directory! directory
+  if directory.is_a? String
+    p &quot;Directory/File:::: #{File.join(directory, self.expected_output_filename)}&quot;
+    p &quot;@csv_options::: #{@csv_options}&quot;
+    csv_data = CSV.read File.join(directory, self.expected_output_filename), **@csv_options**
+  else
+    csv_data = CSV.new(directory, **@csv_options**).read
+  end
+  csv_data[0].map! { |h| h.to_sym }
+  self.clear
+  self.replace csv_data
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Stefan
+                    が上記のコメントで述べているように、CSV.read と
+                    CSV.new
+                    はオプションがキーワード引数として渡されることを期待しています。</p>
+                    <p>**
+                    を使用してハッシュをキーワード引数に変換できます。例:</p>
+                    <pre><code>CSV.new(directory, **@csv_options)
+</code></pre>
+                    <p>Ruby 2 (および JRuby 9.3)
+                    では、キーワード引数を期待するメソッドに最後の引数としてハッシュを渡すことができ、暗黙的にキーワード引数に変換されます。ただし、Ruby
+                    3 (および JRuby 9.4) では、**
+                    を使用して明示的に要求しない限り、これは発生しなくなりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

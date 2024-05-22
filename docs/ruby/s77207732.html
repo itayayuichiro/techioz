@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Heroku に画像ファイルが存在するかどうかを確認する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Heroku に画像ファイルが存在するかどうかを確認する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Heroku
+に画像ファイルが存在するかどうかを確認する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRails 6.1.4とRuby 3.1.1を使用しています</p>
+                    <p>私のアプリは Heroku 上にあります。 assets/images
+                    ディレクトリにいくつかのイメージがありますが、ライブにデプロイするときに一部のイメージを表示できません。アプリ内の他の画像も表示されるので、牧場側のコードによるものだと確信しています。すべての画像がローカル
+                    マシンに表示されます。</p>
+                    <p>アプリは、assets/images/badges/ 内の画像を Badge
+                    モデル内の image_name
+                    と照合します。現在、assets/images/badges/
+                    には、すべての Badge.image_name
+                    の画像がありません。</p>
+                    <p>ヘルパーは、image_names
+                    に一致する画像を取得し、その名前を配列でビューに送信します。ただし、画像が存在しない場合、壊れた画像アイコンを表示したくありません。そこで、画像を配列に追加する前に、
+                    if Rails.application.assets.find_asset(image_path)
+                    != nil
+                    を使用して画像の存在をテストします。私の推測では、これが問題の領域であり、assets/images/badges
+                    ディレクトリにある画像をテストする他に方法がわかりません。</p>
+                    <p>コード：</p>
+                    <pre><code>app/images/badges/ (just listing 3 here)
+
+boxing-1-bronze-150.png
+boxing-1-gold-150.png
+boxing-1-silver-150.png
+...
+</code></pre>
+                    <p>Heroku にログインし、app/images/badges
+                    ディレクトリをリストすると、これらのイメージがそこにあり、正しい名前が付けられていることがわかります。</p>
+                    <pre><code>badges_helprer.rb
+
+badge_images = []
+
+if badges 
+  badges.uniq!
+  badges.each do |b|
+    image_path = &quot;badges/#{b.image_name}&quot;
+    if Rails.application.assets.find_asset(image_path) != nil
+      badge_images &lt;&lt; image_path
+    end
+  end
+end
+
+return badge_images
+
+</code></pre>
+                    <p>ビュー：</p>
+                    <pre><code>students/show
+
+&lt;% badges = get_badges_for_student(@student) %&gt;
+
+ &lt;% if badges %&gt;
+
+   &lt;% b_count = 0 %&gt; 
+   &lt;% badges.each do |b| %&gt;
+     &lt;% if b_count == 3 %&gt;  &lt;!-- 3 images per row --&gt;
+       &lt;br /&gt;
+       &lt;% b_count = 0 %&gt;
+     &lt;% end %&gt;
+     &lt;%= image_tag(b) %&gt;
+     &lt;% b_count += 1 %&gt;
+   &lt;% end %&gt;
+
+  &lt;% end %&gt;
+</code></pre>
+                    <p>ショー
+                    ビューのテストとして、存在することがわかっている画像の
+                    1 つに対して画像タグを作成しました。</p>
+                    <pre><code>&lt;p&gt;Test: &lt;%= image_tag(&quot;badges/boxing-1-gold-150.png&quot;) %&gt;&lt;/p&gt;
+</code></pre>
+                    <p>表示されているので、ヘルパー
+                    ページに戻り、次の行に賭けます: if
+                    Rails.application.assets.find_asset(image_path) !=
+                    nil が私が思うように動作していません。</p>
+                    <p>assets/images/badges/
+                    ディレクトリ内の画像ファイルをテストするより良い方法はありますか。</p>
+                    <p>助けてくれてありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが機能することがわかりました:</p>
+                    <pre><code>if File.exists?(Rails.root.join(&#39;app&#39;,&#39;assets&#39;,&#39;images&#39;,&#39;badges&#39;,image_name))
+</code></pre>
+                    <p>注: Heroku の Rails.root では app-name/app
+                    が表示されるため、上記の
+                    Rails.root.join(‘app’,‘assets’,‘images’,‘badges’,image_name)
+                    では app/app/assets…
+                    が表示されます。ビューで印刷します。奇数！！しかし、正しいパスに移動する方法を知っていると思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

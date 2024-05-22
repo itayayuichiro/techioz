@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Java で暗号化されたものを復号化する際の Ruby 暗号エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Java で暗号化されたものを復号化する際の Ruby 暗号エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Java で暗号化されたものを復号化する際の Ruby
+暗号エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>別のプロバイダーから暗号化リクエストを受け取りました。そのプロバイダーは
+                    AES GCM No Padding を使用していました。
+                    Rubyで復号化しようとすると、OpenSSL::Cipher::CipherError()というエラーが発生します。
+                    Java では IV が 16 バイト (ゼロの配列)
+                    を受け入れているのに対し、Ruby では 12
+                    バイトのみに制限されていることがわかりました。ここで何かが欠けています。事前のご協力に感謝いたします</p>
+                    <p>Java のコード スニペット</p>
+                    <pre><code>SecretKey sessionKey = getSessionKey();
+byte[] IV = new byte[16];
+Cipher cipher = Cipher.getInstance(&quot;AES/GCM/NoPadding&quot;);
+SecretKeySpec keySpec = new SecretKeySpec(sessionKey.getEncoded(), &quot;AES&quot;);
+GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(16 * 8, IV);
+cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmParameterSpec);
+byte[] encryptedText = cipher.doFinal(plaintext);
+responseMap.put(&quot;data&quot;, Base64.getEncoder().encodeToString(encryptedText));
+</code></pre>
+                    <p>Ruby のコード スニペット</p>
+                    <pre><code>decrypted_key = &quot;AES KEY&quot;
+decode_data = Base64.strict_decode64(params[&quot;data&quot;])
+cipher_text_with_auth_tag = decode_data.unpack(&quot;C*&quot;)
+auth_tag = cipher_text_with_auth_tag.last(16).pack(&quot;C*&quot;)
+cipher_text = cipher_text_with_auth_tag[0..-17].pack(&quot;c*&quot;)
+decipher = OpenSSL::Cipher.new(&#39;AES-256-GCM&#39;)
+decipher. decrypt
+decipher.padding = 0
+decipher.key = decrypted_key
+decipher.iv =  &quot;\x00&quot; * 12
+decipher.auth_data = &#39;&#39;
+decipher.auth_tag = auth_tag
+decrypted_data = decipher.update(cipher_text) + decipher.final
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>OpenSSL では異なる
+                    IV/ノンス長を使用できますが、最初に iv_len=
+                    を呼び出す必要があります。</p>
+                    <p>次のようなものが機能するはずです:</p>
+                    <pre><code>decipher = OpenSSL::Cipher.new(&#39;AES-256-GCM&#39;)
+decipher.decrypt
+decipher.key = key
+
+# Call iv_len= before iv=
+decipher.iv_len = iv_len # e.g. 16 in your case
+decipher.iv = iv
+
+decipher.auth_data = &#39;&#39;
+decipher.auth_tag = auth_tag
+
+decrypted_data = decipher.update(encrypted_data) + decipher.final()
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

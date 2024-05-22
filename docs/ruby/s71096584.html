@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails のアクティブ ストレージ検証が機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails のアクティブ ストレージ検証が機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails のアクティブ
+ストレージ検証が機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>使っています：</p>
+                    <p>レール 6.0.4.4</p>
+                    <p>ルビー 3.0.0</p>
+                    <p>gem’active_storage_validations’
+                    をプロジェクトに追加し、それを使用して添付されたアバターが画像であることを検証しようとしています</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable, :confirmable, :trackable, :lockable, :masqueradable
+         
+  validates :first_name, :last_name, presence: true
+  validates :email, uniqueness: true
+  validates :terms_and_conditions, acceptance: true
+  validates :avatar, attached: true,  content_type: [&#39;image/png&#39;, &#39;image/jpg&#39;, &#39;image/jpeg&#39;]
+  has_one_attached :avatar
+end
+</code></pre>
+                    <p>私のサインアップフォームで</p>
+                    <pre><code>&lt;%= render &quot;devise/shared/error_messages&quot;, resource: resource %&gt;
+&lt;div class=&quot;container pt-3 pb-3&quot;&gt;
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;div class=&quot;card-header&quot;&gt;
+      &lt;h2&gt;Sign up&lt;/h2&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card-body&quot;&gt;
+      &lt;%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :profile_picture %&gt;&lt;br /&gt;
+          &lt;%= f.file_field :avatar, class: &quot;form-control&quot;  %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :email %&gt;&lt;br /&gt;
+            &lt;%= f.email_field :email, autofocus: true, autocomplete: &quot;email&quot;, class: &quot;form-control&quot;, placeholder: &quot;[email protected]&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :first_name %&gt;&lt;br /&gt;
+            &lt;%= f.text_field :first_name, required: true, autofocus: true, autocomplete: &quot;first_name&quot;, class: &quot;form-control&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :last_name %&gt;&lt;br /&gt;
+            &lt;%= f.text_field :last_name, autofocus: true, autocomplete: &quot;last_name&quot;, class: &quot;form-control&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :password %&gt;
+          &lt;% if @minimum_password_length %&gt;
+          &lt;em&gt;(&lt;%= @minimum_password_length %&gt; characters minimum)&lt;/em&gt;
+          &lt;% end %&gt;&lt;br /&gt;
+          &lt;%= f.password_field :password, autocomplete: &quot;new-password&quot;, class: &quot;form-control&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;field mb-3&quot;&gt;
+          &lt;%= f.label :password_confirmation %&gt;&lt;br /&gt;
+          &lt;%= f.password_field :password_confirmation, autocomplete: &quot;new-password&quot;, class: &quot;form-control&quot; %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;form-check form-switch text-muted&quot;&gt;
+          &lt;%= f.check_box :terms_and_conditions, class: &#39;form-check-input&#39;, id: &#39;flexSwitchCheckDefault&#39; %&gt;
+          I hereby confirm I have read and undertood the terms and conditions
+        &lt;/div&gt;
+        &lt;div class=&quot;actions&quot;&gt;
+          &lt;%= f.submit &quot;Continue&quot;, class: &quot;btn btn-primary&quot;  %&gt;
+        &lt;/div&gt;
+      &lt;% end %&gt;
+      &lt;br&gt;
+    &lt;%= render &quot;devise/shared/links&quot; %&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+</code></pre>
+                    <p>他の検証はすべて正常に機能します。</p>
+                    <p>添付された画像にファイルの種類またはサイズの検証を追加しても、ユーザーは任意のファイルの種類とサイズをアップロードできます</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は active_storage_validation gem
+                    の管理者ですが、あなたがここに期待しているかどうかはわかりません。</p>
+                    <p>まず、UI
+                    部分でのユーザー入力を制限する必要があります。これは、input
+                    要素の accept HTML 属性、つまり accept=“image/png,
+                    image/jpg, image/jpeg”
+                    で表されます。これにより、ユーザーはこれらのコンテンツ
+                    タイプのファイルのみをアップロードできるようになり、UX
+                    が向上します。</p>
+                    <p>次に、モデル上で検証を実行し、そこで
+                    active_storage_validation が機能します。
+                    content_type バリデータには次のガード句
+                    (record.send(attribute).attached? (ここ) がない限り
+                    true を返す)
+                    があるため、何もアタッチしなくてもエラーは発生しません。これにより、送信されるエラーの数が減少します。</p>
+                    <p>accept HTML
+                    属性を追加すると、ほとんどのケースが解決すると思います。</p>
+                    <p>そうでない場合は、gem
+                    リポジトリで問題を取り上げてこれについて議論できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

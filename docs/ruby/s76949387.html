@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails でアセットのコンパイルを実行すると、Node.js がインストールされていないために Docker が失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails でアセットのコンパイルを実行すると、Node.js がインストールされていないために Docker が失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+でアセットのコンパイルを実行すると、Node.js
+がインストールされていないために Docker が失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>docker-compose up
+                    を実行しようとしていますが、次の行でエントリポイントを実行しているときに実行されます。</p>
+                    <p>バンドル実行 RAKE アセット:プリコンパイル
+                    RAILS_ENV=production</p>
+                    <p>エラー: Node.js がインストールされていません。
+                    Node.js https://nodejs.org/en/download/
+                    をダウンロードしてインストールしてください。</p>
+                    <p>私のDockerfileはノードをインストールするので、何が問題なのかわかりません。</p>
+                    <p>さまざまな Docker
+                    ファイル設定を試しましたが、同じエラーが発生し続けます。誰かがそれを修正する方法を見てもらえますか?前もって感謝します。</p>
+                    <p>Docker ファイル:</p>
+                    <pre><code># syntax=docker/dockerfile:1
+FROM ruby:3.0.4
+
+ENV NODE_OPTIONS=&quot;--openssl-legacy-provider&quot;
+
+
+RUN apt-get update -qq &amp;&amp; \
+    apt-get install -y nodejs postgresql-client python curl apt-transport-https &amp;&amp; \
+    curl -fsSL https://deb.nodesource.com/setup_14.x | bash - &amp;&amp; \
+    apt-get install -y nodejs &amp;&amp; \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - &amp;&amp; \
+    echo &quot;deb https://dl.yarnpkg.com/debian/ stable main&quot; | tee /etc/apt/sources.list.d/yarn.list &amp;&amp; \
+    apt-get update &amp;&amp; \
+    apt-get install -y yarn
+
+WORKDIR /eclipse
+COPY Gemfile /eclipse/Gemfile
+COPY Gemfile.lock /eclipse/Gemfile.lock
+RUN bundle install
+
+RUN echo &quot;Install webpacker ----&quot;
+RUN bundle exec rails webpacker:install \
+    rails webpacker:compile
+
+# Entrypoint.sh will be run every time the container starts.
+COPY /bin/entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT [&quot;entrypoint.sh&quot;]
+EXPOSE 3000
+
+# Configure the main process to run when running the image
+CMD [&quot;rails&quot;, &quot;server&quot;, &quot;-b&quot;, &quot;0.0.0.0&quot;]
+</code></pre>
+                    <p>エントリーポイント.sh</p>
+                    <pre><code>#!/bin/bash
+set -e
+
+echo &quot;Compile assets ----&quot;
+bundle exec rake assets:precompile RAILS_ENV=production
+
+echo &quot;Create database ----&quot;
+bundle exec rake db:create
+
+echo &quot;Rake database ----&quot;
+bundle exec rake db:migrate
+
+# Remove a potentially pre-existing server.pid for Rails.
+rm -f /app/tmp/pids/server.pid
+
+# Then exec the container&#39;s main process (what&#39;s set as CMD in the Dockerfile).
+exec &quot;$@&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このようなことに直面したとき、私は通常、失敗した行から順にすべてをコメントします。次に、Docker
+                    コンテナを起動し、最初にコメントアウトしたものを実行してみます。それは通常、道を示します。</p>
+                    <p>予期していなかったものの古いバージョンをインストールしていることが判明することがよくあります。もちろん、ノード
+                    14
+                    を取り付けることになりますが、この時点では歯内でかなり長いものになります。</p>
+                    <p>特定のケースで、これが新しいアプリである場合は、webpacker
+                    を廃止することをお勧めします。既存のアプリの場合は、https://github.com/shakacode/shakapacker
+                    に移行することをお勧めします。これは少なくともある程度は保守および更新されています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

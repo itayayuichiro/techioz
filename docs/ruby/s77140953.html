@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>X より大きい範囲を定義する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "X より大きい範囲を定義する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>X より大きい範囲を定義する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>申し訳ありませんが、答えはすでにわかっていますが、Ruby
+                    3.2 で 1
+                    より大きい範囲を定義する方法はありますか?</p>
+                    <p>以来</p>
+                    <pre><code>(..1.0).include?(1.0) =&gt; true
+(...1.0).include?(1.0) =&gt; false
+</code></pre>
+                    <p>(1.0…)
+                    で必要なものが作成されると期待していましたが、</p>
+                    <pre><code>(1.0..).include?(1.0) =&gt; true
+(1.0...).include?(1.0) =&gt; true
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの答えは正しいですが、回避策はあります。
+                    https://docs.ruby-lang.org/en/3.2/Range.html#class-Range-label-Beginless+Ranges
+                    のドキュメントより</p>
+                    <p>重要な点は、最後だけが除外可能であると文書化されているということです。</p>
+                    <p>1 つの回避策は、</p>
+                    <pre><code>!(..1.0).include?(other_number)
+</code></pre>
+                    <p>！は「ない」という意味なので、ここでの意味は「1
+                    までの負の無限大ではない」ということになります。</p>
+                    <pre><code>!(..1.0).include?(1.01)
+# =&gt; true
+!(..1.0).include?(1.00)
+# =&gt; false
+!(..1.0).include?(0.99)
+# =&gt; false
+</code></pre>
+                    <p>技術的には、これはすべての数値が 1
+                    より大きい範囲ではありませんが、同じ効果があります。</p>
+                    <p>範囲をサブクラス化してカスタム動作を取得できます。</p>
+                    <pre><code>class ExclusionaryRange &lt; Range
+  def include?(other)
+    !(self.end..self.begin).include?(other)
+  end
+end
+
+my_range = ExclusionaryRange.new(1.0, nil)
+my_range.include?(1.0)
+# =&gt; false
+my_range.include?(1.1)
+# =&gt; true
+my_range.include?(0.9)
+# =&gt; false
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

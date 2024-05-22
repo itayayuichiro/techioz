@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>クラスまたはモジュールでプライベート メソッドを呼び出さずに送信する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "クラスまたはモジュールでプライベート メソッドを呼び出さずに送信する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>クラスまたはモジュールでプライベート
+メソッドを呼び出さずに送信する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ここで何が間違っているのかわかりません。クラスまたはモジュールを作成して、そのクラス/モジュール内のプライベート
+                    メソッドを呼び出すために使用できるようにしようとしています。</p>
+                    <p>次のエラーが発生します: NoMethodError
+                    (MixPanelService:Class の未定義メソッド ‘call’)</p>
+                    <p>MixPanelService.call(shop, “install”)
+                    を実行しようとすると</p>
+                    <p>私の簡略化したコードは次のとおりです。</p>
+                    <pre><code>class MixPanelService
+
+  def call(shop, event_type)
+    send(event_type, shop)
+  end
+
+  private
+
+  def install
+    ap &quot;do something&quot;
+  end
+
+end
+</code></pre>
+                    <p>そこでモジュールを試してみたところ、次のエラーが発生しました。
+                    NoMethodError (MixPanelService:Module
+                    の未定義メソッド「install」)</p>
+                    <p>基本的に同じことを試してみると:
+                    MixPanelService.call(ショップ, “インストール”)</p>
+                    <p>次のコードを使用します。</p>
+                    <pre><code>module MixPanelService
+  module_function
+
+  def call(shop, event_type)
+    send(event_type, shop)
+  end
+
+  private
+
+  def install
+    ap &quot;do something&quot;
+  end
+
+end
+</code></pre>
+                    <p>私の何が間違っているのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>クラスでは呼び出しをインスタンス
+                    メソッドとして定義しましたが、クラス
+                    メソッドとして呼び出しています。 def self.call
+                    を使用してクラスメソッドにすることができます。</p>
+                    <pre><code>class MixPanelService
+  def self.call(shop, event_type)
+    send(event_type, shop)
+  end
+
+  def self.install(shop)
+    # do something
+  end
+  private_class_method :install # ugly :(
+end
+
+# Call it like this:
+MixPanelService.call(shop, &#39;install&#39;)
+</code></pre>
+                    <p>ただし、それは最良のデザインではありません。クラスメソッドを使用して引数を渡すのは面倒です。インスタンスを操作できますが、すべてを実行するためのクラス
+                    メソッドもあります。このパターンを見てください。</p>
+                    <pre><code>class MixPanelService
+  def self.call(shop, event_type)
+    new(shop).call(event_type)
+  end
+
+  def initialize(shop)
+    @shop = shop
+  end
+
+  def call(event_type)
+    send(event_type)
+  end
+
+  private
+
+  def install
+    # Install something on `@shop`. Since it&#39;s an instance variable,
+    # we don&#39;t need to pass it around via params! :)
+  end
+end
+
+# Call it the same way as before:
+MixPanelService.call(shop, &#39;install&#39;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

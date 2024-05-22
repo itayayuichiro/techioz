@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の OpenSSL: 秘密鍵の PKCS#8 形式 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の OpenSSL: 秘密鍵の PKCS#8 形式",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の OpenSSL: 秘密鍵の PKCS#8 形式</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のように Ruby で RSA 秘密鍵を作成しました。</p>
+                    <pre><code>require &#39;openssl&#39;
+key = OpenSSL::PKey::RSA.generate(1024)
+</code></pre>
+                    <p>PEM または DER 形式でキーを取得できます。</p>
+                    <pre><code>key.to_pem
+key.to_der
+</code></pre>
+                    <p>しかし、それをPKCS#8形式に変換する方法はないようです。私が思いついた最善の方法は、別のプロセスで
+                    openssl を呼び出すことです。</p>
+                    <pre><code>require &#39;open3&#39;
+Open3.popen3(&#39;openssl pkcs8 -topk8 -inform PEM -outform PEM -passout pass:password&#39;) do |stdin,  stdout, stderr|
+  stdin.write(key.to_pem)
+  unless (err = stderr.read).empty? then raise err end
+  stdout.read
+end
+</code></pre>
+                    <p>私が見つけられないより良い方法があるはずです。
+                    Ruby の OpenSSL クラス
+                    ライブラリにはこれを行うためのメカニズムがありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby トランクでは、OpenSSL::PKey::PKey
+                    (およびサブクラス) の新しい private_to_pem および
+                    private_to_der メソッドを使用して、秘密鍵を PKCS#8
+                    形式にエクスポートするためのサポートがあります。ということで、もうすぐ、あるいは最先端の環境を好むのであれば今すぐに、ついに
+                    PKCS#8
+                    キーをネイティブに書き出すことができるようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

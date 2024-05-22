@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Docker イメージが最初から再構築され続けるのはなぜですか? (カマル、docker buildx) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Docker イメージが最初から再構築され続けるのはなぜですか? (カマル、docker buildx)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Docker
+イメージが最初から再構築され続けるのはなぜですか? (カマル、docker
+buildx)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>kamal
+                    をデプロイすると、イメージは最初から再作成され続けます
+                    (たとえば、毎回 Ruby をコンパイルします)。</p>
+                    <p>これが私のDockerfileです:</p>
+                    <pre><code>FROM debian:bullseye-slim as base
+ENV BUNDLER_VERSION=&quot;2.5.5&quot; \
+    BUNDLE_DEPLOYMENT=&quot;1&quot; \
+    BUNDLE_PATH=&quot;/usr/local/bundle&quot; \
+    BUNDLE_WITHOUT=&quot;development&quot; \
+    NODE_VERSION=&quot;20.11.0&quot; \
+    NPM_VERSION=&quot;10.4.0&quot; \
+    RAILS_ENV=&quot;production&quot; \
+    RUBY_INSTALL_VERSION=&quot;0.9.3&quot; \
+    RUBY_VERSION=&quot;3.3.0&quot; \
+    YARN_VERSION=&quot;1.22.19&quot;
+
+ENV PATH=&quot;/opt/rubies/ruby-${RUBY_VERSION}/bin:/usr/local/node/bin:${PATH}&quot;
+
+RUN apt-get update &amp;&amp; \
+    apt-get install -y \
+        autoconf \
+        build-essential \
+        curl \
+        fish \
+        git \
+        libpq-dev \
+        libvips \
+        pandoc \
+        pkg-config \
+        postgresql-client \
+        vim \
+        wget
+
+RUN wget &quot;https://github.com/postmodern/ruby-install/releases/download/v${RUBY_INSTALL_VERSION}/ruby-install-${RUBY_INSTALL_VERSION}.tar.gz&quot; \
+  &amp;&amp; tar -xzvf &quot;ruby-install-${RUBY_INSTALL_VERSION}.tar.gz&quot; \
+  &amp;&amp; cd &quot;ruby-install-${RUBY_INSTALL_VERSION}&quot; \
+  &amp;&amp; make install
+
+RUN ruby-install -p https://github.com/ruby/ruby/pull/9371.diff ruby &quot;${RUBY_VERSION}&quot;
+
+WORKDIR /rails
+
+FROM base as build
+
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ &amp;&amp; \
+    /tmp/node-build-master/bin/node-build &quot;${NODE_VERSION}&quot; /usr/local/node &amp;&amp; \
+    npm install -g &quot;yarn@${YARN_VERSION}&quot; &amp;&amp; \
+    rm -rf /tmp/node-build-master
+
+COPY Gemfile Gemfile.lock ./
+RUN gem install bundler -v &quot;${BUNDLER_VERSION}&quot;
+RUN bundle install &amp;&amp; \
+    rm -rf ~/.bundle/ &quot;${BUNDLE_PATH}&quot;/ruby/*/cache &quot;${BUNDLE_PATH}&quot;/ruby/*/bundler/gems/*/.git &amp;&amp; \
+    bundle exec bootsnap precompile --gemfile
+
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+COPY . .
+
+RUN bundle exec bootsnap precompile app/ lib/
+
+RUN HOST=example.com \
+    BASE_URL=https://example.com \
+    RAILS_MASTER_KEY_DUMMY=1 \
+    SECRET_KEY_BASE_DUMMY=1 \
+    ./bin/rails assets:precompile
+
+FROM base
+
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+RUN useradd rails --create-home --shell /bin/bash &amp;&amp; \
+    chown -R rails:rails db log storage tmp
+USER rails:rails
+
+ENTRYPOINT [&quot;/rails/bin/docker-entrypoint&quot;]
+
+EXPOSE 3000
+CMD [&quot;./bin/rails&quot;, &quot;server&quot;]
+</code></pre>
+                    <p>そして私のconfig/deploy.yml:</p>
+                    <pre><code>service: code
+image: dorianmariefr/code
+servers:
+  web:
+    hosts:
+      - 165.232.149.13
+    labels:
+      traefik.http.routers.code.rule: Host(`code.dorianmarie.com`)
+      traefik.http.routers.code_secure.entrypoints: websecure
+      traefik.http.routers.code_secure.rule: Host(`code.dorianmarie.com`)
+      traefik.http.routers.code_secure.tls.certresolver: letsencrypt
+      traefik.http.routers.code_secure.tls: true
+registry:
+  username: dorianmariefr
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+env:
+  clear:
+    HOST: code.dorianmarie.com
+    BASE_URL: https://code.dorianmarie.com
+  secret:
+    - RAILS_MASTER_KEY
+    - POSTGRES_PASSWORD
+traefik:
+  options:
+    publish:
+      - &quot;443:443&quot;
+    volume:
+      - &quot;/letsencrypt/acme.json:/letsencrypt/acme.json&quot;
+  args:
+    entryPoints.web.address: &quot;:80&quot;
+    entryPoints.websecure.address: &quot;:443&quot;
+    entryPoints.web.http.redirections.entryPoint.to: websecure
+    entryPoints.web.http.redirections.entryPoint.scheme: https
+    entryPoints.web.http.redirections.entrypoint.permanent: true
+    certificatesResolvers.letsencrypt.acme.email: &quot;[email protected]&quot;
+    certificatesResolvers.letsencrypt.acme.storage: &quot;/letsencrypt/acme.json&quot;
+    certificatesResolvers.letsencrypt.acme.httpchallenge: true
+    certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web
+accessories:
+  db:
+    image: postgres:16.1
+    host: 165.232.149.13
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: code
+        POSTGRES_DB: code_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+</code></pre>
+                    <p>ログ:
+                    https://gist.github.com/drianmariecom/e51aba0648efcfcef66b88cd01fda24b</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>解決策は、サーバー上で GitHub Actions
+                    からリモートでビルドすることでした。</p>
+                    <p>config/deploy.yml</p>
+                    <pre><code>service: code
+image: dorianmariefr/code
+builder:
+  remote:
+    arch: amd64
+    ssh: [email protected]
+servers:
+  web:
+    hosts:
+      - 165.232.149.13
+    labels:
+      traefik.http.routers.code.rule: Host(`code.dorianmarie.com`)
+      traefik.http.routers.code_secure.entrypoints: websecure
+      traefik.http.routers.code_secure.rule: Host(`code.dorianmarie.com`)
+      traefik.http.routers.code_secure.tls.certresolver: letsencrypt
+      traefik.http.routers.code_secure.tls: true
+registry:
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+env:
+  clear:
+    HOST: code.dorianmarie.com
+    BASE_URL: https://code.dorianmarie.com
+  secret:
+    - RAILS_MASTER_KEY
+    - POSTGRES_PASSWORD
+traefik:
+  options:
+    publish:
+      - &quot;443:443&quot;
+    volume:
+      - &quot;/letsencrypt/acme.json:/letsencrypt/acme.json&quot;
+  args:
+    entryPoints.web.address: &quot;:80&quot;
+    entryPoints.websecure.address: &quot;:443&quot;
+    entryPoints.web.http.redirections.entryPoint.to: websecure
+    entryPoints.web.http.redirections.entryPoint.scheme: https
+    entryPoints.web.http.redirections.entrypoint.permanent: true
+    certificatesResolvers.letsencrypt.acme.email: &quot;[email protected]&quot;
+    certificatesResolvers.letsencrypt.acme.storage: &quot;/letsencrypt/acme.json&quot;
+    certificatesResolvers.letsencrypt.acme.httpchallenge: true
+    certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web
+accessories:
+  db:
+    image: postgres:16.1
+    host: 165.232.149.13
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: code
+        POSTGRES_DB: code_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+</code></pre>
+                    <p>.github/workflows/deploy.yml</p>
+                    <pre><code>name: Deploy
+concurrency:
+  group: production
+  cancel-in-progress: true
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: 1
+      RAILS_ENV: production
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+      KAMAL_REGISTRY_USERNAME: ${{ secrets.KAMAL_REGISTRY_USERNAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+      - run: gem install kamal
+      - uses: webfactory/[email protected]
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - uses: docker/setup-buildx-action@v3
+      - run: kamal lock release
+      - run: kamal redeploy
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

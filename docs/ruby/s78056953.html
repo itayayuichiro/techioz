@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby の Google Drive API でファイルを削除すると権限の問題が発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby の Google Drive API でファイルを削除すると権限の問題が発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby の Google Drive API
+でファイルを削除すると権限の問題が発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>スプレッドシートのタブから json
+                    ファイルを作成する Google Apps Script
+                    があります。</p>
+                    <pre><code>function makeJSON() {
+  var spreadsheetId = &#39;someId&#39;; 
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheets = spreadsheet.getSheets();
+  var urls = []; // Array to store the URLs of the created files
+
+  for (var i =  1; i &lt; sheets.length; i++) {
+    var sheet = sheets[i];
+    var data = sheet.getRange(3,  1, sheet.getLastRow() -  2, sheet.getLastColumn()).getValues();
+    var headers = sheet.getRange(2,  1,  1, sheet.getLastColumn()).getValues()[0];
+
+    var objects = data.map(function(row) {
+    var obj = {};
+    for (var j =  0; j &lt; headers.length; j++) {
+      //process data
+    }
+    
+    return obj;
+    });
+
+
+     // Convert the array of objects to a JSON string
+    var json = JSON.stringify(objects, null,  2);
+    
+    // Create a blob from the JSON string
+    var blob = Utilities.newBlob(json, &#39;application/json&#39;, sheet.getName() + &#39;.json&#39;);
+
+    var folder = DriveApp.getFolderById(&#39;someId&#39;);
+    var file = folder.createFile(blob);
+
+    file.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.EDIT); //I don&#39;t like making these publicly editable but it seems I&#39;m forced to in order to be able to download/delete them via ruby script
+    
+    // Get the file ID
+    var fileId = file.getId();
+    
+    // Construct the direct download URL
+    var directDownloadUrl = &quot;https://drive.google.com/uc?export=download&amp;id=&quot; + fileId;
+    
+    // Add the direct download URL to the array
+    urls.push(directDownloadUrl);
+    
+  }
+  return urls;
+}
+
+function doGet() {
+  var urls = makeJSON(); // Call the function to generate JSON files and get their URLs
+  return ContentService.createTextOutput(JSON.stringify({urls: urls})).setMimeType(ContentService.MimeType.JSON);
+}
+</code></pre>
+                    <p>これらすべてのファイルを Google
+                    ドライブからダウンロードする Ruby
+                    スクリプトがあります。その部分は機能します。ただし、ダウンロード後に削除したいと考えています。</p>
+                    <pre><code>drive_service = Google::Apis::DriveV3::DriveService.new
+scope = &#39;https://www.googleapis.com/auth/drive&#39;
+
+authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
+  json_key_io: File.open(&#39;google_client.json&#39;),
+  scope: scope
+)
+
+authorizer.fetch_access_token!
+
+# Set the authorization for the Drive API client
+drive_service.authorization = authorizer
+
+# URL of your deployed web app that returns JSON file URLs
+web_app_url = &#39;https://script.google.com/macros/s/digits/exec&#39;
+
+# Fetch the JSON data from the web app
+response = URI.open(web_app_url).read
+json_data = JSON.parse(response)
+
+# Directory to save the JSON files
+save_directory = &#39;downloads&#39;
+
+# Ensure the directory exists
+FileUtils.mkdir_p(save_directory) unless File.directory?(save_directory)
+
+json_data[&#39;urls&#39;].each do |url|
+  # Extract the file ID from the URL
+  file_id = url.split(&#39;id=&#39;)[1]
+   
+  # Fetch the file&#39;s metadata using the Google Drive API
+  file_metadata = drive_service.get_file(file_id, fields: &#39;name&#39;)
+   
+  # Extract the file name
+  file_name = file_metadata.name
+   
+  # Construct the direct download URL
+  direct_download_url = &quot;https://drive.google.com/uc?export=download&amp;id=#{file_id}&quot;
+   
+  # Construct the full path
+  file_path = File.join(save_directory, file_name)
+   
+  # Download the file
+  URI.open(direct_download_url) do |source|
+    File.open(file_path, &#39;wb&#39;) do |file|
+      file.write(source.read)
+    end
+  end
+  puts &quot;Saved #{file_name} to #{save_directory}&quot;
+
+  # Delete the file from Google Drive
+  drive_service.delete_file(file_id) #THIS LINE THROWS THE ERROR
+end
+</code></pre>
+                    <p>エラーは次のとおりです。</p>
+                    <pre><code>/Users/me/.rvm/gems/ruby-2.7.2/gems/google-apis-core-0.14.0/lib/google/apis/core/http_command.rb:244:in `check_status&#39;: insufficientFilePermissions: The user does not have sufficient permissions for this file. (Google::Apis::ClientError)
+</code></pre>
+                    <p>問題は、私の Ruby
+                    スクリプトの認証情報が私のサービス アカウント
+                    ([email protected]) からのものであり、Google
+                    ドライブ上のファイルの所有者が「私」([email
+                    protected])
+                    であることだと思います。しかし、そもそもそれらを自分のサービス
+                    アカウントに所有させる方法も、通常の電子メール
+                    アカウントの資格情報を使用してスクリプトを実行する方法もわかりません。
+                    Cloud コンソールでサービス
+                    アカウントを作成すると、*.iam.gserviceaccount.com
+                    アカウントの使用が強制されます。</p>
+                    <p>Google ドライブ フォルダーはサービス
+                    アカウントと共有されています。その中のファイルはすべて「私」が所有しており、私のサービス
+                    アカウントにはすべてのファイルに対する編集者権限があります。</p>
+                    <p>とはいえ、これらのファイルをダウンロードした後、Google
+                    ドライブからこれらのファイルを削除するにはどうすればよいでしょうか?ファイルはすぐに溜まってしまうので、このディレクトリをクリーンな状態に保つ必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの状況では、簡単なアプローチとして、Web
+                    Apps
+                    でファイルを削除してみてはどうでしょうか?これをスクリプトに反映させる場合、次のように修正してみてはいかがでしょうか。</p>
+                    <p>この変更により、ファイルのダウンロード後、Web
+                    Apps でファイルが削除されるようになります。</p>
+                    <p>このスクリプトを使用する前に、高度な Google
+                    サービスで Drive API v3 を有効にしてください。</p>
+                    <pre><code>function makeJSON(e) { // Modified
+  // Added
+  if (e.parameter.deleteFile) {
+    Drive.Files.remove(e.parameter.deleteFile); // or Drive.Files.remove(e.parameter.deleteFile, { supportsAllDrives: true });
+    return [];
+  }
+
+  var spreadsheetId = &#39;someId&#39;; 
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheets = spreadsheet.getSheets();
+  var urls = []; // Array to store the URLs of the created files
+
+  for (var i =  1; i &lt; sheets.length; i++) {
+    var sheet = sheets[i];
+    var data = sheet.getRange(3,  1, sheet.getLastRow() -  2, sheet.getLastColumn()).getValues();
+    var headers = sheet.getRange(2,  1,  1, sheet.getLastColumn()).getValues()[0];
+
+    var objects = data.map(function(row) {
+    var obj = {};
+    for (var j =  0; j &lt; headers.length; j++) {
+      //process data
+    }
+    
+    return obj;
+    });
+
+
+     // Convert the array of objects to a JSON string
+    var json = JSON.stringify(objects, null,  2);
+    
+    // Create a blob from the JSON string
+    var blob = Utilities.newBlob(json, &#39;application/json&#39;, sheet.getName() + &#39;.json&#39;);
+
+    var folder = DriveApp.getFolderById(&#39;someId&#39;);
+    var file = folder.createFile(blob);
+
+    file.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.EDIT); //I don&#39;t like making these publicly editable but it seems I&#39;m forced to in order to be able to download/delete them via ruby script
+    
+    // Get the file ID
+    var fileId = file.getId();
+    
+    // Construct the direct download URL
+    var directDownloadUrl = &quot;https://drive.google.com/uc?export=download&amp;id=&quot; + fileId;
+    
+    // Add the direct download URL to the array
+    urls.push(directDownloadUrl);
+    
+  }
+  return urls;
+}
+
+function doGet(e) { // Modified
+  var urls = makeJSON(e); // Modified
+  return ContentService.createTextOutput(JSON.stringify({urls: urls})).setMimeType(ContentService.MimeType.JSON);
+}
+</code></pre>
+                    <pre><code>drive_service = Google::Apis::DriveV3::DriveService.new
+scope = &#39;https://www.googleapis.com/auth/drive&#39;
+
+authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
+  json_key_io: File.open(&#39;google_client.json&#39;),
+  scope: scope
+)
+
+authorizer.fetch_access_token!
+
+# Set the authorization for the Drive API client
+drive_service.authorization = authorizer
+
+# URL of your deployed web app that returns JSON file URLs
+web_app_url = &#39;https://script.google.com/macros/s/digits/exec&#39;
+
+# Fetch the JSON data from the web app
+response = URI.open(web_app_url).read
+json_data = JSON.parse(response)
+
+# Directory to save the JSON files
+save_directory = &#39;downloads&#39;
+
+# Ensure the directory exists
+FileUtils.mkdir_p(save_directory) unless File.directory?(save_directory)
+
+json_data[&#39;urls&#39;].each do |url|
+  # Extract the file ID from the URL
+  file_id = url.split(&#39;id=&#39;)[1]
+   
+  # Fetch the file&#39;s metadata using the Google Drive API
+  file_metadata = drive_service.get_file(file_id, fields: &#39;name&#39;)
+   
+  # Extract the file name
+  file_name = file_metadata.name
+   
+  # Construct the direct download URL
+  direct_download_url = &quot;https://drive.google.com/uc?export=download&amp;id=#{file_id}&quot;
+   
+  # Construct the full path
+  file_path = File.join(save_directory, file_name)
+   
+  # Download the file
+  URI.open(direct_download_url) do |source|
+    File.open(file_path, &#39;wb&#39;) do |file|
+      file.write(source.read)
+    end
+  end
+  puts &quot;Saved #{file_name} to #{save_directory}&quot;
+
+  # Delete the file from Google Drive
+
+  # removed: drive_service.delete_file(file_id) #THIS LINE THROWS THE ERROR
+  URI.open(web_app_url + &quot;?deleteFile=#{file_id}&quot;) # Modified
+
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

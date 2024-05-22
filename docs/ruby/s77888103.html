@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>クラス外で Thor オプションを解析する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "クラス外で Thor オプションを解析する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>クラス外で Thor オプションを解析する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Thor
+                    クラスとそのインスタンスを制御できないため、Thor
+                    クラスの外でいくつかの Thor
+                    オプションを再度解析したいと考えています。残念ながら、parse
+                    関数は argv
+                    から値を取得するためのものではありません。私がすでに探していたもの:</p>
+                    <p>以下を希望します:</p>
+                    <pre><code>Class Mycli &lt; Thor
+  def someOptions
+    option :aaaa, aliases: :a, type: :string,
+    desc: &quot;AAAAAAAAAAAAAA&quot;
+  option :bbbb, aliases: :b, type: :string,
+    desc: &quot;BBBBBBBBBBBBBB&quot;
+  end
+...
+end
+
+# code having control on:
+options = Mycli.someOptions
+r = options.parse_arg($ARGV)  # [&quot;-a&quot; &quot;stringA&quot;, &quot;-b&quot;, &quot;stringB&quot;]
+p r[:a]  # &quot;StringA&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>もしかしたら私が質問を誤解しているのかもしれませんが、なぜこれに
+                    thor が必要なのかわかりません。</p>
+                    <p>代わりに、OptionParser
+                    を使用するだけで、目的の結果を達成できます。</p>
+                    <p>単純な例は次のようになります</p>
+                    <pre><code>require &#39;optparse&#39;
+options = {}
+OptionParser.new do |opts|
+  opts.on(&#39;-aNAME&#39;, &#39;--aaaa=AVALUE&#39;)
+  opts.on(&#39;-b&#39;, &#39;--bbbb=BVALUE&#39;)
+end.parse!(into: options)
+
+p options[:aaaa]
+</code></pre>
+                    <p>ただし、用途を拡張することもできます。</p>
+                    <pre><code>require &#39;optparse&#39;
+class MyCli
+  attr_reader :options
+
+  def initialize
+    @options = {}
+  end
+
+  def [](elem)
+    options[elem]
+  end
+
+  def parse(options)
+    _parser.parse!(options)
+  end
+
+  private
+
+  def _parser
+    OptionParser.new do |opts|
+      opts.on(&#39;-aNAME&#39;, &#39;--aaaa=AVALUE&#39;) do |v|
+        options[:a] = v
+      end
+
+      opts.on(&#39;-b&#39;, &#39;--bbbb=BVALUE&#39;) do |v|
+        options[:b] = v
+      end
+    end
+  end
+end
+
+r = MyCli.new
+r.parse(ARGV)
+p r[:a]
+</code></pre>
+                    <p>次に、ruby mycli.rb -a stringA -b stringB
+                    として呼び出すと、「stringA」が STDOUT
+                    に出力されます。</p>
+                    <p>例</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

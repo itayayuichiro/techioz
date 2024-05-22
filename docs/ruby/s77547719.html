@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby – 配列内のエントリをカスタム区切り文字を使用して個別のエントリに分割します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby – 配列内のエントリをカスタム区切り文字を使用して個別のエントリに分割します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby –
+配列内のエントリをカスタム区切り文字を使用して個別のエントリに分割します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>複数の値を含む配列があり、その一部を個別のエントリに分割したいと考えています。</p>
+                    <pre><code>array = [ &#39;foo&#39;, &#39;frob &amp; baz&#39;, &#39;bar&#39; ]
+# I want to split these with &#39; &amp; &#39; as a delimiter, to get this output:
+result = [ &#39;foo&#39;, &#39;frob&#39;, &#39;baz&#39;, &#39;bar&#39; ] 
+</code></pre>
+                    <p>配列を明示的に列挙する必要は避けたいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>配列を反復処理せずにこの問題を解決することは不可能です。配列の各要素を検査して、区切り文字が含まれているかどうかを確認する必要があります。どう切り分けても、「各要素を検査する」ということは、「配列を反復処理する」ということの別の言い方にすぎません。</p>
+                    <p>私がそれにアプローチする方法は、配列のすべての要素をマップし、それらを区切り文字で分割することです。</p>
+                    <pre><code>array.map { _1.split(&#39; &amp; &#39;) }
+#=&gt; [[&#39;foo&#39;], [&#39;frob&#39;, &#39;baz&#39;], [&#39;bar&#39;]]
+</code></pre>
+                    <p>ご覧のとおり、これによりほぼ望ましい結果が得られます。追加レベルのネストがあるだけで、これは
+                    flatten で削除できます。</p>
+                    <pre><code>array.map { _1.split(&#39; &amp; &#39;) }.flatten(1)
+#=&gt; [&#39;foo&#39;, &#39;frob&#39;, &#39;baz&#39;, &#39;bar&#39;]
+</code></pre>
+                    <p>ただし、map と flatten
+                    の組み合わせは無駄が多く、意図があまり伝わりません。ほぼすべての言語のほぼすべてのコレクション
+                    ライブラリに存在する、必要なことを正確に実行する標準メソッドがあります:
+                    flat_map:</p>
+                    <pre><code>array.flat_map { _1.split(&#39; &amp; &#39;) }
+#=&gt; [&#39;foo&#39;, &#39;frob&#39;, &#39;baz&#39;, &#39;bar&#39;]
+</code></pre>
+                    <p>Rubocop
+                    を使用している場合は、これについて警告が表示され
+                    (オプションのrubocop-performance
+                    拡張機能を使用)、自動修正も行われます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

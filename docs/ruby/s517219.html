@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - ポートが開いているかどうかを確認する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - ポートが開いているかどうかを確認する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby -
+ポートが開いているかどうかを確認する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>特定のポートが Ruby
+                    で開いているかどうかを簡単に確認する方法が必要です。私は現在これをいじっています:</p>
+                    <pre><code>require &#39;socket&#39;
+
+def is_port_open?(ip, port)
+  begin
+    TCPSocket.new(ip, port)
+  rescue Errno::ECONNREFUSED
+    return false
+  end
+  return true
+end
+</code></pre>
+                    <p>ポートが開いている場合はうまく機能しますが、場合によっては
+                    10 ～ 20
+                    秒待機した後、最終的にタイムアウトになり、ETIMEOUT
+                    例外がスローされる (ポートが閉じている場合)
+                    という欠点があります。私の質問は次のとおりです。</p>
+                    <p>このコードを 1
+                    秒間だけ待機するように修正することはできますか
+                    (それまでに何も返されない場合は false
+                    を返す)、または特定のホストで特定のポートが開いているかどうかを確認するより良い方法はありますか?</p>
+                    <p>編集: bash
+                    コードの呼び出しは、クロスプラットフォーム (Mac OS
+                    X、*nix、Cygwin など)
+                    で動作する限り許容されますが、私は Ruby
+                    コードの方が好きです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のようなものが機能する可能性があります。</p>
+                    <pre><code>require &#39;socket&#39;
+require &#39;timeout&#39;
+
+def is_port_open?(ip, port)
+  begin
+    Timeout::timeout(1) do
+      begin
+        s = TCPSocket.new(ip, port)
+        s.close
+        return true
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+        return false
+      end
+    end
+  rescue Timeout::Error
+  end
+
+  return false
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

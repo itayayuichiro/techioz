@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Railsでメソッドが定義されているときに未定義メソッドエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Railsでメソッドが定義されているときに未定義メソッドエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on
+Railsでメソッドが定義されているときに未定義メソッドエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails アプリで、コードを変更すると
+                    (たとえば、5 行目を i = f1 から i = f2
+                    に変更すると、次のエラーが発生します。</p>
+                    <p>これは私のコードです</p>
+                    <pre><code>class Api::V1::AppController &lt; ApplicationController
+
+  def login
+    c = Master::Utilities.new
+    i = c.f1
+    z = c.f2
+    render json: {m: &#39;login&#39; , msg: &quot;hello&quot; , data: &quot;#{z} - #{i}&quot; } , status: :ok
+  end
+end
+</code></pre>
+                    <p>変更を元に戻しても問題は解決しません。
+                    このエラーが発生した後、Pumaを再起動すると、コードを変更せずにすべてが再び正常に戻ります。</p>
+                    <p>これらは私のコードです</p>
+                    <p>このコードを config pplication.rb
+                    で使用してコードを自動ロードします</p>
+                    <pre><code>  config.paths.add Rails.root.join(&#39;lib&#39;).to_s, eager_load: true
+</code></pre>
+                    <p>Ruby on Rails
+                    を初めて使用するので、コードに小さな間違いがあると思いますが、どこが間違っているのかわかりません。</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここで問題が発生しているのは、ファイルを編集すると、rails
+                    が Master::Utilities.new
+                    への呼び出しを認識し、Master::Utilities
+                    の定義を再ロードすることです。しかし、この部分になると次のようになります。</p>
+                    <pre><code>Dir[File.join(__dir__, &#39;code&#39;, &#39;*.rb&#39;)].each { |file| require file }
+</code></pre>
+                    <p>…たとえば、lib/master/code/1.rb
+                    がすでにロードされていることがわかります。 (require
+                    は、すでにロードされているファイルを再ロードしません!)。</p>
+                    <p>したがって、メソッド定義はどれも定義されていないため、事実上、インスタンス
+                    メソッドのない Master::Utilities
+                    クラスが作成されます。</p>
+                    <p>簡単で最小限の修正は、上記の require を load
+                    に置き換えて、「ファイルが以前にロードされた場合でも、常にファイルをロードする」と明示的に指定することです。</p>
+                    <pre><code>Dir[File.join(__dir__, &#39;code&#39;, &#39;*.rb&#39;)].each { |file| load file }
+</code></pre>
+                    <p>ただし、これは Ruby/Rails
+                    でコードを構造化する非常に珍しい方法であることを指摘しておきます。おそらく、より従来的なアプローチに従うほうが、より多くのメリットが得られるでしょう。</p>
+                    <p>単一クラスの定義を複数のファイルに分割することにはどのような利点やロジックがありますか?メソッドが定義されている場所を探したい場合、すべてを
+                    1
+                    か所にまとめるか、論理モジュールに分割する方が簡単ではないでしょうか。</p>
+                    <p>「クラスを 1
+                    か所でのみ定義し、クラス名をファイル名と一致させる」という規則に従えば、Rails
+                    での一括読み込みはすぐにスムーズに機能します。たとえば、次のようにすることもできます。</p>
+                    <pre><code># lib/master/utilities.rb
+module Master
+  class Utilities
+    def f1
+      # ...
+    end
+
+    def f2
+      # ...
+    end
+  end
+end
+</code></pre>
+                    <p>または：</p>
+                    <pre><code># lib/master/utilities/meaningful_name_1.rb
+module Master
+  module Utilities
+    class MeaningFulName1
+      def f1
+        # ...
+      end
+    end
+  end
+end
+
+# lib/master/utilities/meaningful_name_2.rb
+module Master
+  module Utilities
+    class MeaningFulName2
+      def f2
+        # ...
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>あるいは、本当にすべてのメソッドを 1
+                    つの巨大なクラスに入れて、フォルダー内のすべてのファイルを自動的にロードしたい場合は
+                    (非常にまとまりがないように思えますが!)、メタプログラミングを書くこともできます。
+                    String#classify
+                    を使用してファイル名をモジュール名に変換します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

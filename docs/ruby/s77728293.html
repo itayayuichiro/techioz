@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>予期される数の引数のみをラムダに渡すための Ruby ショートカット | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "予期される数の引数のみをラムダに渡すための Ruby ショートカット",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>予期される数の引数のみをラムダに渡すための
+Ruby ショートカット</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>期待される数の引数 (「引数」) のみをラムダに渡す
+                    (残りは無視する)
+                    以下のコードのショートカットはありますか?</p>
+                    <pre><code>args = [:p1, :p2, :p3, :p4, :p5, :p6]
+expected_args = args[0...the_lambda.arity]
+value = the_lambda.call(*expected_args)
+</code></pre>
+                    <p>全体像としては、ユーザーがラムダを含む Ruby
+                    構成ファイルを作成できる Ruby
+                    プログラムを作成しているということです。ユーザーが必要なパラメーターのみを使用してこれらのラムダを記述できるようにしたいと考えています
+                    (使用されないパラメーターを含めるなどの「余分な」入力を行う必要はありません)。</p>
+                    <p>上記のコードを使用すると、ユーザーは次のように書くことができます</p>
+                    <pre><code>my_override = -&gt;(a) {....}
+</code></pre>
+                    <p>または</p>
+                    <pre><code>my_override = -&gt;(a, b, c) { ....}
+</code></pre>
+                    <p>コンパイラが文句を言うことはありません。
+                    (ここでのアイデアの一部は、新しいユーザーに教えるときに、パラメーターが
+                    1 つまたは 2
+                    つ以上あるという事実に言及する必要さえないということです。これらの追加機能を単に「保存」して、上級ユーザーに公開することもできます。
+                    )
+                    最終目標は、ラムダの記述をできるだけ単純にすることです。つまり、ラムダの機能に直接寄与しないユーザー記述コードの要素が含まれるのを避けることを意味します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>定義上、Ruby ラムダはアリティを考慮しますが、Proc
+                    オブジェクトは考慮しません。ラムダにスプラット引数のようなことを行うこともできますが
+                    (そのような例を以下に示します)、Proc
+                    またはラムダのいずれかを使用する場合は、呼び出し元が予期しないことを行うケースを処理するロジックを追加する必要があります。これは、Proc
+                    やラムダよりもメソッドで行う方がはるかに簡単です。</p>
+                    <p>一般に、アリティの問題を回避するために行うべき正しいことは、Proc
+                    オブジェクトを使用することです。これは、Proc
+                    はアリティを気にしないためです。たとえば、これは 1
+                    つの Array オブジェクトを渡しても複数の Integer
+                    オブジェクトを渡しても問題なく機能します。</p>
+                    <pre><code>prc = proc { |a, b| pp a, b }
+
+prc.call [1, 2, 3, 4, 5]
+#=&gt; [1, 2]
+
+prc.call 1, 2, 3, 4, 5
+#=&gt; [1, 2]
+</code></pre>
+                    <p>それ以外の場合は、呼び出し元とより緊密に連携するか
+                    (これは一般的に悪い設計です)、位置引数を破棄するためだけにスプラッティング引数を作成する必要があります。例えば：</p>
+                    <pre><code># define +prc+ as a lambda and then coerce it
+prc = -&gt;(*ary) { pp ary.flatten.take(2) }
+
+prc.call [1, 2, 3, 4, 5]
+#=&gt; [1, 2]
+
+prc.call 1, 2, 3, 4, 5
+#=&gt; [1, 2]
+</code></pre>
+                    <p>いずれにせよ、特殊なケースがあります。考慮する：</p>
+                    <pre><code>prc = proc { |a, b| pp a, b }
+prc.call [1, 2, 3, 4, 5], [6, 7]
+#=&gt; [[1, 2, 3, 4, 5], [6, 7]]
+
+prc = -&gt;(*ary) { pp ary.flatten.take(2) }
+prc.call [1, 2, 3, 4, 5], [6, 7]
+# =&gt; [1, 2]
+</code></pre>
+                    <p>呼び出し元が何を渡す可能性があるかわからない場合は、アリティ、キーワード
+                    オプション、ダックタイピング、クラス検証、または未知の入力を検証するために必要なその他の健全性チェックを処理できるメソッドを作成するだけでもよいでしょう。手間が省けます。
+                    Proc
+                    オブジェクトとラムダはクロージャが必要な場合に便利ですが、それらが定義されているバインディングを閉じること以外に、特定のユースケースでこれが引き起こす頭痛の種と比べて何が得られるのかはわかりません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku 上の Rails アプリを Ruby 3.2.2 から Ruby 3.3.0 にアップグレードすると、スラッグ サイズが大幅に増加し、その結果、スラッグ サイズが大きすぎるビルド エラーが発生します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku 上の Rails アプリを Ruby 3.2.2 から Ruby 3.3.0 にアップグレードすると、スラッグ サイズが大幅に増加し、その結果、スラッグ サイズが大きすぎるビルド エラーが発生します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku 上の Rails アプリを Ruby 3.2.2 から
+Ruby 3.3.0 にアップグレードすると、スラッグ
+サイズが大幅に増加し、その結果、スラッグ サイズが大きすぎるビルド
+エラーが発生します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>https://dashboard.heroku.com/apps/empora-rails-staging
+                    にデプロイされた Rails アプリは現在、.ruby-version
+                    と Gemfile を介して Ruby バージョン 3.2.2
+                    を使用するように設定されています。このように構成すると、ビルド
+                    ログによると、圧縮されたスラッグ
+                    サイズは次のようになります。</p>
+                    <pre><code>-----&gt; Compressing...
+       Done: 178.6M
+</code></pre>
+                    <p>.ruby-version と Gemfile 内で Ruby のバージョンを
+                    3.3.0
+                    に変更し、それらの変更を加えてブランチをデプロイすると、このビルド
+                    ログによるとスラッグ サイズが 500 MB
+                    の制限を大幅に超えているため、ビルドは失敗します。</p>
+                    <pre><code>-----&gt; Compressing...
+ !     Compiled slug size: 559.6M is too large (max is 500M).
+</code></pre>
+                    <p>コンパイルされたスラッグのサイズを減らすためにいくつかのことを試しましたが、大きな違いはありません。</p>
+                    <p>Ruby
+                    のアップグレードによって、コンパイルされたスラッグ
+                    サイズにこれほど大きな違いが生じ、このアプリが大きくなりすぎるというのは、私には奇妙に思えます。</p>
+                    <p>Ruby
+                    のアップグレードがこのように動作する理由を理解したいと思います。現在
+                    500 MB
+                    を超えているコンパイルされたスラッグのファイル/詳細を確認するために、アプリのビルド内でできることはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>なぜこれが起こっているのかがわかりました。 Ruby
+                    3.3より前のバージョン。アップグレードすると、Gemfile.lock
+                    には次のようなプラットフォーム固有のバージョンの
+                    grpc が含まれます。</p>
+                    <pre><code>    grpc (1.60.0-arm64-darwin)
+       google-protobuf (~&gt; 3.25)
+       googleapis-common-protos-types (~&gt; 1.0)
+     grpc (1.60.0-x86_64-darwin)
+       google-protobuf (~&gt; 3.25)
+       googleapis-common-protos-types (~&gt; 1.0)
+     grpc (1.60.0-x86_64-linux)
+</code></pre>
+                    <p>プラットフォーム固有のバージョンの grpc
+                    は現在、Ruby 3.3 と互換性がありません
+                    (この問題を参照してください)。</p>
+                    <p>そのため、現在は Heroku
+                    のデプロイ中にビルドする必要がある単一の grpc
+                    依存関係を含めています。これにより、Heraku
+                    にバンドル インストールが行われ、2 GB を超える grpc
+                    の完全なソースがダウンロードされます。</p>
+                    <p>プラットフォーム固有のバージョンの grpc が Ruby
+                    3.3 と互換性を持ったら、元に戻してこのスラッグ
+                    サイズの問題を解決できるようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

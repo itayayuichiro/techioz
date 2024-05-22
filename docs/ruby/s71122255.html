@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>変数を代入するとき「nil を整数に強制することはできません」(のみ) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "変数を代入するとき「nil を整数に強制することはできません」(のみ)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>変数を代入するとき「nil
+を整数に強制することはできません」(のみ)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ルビー「2.7.3」 レール(6.1.4.1)</p>
+                    <p>奇妙に見えます:</p>
+                    <p>activerecord を使用して DB 内のいくつかの
+                    (特定の)
+                    行をクエリし、それを変数に割り当てようとすると、「nil
+                    can’t be coerced into
+                    Integer」というメッセージが表示されます。</p>
+                    <p>しかし、それを変数に代入しようとしない場合、それは機能します。</p>
+                    <pre><code>Recipient.find(45638)
+ =&gt; #&lt;Recipient id: 45638, company_id: 7, callout_id: 18, phone: &quot;***&quot;, created_at: &quot;2022-02-14 02:14:04.816032000 +0000&quot;, updated_at: &quot;2022-02-15 06:50:37.828979000 +0000&quot;, payload: {&quot;first_name&quot;=&gt;&quot;&quot;, &quot;last_name&quot;=&gt;&quot;&quot;, &quot;lead_id&quot;=&gt;&quot;388014&quot;}, started_at: nil, finished_at: 1644907333994, call_duration: 95, call_result: nil, report_data: {&quot;Recording&quot;=&gt;&quot;...&quot;, &quot;UF_CRM_1601886091616&quot;=&gt;&quot;76&quot;}, job_status: &quot;longCallWithResult&quot;, job_id: &quot;2105242339&quot;, aasm_state: &quot;finished&quot;, attempts: 1, tag: &quot;...&quot;, tag_payload: {}, code: &quot;37cca71006817c4f9e2e172d4e0afe80&quot;, schedule_at: &quot;2022-02-11 09:07:47.000000000 +0000&quot;, synced_to_external_crm: false&gt; 
+
+2.7.3 :035 &gt; recipient = Recipient.find(45638)
+Traceback (most recent call last):
+TypeError (nil can&#39;t be coerced into Integer)
+</code></pre>
+                    <p>DB内の特定の行でのみ発生します。モデル
+                    オブジェクトだけでなく、ActivRecord::Relation
+                    オブジェクトでも次のことが可能です。</p>
+                    <p>作品:</p>
+                    <pre><code>recipients = Recipient.where(callout_id: 18).where(&#39;schedule_at IS NULL OR schedule_at &lt;= ?&#39;, DateTime.current).limit(1).offset(5)
+
+ =&gt; #&lt;ActiveRecord::Relation [#&lt;Recipient id: 45640, company_id: 7, callout_id: 18, phone: &quot;***&quot;, created_at: &quot;2022-02-14 04:59:10.175701000 +0000&quot;, updated_at: &quot;2022-02-15 06:50:38.224724000 +0000&quot;, payload: {&quot;firs... 
+</code></pre>
+                    <p>機能しない:</p>
+                    <pre><code>2.7.3 :045 &gt; recipients = Recipient.where(callout_id: 18).where(&#39;schedule_at IS NULL OR schedule_at &lt;= ?&#39;, DateTime.current).limit(1).offset(6)
+
+Traceback (most recent call last):
+TypeError (nil can&#39;t be coerced into Integer)
+</code></pre>
+                    <p>異なるモデルでも同じ問題が発生します。</p>
+                    <p>モデル「吹き出し」:</p>
+                    <pre><code>2.7.3 :001 &gt; callout = Callout.find 18
+ =&gt; #&lt;Callout id: 18, company_id: 7, name: &quot;***&quot;, token: [FILTERED], created_at: &quot;2021-12-19 13:50:51.383907000 +0000&quot;, updated_at: &quot;2022-02-08 09:19:20.153542000 +0000&quot;, auto_queue: true&gt; 
+
+2.7.3 :002 &gt; callout = Callout.find 17
+Traceback (most recent call last):
+TypeError (nil can&#39;t be coerced into Integer)
+
+2.7.3 :003 &gt; Callout.find 17
+ =&gt; #&lt;Callout id: 17, company_id: 1, name: &quot;***&quot;, token: [FILTERED], created_at: &quot;2021-11-27 11:07:30.927895000 +0000&quot;, updated_at: &quot;2022-02-14 07:59:24.154910000 +0000&quot;, auto_queue: false&gt; 
+
+2.7.3 :004 &gt; Callout.find 18
+ =&gt; #&lt;Callout id: 18, company_id: 7, name: &quot;***&quot;, token: [FILTERED], created_at: &quot;2021-12-19 13:50:51.383907000 +0000&quot;, updated_at: &quot;2022-02-08 09:19:20.153542000 +0000&quot;, auto_queue: true&gt; 
+</code></pre>
+                    <p>モデル「会社」:</p>
+                    <pre><code>2.7.3 :005 &gt; Company.find 7
+ =&gt; #&lt;Company id: 7, name: &quot;***&quot;, created_at: &quot;2021-12-19 13:39:12.045709000 +0000&quot;, updated_at: &quot;2021-12-19 13:39:12.045709000 +0000&quot;, balance: 0, api_token: [FILTERED]&gt; 
+
+2.7.3 :006 &gt; c = Company.find 7
+ =&gt; #&lt;Company id: 7, name: &quot;***&quot;, created_at: &quot;2021-12-19 13:39:12.045709000 +0000&quot;, updated_at: &quot;2021-12-19 13:39:12.045709000 +0000&quot;, balance: 0, api_token: [FILTERED]&gt; 
+
+2.7.3 :008 &gt; Company.find 1
+ =&gt; #&lt;Company id: 1, name: &quot;***&quot;, created_at: &quot;2021-10-22 12:23:19.831733000 +0000&quot;, updated_at: &quot;2021-12-01 20:15:04.464389000 +0000&quot;, balance: 0, api_token: [FILTERED]&gt; 
+
+2.7.3 :007 &gt; c = Company.find 1
+Traceback (most recent call last):
+TypeError (nil can&#39;t be coerced into Integer)
+
+</code></pre>
+                    <p>モデルのソースコード:</p>
+                    <pre><code>class Recipient &lt; ApplicationRecord
+  validates :phone, presence: true, uniqueness: { scope: :callout_id }
+  validates :code, presence: true, uniqueness: true
+  belongs_to :company
+  belongs_to :callout
+
+  before_validation :generate_code
+
+  private
+
+  # Generates unique code for every recipient
+  # because phone column can&#39;t be unique
+  def generate_code
+    if self.code.nil?
+      self.code = Recipient.make_code self.phone, self.callout_id, self.payload
+    end
+  end
+
+end
+
+
+class Callout &lt; ApplicationRecord
+  belongs_to :company
+  has_many :recipients, dependent: :destroy
+  validates :company_id, presence: true
+  validates :name, presence: true
+
+  scope :auto_queue, -&gt; { where(auto_queue: true ) }
+
+end
+
+
+class Company &lt; ApplicationRecord
+
+  before_validation :generate_token!
+
+  has_many :callouts, dependent: :destroy
+  has_many :recipients, dependent: :destroy
+  has_many :user_companies, dependent: :destroy
+  has_many :users, through: :user_companies
+  has_many :invoices, dependent: :destroy
+  has_many :balance_logs, dependent: :destroy
+
+  validates :name, presence: true
+
+
+  def generate_token!
+    if api_token.nil?
+      update! api_token: SecureRandom.hex
+    end
+  end
+
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、.irbrc ファイル内での –nomultiline または
+                    IRB.conf[:USE_MULTILINE] = false
+                    の使用に関連する予期せぬ問題に関連しています。</p>
+                    <p>ハッキングに関する同様の問題</p>
+                    <p>この問題を回避するには、Rails
+                    コンソールを起動するときに –nomultiline
+                    オプションの使用をスキップします。</p>
+                    <pre><code>bundle exec rails c -e production
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

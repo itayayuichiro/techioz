@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ドライスキーマ gem を使用してさまざまなオブジェクトの配列を検証する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ドライスキーマ gem を使用してさまざまなオブジェクトの配列を検証する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ドライスキーマ gem
+を使用してさまざまなオブジェクトの配列を検証する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなさまざまなオブジェクトの配列を持つ JSON
+                    オブジェクトがあるとします。</p>
+                    <pre><code>{
+  &quot;array&quot;: [
+    {
+      &quot;type&quot;: &quot;type_1&quot;,
+      &quot;value&quot;: 5
+    },
+    {
+      &quot;type&quot;: &quot;type_2&quot;,
+      &quot;kind&quot;: &quot;person&quot;
+    }
+  ]
+}
+</code></pre>
+                    <p>JSON スキーマの検証によると、次の JSON
+                    スキーマ定義を使用してスキーマを検証できます。</p>
+                    <pre><code>{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;array&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;items&quot;: {
+        &quot;oneOf&quot;: [
+          {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;properties&quot;: {
+              &quot;type&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;enum&quot;: [
+                  &quot;type_1&quot;
+                ]
+              },
+              &quot;value&quot;: {
+                &quot;type&quot;: &quot;integer&quot;,
+                &quot;enum&quot;: [
+                  5
+                ]
+              }
+            }
+          },
+          {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;properties&quot;: {
+              &quot;type&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;enum&quot;: [
+                  &quot;type_2&quot;
+                ]
+              },
+              &quot;kind&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;enum&quot;: [
+                  &quot;person&quot;
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+</code></pre>
+                    <p>dry-schema gem を使用して入力 JSON
+                    を検証するにはどうすればよいですか?あなたはなにか考えはありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題に対処するには、次のコードを試してください。</p>
+                    <pre><code>class TestContract &lt; Dry::Validation::Contract
+  FirstHashSchema = Dry::Schema.Params do
+    required(:type).filled(:string)
+    required(:value).filled(:integer)
+  end
+
+  SecondHashSchema = Dry::Schema.Params do
+    required(:type).filled(:string)
+    required(:kind).filled(:string)
+  end
+
+  params do
+    required(:array).array do
+      # FirstHashSchema.or(SecondHashSchema) also works
+      schema FirstHashSchema | SecondHashSchema
+    end
+  end
+end
+
+valid_input = {
+  array: [
+    {
+      type: &#39;type_1&#39;,
+      value: 5
+    },
+    {
+      type: &#39;type_2&#39;,
+      kind: &#39;person&#39;
+    }
+  ]
+}
+
+TestContract.new.call(valid_input) #=&gt; Dry::Validation::Result{:array=&gt;[...] errors={}}
+
+
+invalid_input = {
+  array: [
+    {
+      type: &#39;type_1&#39;,
+      bad_key: 5
+    },
+    {
+      type: &#39;type_2&#39;,
+      kind: &#39;person&#39;
+    }
+  ]
+}
+
+TestContract.new.call(invalid_input) #=&gt; Dry::Validation::Result{:array=&gt;[...] errors={:array=&gt;{0=&gt;{:or=&gt;[...]}}}
+</code></pre>
+                    <p>ここで重要なのはメソッド #schema
+                    です。ドキュメンテーション</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

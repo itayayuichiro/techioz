@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ジョブ内の Sidekiq 再試行回数 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ジョブ内の Sidekiq 再試行回数",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ジョブ内の Sidekiq 再試行回数</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在のジョブの再試行回数を取得する方法はありますか?</p>
+                    <p>x
+                    回再試行した後、ジョブがクラッシュするのではなく停止するようにしたいと考えています。再試行回数が
+                    x
+                    に等しい場合に単純に返すことができるように、perform
+                    メソッドで再試行回数を問い合わせたいと考えています。</p>
+                    <pre><code>def perform(args)
+  return if retry_count &gt; 5
+  ...
+end
+</code></pre>
+                    <p>Sidekiq 2.12 を使用します。</p>
+                    <p>私（OPではありません）は同じ質問をしていますが、理由は異なります。ジョブが再試行されている場合は、追加の健全性チェックを実行してジョブが必要であることを確認し、キューに入れられてから外部で何かが変更されたためにジョブの成功が期待されなくなった場合は再試行を中止したいと考えています。</p>
+                    <p>では、現在のジョブの再試行回数を取得する方法はあるのでしょうか?現在の回答は、必要なときに回避できる方法、または仕事の外から入手できる方法を示唆しているだけです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、sidekiq ミドルウェアを追加して
+                    msg[‘retry_count’] をジョブ
+                    クラスのインスタンス変数として設定することで実現できます。</p>
+                    <p>次のようにミドルウェアを追加します (Rails
+                    では、通常は /config/initializers/
+                    フォルダー内のファイルです)。</p>
+                    <pre><code>class SidekiqMiddleware
+    def call(worker, job, queue)
+        worker.retry_count = job[&#39;retry_count&#39;] if worker.respond_to?(:retry_count=)
+        yield
+    end
+end
+
+Sidekiq.configure_server do |config|
+    config.server_middleware do |chain|
+        chain.add SidekiqMiddleware
+    end
+end
+</code></pre>
+                    <p>あなたの仕事では:</p>
+                    <pre><code>include Sidekiq::Worker
+attr_accessor :retry_count
+
+def retry_count
+  @retry_count || 0
+end
+
+def perform(args)
+  return if retry_count &gt; 5
+  ...
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>存在する？メソッドが機能しません - DB に保存する前にユーザーが存在するかどうかを確認しようとしています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "存在する？メソッドが機能しません - DB に保存する前にユーザーが存在するかどうかを確認しようとしています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>存在する？メソッドが機能しません - DB
+に保存する前にユーザーが存在するかどうかを確認しようとしています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails
+                    を初めて使用するので、自分のサイトのサインアップ
+                    フォームを作成しようとしています。これは 1
+                    つの例外を除いて正常に動作します。ユーザーが存在するかどうかを最初に確認せずにデータベースに保存します。ユーザーを保存する前に、ユーザーが存在することを確認するにはどうすればよいですか?</p>
+                    <p>ユーザーコントローラー:</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  def new
+    @user = User.new
+  end
+
+  def create 
+    @user = User.new(user_params)
+    if @user.exists?(:username) == false &amp;&amp; @user.save(user_params)
+      session[:id] = @user.id
+      redirect_to posts_path
+    else
+      redirect_to &#39;/signup&#39;
+    end
+  end
+
+  def edit
+
+  end
+
+  def update
+  end
+
+  def show
+  end
+
+  def destroy
+  end
+
+    private
+
+  def user_params
+    params.require(:user).permit(:username, :jabber_id, :password)
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ユーザーの電子メール
+                    アドレスが適切に渡されないため、これは機能します。この問題は、<span
+                    class="citation"
+                    data-cites="user.exists">@user.exists</span>?(:username)
+                    を <span class="citation"
+                    data-cites="user.exists">@user.exists</span>?(params[:username])
+                    に変更することで修正できます。</p>
+                    <p>ただし、Ruby on Rails
+                    にはそのような検証が含まれているため、独自に検証を記述する必要はありません。
+                    Rails
+                    の存在と一意性の検証を次のように使用します。</p>
+                    <pre><code># in your user.rb
+validates :username, presence: true, uniqueness: true
+</code></pre>
+                    <p>大文字と小文字を無視することもできます。</p>
+                    <pre><code># in your user.rb
+validates :username, presence: true, uniqueness: { case_sensitive: false }
+</code></pre>
+                    <p>そして、作成メソッドを次のように変更します。</p>
+                    <pre><code>def create 
+  @user = User.new(user_params)
+
+  if @user.save 
+    session[:id] = @user.id
+    redirect_to posts_path
+  else
+    render :new
+  end
+end
+</code></pre>
+                    <p>さらに、データベース
+                    レベルでも一意のインデックスを持つことをお勧めします。</p>
+                    <pre><code># in a migration
+add_index :users, :username, unique: true
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

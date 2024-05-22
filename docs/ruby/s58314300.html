@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Factorybot でnested_attributes を持つモデルのファクトリを作成する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Factorybot でnested_attributes を持つモデルのファクトリを作成する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Factorybot でnested_attributes
+を持つモデルのファクトリを作成する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RSpecで以下のコントローラーをテストしたい</p>
+                    <p>クーポン_コントローラー.rb:</p>
+                    <pre><code>class Api::V1::CouponsController &lt; ApiController
+  def index
+    if params[:profile_id]
+      @coupons = Profile.find(params[:profile_id]).coupons
+    end
+  end
+end
+</code></pre>
+                    <p>私は知りたいです</p>
+                    <ol type="1">
+                    <li>FactoryBot でファクトリーを作成する方法
+                    (spec/factories/profiles.rb、クーポン.rb、クーポン_プロファイル.rb)</li>
+                    </ol>
+                    <p>2)spec/controllers/coupons_controllers.rbの書き方：</p>
+                    <p>プロフィール.rb</p>
+                    <pre><code>class Profile &lt; ApplicationRecord
+  accepts_nested_attributes_for :coupon_profiles
+end
+</code></pre>
+                    <p>クーポン.rb</p>
+                    <pre><code>class Coupon &lt; ApplicationRecord
+  has_many :coupon_profiles
+end
+</code></pre>
+                    <p>クーポン_プロフィール.rb</p>
+                    <pre><code>class CouponProfile &lt; ApplicationRecord
+  belongs_to :coupon
+  belongs_to :profile
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>何かのようなもの：</p>
+                    <pre><code># spec/factories/profiles.rb
+FactoryBot.define do
+  factory :profile, class: &#39;Profile&#39;, do
+    # ...
+  end
+end
+# spec/factories/coupons.rb
+FactoryBot.define do
+  factory :coupon, class: &#39;Coupon&#39; do 
+    # ...
+  end
+end
+# spec/factories/coupon_profiles.rb
+FactoryBot.define do
+  factory :coupon_profile, class: &#39;CouponProfile&#39; do
+    coupon
+    profile
+  end
+end
+</code></pre>
+                    <p>正直に言うと、FactoryBot の GETTING_STARTED
+                    README
+                    を確認するのが最善の策です。知りたいことはすべてそこに例とともに記載されています。これは
+                    README の優れた例です。
+                    (上記の例でのクラスの使用については、クラス定数の代わりに文字列化されたクラス名を使用する特定のパフォーマンス上の理由があることに注意してください)</p>
+                    <p>コントローラーの仕様については、RSpec
+                    ドキュメントを確認しましたか?ただし、コントローラーの仕様ではなく、要求仕様などのより機能的なテストを使用することをお勧めします。次のようなことができるはずです:</p>
+                    <pre><code>describe &#39;coupons&#39; do 
+  subject { response }
+
+  shared_examples_for &#39;success&#39; do
+    before { request }
+
+    it { should have_http_status(:success) }
+  end
+
+  describe &#39;GET /coupons&#39; do
+    let(:request) { get coupons_path }
+
+    it_behaves_like &#39;success&#39;
+  end
+
+  describe &#39;GET /coupons/:profile_id&#39; do
+    let(:request) { get coupon_path(profile)
+    let(:profile) { coupon_profile.profile }
+    let(:coupon_profile) { create :coupon_profile }
+
+    it_behaves_like &#39;success&#39;
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

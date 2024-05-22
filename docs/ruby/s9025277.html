@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュからサブハッシュを抽出するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュからサブハッシュを抽出するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュからサブハッシュを抽出するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ハッシュがあります:</p>
+                    <pre><code>h1 = {:a =&gt; :A, :b =&gt; :B, :c =&gt; :C, :d =&gt; :D}
+</code></pre>
+                    <p>このようなサブハッシュを抽出する最良の方法は何ですか?</p>
+                    <pre><code>h1.extract_subhash(:b, :d, :e, :f) # =&gt; {:b =&gt; :B, :d =&gt; :D}
+h1 #=&gt; {:a =&gt; :A, :c =&gt; :C}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActiveSupport は、少なくとも 2.3.8 以降、4
+                    つの便利なメソッド、#slice、#exc
+                    、およびそれらの破壊的なメソッド、#slice!
+                    を提供しています。そして#以外!。それらは他の回答でも言及されていますが、それらを1か所にまとめると次のようになります。</p>
+                    <pre><code>x = {a: 1, b: 2, c: 3, d: 4}
+# =&gt; {:a=&gt;1, :b=&gt;2, :c=&gt;3, :d=&gt;4}
+
+x.slice(:a, :b)
+# =&gt; {:a=&gt;1, :b=&gt;2}
+
+x
+# =&gt; {:a=&gt;1, :b=&gt;2, :c=&gt;3, :d=&gt;4}
+
+x.except(:a, :b)
+# =&gt; {:c=&gt;3, :d=&gt;4}
+
+x
+# =&gt; {:a=&gt;1, :b=&gt;2, :c=&gt;3, :d=&gt;4}
+</code></pre>
+                    <p>bang
+                    メソッドの戻り値に注目してください。既存のハッシュを調整するだけでなく、削除された
+                    (保持されていない)
+                    エントリも返します。ハッシュ#以外！質問に示されている例が最もよく当てはまります。</p>
+                    <pre><code>x = {a: 1, b: 2, c: 3, d: 4}
+# =&gt; {:a=&gt;1, :b=&gt;2, :c=&gt;3, :d=&gt;4}
+
+x.except!(:c, :d)
+# =&gt; {:a=&gt;1, :b=&gt;2}
+
+x
+# =&gt; {:a=&gt;1, :b=&gt;2}
+</code></pre>
+                    <p>ActiveSupport は Rails
+                    全体を必要とせず、非常に軽量です。実際、Rails
+                    以外の多くの gem
+                    はこれに依存しているため、おそらくすでに
+                    Gemfile.lock に含まれているでしょう。 Hash
+                    クラスを独自に拡張する必要はありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

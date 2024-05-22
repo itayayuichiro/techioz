@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsモデルクラスでのcattr_accessorの使用法を理解する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsモデルクラスでのcattr_accessorの使用法を理解する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsモデルクラスでのcattr_accessorの使用法を理解する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRubyとRailsの初心者です。 Rails アプリで
+                    Wicked Wizard gem
+                    を使用しようとしていますが、コード内で見つかった
+                    cattr_accessor
+                    について理解するのに助けが必要です。</p>
+                    <pre><code># migration
+create_table &quot;pets&quot;, force: :cascade do |t|
+  t.string   &quot;name&quot;
+  t.string   &quot;colour&quot;
+  t.string   &quot;owner_name&quot;
+  t.text     &quot;identifying_characteristics&quot;
+  t.text     &quot;special_instructions&quot;
+  t.datetime &quot;created_at&quot;
+  t.datetime &quot;updated_at&quot;
+  t.string   &quot;email&quot;
+  t.string   &quot;password&quot;
+end
+
+# model
+class Pet &lt; ActiveRecord::Base
+  has_many :pet_photos
+
+  cattr_accessor :form_steps do
+    %w(identity characteristics instructions)
+  end
+
+  attr_accessor :form_step
+
+  validates :email, presence: true
+  validates :name, :owner_name, presence: true, if: -&gt; { required_for_step?(:identity) }
+  validates :identifying_characteristics, :colour, presence: true, if: -&gt; { required_for_step?(:characteristics) }
+  validates :special_instructions, presence: true, if: -&gt; { required_for_step?(:instructions) }
+
+  def required_for_step?(step)
+    return true if form_step.nil?
+    return true if self.form_steps.index(step.to_s) &lt;= self.form_steps.index(form_step)
+  end
+end
+
+# controller
+class Pet::StepsController &lt; ApplicationController
+  include Wicked::Wizard
+  steps *Pet.form_steps
+
+  def show
+    @pet = Pet.find(params[:pet_id])
+    render_wizard
+  end
+
+  def update
+    @pet = Pet.find(params[:pet_id])
+    @pet.update(pet_params(step))
+
+    if params[:images]
+      params[:images].each do |image|
+        @pet.pet_photos.create(image: image)
+      end
+    end
+
+    render_wizard @pet
+  end
+
+  private
+
+  def pet_params(step)
+    permitted_attributes = case step
+                           when &quot;identity&quot;
+                             [:name, :owner_name]
+                           when &quot;characteristics&quot;
+                             [:colour, :identifying_characteristics]
+                           when &quot;instructions&quot;
+                             [:special_instructions]
+                           end
+
+    params.require(:pet).permit(permitted_attributes).merge(form_step: step)
+  end
+end
+
+# routes
+PetThing::Application.routes.draw do
+  resources :pets, only: [:new, :create, :index, :destroy] do
+    resources :steps, only: [:show, :update], controller: &#39;pet/steps&#39;
+  end
+
+  root to: &#39;pets#index&#39;
+end
+</code></pre>
+                    <p>さて、私の質問は次のとおりです。</p>
+                    <ol type="1">
+                    <li>cattr_accessor と attr_accessor
+                    の違いは何ですか?</li>
+                    </ol>
+                    <pre><code>       cattr_accessor :form_steps do
+         %w(identity characteristics instructions)
+       end
+       attr_accessor :form_step
+</code></pre>
+                    <ol start="2" type="1">
+                    <li><p>なぜ 2 つの異なるシンボル (:form_steps
+                    、:form_step) がそれぞれ cattr_accessor メソッドと
+                    attr_accessor メソッドのメソッド
+                    パラメーターとして使用されるのですか?</p></li>
+                    <li><p>ブロックが cattr_accessor
+                    メソッドにパラメータとして渡されるのはなぜですか?</p></li>
+                    </ol>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、このメソッドは廃止されるか、移動されます。
+                    Rails 4 と Rails
+                    のどちらのバージョンを使用していますか?</p>
+                    <p>cattr_accessor &gt; クラス Class
+                    のスーパークラスである Module の
+                    mattr_accessor(*sYSms, &amp;blk) を置き換えます。
+                    attr_accessor
+                    を使用することをお勧めします。これは、クラスの属性を設定する単なるメソッドです。クラスのゲッターまたはセッターのように機能しますが、インスタンス
+                    (メモリ内)
+                    に対してのみ機能し、属性はどこにでも保存されます。</p>
+                    <p>cattr_accessor は attr_*
+                    メソッドに似ていますが、クラス
+                    レベルのものです。予想外のことの 1
+                    つは、クラスとすべてのインスタンス間で共有される値であるバッキング
+                    @<span class="citation"
+                    data-cites="form_steps">@form_steps</span>
+                    を使用していることです。</p>
+                    <p>クラス属性のクラス アクセサーとインスタンス
+                    アクセサーの両方を定義します。</p>
+                    <pre><code>module HairColors
+  mattr_accessor :hair_colors
+end
+
+class Person
+  include HairColors
+end
+
+Person.hair_colors = [:brown, :black, :blonde, :red]
+Person.hair_colors     # =&gt; [:brown, :black, :blonde, :red]
+Person.new.hair_colors # =&gt; [:brown, :black, :blonde, :red]
+</code></pre>
+                    <p>サブクラスが値を変更すると、親クラスの値も変更されます。同様に、親クラスが値を変更すると、サブクラスの値も変更されます。</p>
+                    <pre><code>class Male &lt; Person
+end
+
+Male.hair_colors &lt;&lt; :blue
+Person.hair_colors # =&gt; [:brown, :black, :blonde, :red, :blue]
+</code></pre>
+                    <p>インスタンス ライター
+                    メソッドをオプトアウトするには、instance_writer:
+                    false を渡します。インスタンス リーダー
+                    メソッドをオプトアウトするには、instance_reader:
+                    false を渡します。</p>
+                    <pre><code>module HairColors
+  mattr_accessor :hair_colors, instance_writer: false, instance_reader:             false
+end
+
+class Person
+  include HairColors
+end
+
+Person.new.hair_colors = [:brown]  # =&gt; NoMethodError
+Person.new.hair_colors             # =&gt; NoMethodError
+</code></pre>
+                    <p>または、instance_accessor: false
+                    を渡して、両方のインスタンス
+                    メソッドをオプトアウトします。</p>
+                    <pre><code>module HairColors
+  mattr_accessor :hair_colors, instance_accessor: false
+end
+
+class Person
+  include HairColors
+end
+
+Person.new.hair_colors = [:brown]  # =&gt; NoMethodError
+Person.new.hair_colors             # =&gt; NoMethodError
+</code></pre>
+                    <p>また、ブロックを渡して属性をデフォルト値で設定することもできます。</p>
+                    <pre><code>module HairColors
+  mattr_accessor :hair_colors do
+[:brown, :black, :blonde, :red]
+  end
+end
+
+class Person
+  include HairColors
+end
+
+Person.class_variable_get(&quot;@@hair_colors&quot;) #=&gt; [:brown, :black, :blonde, :red]
+</code></pre>
+                    <ol type="1">
+                    <li></li>
+                    <li><p>クラス変数はクラス間を移動する傾向があります。
+                    @<span class="citation"
+                    data-cites="form_steps">@form_steps</span>
+                    クラス変数は、継承ツリーを通じて公開できます。</p></li>
+                    <li><p>このクラスを持つ属性を設定します。フォームステップ</p></li>
+                    </ol>
+                    <pre><code>p = Pet.new
+p.form_steps = &quot;var&quot;
+</code></pre>
+                    <p>そして、現在のインスタンス Pet 内で form_steps
+                    属性を使用します (required_for_step
+                    メソッドで行うのと同様)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

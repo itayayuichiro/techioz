@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PaymentIntent ステータス: Ruby on Rails での Stripe ACH 実装の require_source_action | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PaymentIntent ステータス: Ruby on Rails での Stripe ACH 実装の require_source_action",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PaymentIntent ステータス: Ruby on Rails での
+Stripe ACH 実装の require_source_action</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ACH 実装のテスト PaymentIntent
+                    を完了しようとしています。 以下を使用して
+                    PaymentIntent を作成できました。</p>
+                    <pre><code>Stripe::PaymentIntent.create(
+  {
+    amount: 1099,
+    currency: &#39;usd&#39;,
+    setup_future_usage: &#39;off_session&#39;,
+    confirm: true,
+    payment_method_types: [&#39;us_bank_account&#39;],
+    on_behalf_of: &#39;acct_XXXXXXXXXXXX&#39;,
+    mandate_data: {
+      customer_acceptance: {
+        type: &#39;offline&#39;   
+      },   
+    },
+    payment_method_data: {
+      type: &#39;us_bank_account&#39;,
+      billing_details: {
+        name: &#39;Test Name&#39;
+      },
+      us_bank_account: {
+        routing_number: &#39;110000000&#39;,
+        account_number: &#39;000123456789&#39;,
+        account_holder_type: &#39;individual&#39;
+      }
+    }
+  }
+)
+</code></pre>
+                    <p>これに続いて、Paymentconfirm API
+                    を実行しました。</p>
+                    <pre><code>Stripe::PaymentIntent.confirm(
+  &#39;pi_3MosEfLYIdOgExxxxxxxxxx&#39;,
+  {payment_method: &#39;pm_1MosEfLYIdOgE1Qxxxxxx&#39;},
+)
+</code></pre>
+                    <p>確認はサンドボックス
+                    ダッシュボードに反映されていますが、支払いステータスはまだ不完全です。PaymentIntent
+                    ステータスは次のとおりです:requires_source_action</p>
+                    <p>前もって感謝します</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今回の API アップグレードでは、古い API
+                    バージョンを使用している可能性があります。requires_source_action
+                    ステータスが require_action
+                    になりました。ここで、Payment Intent
+                    で現在考えられるステータスを確認することもできます。</p>
+                    <p>このエラーが発生する理由については、ACH
+                    ダイレクト デビットの仕組みを確認してください。 ACH
+                    ダイレクト
+                    デビットでは、委任状を受け取る必要があり、かつ銀行口座が認証される必要があります。私の疑いは、支払い方法がまだ検証されておらず、スクリーンショットで指定されている
+                    next_action
+                    を確認できることです。存在する場合、または存在する場合は、次にどのようなアクションを実行する必要があるかを示します。</p>
+                    <p>ACH
+                    口座振替による支払いを受け入れるには、このガイドに従うことを強くお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>文字列内の同一部分を検出するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "文字列内の同一部分を検出するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>文字列内の同一部分を検出するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>デコードアルゴリズムで必要な質問を小さな質問に分割しようとします。これはパート
+                    I です。</p>
+                    <p>質問：</p>
+                    <p>例1:</p>
+                    <pre><code>s1 = &quot;12 November 2010 - 1 visitor&quot;
+s2 = &quot;6 July 2010 - 100 visitors&quot;
+
+the identical parts are &quot;2010&quot;, &quot;-&quot;, &quot;1&quot; and &quot;visitor&quot;
+</code></pre>
+                    <p>例 2:</p>
+                    <pre><code>s1 = &quot;Welcome, John!&quot;
+s2 = &quot;Welcome, Peter!&quot;
+
+the identical parts are &quot;Welcome,&quot; and &quot;!&quot;
+</code></pre>
+                    <p>例 3: (「!」の例を明確にするため)</p>
+                    <pre><code>s1 = &quot;Welcome, Sam!&quot;
+s2 = &quot;Welcome, Tom!&quot;
+
+the identical parts are &quot;Welcome,&quot; and &quot;m!&quot;
+</code></pre>
+                    <p>Python と Ruby を推奨します。ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>編集: #1
+                    を含むすべての例で動作するようにこの例を更新しました。</p>
+                    <pre><code>def scan(s1, s2):
+    # Find the longest match where s1 starts with s2
+    # Returns None if no matches
+    l = len(s1)
+    while 1:
+        if not l:
+            return None
+        elif s1[:l] == s2[:l]:
+            return s1[:l]
+        else:
+            l -= 1
+
+def contains(s1, s2):
+    D = {} # Remove duplicates using a dict
+    L1 = s1.split(&#39; &#39;)
+    L2 = s2.split(&#39; &#39;)
+
+    # Don&#39;t add results which have already 
+    # been processed to satisfy example #1!
+    DProcessed = {}
+
+    for x in L1:
+        yy = 0
+        for y in L2:
+            if yy in DProcessed:
+                yy += 1
+                continue
+
+            # Scan from the start to the end of the words
+            a = scan(x, y)
+            if a: 
+                DProcessed[yy] = None
+                D[a] = None
+                break
+
+            # Scan from the end to the start of the words
+            a = scan(x[::-1], y[::-1])
+            if a: 
+                DProcessed[yy] = None
+                D[a[::-1]] = None
+                break
+            yy += 1
+
+    return list(D.keys())
+
+print contains(&quot;12 November 2010 - 1 visitor&quot;,
+               &quot;6 July 2010 - 100 visitors&quot;)
+print contains(&quot;Welcome, John!&quot;,
+               &quot;Welcome, Peter!&quot;)
+print contains(&quot;Welcome, Sam!&quot;,
+               &quot;Welcome, Tom!&quot;)
+</code></pre>
+                    <p>どの出力:</p>
+                    <pre><code>[&#39;1&#39;, &#39;visitor&#39;, &#39;-&#39;, &#39;2010&#39;]
+[&#39;Welcome,&#39;, &#39;!&#39;]
+[&#39;Welcome,&#39;, &#39;m!&#39;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

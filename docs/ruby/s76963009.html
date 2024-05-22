@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby クラスの一部のメソッドはデフォルトでプライベートになっているように見えますか?たとえそれらがクラス内の通常のメソッドであっても[クローズド] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby クラスの一部のメソッドはデフォルトでプライベートになっているように見えますか?たとえそれらがクラス内の通常のメソッドであっても[クローズド]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+クラスの一部のメソッドはデフォルトでプライベートになっているように見えますか?たとえそれらがクラス内の通常のメソッドであっても[クローズド]</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>class ProcessTrip &lt; MetroCardClassMethods
+attr_accessor :travel_history, :station, :destination 
+
+def initialize  
+   
+end    
+def update_balace_aumount(balance_details,trip_to,trip_complete)
+      effective_tarif = trip_complete ? passenger_tarif_for(_passenger_type) / 2 : passenger_tarif_for(_passenger_type)
+      trip_to[&#39;discount&#39;]= effective_tarif if trip_complete
+      trip_to[&#39;discount&#39;]= 0 if !trip_complete
+     if   balance_details[&quot;balance&quot;].to_i &lt; effective_tarif
+      effective_trip_cost = effective_tarif  - balance_details[&quot;balance&quot;].to_i
+      trip_to[&quot;trip_cost&quot;] +=  effective_trip_cost*0.02
+      balance_details[&quot;balance&quot;] = 0;
+     else
+      balance_details[&quot;balance&quot;] =  balance_details[&quot;balance&quot;].to_i - effective_tarif
+     end      
+    end 
+end
+
+def total_amount_collected ()
+  @@vertex.each do |metro_id, travel_history| 
+    result = find_amount_collected_for_metrocard(self.class.card_list[metro_id], travel_history)     
+    result.each do |key,value| 
+      self.class.collection[key][&quot;cost&quot;]+=value[&quot;trip_cost&quot;];
+      self.class.collection[key][&quot;discount&quot;]+=value[&quot;discount&quot;];   
+      self.class.collection[key][&quot;passengers&quot;]+=value[&quot;passenger&quot;];     
+    end
+   
+  end
+  return @@collection
+end
+
+def find_amount_collected_for_metrocard(balance_details, trip_info)    
+  trip_from={}
+  trip_info.each do |station, destination| 
+    @station = station             
+    if _is_return_journey(trip_from)    
+      process_trip_segment(trip_from,_destination,_station)   
+      trip_from[_station][&quot;trip_cost&quot;] = passenger_tarif_for(_passenger_type) * 0.5    
+      update_balace_aumount(balance_details, trip_from[_station], true); 
+    
+    else               
+      process_trip_segment(trip_from,_station,_station)       
+      trip_from[_station][&quot;trip_cost&quot;] = (trip_from[_station][&quot;trip_cost&quot;] || 0) + passenger_tarif_for(_passenger_type)          
+      update_balace_aumount(balance_details, trip_from[_station], false);  
+
+    end           
+  end    
+
+return  trip_from
+
+end 
+</code></pre>
+                    <p>ProcessTrip クラスのインスタンスから
+                    total_amount_collected
+                    を呼び出そうとしていますが、メソッドが通常のメソッドであり、private
+                    キーワードの下に置いていないにもかかわらず、プライベート
+                    メソッドであるというエラーが表示されます。</p>
+                    <pre><code>trip.total_amount_collected
+NoMethodError: private method `total_amount_collected&#39; called for #&lt;ProcessTrip:0x0000000110e33da0&gt;
+from (pry):3:in `get_total_collection&#39;
+</code></pre>
+                    <p>次のメソッドからクラスを呼び出しています</p>
+                    <pre><code>def get_total_collection
+  trip =  ProcessTrip.new
+  trip.total_amount_collected
+  sort_passengers(total_collection); 
+  print_summary(total_collection) if @print_summary
+end  
+</code></pre>
+                    <p>さらに、ProcessTrip
+                    クラスによって拡張されたスーパークラスがあります</p>
+                    <pre><code>class MetroCardClassMethods
+  @@card_list = []
+  @@vertex = {};
+  @@collection ={&quot;CENTRAL&quot;=&gt;{&quot;cost&quot;=&gt;0,&quot;discount&quot;=&gt;0,&quot;passengers&quot;=&gt;[]},&quot;AIRPORT&quot;=&gt;{&quot;cost&quot;=&gt;0,&quot;discount&quot;=&gt;0,&quot;passengers&quot;=&gt;[]}}
+  @@station_from = {&quot;CENTRAL&quot;=&gt;&quot;AIRPORT&quot;,&quot;AIRPORT&quot;=&gt;&quot;CENTRAL&quot;}
+  @@station = []
+
+  def initialize(item)
+    @travel_history =  {}  
+    @metro_id = item[&quot;metro_id&quot;] 
+    @station = item[&quot;station&quot;]
+    @passenger_type = item[&quot;passenger_type&quot;] 
+    @destination = @@station_from[@station] 
+  end
+
+  class &lt;&lt; self   
+   
+    def card_list=(card_list)
+      @@card_list=card_list
+    end 
+    def card_list
+      @@card_list
+    end  
+    def collection
+      @@collection
+    end  
+
+    def station_from
+      @@station_from
+    end  
+    def vertex
+      @@vertex
+    end  
+  end  
+ 
+end
+</code></pre>
+                    <p>total_amount_collected が private
+                    として扱われるのに対し、 update_balace_aumount は
+                    public
+                    メソッドとして扱われる理由を誰か説明できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>def/end のマッチングがオフになっています。
+                    total_amount_collected の前の最後の端は、ProcessTrip
+                    クラスを閉じています。次に、total_amount_collected
+                    メソッドを完全にクラスの外で定義します。短い例を次に示します。</p>
+                    <pre><code>class MyClass
+  def some_method
+  end
+end
+def some_other_method
+end
+</code></pre>
+                    <p>これを IRB
+                    コンソールに貼り付けて呼び出した場合:</p>
+                    <pre><code>MyClass.new.some_other_method
+</code></pre>
+                    <p>some_other_method が MyClass の新しいパブリック
+                    インスタンス メソッドとしてではなく、Object
+                    クラスの新しいプライベート
+                    メソッドとして定義されているため、プライベート
+                    メソッド例外が発生します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

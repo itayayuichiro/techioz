@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby On Rails - 新しい移行とモデル変更により移行が失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby On Rails - 新しい移行とモデル変更により移行が失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby On Rails -
+新しい移行とモデル変更により移行が失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>新しいテーブルを追加するために新しい移行を作成しました。それを呼びましょう
+                    new_items 新しいテーブルを作成します。</p>
+                    <p>移行では、別のテーブルとの関係を指定しました</p>
+                    <pre><code>t.belongs_to :parent
+</code></pre>
+                    <p>私のモデルでは、</p>
+                    <pre><code>class NewItem &lt; ApplicationRecord
+belongs_to :parent
+
+class Parent &lt; ApplicationRecord
+has_many :new_items, :dependent =&gt; :destroy
+</code></pre>
+                    <p>したがって、すべての移行を最初から実行すると、古い移行で障害が発生します
+                    「テーブル「new_items」が見つかりませんでした」
+                    失敗した移行では、これは問題がどこにあるかを示す行です</p>
+                    <pre><code>def up
+ Parent.where(name: &quot;TestName&quot;).destroy_all
+end
+</code></pre>
+                    <p>この次の行を削除すると完了まで実行されるため、親モデルに問題があります。</p>
+                    <pre><code>has_many :new_items, :dependent =&gt; :destroy
+</code></pre>
+                    <p>問題が親と NewItem
+                    の関係にあることはわかっていますが、最善の修正方法がわかりません</p>
+                    <p>なぜそれが起こっているのかはわかりますが、テーブル間の関係を維持しながらそれを解決する方法がわかりません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>移行で ActiveRecord
+                    モデルを使用する場合は、将来モデルに変更を加えても古い移行が中断されないように、これらのモデルを移行内で定義することが賢明です。</p>
+                    <pre><code>class Parent &lt; ApplicationRecord; end
+</code></pre>
+                    <p>または、クラスが何もする必要がない場合は、より良い方法で</p>
+                    <pre><code>Parent = Class.new(ApplicationRecord)
+</code></pre>
+                    <p>移行クラス内に追加すると、問題が解決されるはずです。</p>
+                    <p>補足:
+                    単に親テーブルからすべてのレコードを削除したい場合は、移行時に
+                    Parent.delete_all
+                    を呼び出すことをお勧めします。これでも問題は解決しますが、移行にモデルを追加することをお勧めします。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

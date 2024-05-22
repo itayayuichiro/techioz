@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails APIでの.whereメソッドの連鎖 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails APIでの.whereメソッドの連鎖",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails APIでの.whereメソッドの連鎖</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>提出物を収集するために、Rails API
+                    を使用して構築された Web アプリがあります。属性
+                    (場所、サイズなど)
+                    が一致する特定のストアに電子メールを送信するフォームを送信しています。これらは次のフィールドに基づいて照合されます</p>
+                    <p>また、ストアがすべてのリードを受け取るための属性もあり、true
+                    に設定されている場合は、前のオプションのいずれかをオーバーライドします。</p>
+                    <p>Rails API のhard_worker.rb
+                    では、どのストアにリードを送信するかをクエリするために、次のフィールドをチェックさせています。条件文の連鎖が正しくないことはわかっていますが、正しく送信するために再フォーマットする方法がわかりません。助けていただければ幸いです。ありがとうございます!</p>
+                    <pre><code>def build_filters_obj
+        filters = []
+        filters.push &#39;location_north&#39; if @lead.location_north
+        filters.push &#39;location_east&#39; if @lead.location_east
+        filters.push &#39;location_south&#39; if @lead.location_south
+        filters.push &#39;location_west&#39; if @lead.location_west
+        filters.push &#39;location_other&#39; if @lead.location_other
+        
+        return filters
+    end
+
+    def perform(lead_id)
+        @lead = Lead.find(lead_id)
+
+        lead_email = ValidEmail2::Address.new(@lead.email)
+        UserNotifierMailer.send_signup_email(@lead).deliver if lead_email.valid?
+
+        @stores = Store.all
+        @stores = @stores.where.not(email: [nil, &#39;&#39;])
+
+        n = @lead.guests_total.to_i
+        @stores = @stores.where(&quot;capacity_min &lt;= ? AND capacity_max &gt;= ?&quot;, n, n)
+        
+        @stores = @stores.where(:type_unique =&gt; true) if @lead.store_type_unique
+        @stores = @stores.where(:type_dining =&gt; true) if @lead.store_type_dining
+        @stores = @stores.where(:type_hotel =&gt; true) if @lead.store_type_hotel
+        
+        filters = build_filters_obj
+        filters.each do |filter|
+            @stores = @stores.where(filter.to_sym =&gt; true)
+        end
+
+        @stores = @stores.or(Store.where(:receive_all =&gt; true))
+
+        @stores.each do |store|
+            store_email = ValidEmail2::Address.new(store.email)
+            UserNotifierMailer.send_lead_email(store, @lead).deliver if store_email.valid?
+        end
+    end
+</code></pre>
+                    <p>私のコードがひどい場合は申し訳ありません。Ruby
+                    は私が普段働いている場所ではありません。初心者向けの間違いを犯していることは間違いありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が気づいた最大のコード臭は、if
+                    チェックがたくさんあり、コードを推論するのが難しくなっているということです。代わりに、ハッシュを作成し、メソッドを呼び出してハッシュをクリーンアップしてみてください。</p>
+                    <p>このコードをrubocop経由で渡すこともお勧めします。これにより、コードがより慣用的になり、間違いが減ります。</p>
+                    <pre><code>filters.push &#39;location_north&#39; if @lead.location_north
+filters.push &#39;location_east&#39; if @lead.location_east
+filters.push &#39;location_south&#39; if @lead.location_south
+filters.push &#39;location_west&#39; if @lead.location_west
+filters.push &#39;location_other&#39; if @lead.location_other
+</code></pre>
+                    <p>少なくとも使える状態にすることはできるかもしれません。
+                    Ruby
+                    の慣用的な名前の付け方では、これを名詞として直接使用します。文字列を作成したり、後で記号に変換したりしていないことに注意してください。</p>
+                    <pre><code>def location_filters
+  {
+    location_north: @lead.location_north,
+    location_east: @lead.location_east,
+    location_south: @lead.location_south,
+    location_west: @lead.location_west,
+    location_other: @lead.location_other
+  }.filter { |key, value| value.present? }
+end
+
+# later on you would use this like this
+
+@stores = @stores.where(location_filters)
+</code></pre>
+                    <p>ハッシュを構築してから偽の値を削除できます</p>
+                    <pre><code>type_filters = {
+  type_unique: @lead.store_type_unique
+  type_dining: @lead.store_type_dining
+  type_hotel: @lead.store_type_hotel
+}.filter { |key, value| value.present? }
+
+# later on we can directly pass it to where method
+
+@stores = @stores.where(type_filters)
+</code></pre>
+                    <pre><code>def perform(lead_id)
+    @lead = Lead.find(lead_id)
+
+    lead_email = ValidEmail2::Address.new(@lead.email)
+    UserNotifierMailer.send_signup_email(@lead).deliver if lead_email.valid?
+
+    capacity = @lead.guests_total.to_i
+
+    type_filters = { # consider moving to a private method called `type_filters`
+      type_unique: @lead.store_type_unique
+      type_dining: @lead.store_type_dining
+      type_hotel: @lead.store_type_hotel
+    }.filter { |key, value| value.present? }
+      
+    @stores = Store.where.not(email: [nil, &#39;&#39;])
+                   .where(&quot;capacity_min &lt;= ? AND capacity_max &gt;= ?&quot;, capacity, capacity)
+                   .where(type_filters)
+                   .where(location_filters)
+                   .or(Store.where(receive_all: true))
+
+    @stores.each do |store|
+        store_email = ValidEmail2::Address.new(store.email)
+        UserNotifierMailer.send_lead_email(store, @lead).deliver if store_email.valid?
+    end
+end
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://rubyapi.org/3.2/o/hash#method-i-filter</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

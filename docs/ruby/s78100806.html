@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>can などの CanCanCan のメソッドにアクセスするより良い方法はありますか?モデルで？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "can などの CanCanCan のメソッドにアクセスするより良い方法はありますか?モデルで？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>can などの CanCanCan
+のメソッドにアクセスするより良い方法はありますか?モデルで？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>CanCanCan
+                    のメソッドはコントローラーまたはビューでのみ使用できますが、モデル内、具体的にはモデルの
+                    save
+                    メソッド内でアクセスしたいと考えています。この問題に対して私が使用する回避策は次のとおりです。save
+                    を呼び出す前に、モデル内に attr_accessor :ability
+                    を作成し、コントローラー内でそれに Abability
+                    オブジェクトを割り当てます。</p>
+                    <pre><code>class Example
+  include ActiveModel::Model
+
+  attr_accessor :ability
+
+  def save
+    if ability.can?(:create, SomeOtherModel)
+       ...
+    end
+  end
+
+end
+</code></pre>
+                    <pre><code>class ExamplesController &lt; ApplicationController
+  def create
+    @example = Example.new(params[:example])
+    @example.ability = Ability.new(current_admin_user) #note: current_admin_user can be several separate models such as Admin, Support
+
+    if @example.save
+      ...
+    end
+  end
+
+end
+</code></pre>
+                    <p>can
+                    を呼び出すより良い方法はありますか?モデル内から?セキュリティの観点などから、このソリューションに問題はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデルにアビリティ メソッドを追加して、can?
+                    を委任することもできます。方法：</p>
+                    <pre><code># app/models/user.rb
+class User
+  delegate :can?, :cannot?, to: :ability
+
+  def ability
+    @ability ||= Ability.new(self)
+  end
+end
+
+some_user.can? :update, @article
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/CanCanCommunity/cancancan/blob/develop/docs/define_check_abilities.md</p>
+                    <p>この解決策では、能力をチェックする必要があるすべてのモデルで能力メソッドを定義する必要があると思います。そのため、コードが重複する可能性があります。</p>
+                    <p>セキュリティの観点からは、予期せぬ事態を招く可能性があります。コントローラーは、モデルの許可された属性のみを作成/更新する強力なパラメーターをすでにサポートしています。</p>
+                    <p>たとえば、サポートが一部の属性のみを更新でき、管理者がすべての属性を更新できる場合、モデル内でそれをどのように制御しますか?</p>
+                    <p>また、コントローラーで能力をチェックすると、ユーザーのアクションを防止し、サーバーへの不要なクエリを回避できます。</p>
+                    <p>CanCan がコントローラーとビューで can
+                    メソッドが最適に機能することを推奨している理由は次のとおりだと思います。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/CanCanCommunity/cancancan/blob/develop/docs/controller_helpers.md</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

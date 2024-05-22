@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Net::OpenTimeout: 実行期限が切れました | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Net::OpenTimeout: 実行期限が切れました",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Net::OpenTimeout:
+実行期限が切れました</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のマシン上の複数のホストで常にこのエラーが発生します。例:</p>
+                    <pre><code>require &#39;open-uri&#39;
+open(&#39;https://google.com&#39;).read
+
+
+Net::OpenTimeout: execution expired
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:904:in `initialize&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:904:in `open&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:904:in `block in connect&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/timeout.rb:103:in `timeout&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:902:in `connect&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:887:in `do_start&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/net/http.rb:876:in `start&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:323:in `open_http&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:741:in `buffer_open&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:212:in `block in open_loop&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:210:in `catch&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:210:in `open_loop&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:151:in `open_uri&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:721:in `open&#39;
+    from /usr/local/opt/rbenv/versions/2.4.0/lib/ruby/2.4.0/open-uri.rb:35:in `open&#39;
+    from (irb):3
+    from /usr/local/opt/rbenv/versions/2.4.0/bin/irb:11:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>他のものでは起こらない</p>
+                    <pre><code>open(&#39;https://twitter.com&#39;).read
+</code></pre>
+                    <p>rbenv の Ruby 2.4.0 および macOS 10.12.3。 macOS
+                    のシステム バージョンである Ruby 2.0.0
+                    でもテストされました。</p>
+                    <p>エラーは発生せず、curl または Node
+                    のリクエストを使用すると期待どおりの結果が得られます。つまり、これはブロックされたホストではなく、私の
+                    IP もブロックされていません。</p>
+                    <p>Rubyを再インストールし、マシンを再起動しようとしましたが、問題はまだ発生します。</p>
+                    <p>何かヒントはありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby が DNS
+                    を解決する方法に問題があるようです。</p>
+                    <p>require ‘resolv-replace’
+                    が追加され、すぐに接続が開かれるようになりました。</p>
+                    <p>出典:
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/27485369/116925
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/ruby/ruby/pull/597#issuecomment-40507119</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

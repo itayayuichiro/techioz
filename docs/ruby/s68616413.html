@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec 3.10 Railsでテスト環境のホストとポート構成を取得する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec 3.10 Railsでテスト環境のホストとポート構成を取得する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec 3.10
+Railsでテスト環境のホストとポート構成を取得する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>こんにちは、app/controllers/lti_controller.rb
+                    にコントローラー ファイルがあり、routes.rb で
+                    /lti/launch として定義され、意図したとおりに動作する
+                    POST #launch
+                    エンドポイントのテストを追加する必要があります。</p>
+                    <p>エンコード形式 x-www-form-urlencoded で
+                    /lti/launch にデータを送信する必要があり、Net::HTTP
+                    を使用して仕様ファイルから送信しています。
+                    ただし、Net::HTTP
+                    の操作にはホストとポートが必要なので、現時点では
+                    localhost:3000
+                    を指定しており、これが開発環境に送られます。</p>
+                    <p>spec/requests/lti_spec.rb</p>
+                    <pre><code># frozen_string_literal: true
+
+require &quot;rails_helper&quot;
+require &#39;uri&#39;
+require &#39;net/http&#39;
+
+describe LtiController, type: :request do
+    before do
+        # shared keys for lms access
+        @oauth_consumer_key_fromlms = &#39;some_keys&#39;
+        @oauth_shared_secret_fromlms = &#39;some_secrets&#39;
+    end
+
+    describe &quot;#launch&quot; do        
+        before do
+            # creation of assignment and required users
+            @mentor = FactoryBot.create(:user)
+            @group = FactoryBot.create(:group, mentor: @mentor)
+            @member = FactoryBot.create(:user)
+            FactoryBot.create(:group_member, user: @member, group: @group)
+            @assignment = FactoryBot.create(:assignment, group: @group, lti_consumer_key: @oauth_consumer_key_fromlms, lti_shared_secret: @oauth_shared_secret_fromlms, status: &quot;open&quot;)
+        end
+
+        def launch_uri
+            launch_url = &quot;http://0.0.0.0:3000/lti/launch&quot;
+            URI(launch_url)
+        end
+
+        let(:parameters) {
+            {
+                &#39;launch_url&#39; =&gt; launch_uri().to_s,
+                &#39;user_id&#39; =&gt; @member.id,
+                &#39;launch_presentation_return_url&#39; =&gt; &#39;http://localhost:3000/tool_return&#39;,
+                &#39;lti_version&#39; =&gt; &#39;LTI-1p0&#39;,
+                &#39;lti_message_type&#39; =&gt; &#39;basic-lti-launch-request&#39;,
+                &#39;resource_link_id&#39; =&gt; &#39;88391-e1919-bb3456&#39;,
+                &#39;lis_person_contact_email_primary&#39; =&gt; @member.email,
+                &#39;tool_consumer_info_product_family_code&#39; =&gt; &#39;moodle&#39;,
+                &#39;context_title&#39; =&gt; &#39;sample Course&#39;,
+                &#39;lis_outcome_service_url&#39; =&gt; &#39;http://localhost:3000/grade_passback&#39;,
+                &#39;lis_result_sourcedid&#39; =&gt; SecureRandom.hex(10)
+            } 
+        }
+
+        def consumer_data(oauth_consumer_key_fromlms, oauth_shared_secret_fromlms, parameters)
+            consumer = IMS::LTI::ToolConsumer.new(oauth_consumer_key_fromlms, oauth_shared_secret_fromlms, parameters)
+            allow(consumer).to receive(:to_params).and_return(parameters)
+            consumer.generate_launch_data
+        end
+
+        context &quot;lti parameters are valid&quot; do
+            it &quot;returns success if assignment key and secret are ok and group member is present&quot; do
+                data = consumer_data(@oauth_consumer_key_fromlms, @oauth_shared_secret_fromlms, parameters)
+                response = Net::HTTP.post_form(launch_uri(), data)
+                expect(response.code).to eq(&quot;200&quot;)
+            end
+        end
+
+        
+    end
+end
+
+</code></pre>
+                    <p>app/controllers/lti_controller.rb</p>
+                    <pre><code>class LtiController &lt; ApplicationController
+  skip_before_action :verify_authenticity_token, only: :launch # for lti integration
+  before_action :set_group_assignment, only: %i[launch]
+  before_action :set_lti_params, only: %i[launch]
+  after_action :allow_iframe_lti, only: %i[launch]
+  
+  def launch
+    session[:is_lti]=true # the lti session starting
+    require &#39;oauth/request_proxy/action_controller_request&#39;
+
+    if @assignment.blank?
+      # if no assignment is found
+      flash[:notice] = t(&quot;lti.launch.notice_no_assignment&quot;)
+      render :launch_error, status: 401
+      return
+    end
+    
+    if @group.present? # if there is a valid group based for the lti_token_key
+      @provider = IMS::LTI::ToolProvider.new(
+        params[:oauth_consumer_key], # lms_oauth_consumer_key
+        @assignment.lti_shared_secret, # the group&#39;s lti_token
+        params
+      )
+
+      if [email protected]_request?(request) # checking the lti request from the lms end
+        render :launch_error, status: 401
+        return
+      end
+
+      lms_lti_host = URI.join @launch_url_from_lms, &#39;/&#39; # identifies the domain and saves in session
+      session[:lms_domain]=lms_lti_host
+
+      @user = User.find_by(email: @email_from_lms) # find user by matching email with circuitverse and lms 
+
+      if @user.present? # user is present in cv 
+        if @user.id == @group.mentor_id # user is teacher
+          sign_in(@user) # passwordless sign_in the user as the authenticity is verified via lms
+          lms_auth_success_notice = t(&quot;lti.launch.notice_lms_auth_success_teacher&quot;, email_from_lms: @email_from_lms, lms_type: @lms_type, course_title_from_lms: @course_title_from_lms)
+          redirect_to group_assignment_path(@group, @assignment), notice: lms_auth_success_notice # if auth_success send to group page
+        else
+          user_in_group = GroupMember.find_by(user_id:@user.id,group_id:@group.id) # check if the user belongs to the cv group
+
+          if user_in_group.present? # user is member of the group
+            # render the button
+            flash[:notice] =  t(&quot;lti.launch.notice_students_open_in_cv&quot;)
+            create_project_if_student_present() # create project with lis_result_sourced_id for the student
+            render :open_incv, status: 200
+
+          else # user is not a member of the group
+            # send the user an email
+            flash[:notice] = t(&quot;lti.launch.notice_ask_teacher&quot;)
+            render :launch_error, status: 401
+          end 
+        end
+      else # no such user in circuitverse,showing a notice to create an account in cv
+        flash[:notice] = t(&quot;lti.launch.notice_no_account_in_cv&quot;, email_from_lms: @email_from_lms )
+        render :launch_error, status: 400
+      end
+    else # there is no valid group present for the lti_consumer_key
+      flash[:notice] = t(&quot;lti.launch.notice_invalid_group&quot;)
+      render :launch_error, status: 400
+    end
+  end
+
+  def allow_iframe_lti
+    return unless session[:is_lti]
+    
+    response.headers[&quot;X-FRAME-OPTIONS&quot;] = &quot;ALLOW-FROM #{session[:lms_domain]}&quot;
+  end
+
+  def create_project_if_student_present
+    @user = User.find_by(email: @email_from_lms)
+    @project = Project.find_by(author_id: @user.id, assignment_id: @assignment.id) # find if the project is already present
+    if @project.blank? # if not then create one
+      @project = @user.projects.new
+      @project.name = &quot;#{@user.name}/#{@assignment.name}&quot;
+      @project.assignment_id = @assignment.id
+      @project.project_access_type = &quot;Private&quot;
+      @project.build_project_datum
+      @project.lis_result_sourced_id = params[:lis_result_sourcedid] # this param is required for grade submission
+      @project.save
+    end
+  end
+
+  private
+
+    def set_group_assignment # query db and check lms_oauth_consumer_key is equal to which assignment and find the group also
+      @assignment = Assignment.find_by(lti_consumer_key: params[:oauth_consumer_key])
+      if @assignment.present?
+        @group [email protected]
+      end
+    end
+    
+    def set_lti_params # get some of the parameters from the lti request
+      @email_from_lms = params[:lis_person_contact_email_primary] # the email from the LMS
+      @lms_type = params[:tool_consumer_info_product_family_code] # type of lms like moodle/canvas
+      @course_title_from_lms = params[:context_title] # the course titile from lms
+      @launch_url_from_lms = params[:launch_presentation_return_url]
+      session[:lis_outcome_service_url] = params[:lis_outcome_service_url] # requires for grade submission
+      session[:oauth_consumer_key] = params[:oauth_consumer_key] # requires for grade submission
+    end
+end
+</code></pre>
+                    <pre><code>{&quot;oauth_consumer_key&quot;=&gt;&quot;some_keys&quot;, &quot;oauth_signature_method&quot;=&gt;&quot;HMAC-SHA1&quot;, &quot;oauth_timestamp&quot;=&gt;&quot;1627879512&quot;, &quot;oauth_nonce&quot;=&gt;&quot;Id3rLYZBqMvnRuSpisMEEgFkLFnkxZPS2oqoyBJZLM&quot;, &quot;oauth_version&quot;=&gt;&quot;1.0&quot;, &quot;context_title&quot;=&gt;&quot;sample Course&quot;, &quot;launch_presentation_return_url&quot;=&gt;&quot;http://localhost:3000/tool_return&quot;, &quot;launch_url&quot;=&gt;&quot;http://0.0.0.0:3000/lti/launch&quot;, &quot;lis_outcome_service_url&quot;=&gt;&quot;http://localhost:3000/grade_passback&quot;, &quot;lis_person_contact_email_primary&quot;=&gt;&quot;[email protected]&quot;, &quot;lis_result_sourcedid&quot;=&gt;&quot;3e87e3aa8f5056260a12&quot;, &quot;lti_message_type&quot;=&gt;&quot;basic-lti-launch-request&quot;, &quot;lti_version&quot;=&gt;&quot;LTI-1p0&quot;, &quot;resource_link_id&quot;=&gt;&quot;88391-e1919-bb3456&quot;, &quot;tool_consumer_info_product_family_code&quot;=&gt;&quot;moodle&quot;, &quot;user_id&quot;=&gt;&quot;461&quot;, &quot;oauth_signature&quot;=&gt;&quot;lgsHKJxHolBU1rTZ5M9zXg688hU=&quot;}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rspec
+                    では、リクエストを行う前にホストを設定できます。</p>
+                    <pre><code>it &quot;returns success if assignment key and secret are ok and group member is present&quot; do
+  data = consumer_data(@oauth_consumer_key_fromlms, 
+    @oauth_shared_secret_fromlms, parameters)
+  host! &quot;0.0.0.0:3000&quot;
+  response = Net::HTTP.post_form(launch_uri(), data)
+  expect(response.code).to eq(&quot;200&quot;)
+end
+
+</code></pre>
+                    <p>すべての仕様に対してホストを設定したい場合は、次のような構成を作成できます。</p>
+                    <pre><code>RSpec.configure do |config|
+  config.before(:each, type: :request) do
+    host! &quot;0.0.0.0:3000&quot;
+  end
+end
+</code></pre>
+                    <p>x-www-form-urlencoded
+                    を使用して投稿するには、次のことを試してください。</p>
+                    <pre><code>url = URI.parse(launch_uri())
+data = consumer_data(@oauth_consumer_key_fromlms,@oauth_shared_secret_fromlms,parameters)
+
+request = Net::HTTP::Post.new(url.path)
+request[&#39;Content-Type&#39;] = &#39;application/x-www-form-urlencoded&#39;
+request.body = URI.encode_www_form(data)
+response = Net::HTTP.start(url.host, url.port) do |http|
+  http.request(request)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

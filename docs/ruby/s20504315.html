@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails コマンド rake db:merge が PostgreSQL を使用すると機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails コマンド rake db:merge が PostgreSQL を使用すると機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails コマンド rake db:merge が
+PostgreSQL を使用すると機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>タイトルで述べたように、heroku は MySQLite
+                    をサポートしなくなったため、Ruby on Rails 上で
+                    PostgreSQL データベースを使用しています。コマンド
+                    Rails Generate scaffold User name:string
+                    email:string
+                    を実行した後、すべてがスムーズに進みましたが、rake
+                    db: Migrate
+                    を試みると、いくつかのエラーがスローされました。しばらく検索した後、Rake
+                    を 10.0.1 から 0.8.7
+                    にダウングレードしました。これは –trace
+                    を使用すると発生するエラーです。</p>
+                    <p>私は今何をすべきか本当にわかりません。また、database.yml
+                    ファイルも紹介します
+                    (検索中に見つけたヒントからいくつかの変更を加えました)。</p>
+                    <pre><code>development:
+  adapter: postgresql
+  encoding: unicode
+  database: coise_development
+  pool: 5
+  username: coise
+  password:
+  host: localhost
+  port: 5432
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: coise_test
+  pool: 5
+  username: coise
+  password:
+  host: localhost
+  port: 5432
+
+production:
+  adapter: postgresql
+  encoding: unicode
+  database: coise_production
+  pool: 5
+  username: coise
+  password:
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>進歩しました。この StackOverflow の投稿「Cygwin
+                    で Postgresql を有効にする」によって、PostGreSql
+                    サービスを起動して実行することができました。最終的に、PostGreSql
+                    サービスが開始されたユーザー (私の場合は「Roma」)
+                    に従って、database.yml
+                    ファイルのユーザー名とデータベース
+                    フィールドを変更するだけで済みました。</p>
+                    <p>最後に、コマンド rake db:merge
+                    は問題なく実行できました。heroku
+                    へのプッシュと同様に、完璧でした。まだ理解していない唯一のことは、heroku
+                    ホスティングに関するものです。ユーザー ページ (Rails
+                    scaffold コマンドを使用して追加したテーブル)
+                    がまだ利用できないためです。 Heroku
+                    では、「Dyno」を増やして、「実稼働 Postgresql
+                    データベース」にアップグレードする必要があると言われています。これがホスティングが完了するまでに時間がかかることを意味しているのか、それとも実際にアプリに問題があるのかはわかりませんが、生成されたデータベースは非常に基本的でシンプルであると言わざるを得ません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

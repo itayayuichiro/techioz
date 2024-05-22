@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby デバッガで rspec Expect ステートメントを実行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby デバッガで rspec Expect ステートメントを実行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby デバッガで rspec Expect
+ステートメントを実行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>半複雑な期待値を書きたいときはいつも、マッチャーをどうやって組み合わせることができるかを考えて、マッチャーをいじる必要があります。たとえば、ハッシュの配列のすべてのハッシュにキーがないことをテストしたい場合、最初の直感は次のようなものを書くことかもしれません。</p>
+                    <p>Expect(the_array).to
+                    all(not(have_key(:the_key)))</p>
+                    <p>これは私のコードでは機能しませんが、重要ではありません。私が聞きたいのは、ブレークポイントを追加して、期待値を修正するために何度も素早く反復するにはどうすればよいでしょうか?デバッガーでexpect行を実行するだけでテストは終了します。これは、デバッグセッションから抜け出すことを意味します。</p>
+                    <p>実際にテストを終了せずに、期待が機能する場合に
+                    true/false を取得できるように、expect
+                    の「ドライラン」モードはありますか?それとも、expect
+                    ステートメントの後半を単独で実行できますか?</p>
+                    <p>Rubymineのデバッガでexpectラインを実行してみました。</p>
+                    <p>デバッグモードを終了せずにこの行が実行されることを期待しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RSpec::Support.with_failure_notifier
+                    の文書化されていない (内部) ヘルパー
+                    メソッドがあります。これを使用すると、失敗時にエラーを発生させないようにすることができます。</p>
+                    <pre><code>RSpec::Support.with_failure_notifier(
+  -&gt;(failure, options) {
+    puts failure, options
+  }
+) do
+  expect(:foo).to(eq(:bar))
+end
+</code></pre>
+                    <p>または、セッション内で障害通知を永続的にオーバーライドします</p>
+                    <pre><code>RSpec::Support.failure_notifier = -&gt;(failure, options) {
+  puts failure, options
+}
+</code></pre>
+                    <p>これで、すべての期待はエラーをスローするのではなく、失敗を出力するだけになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

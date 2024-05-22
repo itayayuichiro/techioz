@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>非同期 I/O にイベント ループが必要な理由 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "非同期 I/O にイベント ループが必要な理由",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>非同期 I/O にイベント ループが必要な理由</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、私は Ruby
+                    を使用するプロジェクトに取り組んでいたのですが、アプリケーションの一部については、大量の
+                    Web
+                    リクエストを非同期で作成することが理にかなっていると感じました。そして、Ruby
+                    の非同期ストーリーが非常に重要であることに気づいて驚きました。違う。私は
+                    C#/.Net
+                    で多くの開発を行ってきましたが、非同期の話は初日から常にありました
+                    (確かに、API は begin/end からイベント、async/await
+                    を備えた Task<T>
+                    に至るまで、長年にわたって大幅に変化してきました)
+                    非同期 I/O を実行する唯一の方法は、EventMachine
+                    を使用することです。）。ここ 1 年ほど、私はすべての
+                    I/O を非同期に実行し、単一スレッドのイベント ループ
+                    モデルを使用する Node.js
+                    を使用して開発してきました。</p>
+                    <p>私の質問は次のとおりです。なぜ .Net (これは
+                    Java/JVM にも当てはまります) ではイベント
+                    ループが必要なく、いつでも非同期リクエストを起動できるのはなぜでしょうか。それでも、Ruby/Python
+                    のような言語では、それぞれeventmachine/twisted
+                    に頼る必要がありますか?非同期 I/O
+                    の仕組みについて、私が理解していない根本的なことが何かあるような気がします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それは、Ruby/Python (そしてシームレスに Node.js
+                    も) が、アプリケーションのコア ループにシングル
+                    スレッド
+                    モデルを強制することで開発者の作業を楽にしようとしているからだと思います。イベント
+                    マシンを使用すると、非同期 I/O
+                    ルーチンの完了コールバックがシリアル化され、同じスレッドで実行されるようにキューに入れられるため、開発者はスレッドの安全性を心配する必要がありません。</p>
+                    <p>Java については言えませんが、.NET
+                    では同期コンテキストを使用してこれを制御できます。
+                    Stephen Cleary の「It’s All About the
+                    SynchronizationContext」を確認してください。イベント
+                    マシンの概念を .NET で再現するのは非常に簡単です
+                    (実際、これは UI
+                    アプリケーションに対して自動的に行われます)。シリアル化同期コンテキストのカスタム実装は、Stephen
+                    Toub の「Await、SynchronizationContext、および
+                    Console Apps」の AsyncPump
+                    のようになります。私の意見では、これは Ruby
+                    のイベント マシンと直接一致します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

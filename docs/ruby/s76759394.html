@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>初期化されていない定数 RuboCop::Cop::Base | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "初期化されていない定数 RuboCop::Cop::Base",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>初期化されていない定数 RuboCop::Cop::Base</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下のようなカスタムrubocopファイルを作成しようとすると、gem「rubocop」、「~&gt;
+                    0.81.0」を使用しています。</p>
+                    <pre><code>return unless defined?(::RuboCop)
+
+module CustomCops
+  class NoTimecop &lt; ::RuboCop::Cop::Base
+    MSG = &quot;`Timecop` の代わりにRails標準の `ActiveSupport::Testing::TimeHelpers` が使えませんか？&quot;.freeze
+
+    def on_send(node)
+      if node.source.include?(&quot;Timecop&quot;) &amp;&amp; node.receiver.const_name == &quot;Timecop&quot;
+        add_offense(node)
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>初期化されていない定数 RuboCop::Cop::Base
+                    というエラーが発生しました</p>
+                    <p>このエラーはどうすれば修正できますか?</p>
+                    <p>ここで何が欠けているのかわかりませんが、役立つフィードバックをいただければ幸いです。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたは古いバージョンの Rubocop
+                    を使用しています。0.81.0 は 3
+                    年以上前にリリースされましたが、そのバージョンには確かに
+                    Rubocop::Cop::Base
+                    クラスがありませんでした。代わりに、カスタム cop は
+                    Rubocop::Cop::Cop
+                    という名前の別のクラスから継承する必要がありました。</p>
+                    <p>つまり、次の 3 つの選択肢があります。</p>
+                    <p>もちろん、最新バージョンを使用することをお勧めしますが、一部の警官が変更され、新しいバージョンが追加され、新しく見つかった違反をすべて修正するにはコードを更新する必要があるため、多少の労力が必要になる可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OpenSearch と Searchkick の統合を使用して Rails アプリケーションでのログインを有効にする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OpenSearch と Searchkick の統合を使用して Rails アプリケーションでのログインを有効にする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OpenSearch と Searchkick の統合を使用して
+Rails アプリケーションでのログインを有効にする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私の Rails アプリケーションは現在、統合のために
+                    Elasticsearch と elasticsearch-model および
+                    elasticsearch-rails gem を利用しています。
+                    config/initializers/elasticsearch.rb
+                    ファイルで、次のように構成しました。</p>
+                    <pre><code>config = {
+  log: Rails.env.development? ? true : false,
+}
+
+Elasticsearch::Model.client = Elasticsearch::Client.new(config)
+
+</code></pre>
+                    <p>この設定により、Elasticsearch::Model.client.search
+                    や一括データ操作などのアクションを実行するときに、Rails
+                    コンソールへのログインが有効になります。</p>
+                    <p>現在、OpenSearch に移行して Searchkick gem
+                    を使用する予定です。 <span class="citation"
+                    data-cites="client">@client</span>
+                    を初期化するときに、Searchkick ライブラリ
+                    コードにログを有効にするオプションがないことがわかりました。コードの関連部分は次のとおりです。</p>
+                    <pre><code>if client_type == :opensearch
+  OpenSearch::Client.new({
+    url: ENV[&quot;OPENSEARCH_URL&quot;],
+    transport_options: { request: { timeout: timeout }, headers: { content_type: &quot;application/json&quot; } },
+    retry_on_failure: 2
+  }.deep_merge(client_options)) do |f|
+    f.use Searchkick::Middleware
+    f.request :aws_sigv4, signer_middleware_aws_params if aws_credentials
+  end
+end
+
+</code></pre>
+                    <p>その結果、データをクエリするときにログを表示できなくなります。</p>
+                    <p>開発プロセスのログを有効にする方法について誰かが提案を提供してもらえますか?ご協力をいただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>アプリケーション ログのドキュメントより</p>
+                    <p>opensearch.yml に次の行を追加します。</p>
+                    <pre><code>logger.org.opensearch.index.reindex: debug
+</code></pre>
+                    <p>注: DEBUG レベルと TRACE
+                    レベルは非常に詳細です。問題のトラブルシューティングのためにいずれかを有効にした場合は、終了後に無効にします。</p>
+                    <p>このドキュメントには、log4j2.properties
+                    を変更するという別のオプションについても記載されています。</p>
+                    <p>どちらがあなたにとってより効果的かはわかりませんが、どちらのオプションでも問題は解決すると思います。</p>
+                    <p>上記の解決策が機能しない場合は、この OpenSearch
+                    Ruby
+                    クライアントのドキュメントに記載されているこのログ
+                    オプションもあります。</p>
+                    <pre><code>client = OpenSearch::Client.new(
+    url: &quot;http://localhost:9200&quot;,
+    retry_on_failure: 5,
+    request_timeout: 120,
+    log: true
+  )
+</code></pre>
+                    <p>基本的に、コードは次のようになります。</p>
+                    <pre><code>if client_type == :opensearch
+  OpenSearch::Client.new({
+    url: ENV[&quot;OPENSEARCH_URL&quot;],
+    transport_options: { request: { timeout: timeout }, headers: { content_type: &quot;application/json&quot; } },
+    retry_on_failure: 2,
+    log: true # Added this option
+  }.deep_merge(client_options)) do |f|
+    f.use Searchkick::Middleware
+    f.request :aws_sigv4, signer_middleware_aws_params if aws_credentials
+  end
+end
+</code></pre>
+                    <p>これが役に立ち、問題が解決されることを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

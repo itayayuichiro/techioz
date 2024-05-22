@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OctoKit Ruby認証 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OctoKit Ruby認証",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OctoKit Ruby認証</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは単純なエラーだと確信していますが、すべての
+                    github
+                    リポジトリに関する情報を収集するプログラムを作成することに興味があります。
+                    Octokit
+                    を使用するとこれは十分簡単に思えますが、セッションの認証に関連する問題に遭遇しました。</p>
+                    <pre><code>client = Octokit::Client.new \
+  :login    =&gt; &#39;MY_USER_NAME&#39;,
+  :password =&gt; &#39;MY_PASSWORD&#39;
+
+puts client
+user = client.user(&quot;MY_USER_NAME&quot;, :headers =&gt; { &quot;PERSONAL_ACCESS_TOKEN_NAME&quot; =&gt; &quot;TOKEN&quot; })
+
+puts user
+</code></pre>
+                    <p>残念ながら、これにより次のような結果が生じます。</p>
+                    <pre><code>GET https://api.github.com/users/[username]: 401 - Must specify two-factor authentication OTP code. // See: https://developer.github.com/v3/auth#working-with-two-factor-authentication (Octokit::OneTimePasswordRequired)
+</code></pre>
+                    <p>セッションの認証はどのように行うのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>2022 年 1 月の時点では、GitHub 開発者設定で PAT
+                    (パーソナル アクセス トークン)
+                    を作成し、それを使用して Octokit
+                    クライアント経由で次のように接続できます。</p>
+                    <pre><code>client = Octokit::Client.new(:access_token =&gt; &quot;&lt;Your Personal Access Token&gt;&quot;)
+
+user = client.user
+user.login
+# =&gt; &quot;monacat&quot;
+</code></pre>
+                    <p>ここでは、PAT
+                    を作成する方法についてのステップバイステップのガイドを示します。トークンを作成するときに正しい権限を選択するようにしてください。そうしないと、スコープが欠落していることを説明するメッセージを含む
+                    403
+                    エラーが返されます。ただし、後でいつでも戻ってスコープを編集できます。</p>
+                    <p>出典:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

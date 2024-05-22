@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>form_tag がレールでパッチ呼び出しをトリガーしない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "form_tag がレールでパッチ呼び出しをトリガーしない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>form_tag
+がレールでパッチ呼び出しをトリガーしない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下は、さまざまな生徒のステータスを更新するコードですが、問題は、彫像にいくつかの変更を加えた後、ステータスの更新をクリックしても何も起こらないことです。</p>
+                    <p>students/manage_users.html.erb</p>
+                    <pre><code>&lt;div class=&quot;col-sm-9 col-xs-12&quot;&gt;
+  &lt;div class=&quot;content&quot; role=&quot;main&quot; id=&quot;main-content&quot;&gt;
+    &lt;article&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;table-responsive&quot;&gt;
+          &lt;table class=&quot;table table-bordered&quot;&gt;
+            &lt;thead&gt;
+              &lt;tr&gt;
+                &lt;th&gt;&lt;%= link_to &quot;Primary Student&quot;, :sort =&gt; &quot;student_1_firstname&quot; %&gt;&lt;/th&gt;
+                &lt;th&gt;Admin Status&lt;/th&gt;
+                &lt;th&gt;Superadmin Status&lt;/th&gt;
+              &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;%= form_tag update_status_path, :method =&gt; &#39;patch&#39; do %&gt;
+              &lt;tbody&gt;
+                &lt;% @students.each do |student| %&gt;
+                  &lt;tr&gt; 
+                    &lt;td&gt;&lt;%= link_to student.email,student_path(student) %&gt;&lt;/td&gt;
+
+                    &lt;td&gt;&lt;%= check_box_tag &quot;students[#{student.id}][admin]&quot;, true, student.admin, class: &#39;status&#39;, data: {id: student.id, type: &#39;admin&#39;} %&gt;&lt;/td&gt;
+                    &lt;td&gt;&lt;%= check_box_tag &quot;students[#{student.id}][superadmin]&quot;, true, student.superadmin, class: &#39;status&#39;, data: {id: student.id, type: &#39;superadmin&#39;} %&gt;&lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;% end %&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+            &lt;%= submit_tag &quot;Update Status&quot; %&gt;
+          &lt;% end %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;!-- .content --&gt;
+&lt;/div&gt;
+&lt;!-- END .main_column_css --&gt;
+</code></pre>
+                    <p>ルート.rb</p>
+                    <pre><code>patch &#39;main-admin/manage_users&#39;, to: &#39;students#update_status&#39;, as: &#39;update_status&#39;
+</code></pre>
+                    <p>コントローラ</p>
+                    <pre><code>class StudentsController &lt; ApplicationController
+  def update_status
+    @students = Student.all
+    students = params[:students]
+    @students.each do |student|
+      student.update_attributes(admin: students[student.id.to_s] &amp;&amp; students[student.id.to_s][&#39;admin&#39;] ? true : false, superadmin: students[student.id.to_s] &amp;&amp; students[student.id.to_s][&#39;superadmin&#39;] ? true : false)
+    end
+  end
+end
+</code></pre>
+                    <p>これを修正するのを手伝ってください</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>HTML が無効です。</p>
+                    MDN によると、
+                    <table>
+                    <p>要素で許可されるコンテンツは、非常に狭いフロー
+                    コンテンツのセットに制限されています。</p>
+                    <pre><code>In this order:
+
+ 1. an optional &lt;caption&gt; element, 
+ 2. zero or more &lt;colgroup&gt; elements, 
+ 3. an optional &lt;thead&gt; element, 
+ 4. either one of the following: 
+    - zero or more &lt;tbody&gt; elements 
+    - one or more &lt;tr&gt; elements 
+ 5. an optional &lt;tfoot&gt;
+    element
+</code></pre>
+                    <p>フォームはフロー コンテンツではありません。</p>
+                    <p>また、終了タグが一致していないため、混乱が生じます。
+                    form タグをテーブルの外に移動します。</p>
+                    <pre><code>&lt;div class=&quot;col-sm-9 col-xs-12&quot;&gt;
+  &lt;div class=&quot;content&quot; role=&quot;main&quot; id=&quot;main-content&quot;&gt;
+    &lt;article&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;table-responsive&quot;&gt;
+          &lt;%= form_tag update_status_path, method: :patch do %&gt;
+            &lt;table class=&quot;table table-bordered&quot;&gt;
+              &lt;thead&gt;
+                &lt;tr&gt;
+                  &lt;th&gt;&lt;%= link_to &quot;Primary Student&quot;, :sort =&gt; &quot;student_1_firstname&quot; %&gt;&lt;/th&gt;
+                  &lt;th&gt;Admin Status&lt;/th&gt;
+                  &lt;th&gt;Superadmin Status&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody&gt;
+                &lt;% @students.each do |student| %&gt;
+                &lt;tr&gt; 
+                  &lt;td&gt;&lt;%= link_to student.email, student_path(student) %&gt;&lt;/td&gt;
+                  &lt;td&gt;&lt;%= check_box_tag &quot;students[#{student.id}][admin]&quot;, true, student.admin, class: &#39;status&#39;, data: {id: student.id, type: &#39;admin&#39;} %&gt;&lt;/td&gt;
+                  &lt;td&gt;&lt;%= check_box_tag &quot;students[#{student.id}][superadmin]&quot;, true, student.superadmin, class: &#39;status&#39;, data: {id: student.id, type: &#39;superadmin&#39;} %&gt;&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;% end %&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+            &lt;%= submit_tag &quot;Update Status&quot; %&gt;
+          &lt;% end %&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sinatra でスペック ファイルを要求する簡単な方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sinatra でスペック ファイルを要求する簡単な方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sinatra でスペック
+ファイルを要求する簡単な方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような spec_helper があります。</p>
+                    <pre><code>require &#39;pry&#39;
+require &#39;helpers/data_helper.rb&#39;
+require &#39;distributer.rb&#39;
+require &#39;house_distributer.rb&#39;
+require &#39;accounting_service.rb&#39;
+require &#39;mixer_worker.rb&#39;
+require &#39;mixer.rb&#39;
+require &#39;transaction_service.rb&#39;
+
+ENV[&#39;RACK_ENV&#39;] = &#39;test&#39;
+
+RSpec.configure do |config|
+  config.mock_with :rspec do |mocks|
+    mocks.verify_partial_doubles = true
+  end
+
+  config.warnings = true
+
+  config.order = :random
+end
+</code></pre>
+                    <p>フォルダー構造は次のようになります。</p>
+                    <pre><code>.
+├── Gemfile
+├── Gemfile.lock
+├── README.md
+├── app.rb
+├── config.ru
+├── lib
+│   ├── accounting_service.rb
+│   ├── distributer.rb
+│   ├── house_distributer.rb
+│   ├── mixer.rb
+│   ├── mixer_worker.rb
+│   └── transaction_service.rb
+├── public
+│   ├── css
+│   │   └── add_coins.css
+│   ├── images
+│   │   └── bitcoin_dawg.jpg
+│   └── javascripts
+│       └── add_coins.js
+├── spec
+│   ├── helpers
+│   │   └── data_helper.rb
+│   ├── lib
+│   │   ├── accounting_service_spec.rb
+│   │   └── transaction_service_spec.rb
+│   └── spec_helper.rb
+└── views
+    └── add_coins.erb
+</code></pre>
+                    <p>これは動作しません：</p>
+                    <pre><code>Dir[&quot;lib/*.rb&quot;].each {|file| require file }
+
+[1] pry(main)&gt; Dir[&quot;lib/*.rb&quot;]
+=&gt; [&quot;lib/house_distributer.rb&quot;, &quot;lib/distributer.rb&quot;, &quot;lib/mixer.rb&quot;, &quot;lib/accounting_service.rb&quot;, &quot;lib/mixer_worker.rb&quot;, &quot;lib/transaction_service.rb&quot;]
+</code></pre>
+                    <p>次のエラー メッセージが表示されます。</p>
+                    <pre><code>/Users/jwan/.rbenv/versions/2.1.2/lib/ruby/2.1.0/rubygems/core_ext/kernel_require.rb:55:in `require&#39;: cannot load such file -- lib/house_distributer.rb (LoadError)
+    from /Users/jwan/.rbenv/versions/2.1.2/lib/ruby/2.1.0/rubygems/core_ext/kernel_require.rb:55:in `require&#39;
+</code></pre>
+                    <p>これを簡単にするにはどうすればよいでしょうか?</p>
+                    <p>また、余談ですが、次の理由から、distributer.rb は
+                    house_distributer.rb
+                    より前にロードする必要があります。</p>
+                    <pre><code>class HouseDistributer &lt; Distributer
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>max pleaner の答えについての説明…</p>
+                    <p>書くとき:</p>
+                    <pre><code>require &#39;lib/house_distributer.rb&#39;
+</code></pre>
+                    <p>Ruby
+                    は、環境変数に割り当てられたディレクトリ内でファイルを検索します。は文字列の配列であり、各文字列はディレクトリへのパスです。配列内のディレクトリが順番に検索され、最初に一致したものが優先されます。</p>
+                    <p>というディレクトリが含まれている場合:</p>
+                    <pre><code>&#39;/Users/7stud/ruby_programs&#39;
+</code></pre>
+                    <p>次に、上記の require
+                    ステートメントは絶対パスを持つファイルを検索します。</p>
+                    <pre><code>&#39;/Users/7stud/ruby_programs/lib/house_distributer.rb&#39;
+</code></pre>
+                    <p>次のようにして、どのディレクトリがディレクトリにあるかを確認できます。</p>
+                    <pre><code>$ puts $LOAD_PATH
+</code></pre>
+                    <p>これが私が得たものです:</p>
+                    <pre><code>/Users/7stud/.rvm/gems/ruby-2.4.0@global/gems/did_you_mean-1.1.0/lib
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/site_ruby/2.4.0
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/site_ruby/2.4.0/x86_64-darwin14
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/site_ruby
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/vendor_ruby/2.4.0
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/vendor_ruby/2.4.0/x86_64-darwin14
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/vendor_ruby
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/2.4.0
+/Users/7stud/.rvm/rubies/ruby-2.4.0/lib/ruby/2.4.0/x86_64-darwin14
+</code></pre>
+                    <p>明らかに、アプリのファイルはそのようなディレクトリにはありません。</p>
+                    <p>一方、パスが / または
+                    で始まるファイルが必要な場合は、. - 例えば：</p>
+                    <pre><code>require &#39;./lib/house_distributer.rb&#39;
+</code></pre>
+                    <p>この場合、ruby
+                    は現在の作業ディレクトリを基準にしてファイルを探します。ただし、現在の作業ディレクトリは、require
+                    ステートメントを含むファイルを含むディレクトリではない可能性があることに注意してください。たとえば、sinatra
+                    プログラムを別のディレクトリ (require
+                    ステートメントを含むファイルから 2 レベル上)
+                    から実行する場合、2
+                    レベル上のディレクトリが現在の作業ディレクトリとなり、ruby
+                    はそのディレクトリを基準にして必要なファイルを検索します。
+                    2 レベル上のディレクトリ。</p>
+                    <p>「require_relative」と入力します。
+                    require_relative
+                    は、現在の作業ディレクトリではなく、現在のファイルのパスに相対してファイルを検索します。</p>
+                    <p>そのため、相対パスを指定した require
+                    は決して使用せず、代わりに require_relative
+                    を使用する必要があります。</p>
+                    <p>いつでもプログラムでパスを追加できることに注意してください。</p>
+                    <pre><code>$LOAD_PATH &lt;&lt; &#39;/Users/7stud/ruby_programs&#39;
+</code></pre>
+                    <p>そして、そのディレクトリに Dog.rb
+                    というファイルがある場合は、次のように要求できます。</p>
+                    <pre><code>require &#39;dog&#39;  #extension is unnecessary
+</code></pre>
+                    <p>コメントへの返信:</p>
+                    <p>最も簡単なことは次のようになります。</p>
+                    <pre><code>$LOAD_PATH &lt;&lt; &quot;/Users/jwan/Desktop/programming/interview_questions/gemini/‌​jobcoin_mixer/&quot;
+</code></pre>
+                    <p>ただし、sinatra では、settings.root はアプリ
+                    ディレクトリへのパスであるため、次のようにします。</p>
+                    <pre><code>$LOAD_PATH.unshift settings.root 
+</code></pre>
+                    <p>そうすれば、何も変更せずにアプリを別のディレクトリに移動できます。</p>
+                    <p>または、Dir[] が返したすべてのパスの先頭から lib/
+                    を削除することもできます。</p>
+                    <pre><code>require &#39;pathname&#39;
+
+paths = [
+  &quot;lib/house_distributer.rb&quot;, 
+  &quot;lib/distributer.rb&quot;, 
+  &quot;lib/mixer.rb&quot;, 
+  &quot;lib/accounting_service.rb&quot;, 
+]
+
+new_paths = paths.map do |path|
+  pn = Pathname.new path
+  pn.relative_path_from(pn.parent).to_s
+end
+
+p new_paths
+
+--output:--
+[&quot;house_distributer.rb&quot;, &quot;distributer.rb&quot;, &quot;mixer.rb&quot;, &quot;accounting_service.rb&quot;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

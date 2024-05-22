@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Devise ユーザー確認リンクを含む Rails でアカウントが確認されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Devise ユーザー確認リンクを含む Rails でアカウントが確認されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Devise ユーザー確認リンクを含む Rails
+でアカウントが確認されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これまでは問題はありませんでしたが、何らかの理由で、Rails
+                    アプリの Devise
+                    確認メール内のリンクをクリックすると、サイトに移動しますが、アカウントは確認されません。</p>
+                    <p>私のアプリは Heroku でホストされており、Mandrill
+                    経由でメールを送信しています。昨日アプリを HTTPS
+                    に切り替えたばかりなので、もしかしたらそれが原因でしょうか?
+                    confirmation_instructions.html.erb
+                    のテンプレート自体は次のとおりです。</p>
+                    <pre><code>&lt;h3&gt;Welcome to AnyMarket!&lt;/h3&gt;
+
+&lt;p&gt;Please click to link below to confirm your account and get started:&lt;/p&gt;
+
+&lt;p&gt;&lt;%= link_to &#39;Confirm my account&#39;, confirmation_url(@resource, confirmation_token: @token) %&gt;&lt;/p&gt;
+</code></pre>
+                    <p>そして Production.rb では次のようになります。</p>
+                    <pre><code>config.action_mailer.default_url_options = { :host =&gt; &#39;anymarket.co&#39;} 
+
+
+    config.action_mailer.smtp_settings = {
+        :port =&gt; &#39;587&#39;,
+        :address =&gt; &#39;smtp.mandrillapp.com&#39;,
+        :user_name =&gt; ENV[&#39;MANDRILL_USERNAME&#39;],
+        :password =&gt; ENV[&#39;MANDRILL_APIKEY&#39;],
+        :domain =&gt; &#39;heroku.com&#39;,
+        :authentication =&gt; :plain
+        }
+
+    config.action_mailer.delivery_method = :smtp
+</code></pre>
+                    <p>user.rb 内:</p>
+                    <pre><code>devise :database_authenticatable, :registerable,
+    :recoverable, :rememberable, :trackable, :validatable, :confirmable
+</code></pre>
+                    <p>また、RegistrationsController
+                    をオーバーライドしてカスタム
+                    ロジックを追加しました。ここにあります：</p>
+                    <pre><code>class RegistrationsController &lt; Devise::RegistrationsController
+  before_filter :authenticate_user!, :except =&gt; [:after_inactive_sign_up_path_for]
+
+    def new 
+        respond_to do |format|
+            format.js
+            format.html
+        end
+    end
+
+    def create
+    build_resource(sign_up_params)
+
+    resource_saved = resource.save
+    yield resource if block_given?
+    if resource_saved
+      if resource.active_for_authentication?
+                set_flash_message :onboard, :signed_up if is_flashing_format?
+        sign_up(resource_name, resource)
+        respond_with resource, location: after_sign_up_path_for(resource)
+      else
+                set_flash_message :onboard, :&quot;signed_up_but_#{resource.inactive_message}&quot; if is_flashing_format?
+        expire_data_after_sign_in!
+        respond_with resource, location: after_inactive_sign_up_path_for(resource)
+      end
+    else
+      clean_up_passwords resource
+      @validatable = devise_mapping.validatable?
+      if @validatable
+        @minimum_password_length = resource_class.password_length.min
+      end
+      respond_with resource
+    end
+  end
+
+  def after_inactive_sign_up_path_for(user)
+        respond_to do |format|
+             format.html {render :action =&gt; &quot;/&quot;}
+    end
+  end
+
+    private
+
+  def sign_up_params
+    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation, :avatar, :school, :provider, :uid)
+  end
+
+  def account_update_params 
+    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation, :current_password, :avatar, :braintree_customer_id)
+  end
+
+end
+</code></pre>
+                    <p>おそらくそれは、registrationscontroller
+                    の作成アクションにも関係があるのでしょうか?本当にわかりません。電子メールが送信され、読み込み中に確認トークンが
+                    URL に短時間表示されます。</p>
+                    <p>サインアップ フォームで [送信]
+                    をクリックした後に取得されるログは次のとおりです。</p>
+                    <pre><code>Started POST &quot;/users&quot; for 98.245.3.223 at 2014-09-10 05:19:43 +0000                                                         
+2014-09-10T05:19:43.542630+00:00 app[web.1]:                                                                                                                             
+2014-09-10T05:19:43.542639+00:00 app[web.1]: Sent mail to [email protected] (82.0ms)                                                                                     
+2014-09-10T05:19:43.564646+00:00 app[web.1]: Redirected to https://www.anymarket.co/                                                                                     
+2014-09-10T05:19:43.564786+00:00 app[web.1]: Completed 302 Found in 214ms (ActiveRecord: 21.2ms)                                                                         
+2014-09-10T05:19:43.350891+00:00 app[web.1]: Processing by RegistrationsController#create as HTML                                                                        
+2014-09-10T05:19:43.350917+00:00 app[web.1]:   Parameters: {&quot;utf8&quot;=&gt;&quot;✓&quot;, &quot;authenticity_token&quot;=&gt;&quot;TsjutBJu4kLW3bdlszJp0gAo1snW/GG47lNsvzC8LJE=&quot;, &quot;user&quot;=&gt;{&quot;first_name&quot;=&gt;&quot;TF
+DSFD&quot;, &quot;last_name&quot;=&gt;&quot;FDSDSF&quot;, &quot;email&quot;=&gt;&quot;[email protected]&quot;, &quot;password&quot;=&gt;&quot;[FILTERED]&quot;}, &quot;commit&quot;=&gt;&quot;Join AnyMarket&quot;}                                                       
+2014-09-10T05:19:43.458693+00:00 app[web.1]:   Rendered devise/mailer/confirmation_instructions.html.erb (0.9ms)                                                         
+2014-09-10T05:19:43.564834+00:00 heroku[router]: at=info method=POST path=&quot;/users&quot; host=www.anymarket.co request_id=2b72d511-c72a-4091-8f7b-c6a96be14b9d fwd=&quot;98.245.3.22
+3&quot; dyno=web.1 connect=1ms service=226ms status=302 bytes=1272                                                                                                            
+2014-09-10T05:19:43.663161+00:00 app[web.1]: Started GET &quot;/&quot; for 98.245.3.223 at 2014-09-10 05:19:43 +0000                                                               
+2014-09-10T05:19:43.822546+00:00 app[web.1]:   Rendered home/index.html.erb within layouts/application (149.0ms)                                                         
+2014-09-10T05:19:43.826212+00:00 app[web.1]: Completed 200 OK in 158ms (Views: 122.7ms | ActiveRecord: 32.9ms)                                                           
+2014-09-10T05:19:43.667650+00:00 app[web.1]: Processing by HomeController#index as HTML                                                                                  
+2014-09-10T05:19:43.825590+00:00 app[web.1]:   Rendered layouts/_no_cc_alert.html.erb (0.3ms)                                                                            
+2014-09-10T05:19:43.827152+00:00 heroku[router]: at=info method=GET path=&quot;/&quot; host=www.anymarket.co request_id=4146422c-eee3-4718-bcd3-ac57a3270cd9 fwd=&quot;98.245.3.223&quot; dyn
+o=web.1 connect=1ms service=173ms status=200 bytes=1324
+</code></pre>
+                    <p>そして、確認リンクをクリックすると、次のようになります。</p>
+                    <pre><code>2014-09-10T05:19:43.827152+00:00 heroku[router]: at=info method=GET path=&quot;/&quot; host=www.anymarket.co request_id=4146422c-eee3-4718-bcd3-ac57a3270cd9 fwd=&quot;98.245.3.223&quot; dyn
+o=web.1 connect=1ms service=173ms status=200 bytes=1324                                                                                                                  
+2014-09-10T05:20:09.309563+00:00 heroku[router]: at=info method=HEAD path=&quot;/&quot; host=www.anymarket.co request_id=1e871265-fe33-47a4-b141-e107fb516db3 fwd=&quot;54.247.188.179&quot; 
+dyno=web.1 connect=1ms service=5ms status=301 bytes=432                                                                                                                  
+2014-09-10T05:20:47.054014+00:00 heroku[router]: at=info method=HEAD path=&quot;/&quot; host=www.anymarket.co request_id=1b8ff5d7-4aa3-4a20-a16d-79531c4bf362 fwd=&quot;54.248.250.232&quot; 
+dyno=web.1 connect=0ms service=4ms status=301 bytes=432                                                                                                                  
+2014-09-10T05:20:54.673266+00:00 heroku[router]: at=info method=HEAD path=&quot;/&quot; host=www.anymarket.co request_id=e728d60a-cb16-4de0-a093-44c7dcad1048 fwd=&quot;184.73.237.85&quot; d
+yno=web.1 connect=3ms service=3ms status=301 bytes=431                                                                                                                   
+2014-09-10T05:21:09.238154+00:00 heroku[router]: at=info method=GET path=&quot;/&quot; host=www.anymarket.co request_id=337c509a-4b15-45b8-a95e-5d9da765a594 fwd=&quot;98.245.3.223&quot; dyn
+o=web.1 connect=1ms service=102ms status=200 bytes=1292                                                                                                                  
+2014-09-10T05:21:09.147871+00:00 app[web.1]: Processing by HomeController#index as HTML                                                                                  
+2014-09-10T05:21:09.235638+00:00 app[web.1]:   Rendered layouts/_no_cc_alert.html.erb (0.3ms)                                                                            
+2014-09-10T05:21:09.142466+00:00 app[web.1]: Started GET &quot;/&quot; for 98.245.3.223 at 2014-09-10 05:21:09 +0000                                                               
+2014-09-10T05:21:09.232445+00:00 app[web.1]:   Rendered home/index.html.erb within layouts/application (77.5ms)                                                          
+2014-09-10T05:21:09.236220+00:00 app[web.1]: Completed 200 OK in 88ms (Views: 47.6ms | ActiveRecord: 37.2ms)                                                             
+2014-09-10T05:21:39.043506+00:00 heroku[router]: at=info method=HEAD path=&quot;/&quot; host=www.anymarket.co request_id=47a3486a-a83c-4886-a774-0819d7652201 fwd=&quot;50.31.164.139&quot; d
+yno=web.1 connect=2ms service=5ms status=301 bytes=431  
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これには未解決の問題があるようです。一部の電子メール
+                    プロバイダーは電子メール内のリンクに対して HEAD
+                    リクエストを実行しているようで、これがこの問題の原因である可能性があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/heartcombo/devise/issues/5312</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で一連の 1 行メソッドを記述するより簡潔な方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で一連の 1 行メソッドを記述するより簡潔な方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で一連の 1
+行メソッドを記述するより簡潔な方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>場合によっては、次のようないくつかのメソッドを作成することになります。</p>
+                    <pre><code>module XyzGateway
+  module Defaults
+    def pull_sample asynch=true
+      &#39;N/A&#39;
+    end
+
+    def is_pull_available?
+      false
+    end
+
+    def is_push_available?
+      true
+    end
+
+    def connect params
+      logger.debug &quot;Invalid gateway(#{self.id}), could not resolve its type. #{ap self}&quot;
+    end
+
+    def gateway_init
+    end
+
+    def disconnect
+    end
+  end
+end
+</code></pre>
+                    <p>このような場合にこれらの def キーワードと end
+                    キーワードを回避する方法を探しているだけですが、何か方法はありますか?上記の私の場合、これらはデフォルトの動作であり、これらの
+                    def, end を回避できれば幸いです。</p>
+                    <p>編集：はい、実際にはこれらすべてにXyzGateway::Defaultsモジュールがあります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これらを回避するには、define_method
+                    を使用する必要があります。</p>
+                    <pre><code>define_method :is_pull_available? { false }
+</code></pre>
+                    <p>ただし、コードを短縮することだけが目的の場合は、メソッド全体を
+                    1
+                    行にまとめることができます。これは、非常に短いメソッドの場合はそれほど悪くはありません
+                    (ここでの 4
+                    番目のメソッドはおそらく少し長すぎるため、このように要約すると読みやすさが損なわれます)。
+                    IMO):</p>
+                    <pre><code>def pull_sample(asynch = true); &#39;N/A&#39;; end
+def is_pull_available?; false; end
+def is_push_available?; true; end
+def connect params; logger.debug &quot;Invalid gateway(#{self.id}), could not resolve its type. #{ap self}&quot;; end
+def gateway_init; end
+def disconnect; end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyでの相対パスによるファイル参照 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyでの相対パスによるファイル参照",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyでの相対パスによるファイル参照</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>CTFマシンが完成したのですが、なぜこれが機能するのか私の脳が理解するのが難しいので、わかるまで眠れないので質問させていただきました。私の質問は、相対パスの使用に関するものです。</p>
+                    <p>以下は、dependency.yml
+                    ファイルを読み取るために相対パスを使用する
+                    list_from_file 関数を含む Ruby スクリプトのソース
+                    コードです。</p>
+                    <pre><code>henry@precious:~$ cat /opt/update_dependencies.rb
+# Compare installed dependencies with those specified in &quot;dependencies.yml&quot;
+require &quot;yaml&quot;
+require &#39;rubygems&#39;
+
+# TODO: update versions automatically
+def update_gems()
+end
+
+def list_from_file
+  YAML.load(File.read(&quot;dependencies.yml&quot;))
+end
+
+def list_local_gems
+  Gem::Specification.sort_by{ |g| [g.name.downcase, g.version] }.map{|g| [g.name, g.version.to_s]}
+end
+
+gems_file = list_from_file
+gems_local = list_local_gems
+
+gems_file.each do |file_name, file_version|
+  gems_local.each do |local_name, local_version|
+    if(file_name == local_name)
+      if(file_version != local_version)
+        puts &quot;Installed version differs from the one specified in file: &quot; + local_name
+      else
+        puts &quot;Installed version is equals to the one specified in file: &quot; + local_name
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>私の限られた知識では、このスクリプトを実行すると、スクリプトと同じディレクトリ
+                    (この場合は /opt/) 内にある dependency.yml
+                    ファイルのみが検索されると推測されます。</p>
+                    <p>しかし、これは真実ではありません。 /tmp
+                    ディレクトリ内にこのファイルを作成し、スクリプトを実行すると、実際にそれが取得されます。</p>
+                    <p>相対パスと絶対パスに関するいくつかの記事や他の
+                    stackoverflow
+                    の投稿を検索して読みましたが、実際にこれが発生する理由を説明するものはありませんでした。</p>
+                    <p>密接に関連する投稿を見逃していたら、あらかじめごめんなさい。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    の相対パスは常に現在の作業ディレクトリに依存します。現在の作業ディレクトリは、スクリプトが存在するディレクトリと必ずしも同じではなく、Ruby
+                    を起動した時点のディレクトリに存在します。</p>
+                    <p>例：</p>
+                    <pre><code>&gt; cd /tmp
+&gt; ruby /some/path/somewhere/to/my/script.rb
+</code></pre>
+                    <p>この場合、script.rb
+                    の現在の作業ディレクトリはどこになるでしょうか?</p>
+                    <p>答え: /tmp
+                    です。これは、スクリプトを起動したときにいたディレクトリだからです。</p>
+                    <p>スクリプト自体から現在の作業ディレクトリを表示するには、puts
+                    Dir.pwd
+                    という行を追加すると、その時点でスクリプトが実行されているフォルダーが出力されます。</p>
+                    <p>スクリプトの現在の作業ディレクトリを変更するには、Dir.chdir
+                    を使用できます。</p>
+                    <p>相対パスの使用が混乱を招きやすい理由がわかります。これはすべて、Ruby
+                    実行可能ファイルの起動元のディレクトリに依存するためです。それはどこにでもあるかもしれません。</p>
+                    <p>これが、ほとんどのスクリプトが絶対パス、またはスクリプト
+                    ファイル自体に対する相対パスのいずれかを使用する理由です。スクリプト
+                    ファイル自体に対する相対パスを使用するには、<strong>dir</strong>
+                    を開始点として使用し、そこからスクリプトの相対パスを構築します。</p>
+                    <p>さらに詳しい議論はこちらをご覧ください: Ruby
+                    スクリプトは、それがどのディレクトリにあるかを認識できますか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

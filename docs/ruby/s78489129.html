@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby koan: テスト ケースの結果が IRB の結果と異なるのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby koan: テスト ケースの結果が IRB の結果と異なるのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby koan: テスト ケースの結果が IRB
+の結果と異なるのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby Koan
+                    https://github.com/edgecase/ruby_koans/blob/master/src/about_symbols.rb#L26-L29
+                    をフォローしています</p>
+                    <p>私の診断書</p>
+                    <pre><code>irb(main):006&gt; symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+=&gt; false
+irb(main):007&gt; symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+=&gt;
+[&quot;!&quot;,
+...
+irb(main):008&gt; symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+=&gt; false
+irb(main):009&gt;
+</code></pre>
+                    <p>私のコード (パステストケース)</p>
+                    <pre><code>def test_method_names_become_symbols
+  symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+  assert_equal true, symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+end
+</code></pre>
+                    <p>なぜソースコードではそうではないのか</p>
+                    <pre><code>assert_equal false, symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードは、:test_method_names_become_symbols
+                    シンボルの存在をチェックします。 irb で false
+                    が返された場合は、:test_method_names_become_symbols
+                    シンボルが定義されていないことが原因です。</p>
+                    <pre><code>symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+#=&gt; false
+</code></pre>
+                    <p>事前に定義すると、true が返されます。</p>
+                    <pre><code>:test_method_names_become_symbols
+
+symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+#=&gt; true
+</code></pre>
+                    <p>メソッド定義をスキップしているため、irb
+                    のコードはテストとは異なる動作をします。メソッドを定義すると、対応するシンボルも作成され、メソッド定義の結果としても返されます。</p>
+                    <pre><code>def test_method_names_become_symbols
+end
+#=&gt; :test_method_names_become_symbols
+
+symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+#=&gt; true
+</code></pre>
+                    <p>また、シンボルはメソッド定義の先頭に作成されるため、メソッド内でコードを実行することもできます。</p>
+                    <pre><code>def test_method_names_become_symbols
+  symbols_as_strings = Symbol.all_symbols.map { |x| x.to_s }
+  symbols_as_strings.include?(&quot;test_method_names_become_symbols&quot;)
+end
+
+test_method_names_become_symbols
+#=&gt; true
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

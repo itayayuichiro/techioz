@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>無限ループを考案する :require_no_authentication としてフィルター チェーンが停止する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "無限ループを考案する :require_no_authentication としてフィルター チェーンが停止する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>無限ループを考案する
+:require_no_authentication としてフィルター チェーンが停止する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails 6 と Devise
+                    を使用していると奇妙な問題が発生します。サインインまたはサインアウト後、アプリは
+                    root_path
+                    にリダイレクトされず、無限ループになります。
+                    root_path
+                    は認証を必要としないため、リダイレクトすべきではありません。</p>
+                    <p>エラーログ:</p>
+                    <p>ルート:</p>
+                    <pre><code>devise_for :users, 
+path: &quot;utilisateurs&quot;,
+controllers: { 
+    sessions: &#39;users/sessions&#39;, 
+    registrations: &#39;users/registrations&#39;, 
+    passwords: &#39;users/passwords&#39;,
+    confirmations: &#39;users/confirmations&#39;
+},
+:path_names =&gt; { :sign_in =&gt; &#39;connexion&#39;, :sign_up =&gt; &#39;inscription&#39;, :sign_out =&gt; &#39;deconnexion&#39;, password: &#39;retrouver_mot_de_passe&#39;, edit: &#39;finaliser-inscription&#39; }
+</code></pre>
+                    <p>ユーザーモデル:</p>
+                    <pre><code>class User &lt; ApplicationRecord
+    attr_accessor :skip_password_validation
+    before_validation :check_pseudo, only: [:create, :update]
+    validates :pseudo, presence: true
+    validates :email, 
+                        format: { with: URI::MailTo::EMAIL_REGEXP },
+                        presence: true,
+                        uniqueness: true
+
+    has_secure_token
+
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable, :confirmable, :trackable
+
+    has_many :comments, dependent: :nullify
+    has_one :author, dependent: :nullify
+    has_one :blitz_score, :dependent =&gt; :destroy
+    has_one :blitz_conjugaison_score, :dependent =&gt; :destroy
+    has_many :quiz_scores, :dependent =&gt; :destroy
+    has_many :dictee_scores, :dependent =&gt; :destroy
+    has_many :crossword_scores, :dependent =&gt; :destroy
+    has_many :track_subscribers, :dependent =&gt; :destroy
+
+    def authenticatable_salt
+    return super unless session_token
+
+    &quot;#{super}#{session_token}&quot;
+  end
+
+  def invalidate_all_sessions!
+    update_attribute(:session_token, SecureRandom.hex)
+  end
+
+    protected
+
+    def check_pseudo
+        unless self.pseudo.present?
+            self.pseudo = self.email.split(&quot;@&quot;)[0] if self.email.present?
+        end
+    end
+
+    def password_required?
+    return false if skip_password_validation
+    super
+  end
+end
+</code></pre>
+                    <p>アカウントの作成にパスワードは必要ないことに注意してください。訪問者は最初にメールアドレスを入力し、アカウントを確認した後に擬似パスワードとパスワードを入力します。</p>
+                    <p>セッションコントローラー:</p>
+                    <pre><code>class Users::SessionsController &lt; Devise::SessionsController
+    layout &#39;blank&#39;
+
+  protected
+    
+    def after_sign_in_path_for(resource_or_scope)
+        root_path
+    end 
+    
+    def after_sign_out_path_for(resource_or_scope)
+        root_path
+    end
+end
+</code></pre>
+                    <p>イニシャライザを考案します:</p>
+                    <pre><code>Devise.setup do |config|
+
+  require &#39;devise/orm/active_record&#39;
+
+  config.case_insensitive_keys = [:email]
+
+  config.strip_whitespace_keys = [:email]
+
+  config.skip_session_storage = [:http_auth]
+
+  config.stretches = Rails.env.test? ? 1 : 12
+
+  config.reconfirmable = false
+
+  config.expire_all_remember_me_on_sign_out = true
+
+  config.password_length = 6..128
+
+  config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
+
+  config.reset_password_within = 24.hours
+
+  config.navigational_formats = [&#39;*/*&#39;, :html]
+
+  config.sign_out_via = :delete
+end
+</code></pre>
+                    <p>開発構成:</p>
+                    <pre><code>Rails.application.configure do
+  config.cache_classes = false
+
+  config.eager_load = false
+
+  config.consider_all_requests_local = true
+
+  if Rails.root.join(&#39;tmp&#39;, &#39;caching-dev.txt&#39;).exist?
+    config.action_controller.perform_caching = false
+    config.action_controller.enable_fragment_cache_logging = true
+
+    config.cache_store = :memory_store
+    config.public_file_server.headers = {
+      &#39;Cache-Control&#39; =&gt; &quot;public, max-age=#{2.days.to_i}&quot;
+    }
+  else
+    config.action_controller.perform_caching = false
+
+    config.cache_store = :null_store
+  end
+
+  config.active_storage.service = :local
+
+  config.action_mailer.raise_delivery_errors = false
+
+  config.action_mailer.perform_caching = false
+
+    config.action_mailer.default_url_options = { host: &#39;localhost&#39;, port: 3000 }
+    config.action_mailer.delivery_method = :mailjet
+
+  config.active_support.deprecation = :log
+
+  config.active_record.migration_error = :page_load
+
+  config.active_record.verbose_query_logs = true
+
+  config.assets.debug = true
+
+  config.assets.quiet = true
+
+  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+    
+    config.active_job.queue_adapter = :sidekiq
+
+    config.i18n.default_locale = :fr
+
+    config.after_initialize do
+        Bullet.enable = true
+        Bullet.bullet_logger = true
+        Bullet.unused_eager_loading_enable = false
+        Bullet.raise = false
+    end
+end
+</code></pre>
+                    <p>次のことを試しましたが成功しませんでした。</p>
+                    <p>これが問題の原因であるかどうかはわかりませんが、他のいくつかの
+                    Rails アプリに取り組んでいます。 Rails
+                    を使用してそれらを個別に起動し、サーバーは
+                    localhost:3000
+                    にあります。おそらくこれによりセッションが台無しになる可能性がありますか?</p>
+                    <p>助けてくれてありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局、問題は PWA 実装の service-worker.js
+                    に関連していました。</p>
+                    <p>どういうわけか、Devise は service-worker.js
+                    にリダイレクトしていたため、無限リダイレクト
+                    ループが発生していました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

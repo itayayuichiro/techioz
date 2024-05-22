@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Selenium と Ruby でプロキシを使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Selenium と Ruby でプロキシを使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Selenium と Ruby でプロキシを使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プロキシサーバー経由で Selenium の Make
+                    リクエストを取得しようとしていますが、うまく動作しないようです。</p>
+                    <p>このコードは応答を受け取りますが、プロキシを使用していません</p>
+                    <pre><code>Selenium::WebDriver.logger.level = :info
+
+proxy = Selenium::WebDriver::Proxy.new(
+  :http =&gt; &quot;http://username:password@host:port&quot;, 
+  :ssl =&gt; &quot;http://username:password@host:port&quot;
+)
+
+caps = Selenium::WebDriver::Remote::Capabilities.chrome(
+  proxy: proxy,
+  &#39;goog:chromeOptions&#39; =&gt; {
+    &#39;args&#39; =&gt; [&#39;headless&#39;, &#39;no-sandbox&#39;, &#39;disable-gpu&#39;, &#39;window-size=1920,1080&#39;]
+  }
+)
+
+driver = Selenium::WebDriver.for(:chrome, :capabilities =&gt; caps)
+
+driver.navigate.to &quot;https://www.showmyip.com/&quot;
+</code></pre>
+                    <pre><code>2021-06-21 12:51:16 INFO Selenium -&gt; POST session
+2021-06-21 12:51:16 INFO Selenium    &gt;&gt;&gt; http://127.0.0.1:9515/session | {&quot;capabilities&quot;:{&quot;alwaysMatch&quot;:{&quot;proxy&quot;:{&quot;proxyType&quot;:&quot;manual&quot;,&quot;httpProxy&quot;:&quot;http://username:password@host:port&quot;,&quot;sslProxy&quot;:&quot;http://username:password@host:port&quot;},&quot;browserName&quot;:&quot;chrome&quot;,&quot;goog:chromeOptions&quot;:{&quot;args&quot;:[&quot;headless&quot;,&quot;no-sandbox&quot;,&quot;disable-gpu&quot;,&quot;window-size=1920,1080&quot;]}}}}
+2021-06-21 12:51:16 INFO Selenium &lt;- {&quot;value&quot;:{&quot;capabilities&quot;:{&quot;acceptInsecureCerts&quot;:false,&quot;browserName&quot;:&quot;chrome&quot;,&quot;browserVersion&quot;:&quot;91.0.4472.114&quot;,&quot;chrome&quot;:{&quot;chromedriverVersion&quot;:&quot;91.0.4472.101 (af52a90bf87030dd1523486a1cd3ae25c5d76c9b-refs/branch-heads/4472@{#1462})&quot;,&quot;userDataDir&quot;:&quot;/tmp/.com.google.Chrome.8Qfzwu&quot;},&quot;goog:chromeOptions&quot;:{&quot;debuggerAddress&quot;:&quot;localhost:46057&quot;},&quot;networkConnectionEnabled&quot;:false,&quot;pageLoadStrategy&quot;:&quot;normal&quot;,&quot;platformName&quot;:&quot;linux&quot;,&quot;proxy&quot;:{&quot;httpProxy&quot;:&quot;http://username:password@host:port&quot;,&quot;proxyType&quot;:&quot;manual&quot;,&quot;sslProxy&quot;:&quot;http://username:password@host:port&quot;},&quot;setWindowRect&quot;:true,&quot;strictFileInteractability&quot;:false,&quot;timeouts&quot;:{&quot;implicit&quot;:0,&quot;pageLoad&quot;:300000,&quot;script&quot;:30000},&quot;unhandledPromptBehavior&quot;:&quot;dismiss and notify&quot;,&quot;webauthn:extension:largeBlob&quot;:true,&quot;webauthn:virtualAuthenticators&quot;:true},&quot;sessionId&quot;:&quot;b5a74fa8a44d298fb1fbffcc0516df83&quot;}}
+2021-06-21 12:51:16 INFO Selenium -&gt; POST session/b5a74fa8a44d298fb1fbffcc0516df83/url
+2021-06-21 12:51:16 INFO Selenium    &gt;&gt;&gt; http://127.0.0.1:9515/session/b5a74fa8a44d298fb1fbffcc0516df83/url | {&quot;url&quot;:&quot;https://www.showmyip.com/&quot;}
+2021-06-21 12:51:18 INFO Selenium &lt;- {&quot;value&quot;:null}
+</code></pre>
+                    <p>プロキシ文字列からスキームを削除しても同じ問題が発生します</p>
+                    <pre><code>2021-06-21 14:47:24 INFO Selenium    &gt;&gt;&gt; http://127.0.0.1:9515/session | {&quot;capabilities&quot;:{&quot;alwaysMatch&quot;:{&quot;proxy&quot;:{&quot;proxyType&quot;:&quot;manual&quot;,&quot;httpProxy&quot;:&quot;username:password@host:port&quot;,&quot;sslProxy&quot;:&quot;username:password@host:port&quot;},&quot;browserName&quot;:&quot;chrome&quot;,&quot;goog:chromeOptions&quot;:{&quot;args&quot;:[&quot;headless&quot;,&quot;no-sandbox&quot;,&quot;disable-gpu&quot;,&quot;window-size=1920,1080&quot;]}}}}
+2021-06-21 14:47:24 INFO Selenium &lt;- {&quot;value&quot;:{&quot;capabilities&quot;:{&quot;acceptInsecureCerts&quot;:false,&quot;browserName&quot;:&quot;chrome&quot;,&quot;browserVersion&quot;:&quot;91.0.4472.114&quot;,&quot;chrome&quot;:{&quot;chromedriverVersion&quot;:&quot;91.0.4472.101 (af52a90bf87030dd1523486a1cd3ae25c5d76c9b-refs/branch-heads/4472@{#1462})&quot;,&quot;userDataDir&quot;:&quot;/tmp/.com.google.Chrome.aVNdyH&quot;},&quot;goog:chromeOptions&quot;:{&quot;debuggerAddress&quot;:&quot;localhost:33363&quot;},&quot;networkConnectionEnabled&quot;:false,&quot;pageLoadStrategy&quot;:&quot;normal&quot;,&quot;platformName&quot;:&quot;linux&quot;,&quot;proxy&quot;:{&quot;httpProxy&quot;:&quot;username:password@host:port&quot;,&quot;proxyType&quot;:&quot;manual&quot;,&quot;sslProxy&quot;:&quot;username:password@host:port&quot;},&quot;setWindowRect&quot;:true,&quot;strictFileInteractability&quot;:false,&quot;timeouts&quot;:{&quot;implicit&quot;:0,&quot;pageLoad&quot;:300000,&quot;script&quot;:30000},&quot;unhandledPromptBehavior&quot;:&quot;dismiss and notify&quot;,&quot;webauthn:extension:largeBlob&quot;:true,&quot;webauthn:virtualAuthenticators&quot;:true},&quot;sessionId&quot;:&quot;3d95da424ededc7f0a9f59dd8e20386d&quot;}}
+2021-06-21 14:47:24 INFO Selenium -&gt; POST session/3d95da424ededc7f0a9f59dd8e20386d/url
+2021-06-21 14:47:24 INFO Selenium    &gt;&gt;&gt; http://127.0.0.1:9515/session/3d95da424ededc7f0a9f59dd8e20386d/url | {&quot;url&quot;:&quot;https://www.showmyip.com/&quot;}
+2021-06-21 14:47:25 INFO Selenium &lt;- {&quot;value&quot;:null}
+
+</code></pre>
+                    <p>私もこのアプローチを試しました</p>
+                    <pre><code>client = Selenium::WebDriver::Remote::Http::Default.new
+client.proxy = Selenium::WebDriver::Proxy.new(
+  :http =&gt; &quot;http://username:password@host:port&quot;,
+  :ssl =&gt; &quot;http://username:password@host:port&quot;
+)
+
+caps = Selenium::WebDriver::Remote::Capabilities.chrome(
+  &#39;goog:chromeOptions&#39; =&gt; {
+    &#39;args&#39; =&gt; [&#39;headless&#39;, &#39;no-sandbox&#39;, &#39;disable-gpu&#39;, &#39;window-size=1920,1080&#39;]
+  }
+)
+
+driver = Selenium::WebDriver.for(:remote, :http_client =&gt; client, :capabilities =&gt; caps)
+
+driver.navigate.to &quot;https://www.showmyip.com/&quot;
+</code></pre>
+                    <p>これにより、次の 502
+                    エラーが発生します。私が使用しているプロキシは
+                    Net/HTTP
+                    で動作するため、問題があるとは思えません</p>
+                    <pre><code>/home/will/.rbenv/versions/3.0.0/lib/ruby/gems/3.0.0/gems/selenium-webdriver-4.0.0.beta4/lib/selenium/webdriver/remote/http/common.rb:93:in `create_response&#39;: unexpected response, code=502, content-type=&quot;text/html&quot; (Selenium::WebDriver::Error::WebDriverError)
+&lt;html&gt;&lt;head&gt;&lt;title&gt;502 Bad Gateway&lt;/title&gt;&lt;/head&gt;\r
+&lt;body&gt;&lt;h2&gt;502 Bad Gateway&lt;/h2&gt;&lt;h3&gt;Host Not Found or connection failed&lt;/h3&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+                    <p>同じコードを使用して意図的に間違ったユーザー名またはパスワードを入力すると、このエラーが発生します</p>
+                    <pre><code>/home/will/.rbenv/versions/3.0.0/lib/ruby/gems/3.0.0/gems/selenium-webdriver-4.0.0.beta4/lib/selenium/webdriver/remote/http/common.rb:93:in `create_response&#39;: unexpected response, code=407, content-type=&quot;text/html&quot; (Selenium::WebDriver::Error::WebDriverError)
+&lt;html&gt;&lt;head&gt;&lt;title&gt;407 Proxy Authentication Required&lt;/title&gt;&lt;/head&gt;\r
+&lt;body&gt;&lt;h2&gt;407 Proxy Authentication Required&lt;/h2&gt;&lt;h3&gt;Access to requested resource disallowed by administrator or you need valid username/password to use this resource&lt;/h3&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+                    <p>さらに詳しく調べてみると、Selenium
+                    は認証のあるプロキシを無視しているようです。</p>
+                    <p>proxy_chain_rb
+                    を使用して、実際のプロキシにリダイレクトする認証なしでローカルホスト上にプロキシを設定すると機能するようです。</p>
+                    <p>これは理想的な解決策ではありません。リクエストごとに異なるプロキシを使用する予定ですが、私の知る限り、リクエストごとにプロキシ
+                    サーバーを起動する必要があり、これには数秒かかります。</p>
+                    <pre><code>real_proxy = &quot;http://username:password@host:port&quot;
+server = ProxyChainRb::Server.new
+generated_proxy = server.start(real_proxy)
+
+proxy = {
+  http: generated_proxy,
+  ssl:  generated_proxy
+}
+
+caps = Selenium::WebDriver::Remote::Capabilities.chrome(
+  proxy: proxy,
+  &#39;goog:chromeOptions&#39; =&gt; {
+    &#39;args&#39; =&gt; [&#39;headless&#39;, &#39;no-sandbox&#39;, &#39;disable-gpu&#39;, &#39;window-size=1920,1080&#39;]
+  }
+)
+
+driver = Selenium::WebDriver.for(:chrome, :capabilities =&gt; caps)
+
+driver.navigate.to &quot;https://www.showmyip.com/&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Firefox ブラウザで Capybara と Selenium
+                    を使用してこれを実現できます。これをどのようにして作成できたかを次に示します。</p>
+                    <p>次のコードを追加します。</p>
+                    <pre><code>Capybara.register_driver :proxy_firefox_driver do |app|
+  real_proxy = &quot;http://user:[email protected]:123456&quot;
+  server = ProxyChainRb::Server.new
+  generated_proxy = server.start(real_proxy)
+  formatted_proxy = generated_proxy.gsub(&#39;http://&#39;,&#39;&#39;)
+  proxy = Selenium::WebDriver::Proxy.new(http: formatted_proxy)
+  desired_caps = Selenium::WebDriver::Remote::Capabilities.firefox({
+      firefox_profile: &quot;default&quot;,
+      proxy: proxy
+    })
+  Capybara::Selenium::Driver.new(app, {:browser =&gt; :firefox, :desired_capabilities =&gt; desired_caps})
+end
+</code></pre>
+                    <p>そして最後に重要なことですが、プロキシ経由で HTTP
+                    を実行します。</p>
+                    <pre><code>url = &#39;https://www.etsy.com/listing/1588234442/&#39;
+Capybara.current_driver = :proxy_firefox_driver
+session = Capybara::Session.new(:proxy_firefox_driver)
+session.visit(url)
+</code></pre>
+                    <p>これは基本的に、実際のプロキシを指すローカルプロキシを作成することです。javascript（nodejs）は、（URL経由で）簡単に認証を使用してプロキシに接続するためのソリューションを提供しているようです。RubyとPythonの両方のSeleniumは、それらほどフレンドリーではないようです認証プロキシにすべきですが、これは印象的であり、この投稿と提起された提案のおかげで、それを見つけるのにかなりの時間を要しました。</p>
+                    <p>このライブラリはrubygems (proxy_chain_rb)
+                    に移動されました。</p>
+                    <p>しかし、この人は github (proxy_chain)
+                    にフォークを持っています。</p>
+                    <p>これがお役に立てば幸いです。Selenium
+                    のような大きなライブラリが Javascript
+                    以外の言語で意図どおりに動作しないとは予想できないほど、確かに少し困難でした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

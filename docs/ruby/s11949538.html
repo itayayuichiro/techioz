@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>IOCTL呼び出しのバッファへのポインタ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "IOCTL呼び出しのバッファへのポインタ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>IOCTL呼び出しのバッファへのポインタ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby と bit-struct を使用して、テスト
+                    セットアップでネットワーク
+                    インターフェイスを構成しています。これはほとんどの
+                    IOCTL 呼び出しでは正常に機能しますが、SIOCGIFCONF
+                    を呼び出す方法がわかりません。</p>
+                    <p>以下に例を示します。</p>
+                    <p>インターフェイスの MAC
+                    アドレスを取得したい場合は、次のように書きます。</p>
+                    <pre><code>class LinuxIfreqMacAddr &lt; BitStruct
+  char       :name,    128
+  unsigned   :type,     16, :endian =&gt; :native
+  hex_octets :macaddr,  48
+  pad        :padding,  64
+end
+
+ifr = LinuxIfreqMacAddr.new
+ifr.name = &quot;eth0&quot;
+s.ioctl(SIOCGIFHWADDR, ifr) # s is a socket
+puts ifr.macaddr
+</code></pre>
+                    <p>これは正常に動作し、eth0 の MAC
+                    アドレスが出力されます。ただし、「struct
+                    ifconfig」の署名 (SIOCGIFCONF で使用)
+                    はバッファーに渡す必要がありました。</p>
+                    <p>署名は次のとおりです。</p>
+                    <pre><code>struct ifconf  {
+    int     ifc_len;
+    char __user *ifcu_buf;
+};
+</code></pre>
+                    <p>Ruby から 4096 バイトのバッファを使用して
+                    SIOCGIFCONF ioctl
+                    コマンドを呼び出すにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Array#pack の「P」指定子を使用して、
+                    バッファ：</p>
+                    <pre><code>require &#39;socket&#39;
+sock = UDPSocket.new
+ifreqs = &#39; &#39; * 4096
+ifconf = [ifreqs.size, ifreqs].pack(&quot;l!P&quot;)
+SIOCGIFCONF = 0x8912
+sock.ioctl(SIOCGIFCONF, ifconf)
+data_size = ifconf.unpack(&#39;l!&#39;).first
+p data_size # =&gt; 120
+</code></pre>
+                    <p>ioctl
+                    がインターフェイス情報の配列を保存するバッファを作成します。</p>
+                    <pre><code>ifreqs = &#39; &#39; * 4096
+</code></pre>
+                    <p>次に、ioctl 呼び出しに渡す 2
+                    番目のバッファを作成します。バッファは ifconf
+                    構造体を表す文字列になります。</p>
+                    <pre><code>struct ifconf {
+    int                 ifc_len; /* size of buffer */
+    union {
+        char           *ifc_buf; /* buffer address */
+        struct ifreq   *ifc_req; /* array of structures */
+    };
+};
+</code></pre>
+                    <p>これを行うには Array#pack を使用します。</p>
+                    <pre><code>ifconf = [ifreqs.size, ifreqs].pack(&quot;l!P&quot;)
+</code></pre>
+                    <p>フォーマット指定子は次のように分類されます。</p>
+                    <p>これで、電話をかけることができます。</p>
+                    <pre><code>SIOCGIFCONF = 0x8912
+sock.ioctl(SIOCGIFCONF, ifconf)
+</code></pre>
+                    <p>SIOCGIFCONF 呼び出しは ifconf
+                    バッファを変更し、ifc_len を更新します。 ifreqs
+                    バッファに実際に格納されているデータのバイト数。私たちは
+                    配列のその要素だけを解凍すると、それがわかります。</p>
+                    <pre><code>data_size = ifconf.unpack(&#39;l!&#39;).first
+p data_size # =&gt; 120
+</code></pre>
+                    <p>ifreqs
+                    に保存されたデータのデコードは、演習として残されています。
+                    読者。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

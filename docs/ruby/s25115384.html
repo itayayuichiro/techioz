@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>erb を含む YAML が解析されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "erb を含む YAML が解析されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>erb を含む YAML が解析されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この yaml
+                    ファイルが解析されないのはなぜですか?</p>
+                    <pre><code>---
+&lt;% sensor_types = YAML.load_file(&#39;db/seed-fixtures/sensor_type.yml&#39;) %&gt;
+&lt;% sensor_types.each do |sensor_type| %&gt;
+sensor&lt;%= sensor_type[&#39;id&#39;] %&gt;:
+  id: &lt;%= sensor_type[&#39;id&#39;] %&gt;
+  title: &lt;%= sensor_type[&#39;title&#39;] %&gt;
+  unit: &quot;&lt;%= sensor_type[&#39;unit&#39;] %&gt;&quot;
+  valid_min: &lt;%= sensor_type[&#39;valid_min&#39;] %&gt;
+  valid_max: &lt;%= sensor_type[&#39;valid_max&#39;] %&gt;
+  codename: &lt;%= sensor_type[&#39;codename&#39;] %&gt;
+  scale_base_ten_exponent: &lt;%= sensor_type[&#39;scale_base_ten_exponent&#39;] %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>このファイルはテストのフィクスチャに使用され、rspec
+                    によってフィクスチャ
+                    ディレクトリからロードされます。</p>
+                    <p>試してみると、「このコンテキストの行 4 列 28
+                    ではマッピング値は許可されていません
+                    (Psych::SyntaxError)」というメッセージが表示されます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>基本的な YAML ファイルのように、ERB を含む YAML
+                    ファイルをロードすることはできません。この投稿をチェックしてください。</p>
+                    <p>代わりにできることは次のとおりです
+                    (仕様初期化子または before フックで)。</p>
+                    <pre><code>FIXTURE_CONFIG = YAML.load(ERB.new(File.read(&quot;#{Rails.root}/path_to_your_file.yml.erb&quot;)).result)
+</code></pre>
+                    <p>そして、この変数をテストで使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

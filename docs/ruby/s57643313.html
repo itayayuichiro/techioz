@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JavaScript でオブジェクトを数えるために Hash.new(0) をデフォルト値 0 で宣言するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JavaScript でオブジェクトを数えるために Hash.new(0) をデフォルト値 0 で宣言するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JavaScript でオブジェクトを数えるために
+Hash.new(0) をデフォルト値 0 で宣言するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>数字の配列を反復処理し、配列内で各数字が何回見つかったかを数えようとしています。</p>
+                    <p>Ruby では簡単で、Hash.new(0)
+                    を宣言するだけで、そのハッシュは値として 0
+                    からカウントするようにすでに設定されています。例えば：</p>
+                    <pre><code>arr = [1,0,0,0,1,0,0,1]
+counter = Hash.new(0)
+arr.each { |num| counter[num] += 1 } # which gives {1=&gt; 3, 0=&gt; 5}
+</code></pre>
+                    <p>同じことを JavaScript で実行したかったのですが、
+                    counter = {} とすると、 { ‘0’: NaN, ‘1’: NaN }
+                    が返されます。</p>
+                    <p>同じハッシュを JavaScript
+                    でオブジェクトとして作成する方法をご存知ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ECMAScript には、Ruby
+                    がハッシュに対して行うのと同じように、オブジェクト内の欠落キーに対するデフォルト値がありません。ただし、ECMAScript
+                    プロキシ
+                    オブジェクトを使用して、動的な内省的メタプログラミングを使用して同様のことを行うこともできます。</p>
+                    <pre><code>const defaultValue = 42;
+const proxyHandler = {
+    get: (target, name) =&gt; name in target ? target[name] : defaultValue
+};
+const underlyingObject = {};
+
+const hash = new Proxy(underlyingObject, proxyHandler);
+
+1 in hash
+//=&gt; false
+1 in underlyingObject
+//=&gt; false
+
+hash[1]
+//=&gt; 42
+underlyingObject[1]
+//=&gt; undefined
+</code></pre>
+                    <p>したがって、次のようなことができます。</p>
+                    <pre><code>arr.reduce(
+    (acc, el) =&gt; { acc[el]++; return acc }, 
+    new Proxy(
+        {},
+        { get: (target, name) =&gt; name in target ? target[name] : 0 }
+    )
+)
+//=&gt; Proxy [ { &#39;0&#39;: 5, &#39;1&#39;: 3 }, { get: [Function: get] } ]
+</code></pre>
+                    <p>ただし、これは依然として Ruby
+                    バージョンと同等ではありません。Ruby
+                    バージョンでは、ハッシュのキーは任意のオブジェクトにすることができますが、ECMAScript
+                    オブジェクトのプロパティ
+                    キーは文字列とシンボルのみにすることができます。</p>
+                    <p>Ruby ハッシュに直接相当するものは、ECMAScript
+                    マップです。</p>
+                    <p>残念ながら、ECMAScript
+                    マップにもデフォルト値はありません。オブジェクトに使用したのと同じトリックを使用してプロキシを作成することもできますが、Map
+                    の get
+                    メソッドへのアクセスをインターセプトし、引数を抽出したり、has
+                    を呼び出したりする必要があるため、面倒になります。</p>
+                    <p>幸いなことに、マップはサブクラス化できるように設計されています。</p>
+                    <pre><code>class DefaultMap extends Map {
+    #defaultValue;
+
+    constructor(iterable=undefined, defaultValue=undefined) {
+        super(iterable);
+        this.#defaultValue = defaultValue;
+    }
+
+    get(key) {
+        return this.has(key) ? super.get(key) : this.#defaultValue;
+    }
+}
+
+const hash = new DefaultMap(undefined, 42);
+
+hash.has(1)
+//=&gt; false
+
+hash.get(1)
+//=&gt; 42
+</code></pre>
+                    <p>これにより、次のようなことが可能になります。</p>
+                    <pre><code>arr.reduce(
+    (acc, el) =&gt; acc.set(el, acc.get(el) + 1), 
+    new DefaultMap(undefined, 0)
+)
+//=&gt; DefaultMap [Map] { 1 =&gt; 3, 0 =&gt; 5 }
+</code></pre>
+                    <p>もちろん、とにかく独自のマップの定義を開始したら、そのまま最後まで進めることもできます。</p>
+                    <pre><code>class Histogram extends DefaultMap {
+    constructor(iterator=undefined) {
+        super(undefined, 0);
+
+        if (iterator) {
+            for (const el of iterator) {
+                this.set(el);
+            }
+        }
+    }
+
+    set(key) {
+        super.set(key, this.get(key) + 1)
+    }
+}
+
+new Histogram(arr)
+//=&gt; Histogram(2) [Map] { 1 =&gt; 3, 0 =&gt; 5 }
+</code></pre>
+                    <p>これは、データ構造の選択がアルゴリズムの複雑さに大きく影響する可能性があるという、非常に重要な教訓も示しています。データ構造
+                    (ヒストグラム)
+                    を正しく選択すると、アルゴリズムは完全になくなり、データ構造をインスタンス化するだけになります。</p>
+                    <p>同じことがRubyでも当てはまることに注意してください。適切なデータ構造
+                    (Web 上には MultiSet の実装がいくつか存在します)
+                    を選択すると、アルゴリズム全体が消えて、残るものは次のとおりです。</p>
+                    <pre><code>require &#39;multiset&#39;
+
+Multiset[*arr]
+#=&gt; #&lt;Multiset:#5 0, #3 1&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

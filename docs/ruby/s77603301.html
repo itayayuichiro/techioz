@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RVM のインストール時にこのエラー (「__rvm_make -j12」の実行エラー) が発生するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RVM のインストール時にこのエラー (「__rvm_make -j12」の実行エラー) が発生するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RVM のインストール時にこのエラー (「__rvm_make
+-j12」の実行エラー) が発生するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby バージョン マネージャーのインストール
+                    スクリプトを実行すると、次のエラーが発生し続けます。</p>
+                    <pre><code>Error running &#39;__rvm_make -j12&#39;,
+please read /Users/wikipediabrown/.rvm/log/1701736892_ruby-3.0.0/make.log
+
+There has been an error while running make. Halting the installation.
+</code></pre>
+                    <p>何が間違っているのか分かりません。ログはとにかく不可解で、何も教えてくれません。</p>
+                    <p>ログの最後は次のようになります。</p>
+                    <pre><code>ld: warning: ignoring duplicate libraries: &#39;-lruby.3.1&#39;
+1 warning generated.
+1 warning generated.
+1 warning generated.
+1 warning generated.
+1 warning generated.
+1 warning generated.
+In file included from ossl_x509revoked.c:10:
+In file included from ./ossl.h:171:
+./openssl_missing.h:195:11: warning: &#39;TS_VERIFY_CTS_set_certs&#39; macro redefined [-Wmacro-redefined]
+#  define TS_VERIFY_CTS_set_certs(ctx, crts) ((ctx)-&gt;certs=(crts))
+          ^
+/opt/homebrew/Cellar/openssl@3/3.2.0/include/openssl/ts.h:426:11: note: previous definition is here
+#  define TS_VERIFY_CTS_set_certs(ctx, cert) TS_VERIFY_CTX_set_certs(ctx,cert)
+          ^
+1 warning generated.
+1 warning generated.
+linking shared-object ripper.bundle
+ld: warning: ignoring duplicate libraries: &#39;-lruby.3.1&#39;
+7 warnings generated.
+make[1]: *** [ext/openssl/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [build-ext] Error 2
+++ return 2
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>結局のところ、これはマシン上の Java
+                    が混乱していることに問題があることがわかりました。一部のコンテキストでは、j12
+                    は j* であり、j は何か (j10、j11、j12 など)
+                    を意味します。これは、Java
+                    のインストールがめちゃくちゃで、誰も教えたがらないことを示しているだけです。
+                    Mac OS X 10.6
+                    以降を実行している場合は、自分でインストールする必要があることがわかります。奴隷船以来同じマシンに乗っていると、それを思い出すのは難しいです。しかし、解決策があります。</p>
+                    <p>この回答をここで確認してください</p>
+                    <p>単に実行する場合:</p>
+                    <p>醸造インストールopenjdk</p>
+                    <p>そして絶対にそうではありません:</p>
+                    <p>醸造インストールJava</p>
+                    <p>あよ、ホントに！！！そんなものプレーヤーを実行しないでください</p>
+                    <p>そして、警告セクションにあるように、見逃すのは非常に簡単なので、これを実行する必要があります。</p>
+                    <pre><code>For the system Java wrappers to find this JDK, symlink it with
+  sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+</code></pre>
+                    <p>その後は大丈夫です。これは、正しいエラー
+                    メッセージの送信が失敗しているだけです。皆さん、この後も良い人生を送ってください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

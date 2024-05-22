@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>BasicObject プロキシを検出するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "BasicObject プロキシを検出するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>BasicObject
+プロキシを検出するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>BasicObject
+                    プロキシを使用していますが、実際のオブジェクトまたはそのようなプロキシを渡したかどうかを検出する必要があります。問題は
+                    is_a
+                    などのメソッドですか?またはクラスが定義されていません</p>
+                    <pre><code>module ControllerProxyable
+  extend ActiveSupport::Concern
+
+  included do
+    attr_reader :controller
+    delegate :current_user, to: :controller
+  end
+
+  def controller_proxy(controller)
+    # is_a? actually is NOT defined for a BasicObject causes the following to crash
+    @controller = if controller.is_a?(ControllerProxy) 
+      controller
+    else
+      ControllerProxy.new(controller)
+    end
+  end
+end
+
+class ControllerProxy &lt; BasicObject
+  def initialize(controller = nil)
+    @controller = controller
+  end
+
+  def some_proxy_method
+  end
+
+  # def respond_to and respond_to_missing not relevant here
+end
+</code></pre>
+                    <p>これは私がそれを使用する方法の例です:</p>
+                    <pre><code>class Foo
+  include ControllerProxyable
+
+  def initialize(controller: nil)
+    controller_proxy(controller)
+  end
+
+  def bar
+    bar ||= Bar.new(controller: controller)
+  end
+end
+
+class Bar
+  include ControllerProxyable
+
+  def initialize(controller: nil)
+    controller_proxy(controller)
+  end
+end
+</code></pre>
+                    <p>したがって、次は機能しません</p>
+                    <pre><code>Foo.new(controller: nil).bar.some_proxy_method
+</code></pre>
+                    <p>is_a
+                    を定義するにはどうすればよいですか?プロキシの場合（または実際にプロキシを使用していることを確認する場合）?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「一部のメソッドが定義されていない」という問題に対する明らかな解決策は、メソッドを定義することです。</p>
+                    <pre><code>class ControllerProxy
+  def class; ControllerProxy end
+
+  def is_a?(mod)
+    self.class &lt; mod
+  end
+end
+</code></pre>
+                    <p>しかし！これは、本物と区別できないようにするというプロキシの目的全体を無効にします。より良い方法はIMOです。</p>
+                    <pre><code>class ControllerProxy
+  def class; Controller end
+
+  def is_a?(mod)
+    Controller &lt; mod
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

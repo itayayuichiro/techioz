@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PaperTrail でのバージョン変更を、その後のバージョン変更を上書きせずに元に戻すことはできますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PaperTrail でのバージョン変更を、その後のバージョン変更を上書きせずに元に戻すことはできますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PaperTrail
+でのバージョン変更を、その後のバージョン変更を上書きせずに元に戻すことはできますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Paper_trail gem
+                    を使用してバージョン管理されたモデルを含む Rails
+                    プロジェクトがあります。</p>
+                    <p>バージョンを復元するときに、その特定のバージョンで変更されたフィールドのみを元に戻し、その後のバージョンのさまざまなフィールドの変更を元に戻さないようにしたいと考えています。</p>
+                    <p>たとえば、名前、お気に入りの色、年齢のフィールドを持つ人物モデルがあるとします。</p>
+                    <pre><code># Let&#39;s say this doesn&#39;t create any version
+Person.create(name: &#39;John&#39;, age: 20, favorite_color: &#39;Green&#39;) 
+
+# This creates a version (V1) with the changeset: 20 =&gt; 21
+Person.update_attributes(age: 21)
+
+# This creates another version (V2) with the changeset: &#39;Green&#39; =&gt; &#39;Blue&#39;                
+Person.update_attributes(favorite_color: &#39;Blue&#39;)
+
+# This creates another version (V3) with the changeset: &#39;John&#39; =&gt; &#39;James&#39;
+# This is also the latest version now
+Person.update_attributes(name: &#39;James&#39;)
+</code></pre>
+                    <p>私が探している機能は、V1 に戻して人の年齢を 20
+                    歳に戻す場合、その後の変更
+                    (つまり、お気に入りの色の変更と名前の変更)
+                    を元に戻したくないことです。したがって、特定のフィールドの変更を元に戻したいだけであると言った方が適切だと思います。
+                    (この場合、年齢: 20 歳、お気に入りの色:
+                    「ブルー」、名前: 「ジェームズ」の人です)。</p>
+                    <p>これはPaperTrailがすでにサポートしているものだと思います。これらの方針に沿った内容のドキュメントとコードをスキャンし、Google
+                    で検索し、過去の問題を調べましたが、何も見つかりませんでした。</p>
+                    <p>そこで私の本当の質問は、私がそれを見逃したのか、それとも単に
+                    PaperTrail
+                    がサポートしていないものなのかということです。</p>
+                    <p>これが PaperTrail
+                    で実際にサポートされているかどうかがわかるまで、revert
+                    と呼ばれる関数を使用してこれをサポートするように
+                    PaperTrail::Version を拡張しました。</p>
+                    <p>興味がある場合は、次のコードを参照してください。</p>
+                    <pre><code># app/models/paper_trail/version.rb
+
+module PaperTrail
+  class Version &lt; ActiveRecord::Base
+    include PaperTrail::VersionConcern
+
+    def revert
+      item = self.item
+      item_attributes = {}
+
+      self.changeset.keys.each do |k|
+        item_attributes[k] = self.changeset[k][0]
+      end
+
+      item.assign_attributes(item_attributes)
+      item
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私がやったとき:</p>
+                    <pre><code>some_record.paper_trail.previous_version.save
+</code></pre>
+                    <p>これにより、望ましい状態の新しいバージョンが作成されました。中間のバージョンは上書き/置換されませんでした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

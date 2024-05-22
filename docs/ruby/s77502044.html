@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OpsCode Chef でラムダを呼び出して、実行時評価のみを実行できるようにするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OpsCode Chef でラムダを呼び出して、実行時評価のみを実行できるようにするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OpsCode Chef
+でラムダを呼び出して、実行時評価のみを実行できるようにするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Chef とコンパイル時ではなく実行時に変数を評価する
+                    Lambda
+                    メソッドに関して質問があります。以下の抜粋を確認してください。</p>
+                    <pre><code>md5 = lambda { Digest::MD5.file(&quot;#{some_file}&quot;).hexdigest }
+pp &quot;md5: #{md5}&quot;
+</code></pre>
+                    <p>その結果、次のような結果が得られます。</p>
+                    <pre><code>md5: #&lt;Proc:0x000000000c153b08
+</code></pre>
+                    <p>しかし、変数自体が必要です。ラムダを呼び出して実際の変数を取得するための正確な構文は何ですか?何日も髪を抜いています。</p>
+                    <p>ご協力をよろしくお願いいたします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>proc または lambda
+                    を呼び出すためのいくつかのオプション:</p>
+                    <pre><code>md5 = lambda { &quot;foo&quot; }
+
+&quot;md5: #{md5.call}&quot;  #=&gt; &quot;md5: foo&quot;
+&quot;md5: #{md5.()}&quot;    #=&gt; &quot;md5: foo&quot;
+&quot;md5: #{md5[]}&quot;     #=&gt; &quot;md5: foo&quot;
+&quot;md5: #{md5.yield}&quot; #=&gt; &quot;md5: foo&quot;
+</code></pre>
+                    <p>上記のそれぞれは引数も受け入れることができます。これは、たとえばファイル名を渡すために使用できます:
+                    (-&gt; は lambda proc リテラルです)</p>
+                    <pre><code>md5 = -&gt;(filename) { Digest::MD5.file(filename).hexdigest }
+
+&quot;md5: #{md5.call(somefile)}&quot;
+&quot;md5: #{md5.(somefile)}&quot;
+&quot;md5: #{md5[somefile]}&quot;
+&quot;md5: #{md5.yield(somefile)}&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

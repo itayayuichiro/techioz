@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mongoid: 埋め込み (embeds_many) ドキュメントのクエリ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mongoid: 埋め込み (embeds_many) ドキュメントのクエリ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mongoid: 埋め込み (embeds_many)
+ドキュメントのクエリ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これらは私のクラスです:</p>
+                    <pre><code>class Ticket
+  include Mongoid::Document
+
+  embeds_many :transitions
+end
+
+class Transition
+  include Mongoid::Document
+
+  embedded_in :ticket
+
+  field :to, type: String
+  field :created_at, type: DateTime
+end
+</code></pre>
+                    <p>たとえば、次のようなトランジションを持つチケットがあります。</p>
+                    <pre><code>[#&lt;Transition _id: 663b468deebb9d417d981152, to: &quot;created&quot;, created_at: 2024-05-08 09:31:57.855 UTC&gt;,
+ #&lt;Transition _id: 663b47cceebb9d417d981153, to: &quot;solved&quot;, created_at: 2024-05-08 09:37:16.424 UTC&gt;,
+ #&lt;Transition _id: 663b47ceeebb9d417d981154, to: &quot;working&quot;, created_at: 2024-05-08 09:37:18.717 UTC&gt;,
+ #&lt;Transition _id: 663b47d0eebb9d417d981155, to: &quot;pending&quot;, created_at: 2024-05-08 09:37:20.989 UTC&gt;]
+</code></pre>
+                    <p>最後のトランジションに次のプロパティがあるチケットを検索したいと考えています。</p>
+                    <pre><code>Ticket.where(:&#39;transitions.to&#39; =&gt; &quot;solved&quot;, :&quot;transitions.created_at&quot;.lte =&gt; Time.now - 24.hours)
+</code></pre>
+                    <p>最後の遷移のみに一致するようにクエリを変更するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>何度も壁にぶつかりましたが、集計パイプラインを使用して、必要な方法でドキュメントをフィルタリングすることができました。</p>
+                    <pre><code>      Ticket.collection.aggregate(
+        [
+          {
+            &quot;$project&quot;: {
+              _id: 1,
+              transitions: {
+                &quot;$slice&quot;: [
+                  &quot;$transitions&quot;,
+                  -1
+                ]
+              }
+            }
+          },
+          {
+            &quot;$match&quot;: {
+              &quot;transitions.created_at&quot;: {
+                &quot;$lte&quot;: Time.now.utc - 24.hours
+              },
+              &quot;transitions.to&quot;: {
+                &quot;$in&quot;: states
+              }
+            }
+          },
+          {
+            &quot;$project&quot;: {
+              _id: 1
+            }
+          }
+        ]
+      ).to_a
+</code></pre>
+                    <p>3つのステージを追加しました。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://mongoplayground.net/p/UprsfaP0clE</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ICU Collator ロケールは展開されたサーバーの「root」に属します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ICU Collator ロケールは展開されたサーバーの「root」に属します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ICU Collator
+ロケールは展開されたサーバーの「root」に属します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rspec で Capybara
+                    を動作させることができません。このエラーが発生します:</p>
+                    <pre><code>undefined method `visit&#39; for #&lt;RSpec::Core::ExampleGroup::Nested_1:0x16529f8 @example=nil&gt;
+</code></pre>
+                    <p>これに関する投稿がたくさんあることは知っていますが、どの解決策も私にとってはうまくいきません。それらのほとんどは、/spec/features
+                    にない仕様に関係しています (私の場合は
+                    /spec/features にあります)。</p>
+                    <p>まずエラー:</p>
+                    <pre><code>$bundle exec rspec spec
+F
+
+Failures:
+
+  1) security signs users in
+     Failure/Error: visit &quot;/sessions/new&quot;
+     NoMethodError:
+       undefined method `visit&#39; for #&lt;RSpec::Core::ExampleGroup::Nested_1:0x16529f8 @example=nil&gt;
+     # ./spec/features/security_spec.rb:4:in `(root)&#39;
+
+ Finished in 0.006 seconds
+ 1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/features/security_spec.rb:3 # security signs users in
+</code></pre>
+                    <p>最初は URL
+                    ヘルパー「new_sessions_path」を使用していましたが、未定義のローカル変数またはメソッド「new_sessions_path」というエラーが発生し続けたことに注意することが重要だと思います。それが有効であることは次の理由からわかります。</p>
+                    <pre><code>$ rake routes
+logout_sessions GET    /sessions/logout(.:format) sessions#logout
+       sessions POST   /sessions(.:format)        sessions#create
+   new_sessions GET    /sessions/new(.:format)    sessions#new
+      contracts POST   /contracts(.:format)       contracts#create
+  new_contracts GET    /contracts/new(.:format)   contracts#new
+ edit_contracts GET    /contracts/edit(.:format)  contracts#edit
+                GET    /contracts(.:format)       contracts#show
+                PUT    /contracts(.:format)       contracts#update
+                DELETE /contracts(.:format)       contracts#destroy
+           root        /                          contracts#index
+</code></pre>
+                    <p>私の Gemfile:</p>
+                    <pre><code>source &#39;https://rubygems.org&#39;
+
+gem &#39;rails&#39;, &#39;3.2.11&#39;
+gem &#39;execjs&#39;
+
+group :assets do
+  gem &#39;sass-rails&#39;,   &#39;~&gt; 3.2.3&#39;
+  gem &#39;coffee-rails&#39;, &#39;~&gt; 3.2.1&#39;
+  gem &#39;uglifier&#39;, &#39;&gt;= 1.0.3&#39;
+end
+
+gem &#39;jquery-rails&#39;
+gem &#39;activerecord-oracle_enhanced-adapter&#39;, &#39;~&gt; 1.4.1&#39;
+gem &#39;jruby-openssl&#39;
+gem &#39;therubyrhino&#39;
+gem &#39;kaminari&#39;
+gem &#39;nokogiri&#39;
+
+group :development do
+  gem &#39;warbler&#39;
+end
+
+group :test do
+  gem &#39;rspec-rails&#39;
+  gem &#39;capybara&#39;
+  gem &#39;activerecord-jdbcsqlite3-adapter&#39;
+end
+</code></pre>
+                    <p>my_app/spec 内の spec_helper.rb:</p>
+                    <pre><code># This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;
+ENV[&quot;RAILS_ENV&quot;] ||= &#39;test&#39;
+require File.expand_path(&quot;../../config/environment&quot;, __FILE__)
+require &#39;rspec/rails&#39;
+require &#39;rspec/autorun&#39;
+
+# Capybara integration
+require &#39;capybara/rspec&#39;
+require &#39;capybara/rails&#39;
+
+# Requires supporting ruby files with custom matchers and macros, etc,
+# in spec/support/ and its subdirectories.
+Dir[Rails.root.join(&quot;spec/support/**/*.rb&quot;)].each {|f| require f}
+
+RSpec.configure do |config|
+  # Remove this line if you&#39;re not using ActiveRecord or ActiveRecord fixtures
+  # config.fixture_path = &quot;#{::Rails.root}/spec/fixtures&quot;
+  config.use_transactional_fixtures = true
+  config.infer_base_class_for_anonymous_controllers = false
+  config.order = &quot;random&quot;
+  # Include path helpers
+  config.include Rails.application.routes.url_helpers
+end
+</code></pre>
+                    <p>my_app/spec/features/security_spec.rb:</p>
+                    <pre><code>describe &quot;security&quot;, :type =&gt; :feature do
+  it &quot;signs users in&quot; do
+    visit &quot;/sessions/new&quot;
+    fill_in &quot;username&quot;, :with =&gt; &quot;user&quot;
+    fill_in &quot;password&quot;, :with =&gt; &quot;pass&quot;
+    click_button &quot;Sign In&quot;
+
+    page.should have_content(&#39;Login Successful&#39;)
+  end
+end
+</code></pre>
+                    <p>:type =&gt; :feature
+                    を使用した場合と使用しない場合の両方で上記のテストを定義してみました。どちらの方法でも違いはありません。次に何を試すべきか何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下を追加してみてください。</p>
+                    <pre><code>  config.include Capybara::DSL
+</code></pre>
+                    <p>設定ブロックに追加します。</p>
+                    <pre><code># This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;
+ENV[&quot;RAILS_ENV&quot;] ||= &#39;test&#39;
+require File.expand_path(&quot;../../config/environment&quot;, __FILE__)
+require &#39;rspec/rails&#39;
+require &#39;rspec/autorun&#39;
+
+# Requires supporting ruby files with custom matchers and macros, etc,
+# in spec/support/ and its subdirectories.
+Dir[Rails.root.join(&quot;spec/support/**/*.rb&quot;)].each {|f| require f}
+
+RSpec.configure do |config|
+  # Remove this line if you&#39;re not using ActiveRecord or ActiveRecord fixtures
+  # config.fixture_path = &quot;#{::Rails.root}/spec/fixtures&quot;
+  config.use_transactional_fixtures = true
+  config.infer_base_class_for_anonymous_controllers = false
+  config.order = &quot;random&quot;
+  # Include path helpers
+  config.include Rails.application.routes.url_helpers
+
+  config.include Capybara::DSL
+
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

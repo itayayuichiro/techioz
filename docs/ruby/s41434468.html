@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ユーザーがエラーを修正するためにフォームに戻ったときに、ブラウザ バーの URL が変更されないようにするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ユーザーがエラーを修正するためにフォームに戻ったときに、ブラウザ バーの URL が変更されないようにするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ユーザーがエラーを修正するためにフォームに戻ったときに、ブラウザ
+バーの URL が変更されないようにするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 5
+                    を使用しています。ユーザーが自分のプロフィールを更新できるページがあり、何か問題が発生した場合はそのページに戻されます。</p>
+                    <pre><code>  def update
+    @user = current_user
+    if @user.update_attributes(user_params)
+      …
+      redirect_to url_for(:controller =&gt; ‘main’, :action =&gt; &#39;index&#39;) and return
+    end
+
+    render &#39;edit&#39;
+  end
+</code></pre>
+                    <p>問題は、元のページに戻ると、ブラウザ バーの URL
+                    が「http://localhost:3000/users/51」と表示され、これが訪問していた元の
+                    URL (つまり「http:」) ではないことです。
+                    //localhost:3000/users/edit”)。 URL
+                    を以前と同じ状態に保つにはどうすればよいですか?</p>
+                    <p>編集：これは、rakeルートを実行すると生成されるものです</p>
+                    <pre><code>           edit_users GET    /users/edit(.:format)                      users#edit
+                users GET    /users(.:format)                           users#index
+                      POST   /users(.:format)                           users#create
+             new_user GET    /users/new(.:format)                       users#new
+            edit_user GET    /users/:id/edit(.:format)                  users#edit
+                 user GET    /users/:id(.:format)                       users#show
+                      PATCH  /users/:id(.:format)                       users#update
+                      PUT    /users/:id(.:format)                       users#update
+                      DELETE /users/:id(.:format)                       users#destroy
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの仮定は正しくないと思います。ユーザーがエラーを修正するためにフォームに戻ったときに、ブラウザ
+                    バーの URL
+                    が変更されないようにするにはどうすればよいですか?</p>
+                    <p>その答えは、ユーザーがエラーを修正するためにフォームを再度表示しても、ブラウザーの
+                    URL
+                    は変更されないということです。初めてフォームを送信した時点で
+                    URL が変更されていたためです。</p>
+                    <p>一般的な規則に従う Routes.rb
+                    を使用すると、次のルートが得られます
+                    (それらをリストするには、rails
+                    ルートを使用します)。</p>
+                    <pre><code>GET    /users(.:format)          users#index
+POST   /users(.:format)          users#create
+GET    /users/new(.:format)      users#new
+GET    /users/:id/edit(.:format) users#edit
+GET    /users/:id(.:format)      users#show
+PATCH  /users/:id(.:format)      users#update
+PUT    /users/:id(.:format)      users#update
+DELETE /users/:id(.:format)      users#destroy
+</code></pre>
+                    <p>/users/:id/edit に対して GET
+                    リクエストを実行すると、ユーザー更新フォームが表示されます。ただし、そのフォームからの実際の更新リクエストは
+                    PATCH /users/:id
+                    にポストされます。つまり、ブラウザはすでに別の URL
+                    を使用しています。</p>
+                    <p>update メソッド内 (すでに URL /users/:id
+                    にあることに注意してください) には、基本的に 2
+                    つのオプションしかありません。</p>
+                    <p>私見ですが、あなたの質問に対する答えは次のとおりです。Rails
+                    によって選択されたパスを離れ、まったく異なるルート、コントローラー、フォームのセットアップを構築しない限り、やりたいことはできません。
+                    GET リクエストと PATCH (または POST)
+                    リクエストに対して同じルートを設定する必要があります。そして、コントローラー
+                    メソッドは、両方のタイプのリクエストを異なる方法で処理できる必要がありました。
+                    Rails 2.0
+                    以降、リソースルーティングが推奨される方法です。欲しいものはRails
+                    2.0以前は一般的だった</p>
+                    <p>私のアドバイスは、Rails の規約に従うことです。
+                    URL
+                    は重要ではありません。誰も気にしません。フォームに別の
+                    URL を設定するためだけに Rails
+                    の規則に従わないことにメリットはありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

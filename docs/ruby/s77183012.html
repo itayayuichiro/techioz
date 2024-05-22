@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActionText Trix Editor のレール 7.0.7 が実稼働環境にロードされない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActionText Trix Editor のレール 7.0.7 が実稼働環境にロードされない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActionText Trix Editor のレール 7.0.7
+が実稼働環境にロードされない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7.0.7 アプリ、ruby 3.2.2
+                    を使用してアクション テキスト
+                    エディターを作成しました。のアクション
+                    テキストは開発環境では正常に動作しますが、運用環境では読み込まれません。開発ツールを開くと、本番環境でも開発環境でも
+                    trix シートが見つかりません。</p>
+                    <p>404 が見つかりません
+                    mysite.com/assets/trix/dist/trix</p>
+                    <p>ただし、エディターは開発中には正常に動作します。
+                    Capistrano を使用してアプリを Ubuntu
+                    サーバーにデプロイしており、アセットが自動的にプリコンパイルされます。
+                    Rails 7 運用環境でアクション
+                    テキストを動作させるにはどうすればよいですか?</p>
+                    <p>&lt;%= javascript_importmap_tags %&gt;
+                    は、運用環境では十分な速度で読み込まれません。 Web
+                    開発コンソール経由で次のエラーが発生します。</p>
+                    <pre><code>The resource at “https://example.com/assets/application-
+1f9c638bad3431a2e119d5da3d19e833a518370510fc773f111900f8393e0d7f.css” 
+preloaded with link preload was not used within a few seconds. Make 
+sure all attributes of the preload tag are set correctly.
+</code></pre>
+                    <p>app/views/layouts/application.html.erb</p>
+                    <pre><code> &lt;%= javascript_importmap_tags %&gt;
+
+    &lt;%= stylesheet_link_tag &quot;actiontext&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+
+    &lt;%= stylesheet_link_tag &quot;tailwind&quot;, &quot;inter-font&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+    
+    &lt;%= stylesheet_link_tag &quot;application&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+</code></pre>
+                    <p>アクションテキスト.css</p>
+                    <pre><code>/*
+
+ *= require trix
+*/
+
+/*
+ * We need to override trix.css’s image gallery styles to accommodate the
+ * &lt;action-text-attachment&gt; element we wrap around attachments. Otherwise,
+ * images in galleries will be squished by the max-width: 33%; rule.
+*/
+.trix-content .attachment-gallery &gt; action-text-attachment,
+.trix-content .attachment-gallery &gt; .attachment {
+  flex: 1 0 33%;
+  padding: 0 0.5em;
+  max-width: 33%;
+}
+
+.trix-content .attachment-gallery.attachment-gallery--2 &gt; action-text-attachment,
+.trix-content .attachment-gallery.attachment-gallery--2 &gt; .attachment, .trix-content .attachment-gallery.attachment-gallery--4 &gt; action-text-attachment,
+.trix-content .attachment-gallery.attachment-gallery--4 &gt; .attachment {
+  flex-basis: 50%;
+  max-width: 50%;
+}
+
+.trix-content action-text-attachment .attachment {
+  padding: 0 !important;
+  max-width: 100% !important;
+}
+</code></pre>
+                    <p>アプリケーション.css</p>
+                    <pre><code>@import &quot;./actiontext.css&quot;;
+@import &quot;trix/dist/trix&quot;;
+</code></pre>
+                    <p>マニフェスト.js</p>
+                    <pre><code>//= link actiontext.css
+//= link_tree ../images
+//= link_directory ../stylesheets .css
+//= link_tree ../../javascript .js
+//= link_tree ../../../vendor/javascript .js
+// application.js
+// youtube.js 
+</code></pre>
+                    <p>JavaScript/アプリケーション.js</p>
+                    <pre><code>import &quot;@hotwired/turbo-rails&quot;
+import &quot;controllers&quot;
+import &quot;trix&quot;
+import &quot;@rails/actiontext&quot;
+import &quot;./youtube&quot; 
+import &quot;@rails/ujs&quot;
+import &quot;rails&quot;
+</code></pre>
+                    <p>開発環境で &lt;%= javascript_importmap_tags %&gt;
+                    を削除すると、テキスト
+                    エディタは運用環境と同じように見えます。以下にその様子を示します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これを行う：</p>
+                    <pre><code># config/importmap.rb
+
+pin &quot;trix&quot;
+pin &quot;@rails/actiontext&quot;, to: &quot;actiontext.js&quot;
+</code></pre>
+                    <pre><code>// app/javascript/application.js
+
+import &quot;trix&quot;
+import &quot;@rails/actiontext&quot;
+</code></pre>
+                    <p>app/assets/stylesheets に生成された
+                    actiontext.css が存在するはずです。</p>
+                    <pre><code>&lt;%= stylesheet_link_tag &quot;actiontext&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+</code></pre>
+                    <p>trix および actiontext
+                    への他の参照を削除します。</p>
+                    <p>アップデート</p>
+                    <p>最後の ^
+                    文は本当にそう思ったので、他には何も必要ありません。</p>
+                    <p>actiontext.css (または action_text.css)
+                    のこの部分は機能しません。追い風によって資産が縮小されない場合は、開発で機能する可能性があります。運用環境では、縮小化がオンになっている必要があり、そのスプロケット
+                    ディレクティブはスプロケットに到達する前に追い風によって取り除かれます。</p>
+                    <pre><code>*= require trix
+</code></pre>
+                    <p>そのため、私は常に stylesheet_link_tag
+                    “actiontext” を実行し、application.css
+                    にはインポートしません。</p>
+                    <pre><code>// you don&#39;t need to import this one it is already in stylesheet_link_tag
+@import &quot;./actiontext.css&quot;;
+// don&#39;t need that either since you don&#39;t have that file
+@import &quot;trix/dist/trix&quot;;
+</code></pre>
+                    <p>また、スタイルシートを少し修正します。
+                    application.css は tailwind
+                    によってコンパイルされますか?その場合、それを
+                    stylesheet_link_tag に追加する必要はありません。</p>
+                    <pre><code>&lt;%= stylesheet_link_tag &quot;tailwind&quot;, &quot;actiontext&quot;, &quot;inter-font&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+</code></pre>
+                    <p>同様に、manifest.js にも builds
+                    ディレクトリが欠けているようです。そうでない場合、「tailwind」スタイルシートがどこから来たのかわかりません。</p>
+                    <pre><code>//= link_tree ../builds
+</code></pre>
+                    <p>「//= link actiontext.css」は必要ありません。</p>
+                    <p>import “./youtube” -
+                    いやいや。相対インポートは行わないでください。本番環境で動作しなくなる可能性があります。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/sprockets#directives</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

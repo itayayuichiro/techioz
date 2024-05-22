@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails テスト – バリデーターをリセット/リフレッシュしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails テスト – バリデーターをリセット/リフレッシュしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails テスト –
+バリデーターをリセット/リフレッシュしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>構成変数に依存する検証を持つ RoR Gem
+                    のテストを作成しています。</p>
+                    <pre><code>class MyModel &lt; ApplicationRecord
+  validates_length_of :field_name, minimum: GemName.minimum_field_length
+end
+</code></pre>
+                    <p>この構成オプションが期待どおりに機能することを確認できますが、テストでカバーされていることを確認したいと思います。</p>
+                    <pre><code>class MyModelTest &lt; ActiveSupport::TestCase
+  test &quot;field length is validated&quot; do
+    model = MyModel(field_name: &#39;a&#39; * 25
+
+    # Default minimum length is 20
+    assert model.valid?
+
+    # Test different length validation
+    GemName.minimum_field_length = 30
+    assert_not model.valid?
+  end
+end
+</code></pre>
+                    <p>2 番目のアサーションは失敗します
+                    (モデルは有効です)。そこにデバッガーを追加して検査すると、GemName.minimum_field_length
+                    は 30
+                    を返し、変更されたことを示しますが、MyModel.validators
+                    の結果を見ると、最小値は元のデフォルト値の 20
+                    のままです。おそらくこれは、バリデーターは、テストの開始時またはモデルが最初に呼び出されたときに一度作成されます
+                    (構成を変更した後に MyModel
+                    の新しいインスタンスを作成しようとしましたが、うまくいきませんでした)。テスト中に新しい構成値でモデルバリデーターを更新する
+                    .reset_column_information
+                    に似た方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、このような検証で最小長を定義することです。</p>
+                    <pre><code>validates_length_of :field_name, minimum: GemName.minimum_field_length
+</code></pre>
+                    <p>その後、ファイルが初めて読み取られるときに 1
+                    回だけ最小値が設定されます。
+                    GemName.minimum_field_length
+                    が変更されても、バリデーターの構成は変更されなくなります。</p>
+                    <p>ただし、代わりにラムダを使用してバリデーターを初期化すると、ラムダはバリデーター呼び出しごとに評価されるため、変更を取得する必要があります。</p>
+                    <p>代わりにこれを試してください:</p>
+                    <pre><code>validates_length_of :field_name, minimum: -&gt; { GemName.minimum_field_length }
+</code></pre>
+                    <p>フィールドの最小長が gem
+                    の設定された最小長と等しいことだけを確認したい場合は、次のように、両方の値が等しいかどうかを確認するテストを作成するとよいでしょう。</p>
+                    <pre><code>minimum_field_name_length = MyModel.validators_on(:field_name)
+                                   .select { |v| v.is_a?(LengthValidator) }
+                                   .first
+                                   .options[:minimum]
+
+assert_equal minimum_field_name_length, GemName.minimum_field_length
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

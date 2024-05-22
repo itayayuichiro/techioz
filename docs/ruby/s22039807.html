@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>プログラムがデバッグ モードで実行されているかどうかを確認する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "プログラムがデバッグ モードで実行されているかどうかを確認する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>プログラムがデバッグ
+モードで実行されているかどうかを確認する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は RubyMine を使用して Ruby 2.0
+                    コードを作成し、デバッグしています。そのために
+                    Ruby-debug-ide を使用します。プログラムがデバッグ
+                    モードで実行されているかどうかを知りたいです。</p>
+                    <p>Ruby
+                    グローバル変数があることは知っていますが、私が理解している限り、ruby-debug-ide
+                    は -d Ruby
+                    フラグを使用していないため、それを変更しませんでした。</p>
+                    <p>Rubymine
+                    を使用してファイルをデバッグすると、実行されるコマンドは次のようになります。</p>
+                    <pre><code>/home/user/.rvm/rubies/ruby-2.0.0-p353/bin/ruby -e at_exit{sleep(1)};$stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift) /home/user/.rvm/gems/ruby-2.0.0-p353/gems/ruby-debug-ide-0.4.22/bin/rdebug-ide --disable-int-handler --port 37737 --dispatcher-port 47992 -- /home/user/file.rb
+</code></pre>
+                    <p>ARGV または sh を使用して、コマンド
+                    ラインに文字列「rdebug-ide」が含まれているかどうかを確認しようとしましたが、ARGV
+                    は空の配列であり、sh
+                    は単に「/home/user/file.rb」です。完全なコマンドを取得するにはどうすればよいですか?
+                    RubyMine によって行が実行されましたか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが私がやったことです:</p>
+                    <p>次のコードを (rails) アクションに配置し、デバッグ
+                    モードと非デバッグ
+                    モードの両方で出力の差分を実行しました。</p>
+                    <pre><code>puts ENV.to_hash.to_yaml
+</code></pre>
+                    <p>違いの 1 つは ENV[‘RUBYLIB’]
+                    にあることに気づきました
+                    (IDE_PROCESS_DISPATCHER、DEBUGGER_STORED_RUBYLIB、RUBYOPT、および
+                    DEBUGGER_HOST もあります)</p>
+                    <p>したがって、確認方法は次のとおりです。</p>
+                    <pre><code>if ENV[&#39;RUBYLIB&#39;] =~ /ruby-debug-ide/
+  puts &#39;in debug mode&#39;
+else
+  puts &#39;not in debug mode&#39;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

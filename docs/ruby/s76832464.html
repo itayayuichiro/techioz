@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>多態性関連に基づいて並べ替える | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "多態性関連に基づいて並べ替える",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>多態性関連に基づいて並べ替える</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の多態性関係があるとします。</p>
+                    <pre><code>class Metric &lt; ApplicationRecord
+    belongs_to :metrizable, polymorphic: true
+    belongs_to :company, class_name: &#39;Company&#39;, foreign_key: &#39;metrizable_id&#39;, optional: true
+    belongs_to :portfolio, class_name: &#39;Portfolio&#39;, foreign_key: &#39;metrizable_id&#39;, optional: true
+
+end
+</code></pre>
+                    <pre><code>class Company &lt; ApplicationRecord
+    has_many :metrics, as: :metrizable, dependent: :destroy
+end
+</code></pre>
+                    <pre><code>class Portfolio &lt; ApplicationRecord
+    has_many :metrics, as: :metrizable, dependent: :destroy
+end
+</code></pre>
+                    <p>メトリクスは会社またはポートフォリオのいずれかで測定できるようになりました。
+                    両方のテーブル (会社、ポートフォリオ)
+                    のデータベースに名前フィールドがあります。</p>
+                    <pre><code>example:
+
+@search = Metric.ransack(params[:q])
+@search.sorts = [&quot;company_name asc&quot;, &quot;portfolio_name asc&quot;]
+@search.result.to_sql
+
+</code></pre>
+                    <p>次のようなものが得られます</p>
+                    <pre><code>&quot;SELECT \&quot;metrics\&quot;.* FROM \&quot;metrics\&quot; LEFT OUTER JOIN \&quot;company\&quot; ON \&quot;company\&quot;.\&quot;id\&quot; = \&quot;metrics\&quot;.\&quot;metrizable_id\&quot; LEFT OUTER JOIN \&quot;portfolios\&quot; ON \&quot;portfolios\&quot;.\&quot;id\&quot; = \&quot;metrics\&quot;.\&quot;metrizable_id\&quot; ORDER BY \&quot;company\&quot;.\&quot;name\&quot; ASC, \&quot;portfolios\&quot;.\&quot;name\&quot; ASC, \&quot;metrics\&quot;.\&quot;name\&quot; ASC&quot;
+</code></pre>
+                    <p>すべてのレコードを取得した場合でも、entity.name、entity(company,portfolio)
+                    で並べ替えられません。ソーステーブルとは関係なく、すべてをentity.nameで並べ替えたいと考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>データセットが小さく、それ以上のデータセットが期待されない場合は、単純に
+                    Ruby で並べ替えることができます。</p>
+                    <p>それ以外の場合は、企業とポートフォリオのテーブルにデータベース
+                    ビューを追加し、それによって並べ替えることができます。たとえば、Postgres
+                    では次のようになります。</p>
+                    <pre><code>CREATE VIEW entities AS SELECT
+  id,
+  name,
+  metrizable_id,
+  &#39;company&#39; AS type
+FROM
+  companies
+UNION
+SELECT
+  id,
+  name,
+  metrizable_id,
+  &#39;portfolio&#39; AS type
+FROM
+  portfolios
+</code></pre>
+                    <p>エンティティモデル:</p>
+                    <pre><code>class Entity &lt; ApplicationRecord
+  self.inheritance_column = nil
+
+  has_many :metrics
+end
+</code></pre>
+                    <p>メトリクスモデル:</p>
+                    <pre><code>class Metric &lt; ApplicationRecord
+  # ...
+  belongs_to :entity, foreign_key: &#39;metrizable_id&#39;, optional: true
+end
+</code></pre>
+                    <p>そしてクエリ内では次のようになります。</p>
+                    <pre><code>@search = Metric.ransack(params[:q])
+@search.sorts = [&quot;entity_name asc&quot;]
+@search.result.to_sql
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

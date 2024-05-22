@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>s25325624 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "s25325624",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                    <h2 id="概要">概要</h2>
+                    <p>mysql -u <user> -p<pass> -h <host> <db> &lt;
+                    file.sql という方法で mysql インポートを行う小さな
+                    Ruby スクリプトがありますが、これには Open3.popen3
+                    を利用します。それが私がこれまでに持っているものです:</p>
+                    <pre><code>mysqlimp = &quot;mysql -u #{mysqllocal[&#39;user&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;-h #{mysqllocal[&#39;host&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;-p#{mysqllocal[&#39;pass&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;#{mysqllocal[&#39;db&#39;]}&quot;
+
+Open3.popen3(mysqlimp) do |stdin, stdout, stderr, wthr|
+  stdin.write &quot;DROP DATABASE IF EXISTS #{mysqllocal[&#39;db&#39;]};\n&quot;
+  stdin.write &quot;CREATE DATABASE #{mysqllocal[&#39;db&#39;]};\n&quot;
+  stdin.write &quot;USE #{mysqllocal[&#39;db&#39;]};\n&quot;
+
+  stdin.write mysqldump #a string containing the database data
+  stdin.close
+
+  stdout.each_line { |line| puts line }
+  stdout.close
+
+  stderr.each_line { |line| puts line }
+  stderr.close
+end
+</code></pre>
+                    <p>これで実際にジョブが実行されますが、見たい出力に関して気になることが
+                    1 つあります。</p>
+                    <p>最初の行を次のように変更すると、</p>
+                    <pre><code>mysqlimp = &quot;mysql -v -u #{mysqllocal[&#39;user&#39;]} &quot; #note the -v
+</code></pre>
+                    <p>そうなると、スクリプト全体が永久にハングしてしまいます。</p>
+                    <p>これは、読み取りストリームと書き込みストリームが相互にブロックしているためだと思います。また、stdin
+                    が消費され続けるように stdout
+                    を定期的にフラッシュする必要があるためだと思います。言い換えれば、標準出力のバッファがいっぱいである限り、プロセスはフラッシュされるまで待機しますが、これは最初に一番下で行われるため、フラッシュされることは決して起こりません。</p>
+                    <p>誰かが私の理論を検証してくれることを願っています?標準出力からすべてを出力し、標準入力にもすべてを書き込むコードを作成するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>例：</p>
+                    <pre><code>require &#39;open3&#39;
+
+cmd = &#39;sh&#39;
+
+Open3.popen2e(cmd) do |stdin, stdout_stderr, wait_thread|
+  Thread.new do
+    stdout_stderr.each {|l| puts l }
+  end
+
+  stdin.puts &#39;ls&#39;
+  stdin.close
+
+  wait_thread.value
+end
+</code></pre>
+                    <p>コード、修正されました:</p>
+                    <pre><code>require &#39;open3&#39;
+
+mysqldump = # ...
+
+mysqlimp = &quot;mysql -u #{mysqllocal[&#39;user&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;-h #{mysqllocal[&#39;host&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;-p#{mysqllocal[&#39;pass&#39;]} &quot;
+mysqlimp &lt;&lt; &quot;#{mysqllocal[&#39;db&#39;]}&quot;
+
+Open3.popen2e(mysqlimp) do |stdin, stdout_stderr, wait_thread|
+  Thread.new do
+    stdout_stderr.each {|l| puts l }
+  end
+
+  stdin.puts &quot;DROP DATABASE IF EXISTS #{mysqllocal[&#39;db&#39;]};&quot;
+  stdin.puts &quot;CREATE DATABASE #{mysqllocal[&#39;db&#39;]};&quot;
+  stdin.puts &quot;USE #{mysqllocal[&#39;db&#39;]};&quot;
+  stdin.close
+
+  wait_thread.value
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

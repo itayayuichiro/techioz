@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でスクリプト全体をテストする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でスクリプト全体をテストする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby でスクリプト全体をテストする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>スクリプト全体をテストする最良の方法は何ですか?スクリプトが正しい結果を返す
+                    (出力する)
+                    かどうかをテストしたいと考えています。これまでのところ、私が持っているのは、多かれ少なかれ次のことを行う別のスクリプトです。</p>
+                    <p>#テスト.rb</p>
+                    <pre><code>expected = &#39;test&#39;
+output = `script.rb --many params`
+if output != expected
+  puts &quot;Error&quot;
+end
+</code></pre>
+                    <p>この例では、テストするスクリプトの名前は
+                    script.rb です。 乾杯。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>test-unit
+                    を使用すると、次のようなコードになります。</p>
+                    <pre><code>class TestScript &lt; Test::Unit::TestCase
+  def test_output
+    assert_equal &#39;test&#39;, `script --options`
+  end
+end
+</code></pre>
+                    <p>プログラムからの出力を処理する場合、処理方法をより詳細に制御できるため、open3
+                    ライブラリを使用することをお勧めします。同様に、assert_output_equal
+                    のような独自のラッパーを作成することもできます。</p>
+                    <pre><code>def assert_output_equal(output, command, message = nil, &amp;block)
+  Open3.popen3(command) do |stdin, stdout, stderr, wait_thr|
+    assert_equal output, stdout.read, message, &amp;block
+  end
+end
+</code></pre>
+                    <p>これにプロセスのステータスをテストして、プロセスが成功したこと、STDERR
+                    などに出力がないことを確認することもできます。</p>
+                    <p>大量のテキスト出力 (JSON
+                    データ、フォーマットされたリストなど)
+                    を生成するものをテストする場合は、ソースでテキストを定義するのではなく、test/expect
+                    のような場所にファイルを作成し、そのファイルを出力と比較するのが最善であることがわかりました。
+                    。これにより、最初にファイルを簡単に作成できるようになります。</p>
+                    <pre><code>old_script &gt; test/expected/old_script.default
+old_script --option &gt; test/expected/old_script.with-option
+</code></pre>
+                    <p>また、バージョン管理の差分を調整する必要がある場合に、バージョン管理の差分が読みやすくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

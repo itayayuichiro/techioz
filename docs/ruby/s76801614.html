@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>カートにプロパティを追加する方法がわかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "カートにプロパティを追加する方法がわかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>カートにプロパティを追加する方法がわかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これは私のプロパティコントローラーです:</p>
+                    <pre><code>class PropertiesController &lt; ApplicationController
+  before_action :set_property, only: [:show, :edit, :update, :destroy, :contact_now]
+  before_action :authenticate_user!, except: [:index, :show]
+
+  def index
+    if params[:search].present?
+      search_term = &quot;%#{params[:search]}%&quot;
+      @properties = Property.where(&#39;name LIKE ? OR city LIKE ?&#39;, search_term, search_term).page(params[:page]).per(3)
+    else
+      @properties = Property.all.page(params[:page]).per(3)
+    end
+  end
+
+  def show
+  end
+
+  def new
+    @property = Property.new
+  end
+
+  def create
+    @property = Property.new(property_params)
+    @property.user_id = current_user.id
+
+    if @property.save
+      redirect_to properties_path, notice: &quot;Property created successfully!!&quot;
+    else
+      render :new
+    end
+  end
+
+  def edit
+  end
+
+  def update
+    if @property.update(property_params)
+      redirect_to properties_path, notice: &quot;Property updated successfully!!&quot;
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def button_click_action
+    @user = current_user
+    UserMailer.button_click_email(@user).deliver_now
+    redirect_to properties_path, notice: &#39;Email sent!&#39;
+  end
+
+  def destroy
+    @property.destroy
+    redirect_to properties_path, notice: &quot;Property Deleted!!&quot;, status: :see_other
+  end
+
+  private
+
+  def set_property
+    @property = Property.find(params[:id])
+  end
+
+  def property_params
+    params.require(:property).permit(:name, :city, :country, :price, :status, :year, images: [])
+  end
+end
+</code></pre>
+                    <p>プロパティを作成して表示していますが、今度はこれらのプロパティをカートに追加したいと思います。
+                    カートを作成する方法を説明してください</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>3 つの方法で実行できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

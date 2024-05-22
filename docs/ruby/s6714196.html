@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで文字列をURLエンコードする方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで文字列をURLエンコードする方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで文字列をURLエンコードする方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような文字列を URI::encode
+                    するにはどうすればよいですか:</p>
+                    <pre><code>\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a
+</code></pre>
+                    <p>次のような形式で取得します。</p>
+                    <pre><code>%124Vx%9A%BC%DE%F1%23Eg%89%AB%CD%EF%124Vx%9A
+</code></pre>
+                    <p>RFC 1738に従っていますか？</p>
+                    <p>私が試したことは次のとおりです。</p>
+                    <pre><code>irb(main):123:0&gt; URI::encode &quot;\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a&quot;
+ArgumentError: invalid byte sequence in UTF-8
+    from /usr/local/lib/ruby/1.9.1/uri/common.rb:219:in `gsub&#39;
+    from /usr/local/lib/ruby/1.9.1/uri/common.rb:219:in `escape&#39;
+    from /usr/local/lib/ruby/1.9.1/uri/common.rb:505:in `escape&#39;
+    from (irb):123
+    from /usr/local/bin/irb:12:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>また：</p>
+                    <pre><code>irb(main):126:0&gt; CGI::escape &quot;\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a&quot;
+ArgumentError: invalid byte sequence in UTF-8
+    from /usr/local/lib/ruby/1.9.1/cgi/util.rb:7:in `gsub&#39;
+    from /usr/local/lib/ruby/1.9.1/cgi/util.rb:7:in `escape&#39;
+    from (irb):126
+    from /usr/local/bin/irb:12:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>インターネットをくまなく探しましたが、これを行う方法は見つかりませんでしたが、先日、まったく問題なくこれを実行できたことはほぼ確信しています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>str = &quot;\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a&quot;.force_encoding(&#39;ASCII-8BIT&#39;)
+puts CGI.escape str
+
+
+=&gt; &quot;%124Vx%9A%BC%DE%F1%23Eg%89%AB%CD%EF%124Vx%9A&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

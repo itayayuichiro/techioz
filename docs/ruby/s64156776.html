@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JWT「続行する前にサインインまたはサインアップする必要があります」を工夫する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JWT「続行する前にサインインまたはサインアップする必要があります」を工夫する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JWT「続行する前にサインインまたはサインアップする必要があります」を工夫する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>あなたは私の最後のチャンスです Device_token_auth
+                    から Device-jwt に移行しようとします
+                    ユーザーにサインインしようとすると、「続行する前にサインインまたはサインアップする必要があります。」と応答するよう工夫してください。
+                    構成:</p>
+                    <p>私のコードがあります:</p>
+                    <pre><code>module Api
+  module V2
+    module Devise
+      class SessionsController &lt; ::Devise::SessionsController
+        skip_before_action :verify_authenticity_token
+        include ::Api::V2::Concerns::Response
+
+        respond_to :json
+
+        private
+
+        def respond_with(resource, _opts = {})
+          render_json ::V2::UserSerializer.new(resource)
+        end
+
+        def respond_to_on_destroy
+          head :ok
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>Routes.rb の一部:</p>
+                    <pre><code>Rails.application.routes.draw do
+  scope &#39;(:locale)&#39;, locale: /#{I18n.available_locales.join(&#39;|&#39;)}/, defaults: { format: &#39;json&#39; } do
+    namespace :api do
+      namespace :v2 do
+        devise_for :users, path: &#39;auth&#39;,
+                           skip: %i[passwords], controllers: {
+                             registrations: &#39;api/v2/devise/registrations&#39;,
+                             sessions: &#39;api/v2/devise/sessions&#39;
+                           }
+        resources :destinations, only: :index
+        resources :photos, only: :index
+
+        scope :user do
+          resources :client_contracts, only: :index, module: :user
+          resources :contracts_houses, only: :index, module: :user
+          resource :owner_certificate, only: :show, module: :user
+        end
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>（私はadmin_users（jwtではなく）でも動作するように工夫しており、api_v1_userのdevice_token_authのルートを無効にしました:）</p>
+                    <pre><code>        mount_devise_token_auth_for &#39;User&#39;, at: &#39;auth&#39;,
+                                            skip: %i[confirmations passwords registrations sessions
+                                                     token_validations]
+</code></pre>
+                    <p>イニシャライザを工夫してください:</p>
+                    <pre><code>  config.skip_session_storage = %i[http_auth]
+  config.navigational_formats = [&#39;*/*&#39;, :html, :pdf]
+  config.jwt do |jwt|
+    jwt.secret = ENV[&#39;DEVISE_JWT_SECRET_KEY&#39;]
+    jwt.expiration_time = 1.day.to_i
+  end
+</code></pre>
+                    <p>ユーザーモデル:</p>
+                    <pre><code>  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable,
+         :jwt_authenticatable, jwt_revocation_strategy: JWTDenylist
+
+  self.skip_session_storage = %i[http_auth params_auth]
+</code></pre>
+                    <p>新しいユーザーを登録しようとしましたが、機能しますが、ヘッダーにJWTではなくCookie（デバイスリターンCookie）が使用されています…</p>
+                    <p>conf を工夫してください:</p>
+                    <pre><code>&gt; Devise::JWT.config
+=&gt; #&lt;Dry::Configurable::Config values={:secret=&gt;&quot;secret&quot;, :expiration_time=&gt;86400, :dispatch_requests=&gt;[[&quot;POST&quot;, /^\/(:locale)\/api\/v2\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v1\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v1\/auth$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v2\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v2\/auth$/]], :revocation_requests=&gt;[], :aud_header=&gt;&quot;JWT_AUD&quot;, :request_formats=&gt;{}}&gt;
+
+
+&gt; Warden::JWTAuth.config
+=&gt; #&lt;Dry::Configurable::Config values={:secret=&gt;&quot;secret&quot;, :algorithm=&gt;&quot;HS256&quot;, :expiration_time=&gt;86400, :aud_header=&gt;&quot;JWT_AUD&quot;, :mappings=&gt;{:api_v1_user=&gt;User (call &#39;User.connection&#39; to establish a connection), :api_v2_user=&gt;User (call &#39;User.connection&#39; to establish a connection)}, :dispatch_requests=&gt;[[&quot;POST&quot;, /^\/(:locale)\/api\/v2\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v1\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v1\/auth$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v2\/auth\/sign_in$/], [&quot;POST&quot;, /^\/(\/:locale)\/api\/v2\/auth$/]], :revocation_requests=&gt;[[&quot;DELETE&quot;, /^\/(\/:locale)\/api\/v1\/auth\/sign_out$/], [&quot;DELETE&quot;, /^\/(\/:locale)\/api\/v2\/auth\/sign_out$/]], :revocation_strategies=&gt;{:api_v1_user=&gt;JWTDenylist (call &#39;JWTDenylist.connection&#39; to establish a connection), :api_v2_user=&gt;JWTDenylist (call &#39;JWTDenylist.connection&#39; to establish a connection)}}&gt;
+
+
+&gt; Devise.mappings
+=&gt; {:admin_admin_user=&gt;#&lt;Devise::Mapping:0x0000555fd7602188 @scoped_path=&quot;admin/admin_users&quot;, @singular=:admin_admin_user, @class_name=&quot;AdminUser&quot;, @klass=#&lt;Devise::Getter:0x0000555fd7601ad0 @name=&quot;AdminUser&quot;&gt;, @path=&quot;admin_users&quot;, @path_prefix=&quot;(/:locale)/admin&quot;, @sign_out_via=:delete, @format=nil, @router_name=nil, @failure_app=Devise::FailureApp, @controllers={:registrations=&gt;&quot;admin/devise/registrations&quot;, :sessions=&gt;&quot;admin/devise/sessions&quot;, :passwords=&gt;&quot;admin/devise/passwords&quot;}, @path_names={:registration=&gt;&quot;&quot;, :new=&gt;&quot;new&quot;, :edit=&gt;&quot;edit&quot;, :sign_in=&gt;&quot;sign_in&quot;, :sign_out=&gt;&quot;sign_out&quot;, :password=&gt;&quot;password&quot;}, @modules=[:database_authenticatable, :recoverable], @routes=[:session, :password], @used_routes=[:session, :password], @used_helpers=[:session, :password]&gt;, :api_v1_user=&gt;#&lt;Devise::Mapping:0x0000555fd6e718d8 @scoped_path=&quot;api_v1/users&quot;, @singular=:api_v1_user, @class_name=&quot;User&quot;, @klass=#&lt;Devise::Getter:0x0000555fd6e71720 @name=&quot;User&quot;&gt;, @path=&quot;auth&quot;, @path_prefix=&quot;(/:locale)/api/v1&quot;, @sign_out_via=:delete, @format=nil, @router_name=nil, @failure_app=Devise::FailureApp, @controllers={:unlocks=&gt;&quot;devise_token_auth/unlocks&quot;}, @path_names={:registration=&gt;&quot;&quot;, :new=&gt;&quot;new&quot;, :edit=&gt;&quot;edit&quot;}, @modules=[:database_authenticatable, :rememberable, :recoverable, :registerable, :validatable, :jwt_authenticatable], @routes=[:session, :password, :registration], @used_routes=[], @used_helpers=[:session, :password, :registration]&gt;, :api_v2_user=&gt;#&lt;Devise::Mapping:0x0000555fd60297f8 @scoped_path=&quot;api_v2/users&quot;, @singular=:api_v2_user, @class_name=&quot;User&quot;, @klass=#&lt;Devise::Getter:0x0000555fd60292d0 @name=&quot;User&quot;&gt;, @path=&quot;auth&quot;, @path_prefix=&quot;(/:locale)/api/v2&quot;, @sign_out_via=:delete, @format=nil, @router_name=nil, @failure_app=Devise::FailureApp, @controllers={:registrations=&gt;&quot;api/v2/devise/registrations&quot;, :sessions=&gt;&quot;api/v2/devise/sessions&quot;}, @path_names={:registration=&gt;&quot;&quot;, :new=&gt;&quot;new&quot;, :edit=&gt;&quot;edit&quot;, :sign_in=&gt;&quot;sign_in&quot;, :sign_out=&gt;&quot;sign_out&quot;, :sign_up=&gt;&quot;sign_up&quot;, :cancel=&gt;&quot;cancel&quot;}, @modules=[:database_authenticatable, :rememberable, :recoverable, :registerable, :validatable, :jwt_authenticatable], @routes=[:session, :password, :registration], @used_routes=[:session, :registration], @used_helpers=[:session, :password, :registration]&gt;}
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私も同じ問題を抱えていましたが、名前空間内でdevice_forを実行すると、Deviseコントローラーがresource_nameをapi/v1/user（またはそのようなもの）に割り当てることに気付きました。</p>
+                    <p>Devices_for
+                    をすべての名前空間ブロックの外に移動して、そのパスをパス「api/v2/auth」に変更してみてはいかがでしょうか。</p>
+                    <p>これは役立つはずだと思います!そうなったことを教えてください、お願いします</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

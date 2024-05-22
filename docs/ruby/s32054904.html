@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ransack: フォームが送信され、検索値が入力されなかった場合、何も返されません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ransack: フォームが送信され、検索値が入力されなかった場合、何も返されません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ransack:
+フォームが送信され、検索値が入力されなかった場合、何も返されません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>検索フォームと検索結果を同じページに掲載しています。</p>
+                    <p>私の理解では、ransack
+                    のデフォルトでは、検索フィールドに値を入力せずにフォームが送信された場合、その特定のリソースのすべてのレコードが返されます。</p>
+                    <p>ユーザーが検索フィールドに値を入力しない検索を行った場合にレコードが返されないように変更するにはどうすればよいですか?</p>
+                    <p>ランサックのドキュメント</p>
+                    <p>これは機能しません:</p>
+                    <pre><code>if params[&quot;q&quot;].values.present? # Always returns true because an array of empty strings returns true from method call: present?
+  # do this
+else
+  # do that
+end
+</code></pre>
+                    <p>これも同様ではありません:</p>
+                    <pre><code>if params[&quot;q&quot;].values.empty? # Always returns true because an array of empty strings returns true from method call: empty?
+  # do this
+else
+  # do that
+end
+</code></pre>
+                    <p>params[“q”].present
+                    を確認していますか?フォームが送信されるたびに、値が入力されているかどうかに関係なく、これがサーバーに渡されるため、これも機能しません。</p>
+                    <pre><code># showing with pry
+[1] pry&gt; params[:q] 
+  =&gt; {&quot;namesearch_start&quot;=&gt;&quot;&quot;,
+      &quot;city_cont&quot;=&gt;&quot;&quot;,
+     }
+[2] pry&gt; params[:q].present?
+  =&gt; true # always returns true
+</code></pre>
+                    <p>したがって、params[“q”]
+                    は、値が入力されているかどうかに関係なく、常に存在します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>できることは、空白の値を拒否することです。</p>
+                    <pre><code>if params[:q].reject { |_, v| v.blank? }.any? # .none? for inverted
+  # Handle search
+else
+  # Handle no query scenario
+end
+</code></pre>
+                    <p>または</p>
+                    <pre><code>if params[:q].values.reject(&amp;:blank?).any? # .none? for inverted
+  # Handle search
+else
+  # Handle no query scenario
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>YouTube RSSフィードの解析 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "YouTube RSSフィードの解析",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>YouTube RSSフィードの解析</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyのようにこれらのメディアキーを読み取るための高速でクリーンなサンプルはありますか?</p>
+                    <p>すでにRuby
+                    RSSを使用していて、タイトル、リンクを読んでいますが、セミコロンが付いたこれらのメディアキーを読むことができません。ここで
+                    nokogiri と xml key read
+                    を使用する必要がありますか?それとも標準の Ruby RSS
+                    ライブラリにこのキー用の何かがあるのでしょうか?</p>
+                    <p>YouTube チャンネル
+                    フィードを読み取るために使用しているコード:</p>
+                    <pre><code>require &#39;rss&#39;
+
+rss = RSS::Parser.parse( &quot;https://www.youtube.com/feeds/videos.xml?channel_id=UCAUZpKBrZ-QP72Y0blet6DA&quot;, false)
+
+rss.items.take(2).reverse.each do |item|
+puts item.title.content
+end
+</code></pre>
+                    <p>そして、これがYouTubeの応答です：</p>
+                    <pre><code>&lt;feed xmlns:yt=&quot;http://www.youtube.com/xml/schemas/2015&quot; xmlns:media=&quot;http://search.yahoo.com/mrss/&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot;&gt;
+&lt;link rel=&quot;self&quot; href=&quot;http://www.youtube.com/feeds/videos.xml?channel_id=UCAUZpKBrZ-QP72Y0blet6DA&quot;/&gt;
+&lt;id&gt;yt:channel:UCAUZpKBrZ-QP72Y0blet6DA&lt;/id&gt;
+&lt;yt:channelId&gt;UCAUZpKBrZ-QP72Y0blet6DA&lt;/yt:channelId&gt;
+&lt;title&gt;FES TV&lt;/title&gt;
+&lt;link rel=&quot;alternate&quot; href=&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;/&gt;
+&lt;author&gt;
+&lt;name&gt;FES TV&lt;/name&gt;
+&lt;uri&gt;
+https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA
+&lt;/uri&gt;
+&lt;/author&gt;
+&lt;published&gt;2017-07-11T18:35:49+00:00&lt;/published&gt;
+&lt;entry&gt;
+&lt;id&gt;yt:video:bXrwymDw4_Q&lt;/id&gt;
+&lt;yt:videoId&gt;bXrwymDw4_Q&lt;/yt:videoId&gt;
+&lt;yt:channelId&gt;UCAUZpKBrZ-QP72Y0blet6DA&lt;/yt:channelId&gt;
+&lt;title&gt;...&lt;/title&gt;
+&lt;link rel=&quot;alternate&quot; href=&quot;https://www.youtube.com/watch?v=bXrwymDw4_Q&quot;/&gt;
+&lt;author&gt;...&lt;/author&gt;
+&lt;published&gt;2019-09-13T18:00:00+00:00&lt;/published&gt;
+&lt;updated&gt;2019-09-15T23:51:10+00:00&lt;/updated&gt;
+&lt;media:group&gt;
+&lt;media:title&gt;
+ONI NE ŽELE DA OVO ZNATE | Nemoguće slučajnosti i skrivena znanja
+&lt;/media:title&gt;
+&lt;media:content url=&quot;https://www.youtube.com/v/bXrwymDw4_Q?version=3&quot; type=&quot;application/x-shockwave-flash&quot; width=&quot;640&quot; height=&quot;390&quot;/&gt;
+&lt;media:thumbnail url=&quot;https://i3.ytimg.com/vi/bXrwymDw4_Q/hqdefault.jpg&quot; width=&quot;480&quot; height=&quot;360&quot;/&gt;
+&lt;media:description&gt;
+Sećam se bilo je to davno kada sam pogledao dokumentarac pod nazivom Tajna ili Secret. Na kraju bio sam zatečen. Doboko u sebi osećao sam da u tome ima smisla. I ako sam tada znao mnogo manje nego što danas znam , počeo da primenjujem moć pozitivnih misli i da dajem sve od sebe da suzbijam negativne što više mogu. Želeo sam dve stvari i govorio u sebi &quot; Bože neka se desi sve što mora samo ne daj da skrenem sa puta umetnosti i da budem sa ženom koja me ne voli.&quot; Ljubav je došla ali se činilo da mi umetnost okreće ledja. Pod utiskom Tajne , verovao sam . Usledio je poziv za moj budući bend. A sada znam da je samo taj poziv mogao da me zadrži da ponovo ne odem u Italiju i tamo ostanem da živim pogrešan život. Tada sam shvatio da moja ogromna želja izaziva buduće dogadjaje... Najveće tajne kriju se na najočiglednijim mestima.Pred očima i dušom. Istraživajući shvatio sam da je čuveni analitički psiholog Karl Jung posvetio skoro 30 godina istraživanju povezanosti misli i budućnosti. Zaključak nazvao je sinhronicitet. Ko želi da pomogne radu FES TV kanala može to uciniti uplatom na moj - 1 - PayPal preko ovog linka - PayPal.Me/FESTVyoutubechannel 2 - Telenor Banka na racun 115-0381628762378-88 Mnogo hvala svakome ko to uradi ! Who wants to help me on the way to the truth can donate through this PayPal link - PayPal.Me/FESTVyoutubechannel Thank you very much ! Zbog mnogo poruka , mejlova i komentara koje dobijam od vas nisam u mogucnosti da svakom odgovorim. Iz tog razloga ako imte neko važno pitanje da mi postavite , pišite mi na mail - [email protected] Because of the many messages and comments I get from you, I&#39;m not able to answer everyone. For this reason, if you have an important question to ask me, write me a mail - [email protected]
+&lt;/media:description&gt;
+&lt;media:community&gt;
+&lt;media:starRating count=&quot;2656&quot; average=&quot;4.90&quot; min=&quot;1&quot; max=&quot;5&quot;/&gt;
+&lt;media:statistics views=&quot;58887&quot;/&gt;
+&lt;/media:community&gt;
+&lt;/media:group&gt;
+&lt;/entry&gt;
+&lt;/feed&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RSS フィードは XML
+                    を返す必要があります。そのため、ActiveSupport gem
+                    を使用して解析できます。</p>
+                    <pre><code>require &#39;rss&#39;
+require &#39;active_support/core_ext/hash&#39;
+
+rss = RSS::Parser.parse( &quot;https://www.youtube.com/feeds/videos.xml?channel_id=UCAUZpKBrZ-QP72Y0blet6DA&quot;, false)
+
+array = rss.entries.map do |e|
+  Hash.from_xml(e.to_s)
+end
+
+# here is exactly what is contained in this array:
+array.each{|i| puts i.inspect}
+#returns
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:bXrwymDw4_Q&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=bXrwymDw4_Q&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-09-13T18:00:00+00:00&quot;, &quot;title&quot;=&gt;&quot;ONI NE ŽELE DA OVO ZNATE | Nemoguće slučajnosti i skrivena znanja&quot;, &quot;updated&quot;=&gt;&quot;2019-09-15T23:51:10+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:j4XZPSTv7Ng&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=j4XZPSTv7Ng&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-09-05T18:01:10+00:00&quot;, &quot;title&quot;=&gt;&quot;RTANJ | Tajna najveće prirodne Piramide krije se u dubini !&quot;, &quot;updated&quot;=&gt;&quot;2019-09-10T05:37:24+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:pS1ciuLX_jQ&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=pS1ciuLX_jQ&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-08-28T18:00:38+00:00&quot;, &quot;title&quot;=&gt;&quot;Nestaje 30% Amazona-a | Istina koju niko ne govori&quot;, &quot;updated&quot;=&gt;&quot;2019-09-02T11:51:42+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:mvrdXJYRN3o&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=mvrdXJYRN3o&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-08-22T19:31:38+00:00&quot;, &quot;title&quot;=&gt;&quot;Magnetna letelica NIKOLE TESLE | Strogo čuvana tajna slobodne energije&quot;, &quot;updated&quot;=&gt;&quot;2019-08-25T01:24:21+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:uoJgcG2pG7U&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=uoJgcG2pG7U&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-08-16T18:00:07+00:00&quot;, &quot;title&quot;=&gt;&quot;OTKRIVENO ! Voda stara koliko i Zemlja ! U dubini leži ogromna količina vode..&quot;, &quot;updated&quot;=&gt;&quot;2019-08-21T06:23:51+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:OtB3nlfDTlg&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=OtB3nlfDTlg&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-26T18:00:16+00:00&quot;, &quot;title&quot;=&gt;&quot;IDENTIČNI | Video koji otvara Pandorinu kutiju&quot;, &quot;updated&quot;=&gt;&quot;2019-09-13T23:25:13+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:1WW3I6gpaI0&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=1WW3I6gpaI0&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-19T18:34:41+00:00&quot;, &quot;title&quot;=&gt;&quot;Strogo čuvana tajna | Video koji menja SVE&quot;, &quot;updated&quot;=&gt;&quot;2019-07-21T23:26:27+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:A3WYfyqUtCM&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=A3WYfyqUtCM&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-13T18:14:19+00:00&quot;, &quot;title&quot;=&gt;&quot;Dron snimio 2 UFO objekta iznad Hrvatske...NOVO !!&quot;, &quot;updated&quot;=&gt;&quot;2019-09-13T23:18:54+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:LLSfQOeYOXw&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=LLSfQOeYOXw&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-11T20:18:35+00:00&quot;, &quot;title&quot;=&gt;&quot;Edward Snowden - Video koji će vas dobro zamisliti !&quot;, &quot;updated&quot;=&gt;&quot;2019-09-16T02:04:09+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:pg21KbJGGQ8&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=pg21KbJGGQ8&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-06T18:02:18+00:00&quot;, &quot;title&quot;=&gt;&quot;Rover sa MARS-a poslao zbunjujuću SLIKU ?&quot;, &quot;updated&quot;=&gt;&quot;2019-09-10T05:17:19+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:sWXJCoakSGg&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=sWXJCoakSGg&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-07-04T18:00:40+00:00&quot;, &quot;title&quot;=&gt;&quot;Od MUNJE do 5G MREŽE | Video o misteriji tehnologije&quot;, &quot;updated&quot;=&gt;&quot;2019-09-15T23:46:36+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:CjQRz-QBN0M&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=CjQRz-QBN0M&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-06-29T17:02:11+00:00&quot;, &quot;title&quot;=&gt;&quot;Doktori koji su otkrili začudjujuće činjenice o mozgu !&quot;, &quot;updated&quot;=&gt;&quot;2019-09-01T10:39:17+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:4lRH5mlP55g&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=4lRH5mlP55g&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-06-21T18:45:25+00:00&quot;, &quot;title&quot;=&gt;&quot;Ukrajinski UFO slučaj...Istina se pokazala neočekivano...!&quot;, &quot;updated&quot;=&gt;&quot;2019-07-27T04:12:15+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:9Rbm6rf71DE&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=9Rbm6rf71DE&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-06-19T18:52:03+00:00&quot;, &quot;title&quot;=&gt;&quot;BIONI su šta ?... Ovo će vas dobro zamisliti ( neverovatan intervju ) ! Goran Mitić&quot;, &quot;updated&quot;=&gt;&quot;2019-08-25T01:12:55+00:00&quot;}}
+{&quot;entry&quot;=&gt;{&quot;author&quot;=&gt;{&quot;name&quot;=&gt;&quot;FES TV&quot;, &quot;uri&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}, &quot;id&quot;=&gt;&quot;yt:video:X-CpIriD99M&quot;, &quot;link&quot;=&gt;{&quot;href&quot;=&gt;&quot;https://www.youtube.com/watch?v=X-CpIriD99M&quot;, &quot;rel&quot;=&gt;&quot;alternate&quot;}, &quot;published&quot;=&gt;&quot;2019-06-17T19:40:42+00:00&quot;, &quot;title&quot;=&gt;&quot;UŽIVO -  Da pomogne brat bratu i sestra sestri&quot;, &quot;updated&quot;=&gt;&quot;2019-07-02T22:48:42+00:00&quot;}}
+</code></pre>
+                    <p>問題は、これには質問に貼り付けた XML
+                    が含まれていないため、そのまま定義しましょう。</p>
+                    <pre><code>xml  = &lt;&lt;-XML
+    &lt;feed xmlns:yt=&quot;http://www.youtube.com/xml/schemas/2015&quot; xmlns:media=&quot;http://search.yahoo.com/mrss/&quot; xmlns=&quot;http://www.w3.org/2005/Atom&quot;&gt;
+    &lt;link rel=&quot;self&quot; href=&quot;http://www.youtube.com/feeds/videos.xml?channel_id=UCAUZpKBrZ-QP72Y0blet6DA&quot;/&gt;
+    &lt;id&gt;yt:channel:UCAUZpKBrZ-QP72Y0blet6DA&lt;/id&gt;
+    &lt;yt:channelId&gt;UCAUZpKBrZ-QP72Y0blet6DA&lt;/yt:channelId&gt;
+    &lt;title&gt;FES TV&lt;/title&gt;
+    &lt;link rel=&quot;alternate&quot; href=&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;/&gt;
+    &lt;author&gt;
+    &lt;name&gt;FES TV&lt;/name&gt;
+    &lt;uri&gt;
+    https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA
+    &lt;/uri&gt;
+    &lt;/author&gt;
+    &lt;published&gt;2017-07-11T18:35:49+00:00&lt;/published&gt;
+    &lt;entry&gt;
+    &lt;id&gt;yt:video:bXrwymDw4_Q&lt;/id&gt;
+    &lt;yt:videoId&gt;bXrwymDw4_Q&lt;/yt:videoId&gt;
+    &lt;yt:channelId&gt;UCAUZpKBrZ-QP72Y0blet6DA&lt;/yt:channelId&gt;
+    &lt;title&gt;...&lt;/title&gt;
+    &lt;link rel=&quot;alternate&quot; href=&quot;https://www.youtube.com/watch?v=bXrwymDw4_Q&quot;/&gt;
+    &lt;author&gt;...&lt;/author&gt;
+    &lt;published&gt;2019-09-13T18:00:00+00:00&lt;/published&gt;
+    &lt;updated&gt;2019-09-15T23:51:10+00:00&lt;/updated&gt;
+    &lt;media:group&gt;
+    &lt;media:title&gt;
+    ONI NE ŽELE DA OVO ZNATE | Nemoguće slučajnosti i skrivena znanja
+    &lt;/media:title&gt;
+    &lt;media:content url=&quot;https://www.youtube.com/v/bXrwymDw4_Q?version=3&quot; type=&quot;application/x-shockwave-flash&quot; width=&quot;640&quot; height=&quot;390&quot;/&gt;
+    &lt;media:thumbnail url=&quot;https://i3.ytimg.com/vi/bXrwymDw4_Q/hqdefault.jpg&quot; width=&quot;480&quot; height=&quot;360&quot;/&gt;
+    &lt;media:description&gt;
+    Sećam se bilo je to davno kada sam pogledao dokumentarac pod nazivom Tajna ili Secret. Na kraju bio sam zatečen. Doboko u sebi osećao sam da u tome ima smisla. I ako sam tada znao mnogo manje nego što danas znam , počeo da primenjujem moć pozitivnih misli i da dajem sve od sebe da suzbijam negativne što više mogu. Želeo sam dve stvari i govorio u sebi &quot; Bože neka se desi sve što mora samo ne daj da skrenem sa puta umetnosti i da budem sa ženom koja me ne voli.&quot; Ljubav je došla ali se činilo da mi umetnost okreće ledja. Pod utiskom Tajne , verovao sam . Usledio je poziv za moj budući bend. A sada znam da je samo taj poziv mogao da me zadrži da ponovo ne odem u Italiju i tamo ostanem da živim pogrešan život. Tada sam shvatio da moja ogromna želja izaziva buduće dogadjaje... Najveće tajne kriju se na najočiglednijim mestima.Pred očima i dušom. Istraživajući shvatio sam da je čuveni analitički psiholog Karl Jung posvetio skoro 30 godina istraživanju povezanosti misli i budućnosti. Zaključak nazvao je sinhronicitet. Ko želi da pomogne radu FES TV kanala može to uciniti uplatom na moj - 1 - PayPal preko ovog linka - PayPal.Me/FESTVyoutubechannel 2 - Telenor Banka na racun 115-0381628762378-88 Mnogo hvala svakome ko to uradi ! Who wants to help me on the way to the truth can donate through this PayPal link - PayPal.Me/FESTVyoutubechannel Thank you very much ! Zbog mnogo poruka , mejlova i komentara koje dobijam od vas nisam u mogucnosti da svakom odgovorim. Iz tog razloga ako imte neko važno pitanje da mi postavite , pišite mi na mail - [email protected] Because of the many messages and comments I get from you, I&#39;m not able to answer everyone. For this reason, if you have an important question to ask me, write me a mail - [email protected]
+    &lt;/media:description&gt;
+    &lt;media:community&gt;
+    &lt;media:starRating count=&quot;2656&quot; average=&quot;4.90&quot; min=&quot;1&quot; max=&quot;5&quot;/&gt;
+    &lt;media:statistics views=&quot;58887&quot;/&gt;
+    &lt;/media:community&gt;
+    &lt;/media:group&gt;
+    &lt;/entry&gt;
+    &lt;/feed&gt;
+    XML
+array = Hash.from_xml()
+</code></pre>
+                    <p>海苔原石を使用</p>
+                    <p>名前空間タグを処理できるようなので、最初に gem
+                    install nori を実行します。次に、コード内で</p>
+                    <pre><code>require &#39;nori&#39;
+
+# now the easy nori magic
+parser = Nori.new
+hash = parser.parse(xml)
+pp hash
+=&gt;{&quot;feed&quot;=&gt;
+  {&quot;link&quot;=&gt;
+    [{&quot;@rel&quot;=&gt;&quot;self&quot;,
+      &quot;@href&quot;=&gt;
+       &quot;http://www.youtube.com/feeds/videos.xml?channel_id=UCAUZpKBrZ-QP72Y0blet6DA&quot;},
+     {&quot;@rel&quot;=&gt;&quot;alternate&quot;,
+      &quot;@href&quot;=&gt;&quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA&quot;}],
+   &quot;id&quot;=&gt;&quot;yt:channel:UCAUZpKBrZ-QP72Y0blet6DA&quot;,
+   &quot;yt:channelId&quot;=&gt;&quot;UCAUZpKBrZ-QP72Y0blet6DA&quot;,
+   &quot;title&quot;=&gt;&quot;FES TV&quot;,
+   &quot;author&quot;=&gt;
+    {&quot;name&quot;=&gt;&quot;FES TV&quot;,
+     &quot;uri&quot;=&gt;
+      &quot;\n&quot; + &quot;https://www.youtube.com/channel/UCAUZpKBrZ-QP72Y0blet6DA\n&quot;},
+   &quot;published&quot;=&gt;Tue, 11 Jul 2017 18:35:49 +0000,
+   &quot;entry&quot;=&gt;
+    {&quot;id&quot;=&gt;&quot;yt:video:bXrwymDw4_Q&quot;,
+     &quot;yt:videoId&quot;=&gt;&quot;bXrwymDw4_Q&quot;,
+     &quot;yt:channelId&quot;=&gt;&quot;UCAUZpKBrZ-QP72Y0blet6DA&quot;,
+     &quot;title&quot;=&gt;&quot;...&quot;,
+     &quot;link&quot;=&gt;
+      {&quot;@rel&quot;=&gt;&quot;alternate&quot;,
+       &quot;@href&quot;=&gt;&quot;https://www.youtube.com/watch?v=bXrwymDw4_Q&quot;},
+     &quot;author&quot;=&gt;&quot;...&quot;,
+     &quot;published&quot;=&gt;Fri, 13 Sep 2019 18:00:00 +0000,
+     &quot;updated&quot;=&gt;Sun, 15 Sep 2019 23:51:10 +0000,
+     &quot;media:group&quot;=&gt;
+      {&quot;media:title&quot;=&gt;
+        &quot;\n&quot; +
+        &quot;ONI NE ŽELE DA OVO ZNATE | Nemoguće slučajnosti i skrivena znanja\n&quot;,
+       &quot;media:content&quot;=&gt;
+        {&quot;@url&quot;=&gt;&quot;https://www.youtube.com/v/bXrwymDw4_Q?version=3&quot;,
+         &quot;@type&quot;=&gt;&quot;application/x-shockwave-flash&quot;,
+         &quot;@width&quot;=&gt;&quot;640&quot;,
+         &quot;@height&quot;=&gt;&quot;390&quot;},
+       &quot;media:thumbnail&quot;=&gt;
+        {&quot;@url&quot;=&gt;&quot;https://i3.ytimg.com/vi/bXrwymDw4_Q/hqdefault.jpg&quot;,
+         &quot;@width&quot;=&gt;&quot;480&quot;,
+         &quot;@height&quot;=&gt;&quot;360&quot;},
+       &quot;media:description&quot;=&gt;
+        &quot;\n&quot; +
+        &quot;Sećam se bilo je to davno kada sam pogledao dokumentarac pod nazivom Tajna ili Secret. Na kraju bio sam zatečen. Doboko u sebi osećao sam da u tome ima smisla. I ako sam tada znao mnogo manje nego što danas znam , počeo da primenjujem moć pozitivnih misli i da dajem sve od sebe da suzbijam negativne što više mogu. Želeo sam dve stvari i govorio u sebi \&quot; Bože neka se desi sve što mora samo ne daj da skrenem sa puta umetnosti i da budem sa ženom koja me ne voli.\&quot; Ljubav je došla ali se činilo da mi umetnost okreće ledja. Pod utiskom Tajne , verovao sam . Usledio je poziv za moj budući bend. A sada znam da je samo taj poziv mogao da me zadrži da ponovo ne odem u Italiju i tamo ostanem da živim pogrešan život. Tada sam shvatio da moja ogromna želja izaziva buduće dogadjaje... Najveće tajne kriju se na najočiglednijim mestima.Pred očima i dušom. Istraživajući shvatio sam da je čuveni analitički psiholog Karl Jung posvetio skoro 30 godina istraživanju povezanosti misli i budućnosti. Zaključak nazvao je sinhronicitet. Ko želi da pomogne radu FES TV kanala može to uciniti uplatom na moj - 1 - PayPal preko ovog linka - PayPal.Me/FESTVyoutubechannel 2 - Telenor Banka na racun 115-0381628762378-88 Mnogo hvala svakome ko to uradi ! Who wants to help me on the way to the truth can donate through this PayPal link - PayPal.Me/FESTVyoutubechannel Thank you very much ! Zbog mnogo poruka , mejlova i komentara koje dobijam od vas nisam u mogucnosti da svakom odgovorim. Iz tog razloga ako imte neko važno pitanje da mi postavite , pišite mi na mail - [email protected] Because of the many messages and comments I get from you, I&#39;m not able to answer everyone. For this reason, if you have an important question to ask me, write me a mail - [email protected]\n&quot;,
+       &quot;media:community&quot;=&gt;
+        {&quot;media:starRating&quot;=&gt;
+          {&quot;@count&quot;=&gt;&quot;2656&quot;, &quot;@average&quot;=&gt;&quot;4.90&quot;, &quot;@min&quot;=&gt;&quot;1&quot;, &quot;@max&quot;=&gt;&quot;5&quot;},
+         &quot;media:statistics&quot;=&gt;{&quot;@views&quot;=&gt;&quot;58887&quot;}}}},
+   &quot;@xmlns:yt&quot;=&gt;&quot;http://www.youtube.com/xml/schemas/2015&quot;,
+   &quot;@xmlns:media&quot;=&gt;&quot;http://search.yahoo.com/mrss/&quot;,
+   &quot;@xmlns&quot;=&gt;&quot;http://www.w3.org/2005/Atom&quot;}}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

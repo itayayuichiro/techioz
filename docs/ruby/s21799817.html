@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>したがって、配列にできるのは @blogs = Blog.all だけです。そして、このコードは私にはあまり意味がないようです。次の行の Blog.all に置き換えるためだけに Blog.find を実行するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "したがって、配列にできるのは @blogs = Blog.all だけです。そして、このコードは私にはあまり意味がないようです。次の行の Blog.all に置き換えるためだけに Blog.find を実行するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>したがって、配列にできるのは <span
+class="citation" data-cites="blogs">@blogs</span> = Blog.all
+だけです。そして、このコードは私にはあまり意味がないようです。次の行の
+Blog.all に置き換えるためだけに Blog.find を実行するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サンドボックスモードの追跡Webサイト用に、次のRubyコードがあります。</p>
+                    <pre><code>require &quot;net/http&quot;
+require &quot;net/https&quot;
+require &quot;uri&quot;
+
+xml = &lt;&lt;XML
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot; standalone=&quot;no&quot;?&gt;&lt;data appname=&quot;dhl_entwicklerportal&quot; language-code=&quot;de&quot; password=&quot;Dhl_123!&quot; request=&quot;get-status-for-public-user&quot;&gt;&lt;data piece-code=&quot;00340433836536550280&quot;&gt;&lt;/data&gt;&lt;/data&gt;
+XML
+
+uri = URI(&#39;https://cig.dhl.de/services/sandbox/rest/sendungsverfolgung&#39;)
+
+nhttp = Net::HTTP.new(uri.host, uri.port)
+nhttp.use_ssl=true
+nhttp.verify_mode=OpenSSL::SSL::VERIFY_NONE
+request = Net::HTTP::Get.new(uri)
+request.basic_auth &#39;xpackageWP&#39;, &#39;hidden&#39;
+response = nhttp.start {|http|
+http.request(request, xml:xml)
+}
+
+puts response.body
+</code></pre>
+                    <p>いつもエラーが発生します:</p>
+                    <pre><code>d:/Ruby200/lib/ruby/2.0.0/net/http/generic_request.rb:179:in `send_request_with_body&#39; undefined method `bytesize&#39; for #&lt;Hash:0x2954fe8&gt; (NoMethodError)
+from d:/Ruby200/lib/ruby/2.0.0/net/http/generic_request.rb:130:in `exec&#39;
+from d:/Ruby200/lib/ruby/2.0.0/net/http.rb:1404:in `block in transport_request&#39;
+from d:/Ruby200/lib/ruby/2.0.0/net/http.rb:1403:in `catch&#39;
+from d:/Ruby200/lib/ruby/2.0.0/net/http.rb:1403:in `transport_request&#39;
+from d:/Ruby200/lib/ruby/2.0.0/net/http.rb:1376:in `request&#39;
+from D:/Dropbox_5BHIF/Dropbox/TempDHL/Main.rb:17:in `block in &lt;main&gt;&#39;
+from d:/Ruby200/lib/ruby/2.0.0/net/http.rb:852:in `start&#39;
+from D:/Dropbox_5BHIF/Dropbox/TempDHL/Main.rb:16:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>これを解決しようと一生懸命努力しましたが、何も問題が思い当たりません。
+                    ブラウザで Link と ?xml=
+                    を使用してテストすると、完全に動作するため、Ruby
+                    コードに問題があるようです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>投稿データをハッシュとして送信しています。文字列としてエンコードする必要があります。</p>
+                    <p>たとえば、URI::encode_www_form
+                    を使用する場合:</p>
+                    <pre><code>request = Net::HTTP::Post.new(uri)
+...
+response = nhttp.start do |http|
+  post_data = URI.encode_www_form({xml: xml})
+  http.request(request, post_data)
+end
+</code></pre>
+                    <p>UPDATE GET リクエストが必要な場合は、URL
+                    にクエリ文字列を追加します。</p>
+                    <pre><code>post_data = URI.encode_www_form({xml: xml})
+uri = URI(&#39;https://cig.dhl.de/services/sandbox/rest/sendungsverfolgung?&#39; +
+          post_data)
+
+...
+
+response = nhttp.start do |http|
+  http.request(request)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

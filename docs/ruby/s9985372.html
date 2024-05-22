@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby FFIでのchar配列の宣言 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby FFIでのchar配列の宣言",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby FFIでのchar配列の宣言</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の C コードがあります。</p>
+                    <pre><code>typedef void (*mycallback) (char buf[128]);
+void take_callback(mycallback cb)
+{
+}
+</code></pre>
+                    <p>以下のように、同等の Ruby FFI 宣言を作成しました
+                    (FFI wiki の構造体に関するアドバイスに従って)。</p>
+                    <pre><code>  callback :mycallback, [[:char, 128]], :void
+  attach_function :take_callback, [:mycallback], :void
+</code></pre>
+                    <p>実行すると、次のエラーが表示されます。</p>
+                    <pre><code>`find_type&#39;: unable to resolve type &#39;[:char, 128]&#39; (TypeError)
+</code></pre>
+                    <p>コールバックで char
+                    配列を正しく宣言していないようです。 C
+                    の関数の引数で配列が機能する方法から、 [:char, 128]
+                    の代わりに :pointer
+                    を使用する必要があると思います。しかし、FFI
+                    の特殊性についてはよくわかりません。ここで実際に正しい構文は何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>C
+                    では配列は値によって渡されません。配列は最初の要素へのポインタとして渡されるため、:pointer
+                    (または char * に通常使用されるもの)
+                    は正しいはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>メインの後にラックミドルウェアを使用できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "メインの後にラックミドルウェアを使用できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>メインの後にラックミドルウェアを使用できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ラックのミドルウェアの順序がどのように機能するかを理解しようとしています。このミドルウェアを持っています</p>
+                    <pre><code>class Middleware1
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    puts &quot;Middleware 1 start&quot;
+    status, headers, body = response = @app.call(env)
+    puts &quot;Middleware 1 to return&quot;
+    response
+  end
+end
+</code></pre>
+                    <p>そして私はメインアプリケーションの後にそれを呼び出しています</p>
+                    <pre><code>require_relative &quot;lib/middleware1&quot;
+
+class MyApp
+  def call(env)
+    puts &quot;main calling&quot;
+    [200, {}, [&quot;Hello World&quot;]]
+  end
+end
+
+run MyApp.new
+use Middleware1
+</code></pre>
+                    <p>main が戻った後、Middleware1
+                    は実行されないと思いました。ただし、出力にはミドルウェアが最初に呼び出されることが示されています。ここにログがあります</p>
+                    <pre><code>Middleware 1 start
+main calling
+Middleware 1 to return
+</code></pre>
+                    <p>なぜ Middleware1
+                    が最初に呼び出されるのですか?何か特別な理由があるのでしょうか？ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ミドルウェアは、アプリケーションとクライアントの間に存在する層です。</p>
+                    <p>クライアント、アプリケーション、およびそのミドルウェア間の通信フローは次のとおりです。</p>
+                    <pre><code>    ┌────────────┐      ┌────────────┐      ┌─────────────┐
+    │            ├──1──▶│            ├──2──▶│             │
+    │   Client   │      │ Middleware │      │ Application │
+    │            │◀──4──┤            │◀──3──┤             │
+    └────────────┘      └────────────┘      └─────────────┘
+</code></pre>
+                    <p>つまり、ミドルウェアは実際にはアプリケーションのラッパーであり、アプリケーションの前だけでなくアプリケーションの後でも実行されます。</p>
+                    <p>これには、受信および転送されたリクエスト、アプリケーションによって返された応答、および実際にクライアントに返された応答を読み取りおよび/または操作するための完全なアクセス権があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ルビィ「決まった？」オペレータの動作が間違っていますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ルビィ「決まった？」オペレータの動作が間違っていますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ルビィ「決まった？」オペレータの動作が間違っていますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コードは次のようになります。</p>
+                    <pre><code>class Foo
+  def bar
+    puts &quot;Before existent: #{(defined? some_variable)}&quot;
+    puts &quot;Before not_existent: #{(defined? nonexistent_variable)}&quot;
+
+    raise &quot;error&quot;
+
+    some_variable = 42
+  rescue
+    puts &quot;exception&quot;
+  ensure
+    puts &quot;Ensure existent: #{(defined? some_variable)}&quot;
+    puts &quot;Ensure not_existent: #{(defined? nonexistent_variable)}&quot;
+  end
+end
+</code></pre>
+                    <p>そしてそれを irb から呼び出します。</p>
+                    <pre><code>&gt; Foo.new.bar
+</code></pre>
+                    <p>そして、つまり、次のものが返されます:</p>
+                    <pre><code>Before existent:
+Before not_existent:
+exception
+Ensure existent: local-variable
+Ensure not_existent:
+=&gt; nil
+</code></pre>
+                    <p>そして次は疑問です - なぜですか？ some_variable
+                    を定義する前に例外を発生させました。
+                    なぜこのように機能するのでしょうか? some_variable が
+                    ensure ブロックで定義されているのはなぜですか?
+                    (ちなみに、nilとして定義されています)</p>
+                    <p>アップデート： <span class="citation"
+                    data-cites="Maxの回答に感謝しますが">@Maxの回答に感謝しますが</span>、インスタンス変数を使用するようにコードを変更すると、次のようになります。</p>
+                    <pre><code>class Foo
+  def bar
+    puts &quot;Before existent: #{(defined? @some_variable)}&quot;
+    puts &quot;Before not_existent: #{(defined? @nonexistent_variable)}&quot;
+
+    raise &quot;error&quot;
+
+    @some_variable = 42
+  ensure
+    puts &quot;Ensure existent: #{(defined? @some_variable)}&quot;
+    puts &quot;Ensure not_existent: #{(defined? @nonexistent_variable)}&quot;
+  end
+end
+</code></pre>
+                    <p>期待通りに動作します:</p>
+                    <pre><code>Before existent:
+Before not_existent:
+Ensure existent:
+Ensure not_existent:
+</code></pre>
+                    <p>なぜ？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初に気づくのは、それが定義されているかどうかです。はメソッドではなくキーワードです。つまり、実行時に動的に検索するのではなく、構文ツリーの構築時に
+                    (if、return、next などと同様に)
+                    解析中にインタープリターによって認識される独自の特別な
+                    VM 命令があることを意味します。</p>
+                    <p>これがなぜ定義されるのでしょうか？パーサーはその引数を通常の評価プロセスから除外できるため、通常エラーが発生する式を処理できます:
+                    定義済み?(これは一体何ですか) #=&gt; nil。</p>
+                    <p>キーワードであっても、その動作は実行時に決定されます。パーサーマジックを使用して、その引数がインスタンス変数、定数、メソッドなどであるかどうかを判断しますが、その後、通常の
+                    Ruby
+                    メソッドを呼び出して、これらの特定の型が実行時に定義されているかどうかを判断します。</p>
+                    <pre><code>// ...
+case DEFINED_GVAR:
+if (rb_gvar_defined(rb_global_entry(SYM2ID(obj)))) {
+    expr_type = DEFINED_GVAR;
+}
+break;
+case DEFINED_CVAR:
+// ...
+if (rb_cvar_defined(klass, SYM2ID(obj))) {
+    expr_type = DEFINED_CVAR;
+}
+break;
+case DEFINED_CONST:
+// ...
+if (vm_get_ev_const(th, klass, SYM2ID(obj), 1)) {
+    expr_type = DEFINED_CONST;
+}
+break;
+// ...
+</code></pre>
+                    <p>その rb_cvar_define 関数は、たとえば
+                    Module#class_variable_define?
+                    によって呼び出される関数と同じです。</p>
+                    <p>それで定義されましたか？変だ。本当に奇妙だ。その動作は引数に応じて大きく異なる可能性があり、異なる
+                    Ruby
+                    実装間で同じであるとは思えません。これに基づいて、私はそれを使用せず、代わりに
+                    Ruby の *_define?
+                    を使用することをお勧めします。可能な限り方法を使用します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

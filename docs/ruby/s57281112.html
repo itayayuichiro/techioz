@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RabbitMQ で他のコンシューマが利用可能な場合、コンシューマにメッセージがスタックされる - レールにバニーを使用する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RabbitMQ で他のコンシューマが利用可能な場合、コンシューマにメッセージがスタックされる - レールにバニーを使用する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RabbitMQ
+で他のコンシューマが利用可能な場合、コンシューマにメッセージがスタックされる
+- レールにバニーを使用する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RabbitMQ のキュー
+                    メッセージは、他のコンシューマが利用可能な間、スタックされて単一のコンシューマを待機します。</p>
+                    <p>私たちはメッセンジャーサービスとして RabbitMQ
+                    を使用しています。バニーを使用して接続を作成し、メッセージを渡すキューを設定します。</p>
+                    <p>Bunny を使用した Rails セットアップでは、1
+                    つのキューがあり、8
+                    人のコンシューマーがそのキューでメッセージをリッスンしているという問題が発生しています。メッセージが受信されると、理想的にはコンシューマをラウンドロビンする必要があります。例:
+                    キューに 4 つのメッセージがあり、コンシューマ 1
+                    がメッセージ 1 を取得します。 - コンシューマ 1
+                    はビジーで、コンシューマ 2 はメッセージ 2
+                    を取得します。コンシューマ 2
+                    はビジーで、コンシューマ 3メッセージ 3
+                    を取得します。</p>
+                    <p>しかし、私たちが抱えている問題は、キュー内に 4
+                    つのメッセージがあり、コンシューマ 1 がメッセージ 1
+                    を取得し、コンシューマ 1 はビジーで、コンシューマ 2
+                    ～ 8 は利用可能ですが、メッセージ 2 ～ 4
+                    はキュー内でコンシューマ 1
+                    が利用可能になるのを待っているということです。メッセージを処理します。</p>
+                    <p>たくさんの調査を行ったような気がしますが、メッセージがスタックして単一のコンシューマを待機するのを防ぐ方法がまったくわかりません。</p>
+                    <p>このような経験をした人、またはこの問題を解決する方法について何かアイデアを持っている人はいますか?</p>
+                    <pre><code>conn = Bunny.new(bunny[0])
+conn.start
+ch = conn.create_channel
+q = ch.queue(&quot;#{record_queue_name}&quot;, :durable =&gt; true)
+q.subscribe(:manual_ack =&gt; true, :arguments =&gt; {&quot;x-priority&quot; =&gt; 10}, :block =&gt; true) do |delivery_info, properties, payload|
+ch.acknowledge(delivery_info.delivery_tag, false)
+</code></pre>
+                    <p>私たちは、メッセージが RabbitMQ
+                    に送信されるたびに、コンシューマが先着順でメッセージを取得することを望んでいます。他のメッセージが利用可能なときにビジーなコンシューマを待って複数のメッセージがスタックされるのではありません。</p>
+                    <p>編集： 再現方法: 3
+                    つのコンシューマを同時に起動します。 6
+                    つのメッセージをプッシュスルーします -
+                    コンシューマー 1 ～ 3 は現在、キュー内の 3
+                    つのメッセージでビジー状態です。 2 と 3
+                    を再起動します。2 と 3
+                    が再度リッスンすると、コンシューマ 1
+                    を待機しているキューで 3
+                    つのメッセージがまだ待機しています。コンシューマ 2
+                    と 3 はまだ利用可能です。</p>
+                    <p>コンシューマー 1
+                    を再起動します。キューに入れられた 3
+                    つのメッセージが、新しく再起動されたコンシューマー 2
+                    と 3 に最初のサーバーに送られます。</p>
+                    <p>コンシューマが再起動するかどうかに関係なく、メッセージを先着順のサーバーに送信する必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RabbitMQ は意図したとおりに動作しています。</p>
+                    <p>コードでは QoS /
+                    プリフェッチを設定していないため、RabbitMQ は 6
+                    つのメッセージすべてを最初のコンシューマーに送信します。このコンシューマーはメッセージを確認するのに時間がかかるため
+                    (コード内の 45
+                    秒のスリープによってシミュレートされています)、他の
+                    2 つのコンシューマーが何も処理できる間、これらの 6
+                    つは「未確認」状態のままになります。 6
+                    つのメッセージはすべて「Unacked」状態で最初のコンシューマからの
+                    ACK を待っているため、他の 2
+                    つのコンシューマを再起動しても効果はありません。</p>
+                    <p>最初のコンシューマを再起動すると、RabbitMQ
+                    は接続の切断を検出し、6
+                    つのメッセージをキューに入れて「準備完了」状態にし、(おそらく)
+                    6
+                    つすべてを別のコンシューマに配信します。すると問題が繰り返します。</p>
+                    <p>プリフェッチの設定方法については、この実行可能なコード
+                    サンプルを参照してください。プリフェッチが 1
+                    の場合、RabbitMQ は最大でも 1
+                    つのメッセージをコンシューマに配信し、ACK
+                    を待ってから別のメッセージをそのコンシューマに配信します。このようにして、メッセージは消費者間で配信されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

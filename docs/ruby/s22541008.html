@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails にカスタム HTTP ステータス コード シンボルを追加する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails にカスタム HTTP ステータス コード シンボルを追加する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails にカスタム HTTP ステータス コード
+シンボルを追加する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>背景: 一般に、応答で返される HTTP ステータス
+                    コードを手動で指定したい場合、Rails
+                    は、それらの数値を明示的に使用するのではなく、使用する事前定義された人間が判読可能な
+                    Ruby
+                    シンボルの適切なセットを提供します。コード。</p>
+                    <p>たとえば、次のようなことができます。</p>
+                    <pre><code>render text: &quot;hurray!&quot;, status: :ok
+</code></pre>
+                    <p>もちろん、これは最終的にはこれと同じです。</p>
+                    <pre><code>render text: &quot;hurray!&quot;, status: 200
+</code></pre>
+                    <p>私の状況では、カスタム HTTP ステータス コード
+                    (数字 242 を任意に選択しました)
+                    をレンダリングしたいと思います。明らかに、このコードは標準ではなく、Rails
+                    内にシンボリック表現がないため、実際の数値を使用する必要があります。</p>
+                    <p>現在の解決策:
+                    コード内で比較的人間が読みやすいようにするために、次のように定数を定数ファイルの
+                    1 つに配置しました。</p>
+                    <p>初期化子/定数.rb</p>
+                    <pre><code>NEEDS_UPDATE_CODE = 242
+</code></pre>
+                    <p>そして、私のコントローラーでは次のようにレンダリングします。</p>
+                    <pre><code>render text: &quot;whatever I want to render&quot;, status: NEEDS_UPDATE_CODE
+</code></pre>
+                    <p>質問:
+                    これは明らかに問題なく動作しますが、カスタム HTTP
+                    ステータス コードの新しいシンボリック表現を Rails
+                    に追加する方法はあるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>質問を書いているときに答えを見つけました。現在SOで重複が見つからないため、他の誰かが同じ質問をした場合に備えてこの回答を投稿します。</p>
+                    <p>シンボル表現と HTTP ステータス
+                    コードのマッピングの初期セットは、Rack::Utils
+                    モジュールの SYMBOL_TO_STATUS_CODE
+                    というアクセス可能なハッシュにあります。さらに、人間が判読できるステータス
+                    コード マッピングは HTTP_STATUS_CODES
+                    にあります。</p>
+                    <p>コードでシンボリック表現を使用するために、これをイニシャライザに追加しました。</p>
+                    <pre><code>Rack::Utils::SYMBOL_TO_STATUS_CODE[:application_needs_update] = 242
+</code></pre>
+                    <p>これにより、そのシンボルを次のように使用できるようになります。</p>
+                    <pre><code>render text: &quot;whatever I want to render&quot;, status: :application_needs_update
+</code></pre>
+                    <p>残念ながら、rails ログには次のようなステータス
+                    コードのみが表示されます。</p>
+                    <p>これは、私のカスタム
+                    コードに慣れていない人にとってはあまり役に立ちません。これを修正するには、これを同じファイルに追加します。</p>
+                    <pre><code>Rack::Utils::HTTP_STATUS_CODES[242] = &quot;Application Needs Update&quot;
+</code></pre>
+                    <p>その結果、このコードを使用してリクエストが完了すると、ログには次のように表示されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

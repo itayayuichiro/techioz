@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>構成に応じて has_one_attached を追加するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "構成に応じて has_one_attached を追加するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>構成に応じて has_one_attached
+を追加するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>構成がactive_storageで有効になっている場合にqrコードを生成したいgemがあります</p>
+                    <pre><code>app/config/initializers/cryptocoin_payable.rb
+
+CryptocoinPayable.configure do |config|
+  config.qrcode = :active_storage
+end
+</code></pre>
+                    <pre><code>class CryptocoinPayable::CoinPayment &lt; ActiveRecord::Base
+
+if CryptoCoinPayable::Configuration.qrcode == :active_storage
+ has_one_attached :qrcode
+end
+
+end
+</code></pre>
+                    <p>うまくいかなかったので、</p>
+                    <pre><code>CryptoCoinPayable::Configuration is nil
+</code></pre>
+                    <p>初期化してから入れてみた</p>
+                    <pre><code>module CryptocoinPayable
+end
+
+if defined?(Rails)
+  module CryptocoinPayable
+    class Railtie &lt; Rails::Railtie
+
+      initializer &#39;cryptocoin_payable.active_storage&#39; do
+        ActiveSupport.on_load(:after_initialize) do
+          require &#39;cryptocoin_payable/coin_payment&#39;
+          if (CryptocoinPayable.configuration == :qrcode)
+            CryptocoinPayable::CoinPayment.has_one_attached(:qrcode)
+           end
+        end
+
+      end
+
+      rake_tasks do
+        path = File.expand_path(__dir__)
+        Dir.glob(&quot;#{path}/tasks/**/*.rake&quot;).each { |f| load f }
+      end
+    end
+  end
+end
+
+require &#39;cryptocoin_payable/config&#39;
+require &#39;cryptocoin_payable/errors&#39;
+require &#39;cryptocoin_payable/version&#39;
+require &#39;cryptocoin_payable/adapters&#39;
+</code></pre>
+                    <p>しかし、それは機能しません「qrcode」は未定義のメソッドです</p>
+                    <p>設定に応じてどうやって作ることができますか？</p>
+                    <p>レスポは次のとおりです:
+                    https://github.com/sbounmy/cryptocoin_payable</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>したがって、解決策は次のとおりです。</p>
+                    <p>active_storage
+                    が反映された後、正しく初期化されていることを確認してください。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/rails/blob/9064735ec5cd3c679f8ffabc42532dd85223af58/activestorage/lib/active_storage/engine.rb#L171
+                    (if you try after attached it will raise an
+                    unsupported Macro error)</p>
+                    <pre><code>      initializer &#39;cryptocoin_payable.active_storage&#39;, after: &#39;active_storage.reflection&#39; do
+    require &#39;cryptocoin_payable/coin_payment&#39;
+    config.after_initialize do
+      if CryptocoinPayable.configuration.qrcode?
+        CryptocoinPayable::CoinPayment.has_one_attached(:qrcode)
+      end
+    end
+  end
+</code></pre>
+                    <p>また、私の場合、cryptocoin_payable
+                    (定義済み?(Rails)) の前に spec_helper で ‘rails’
+                    を要求する必要があったので、rspec
+                    がレールタイを選択することを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

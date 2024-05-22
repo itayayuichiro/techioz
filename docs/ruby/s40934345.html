@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubocop 25 行ブロック サイズと RSpec テスト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubocop 25 行ブロック サイズと RSpec テスト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubocop 25 行ブロック サイズと RSpec
+テスト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>典型的な RSpec
+                    単体テストでは、コードを構造化するためにネストされた
+                    Ruby ブロックを広範囲に使用し、DSL
+                    の「マジック」を利用して仕様を BDD
+                    ステートメントのように読み取らせます。</p>
+                    <pre><code>describe Foo do
+  context &quot;with a bar&quot; do
+    before :each do
+      subject { Foo.new().add_bar }
+    end
+
+    it &quot;looks like a baz&quot; do
+      expect # etc
+</code></pre>
+                    <p>理想的な仕様では、各例は比較的短く正確なものにすることができます。ただし、外側のブロックが
+                    100 行以上になるのが通常のようです。これは、RSpec
+                    構造がこのように機能し、ブロックを説明するために、それぞれに数行の特定の設定が含まれる可能性のある多くの仕様例を必要としないためです。説明されている主題のコードと同じサイズまたはそれより大きいサイズ。</p>
+                    <p>Rubocop の最近のアップグレードにより、ブロックは
+                    25
+                    行を超えてはいけないという新しいルールが適用されました。
+                    Ruby
+                    スタイルガイドには記載されていないので、その根拠はわかりません。それがなぜ良いことであり、デフォルトのルールセットに追加されるのか理解できます。ただし、アップグレード後、Rubocop
+                    テストは、tests/component_spec.rb:151:3: C: Block
+                    has too many rows
+                    のようなメッセージが表示されて何度も失敗します。
+                    [68/25]</p>
+                    <p>Rubocop などのコード メトリック
+                    ツールを使用する場合、私は「デフォルトを使用し、スタイル
+                    ガイドにリンクし、仕事は完了する」というポリシーを持ちたいと考えています。
+                    (主に、タブかスペースかその他の細かい点について議論するのは時間の無駄であり、IME
+                    は決して解決されないからです)
+                    ここでそれは明らかに不可能です。当社の 2 つのコア
+                    データ品質ツールは、コード
+                    レイアウトのアプローチについて意見が一致していません。または、少なくともそれが私が結果を解釈する方法です。
+                    ,
+                    仕様の書き方に本質的に間違った点は見当たりません。</p>
+                    <p>それに応じて、Rubocop のブロック サイズ
+                    ルールを高いしきい値に設定しました。しかし、それは私に疑問を抱かせます
+                    - 私には何が欠けているのでしょうか？ RSpec はコード
+                    レイアウトに現在では信用されていないアプローチを使用しているのでしょうか?また、RSpec
+                    テストでブロック
+                    サイズを削減するにはどのような合理的なオプションが必要ですか?大きなブロックを避けるためにコードを再構築する方法はわかりますが、それらは例外なく純粋に
+                    Rubocop
+                    のルールを満たすことを目的とした醜いハックです。すべてのブロックをヘルパー関数に分割します。</p>
+                    <pre><code>def looks_like_a_baz
+  it &quot;looks like a baz&quot; do
+         expect # etc
+  end
+end
+
+def bar_context
+  context &quot;with a bar&quot; do
+    before :each do
+      subject { Foo.new().add_bar }
+    end
+    looks_like_a_baz
+  end
+end
+
+
+describe Foo do
+  bar_context
+  # etc
+</code></pre>
+                    <p>。 。
+                    。つまり、それは実行可能ですが、この方法で大量の仕様例をヘルパー関数に変換することは、RSpec
+                    の設計で奨励されている読みやすいアプローチとは逆であるように思えます。</p>
+                    <p>無視する方法を見つける以外に何かできることはありますか？</p>
+                    <p>このトピックに関して私がここで見つけた最も近い既存の質問は
+                    RSpec &amp; Rubocop / Ruby Style Guide
+                    で、これはテスト
+                    テンプレートを編集することで解決できるようでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>通常、特定のブロックが長すぎる場合は、ファイルではなくブロックを指定します。</p>
+                    <pre><code>Metrics/BlockLength:
+  AllowedMethods: [&#39;describe&#39;, &#39;context&#39;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

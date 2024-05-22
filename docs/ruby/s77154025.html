@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マルチユーザー電報ボット Ruby | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マルチユーザー電報ボット Ruby",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マルチユーザー電報ボット Ruby</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーごとに深い条件ツリーを備えたマルチプレイヤー
+                    ボットを作成する必要があります。
+                    ボットを同時に使用できるようにするには、複数のユーザーが必要です。そして、彼らのセッションはお互いに中断しません。
+                    非同期（または非同期が必要ない？）電報ボット Ruby
+                    を作成するにはどうすればよいですか?または、私のタスクを実現するための他の方法。
+                    私は gem telegram-bot-ruby を使用しています。
+                    以下のコードは、ボットを構築する方法の非常に簡単な例を示しています。しかし、複数のユーザーが同時にボットを使用し始めると、すべてが破綻します。
+                    それとも、私の問題は間違ったアプローチと実装にあるのでしょうか?
+                    アドバイスをよろしくお願いいたします。</p>
+                    <pre><code>Telegram::Bot::Client.run(token) do |bot|
+
+  bot.listen do |message|
+    case message.text
+    when &#39;/start&#39;
+      bot.api.send_message(chat_id: message.chat.id, text: &quot;Hello, enter name:&quot;)
+
+      bot.listen do |message2|
+        @name = message2.text
+        break
+      end
+
+      bot.api.send_message(chat_id: message.chat.id, text: &quot;Nice to meet you #{@name},now input age&quot;)
+
+      bot.listen do |message3| 
+        @age = message3.text
+        break
+      end
+
+    when &#39;/stop&#39;
+      bot.api.send_message(chat_id: message.chat.id, text: &quot;Bye&quot;)
+
+    else
+      bot.api.send_message(chat_id: message.chat.id, text: &quot;Enter /start &quot;)
+    end
+  end
+end
+</code></pre>
+                    <p>github でテレグラム Ruby
+                    ボットの実装例を調べてみたり、グーグルで検索したりしましたが、まだわかりません。ボットをスタンドアロン
+                    スクリプトとして作成します。レールは使いません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>マルチユーザーボットを使用するには、リスナーコードをスレッドでラップします。</p>
+                    <pre><code>Telegram::Bot::Client.run(token) do |bot|
+  bot.listen do |message|
+    Thread.start(message) do |message|
+      # make stuff
+    end
+  end
+end
+</code></pre>
+                    <p>すべてのセッションは別のスレッドで動作します</p>
+                    <p>その他、あなたのアイデアとして:</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

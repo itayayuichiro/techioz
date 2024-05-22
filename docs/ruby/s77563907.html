@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Faraday::UploadIO テレグラム API の後にファイルを別のフォルダーに移動できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Faraday::UploadIO テレグラム API の後にファイルを別のフォルダーに移動できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Faraday::UploadIO テレグラム API
+の後にファイルを別のフォルダーに移動できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>画像を含むフォルダーを繰り返し処理し、ファイル
+                    サイズに収まらない場合は画像を圧縮し、圧縮バージョンを写真として送信し、非圧縮バージョンをファイルとして送信します。次に、アップロードしたファイルを別のフォルダーに移動しようとしましたが、エラーが発生しました
+                    アクセス許可が拒否されました @ rb_file_s_rename -
+                    (95880631_p0.jpg、uploaded\95880631_p0.jpg)
+                    (Errno::EACCES)。</p>
+                    <p>以下の私のアップロードコード</p>
+                    <pre><code>Dir.glob(&quot;*.{jpg,png}&quot;).each do |file|
+        p file
+        if file.end_with? &quot;.jpg&quot;
+            exten=&#39;image/jpeg&#39;
+        else 
+            exten=&quot;image/png&quot;
+        end
+        img_size=0
+
+        check_image=MiniMagick::Image.open(&quot;#{file}&quot;)
+        if check_image.dimensions.max&gt;9000
+            img_size=9000
+        else
+            img_size=check_image.dimensions.max
+        end
+
+        if check_image.size&gt;5000000
+            p &quot;compressing #{file}&quot;
+            system &#39;mogrify -define jpeg:extent=5000kb -resize &#39;+&quot;#{img_size}x#{img_size}&quot;+&#39; -path compress -format jpg &#39;+ &quot;#{file}&quot; if  !File.exist?(&#39;compress\\&#39;+&quot;#{file[..file.index(&quot;.&quot;)-1]}.jpg&quot;)
+            check_image=&#39;compress\\&#39;+&quot;#{file[..file.index(&quot;.&quot;)-1]}.jpg&quot;
+        else
+            check_image=file
+        end
+
+        if file.match?(/[0-9]_p[0-9]\.(jpg|png)/)#(/_p[0-9]+\./)
+            bot.api.send_photo(
+                chat_id: channel_id,
+                photo: Faraday::UploadIO.new(check_image, exten),
+                parse_mode:&quot;MarkdownV2&quot;,
+                caption: &quot;[Source pixiv](https://www.pixiv.net/en/artworks/#{file[..file.index(&quot;_p&quot;)-1]})&quot;
+                )
+        else
+            bot.api.send_photo(
+                chat_id: channel_id,
+                photo: Faraday::UploadIO.new(check_image, exten)
+                )
+        end
+        bot.api.send_document(chat_id:channel_id, document: Faraday::UploadIO.new(file, exten))
+        
+        
+        FileUtils.mv(file, &quot;uploaded\\#{file}&quot;)
+    end
+</code></pre>
+                    <p>MiniMagick::Image.open も Dir.glob
+                    もこのエラーを引き起こさないことを確認しましたが、Faraday::UploadIO
+                    部分を追加した場合にのみ発生します。</p>
+                    <p>ファイルに影響を与えないようにUploadIOを「閉じる」方法はありますか?それともそれを機能させるために何か他のことをする必要がありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>UploadIO
+                    を関数から分離することで問題を修正しました。</p>
+                    <pre><code>upld=Faraday::UploadIO.new(check_image, exten)
+if file.match?(/[0-9]_p[0-9]\.(jpg|png)/)#(/_p[0-9]+\./)
+    bot.api.send_photo(
+        chat_id: channel_id,
+        photo: upld,
+        parse_mode:&quot;MarkdownV2&quot;,
+        caption: &quot;[Source pixiv](https://www.pixiv.net/en/artworks/#{file[..file.index(&quot;_p&quot;)-1]})&quot;
+        )
+else
+    bot.api.send_photo(
+        chat_id: channel_id,
+        photo: upld
+        )
+end
+upld.close
+upld=Faraday::UploadIO.new(file, exten)
+bot.api.send_document(chat_id:channel_id, document: upld)
+upld.close
+FileUtils.mv(file, &quot;uploaded\\#{file}&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>動的言語は、書籍 の第 6 章のデータストアのようなプログラムを作成できますか? [閉まっている] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "動的言語は、書籍 の第 6 章のデータストアのようなプログラムを作成できますか? [閉まっている]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>動的言語は、書籍<idris によるタイプ駆動開発>
+の第 6 章のデータストアのようなプログラムを作成できますか?
+[閉まっている]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この本の Chapter6 のデータストア:</p>
+                    <pre><code>
+module Main
+
+import Data.Vect
+
+infixr 5 .+.
+
+data Schema = SString | SInt | (.+.) Schema Schema
+
+SchemaType : Schema -&gt; Type
+SchemaType SString = String
+SchemaType SInt = Int
+SchemaType (x .+. y) = (SchemaType x, SchemaType y)
+
+record DataStore where
+  constructor MkData
+  schema : Schema
+  size : Nat
+  items : Vect size (SchemaType schema)
+
+addToStore : (store : DataStore) -&gt; SchemaType (schema store) -&gt; DataStore
+addToStore (MkData schema size store) newitem = MkData schema _ (addToData store)
+  where
+    addToData : Vect oldsize (SchemaType schema) -&gt; Vect (S oldsize) (SchemaType schema)
+    addToData [] = [newitem]
+    addToData (x :: xs) = x :: addToData xs
+
+setSchema : (store : DataStore) -&gt; Schema -&gt; Maybe DataStore
+setSchema store schema = case size store of
+                              Z =&gt; Just (MkData schema _ [])
+                              S k =&gt; Nothing
+
+data Command : Schema -&gt; Type where
+     SetSchema : Schema -&gt; Command schema
+     Add : SchemaType schema -&gt; Command schema
+     Get : Integer -&gt; Command schema
+     Quit : Command schema
+
+
+parsePrefix : (schema : Schema) -&gt; String -&gt; Maybe (SchemaType schema, String)
+parsePrefix SString input = getQuoted (unpack input)
+  where
+    getQuoted : List Char -&gt; Maybe (String, String)
+    getQuoted (&#39;&quot;&#39; :: xs)
+        = case span (/= &#39;&quot;&#39;) xs of
+               (quoted, &#39;&quot;&#39; :: rest) =&gt; Just (pack quoted, ltrim (pack rest))
+               _ =&gt; Nothing
+    getQuoted _ = Nothing
+
+parsePrefix SInt input = case span isDigit input of
+                              (&quot;&quot;, rest) =&gt; Nothing
+                              (num, rest) =&gt; Just (cast num, ltrim rest)
+parsePrefix (schemal .+. schemar) input
+    = case parsePrefix schemal input of
+           Nothing =&gt; Nothing
+           Just (l_val, input&#39;) =&gt;
+                case parsePrefix schemar input&#39; of
+                     Nothing =&gt; Nothing
+                     Just (r_val, input&#39;&#39;) =&gt; Just ((l_val, r_val), input&#39;&#39;)
+
+parseBySchema : (schema : Schema) -&gt; String -&gt; Maybe (SchemaType schema)
+parseBySchema schema x = case parsePrefix schema x of
+                              Nothing =&gt; Nothing
+                              Just (res, &quot;&quot;) =&gt; Just res
+                              Just _ =&gt; Nothing
+
+parseSchema : List String -&gt; Maybe Schema
+parseSchema (&quot;String&quot; :: xs)
+    = case xs of
+           [] =&gt; Just SString
+           _ =&gt; case parseSchema xs of
+                     Nothing =&gt; Nothing
+                     Just xs_sch =&gt; Just (SString .+. xs_sch)
+parseSchema (&quot;Int&quot; :: xs)
+    = case xs of
+           [] =&gt; Just SInt
+           _ =&gt; case parseSchema xs of
+                     Nothing =&gt; Nothing
+                     Just xs_sch =&gt; Just (SInt .+. xs_sch)
+parseSchema _ = Nothing
+
+parseCommand : (schema : Schema) -&gt; String -&gt; String -&gt; Maybe (Command schema)
+parseCommand schema &quot;add&quot; rest = case parseBySchema schema rest of
+                                      Nothing =&gt; Nothing
+                                      Just restok =&gt; Just (Add restok)
+parseCommand schema &quot;get&quot; val = case all isDigit (unpack val) of
+                                    False =&gt; Nothing
+                                    True =&gt; Just (Get (cast val))
+parseCommand schema &quot;quit&quot; &quot;&quot; = Just Quit
+parseCommand schema &quot;schema&quot; rest
+    = case parseSchema (words rest) of
+           Nothing =&gt; Nothing
+           Just schemaok =&gt; Just (SetSchema schemaok)
+parseCommand _ _ _ = Nothing
+
+parse : (schema : Schema) -&gt; (input : String) -&gt; Maybe (Command schema)
+parse schema input = case span (/= &#39; &#39;) input of
+                          (cmd, args) =&gt; parseCommand schema cmd (ltrim args)
+
+display : SchemaType schema -&gt; String
+display {schema = SString} item = show item
+display {schema = SInt} item = show item
+display {schema = (y .+. z)} (iteml, itemr) = display iteml ++ &quot;, &quot; ++
+                                              display itemr
+
+getEntry : (pos : Integer) -&gt; (store : DataStore) -&gt;
+           Maybe (String, DataStore)
+getEntry pos store
+    = let store_items = items store in
+          case integerToFin pos (size store) of
+               Nothing =&gt; Just (&quot;Out of range\n&quot;, store)
+               Just id =&gt; Just (display (index id (items store)) ++ &quot;\n&quot;, store)
+
+processInput : DataStore -&gt; String -&gt; Maybe (String, DataStore)
+processInput store input
+    = case parse (schema store) input of
+           Nothing =&gt; Just (&quot;Invalid command\n&quot;, store)
+           Just (Add item) =&gt;
+              Just (&quot;ID &quot; ++ show (size store) ++ &quot;\n&quot;, addToStore store item)
+           Just (SetSchema schema&#39;) =&gt;
+              case setSchema store schema&#39; of
+                   Nothing =&gt; Just (&quot;Can&#39;t update schema when entries in store\n&quot;, store)
+                   Just store&#39; =&gt; Just (&quot;OK\n&quot;, store&#39;)
+           Just (Get pos) =&gt; getEntry pos store
+           Just Quit =&gt; Nothing
+
+main : IO ()
+main = replWith (MkData (SString .+. SString .+. SInt) _ []) &quot;Command: &quot; processInput
+</code></pre>
+                    <p>実行時に String と Int
+                    を使用して「データベース」のスキームを定義できます。</p>
+                    <pre><code>
+Command: schema String String Int
+OK
+Command: add &quot;Rain Dogs&quot; &quot;Tom Waits&quot; 1985
+ID 0
+Command: add &quot;Fog on the Tyne&quot; &quot;Lindisfarne&quot; 1971
+ID 1
+Command: get 1
+&quot;Fog on the Tyne&quot;, &quot;Lindisfarne&quot;, 1971
+Command: quit
+</code></pre>
+                    <p>Ruby や Python
+                    のような動的言語でも同じことができるかどうか知りたいのですが?静的言語では、コンパイル前にスキームを定義する必要があります。</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>静的型システムの目的は、不正な型付けされたプログラムを拒否することです。言い換えれば、静的型システムではプログラムを作成できません。</p>
+                    <p>したがって、静的型システムを使用する言語でプログラムを作成できる場合は、静的型システムを使用しない言語でも同じプログラムを作成できます。</p>
+                    <p>非常に簡略化した説明であることに注意してください。私は静的型システムの威力をよく知っており、静的型システムを使用するのが大好きです。しかし、結局のところ、静的型システムを使用すると、他の方法では作成できないプログラムを作成できるようになることはなく、適切に型付けされていないプログラムを作成できなくなるだけです。</p>
+                    <p>これは、F#
+                    の型プロバイダーなどによって軽減できます。型プロバイダーは、コンパイル
+                    プロセス中に実行されるコードであり、プログラムのソース
+                    テキストでは静的に利用できない型情報を生成できます。</p>
+                    <p>たとえば、SQL
+                    データベースに接続し、そのスキーマを読み出し、スキーマから
+                    F# 型を生成できる SQLProvider があります。</p>
+                    <p>ただし、もちろん、これらすべてはコンパイル時に発生します。生成される型は、実際にデータベースに接続したときではなく、プログラムをコンパイルしたときのものになります。データベース
+                    スキーマが変更された場合は、型プロバイダーを再実行して新しい型を生成する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

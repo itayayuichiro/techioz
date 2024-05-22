@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>例外をシリアル化する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "例外をシリアル化する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>例外をシリアル化する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby-doc と apidock によると、to_json と
+                    json_create
+                    を使用して例外をシリアル化および逆シリアル化できます。</p>
+                    <p>しかし、それらを使おうとして時間を無駄にした後、まだ方法が見つかりません。</p>
+                    <p>exc.to_json
+                    を呼び出すと空のハッシュが得られ、Exception.json_create(hash)
+                    を呼び出すと次のエラーが表示されます:
+                    Exception:Class のメソッド ‘json_create’
+                    が未定義です</p>
+                    <p>ソースが入手可能なので、これらの関数を簡単に再作成できると思いますが、むしろ自分が間違っていることを理解したいのですが…何かアイデアはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>JSON モジュールはデフォルトでは Exception
+                    を拡張しません。
+                    「json/add/Exception」を必須にする必要があります。これについては、Ruby
+                    JSON モジュールのドキュメントの「JSON
+                    の追加」セクションに記載されています。</p>
+                    <pre><code>require &quot;json/add/exception&quot;
+ 
+begin
+  nil.foo
+rescue =&gt; exception
+  ex = exception
+end
+
+json = ex.to_json
+puts json
+# =&gt; {&quot;json_class&quot;:&quot;NoMethodError&quot;,&quot;m&quot;:&quot;undefined method `foo&#39; for nil:NilClass&quot;,&quot;b&quot;:[&quot;prog.rb:5:in `&lt;main&gt;&#39;&quot;]}
+</code></pre>
+                    <p>Ruby ソースの ext/json/lib/json/add
+                    をチェックして、どのクラスがこのように動作するかを確認してください。
+                    「json/add/core」が必要な場合は、Date、DateTime、Exception、OpenStruct、Range、Regexp、Struct、Symbol、Time
+                    などの JSON 拡張機能がロードされます。</p>
+                    <p>このプロセスを逆にするには、create_additions:
+                    true オプションを JSON.parse
+                    に渡すことができます。</p>
+                    <pre><code>p JSON.parse(json, create_additions: true)
+# =&gt; #&lt;NoMethodError: undefined method `foo&#39; for nil:NilClass
+#
+#      nil.foo
+#         ^^^^&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

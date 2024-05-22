@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Addressable の encode_www_form_component に相当する URI | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Addressable の encode_www_form_component に相当する URI",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Addressable の encode_www_form_component
+に相当する URI</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Addressable::URI の URI.encode_www_form_component
+                    に相当するメソッドは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最も近い方法は、#encode_component
+                    メソッドを使用することです。 Addressable
+                    は完全なパーセント モードを使用し、スペースを +
+                    ではなく %20
+                    に置き換えることに注意してください。</p>
+                    <pre><code>Addressable::URI.encode_component(&#39;a decoded string with [email protected]&#39;, Addressable::URI::CharacterClasses::UNRESERVED)
+# =&gt; &quot;a%20decoded%20string%20with%20email%40example.com&quot;
+
+URI.encode_www_form_component(&#39;a decoded string with [email protected]&#39;)
+# =&gt; &quot;a+decoded+string+with+email%40example.com&quot;
+</code></pre>
+                    <p>キー/値パラメーターの完全なセットをエンコードする
+                    2
+                    つのメソッドを比較すると、どちらもより類似した動作をすることがわかります。</p>
+                    <pre><code>[15] pry(main)&gt; Addressable::URI.form_encode([[&quot;q&quot;, &quot;a decoded string with [email protected]&quot;]])
+=&gt; &quot;q=a+decoded+string+with+email%40example.com&quot;
+[16] pry(main)&gt; URI.encode_www_form([[&quot;q&quot;, &quot;a decoded string with [email protected]&quot;]])
+=&gt; &quot;q=a+decoded+string+with+email%40example.com&quot;
+</code></pre>
+                    <p>実際にテストしてみて驚きました。そこで、Addressable
+                    のソース コードを詳しく調べたところ、form_encode
+                    メソッドが %20 を +
+                    に明示的に置き換えていることがわかりました。</p>
+                    <pre><code>escaped_form_values = form_values.map do |(key, value)|
+  # Line breaks are CRLF pairs
+  [
+    self.encode_component(
+      key.gsub(/(\r\n|\n|\r)/, &quot;\r\n&quot;),
+      CharacterClasses::UNRESERVED
+    ).gsub(&quot;%20&quot;, &quot;+&quot;),
+    self.encode_component(
+      value.gsub(/(\r\n|\n|\r)/, &quot;\r\n&quot;),
+      CharacterClasses::UNRESERVED
+    ).gsub(&quot;%20&quot;, &quot;+&quot;)
+  ]
+end
+</code></pre>
+                    <p>したがって、オプションは次のとおりです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Rugged::Repository が空のリポジトリを返す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Rugged::Repository が空のリポジトリを返す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Rugged::Repository
+が空のリポジトリを返す</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>  def serve_git_repo(temp_dir)
+    repo = Rugged::Repository.new(temp_dir)
+
+    response.headers[&quot;Vary&quot;] = &quot;Accept&quot;
+    response.headers[&quot;Connection&quot;] = &quot;keep-alive&quot;
+    response.headers[&quot;Content-Type&quot;] = &quot;application/octet-stream&quot;
+
+    response.stream.write(&quot;&quot;)
+
+    walker = Rugged::Walker.new(repo)
+    walker.push(repo.head.target_id)
+
+    walker.each do |commit|
+      commit.tree.walk_blobs do |root, entry|
+        blob = repo.lookup(entry[:oid])
+
+        StringIO.new(blob.content).each(8000) do |chunk|
+          response.stream.write(chunk)
+        end
+      end
+    end
+  ensure
+    response.stream.close
+  end
+</code></pre>
+                    <p>上記のコードでは、 git clone
+                    http://localhost:3000/git/serve_repo.git
+                    を実行すると、コードはリポジトリを temp_dir
+                    にクローンしますが、ウォーカーは .git
+                    ディレクトリだけを含む空のリポジトリを提供します。</p>
+                    <p>リポジトリ全体をストリーミングするための応答を取得する方法について何か提案はありますか?後で
+                    git main を書き換えます。</p>
+                    <p>コンテキストとして、ここでの計画は、プライベート
+                    リポジトリにハッシュされた URL を提供することです。
+                    git clone
+                    https://example.com/4f404c1370fddb6a93fa0c2879f7c23f39a7e94f4dca46d85b2194cede641847.git
+                    アセットに似ており、ユーザーはこのプライベート
+                    リポジトリへの読み取り専用アクセスを取得します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>必要なものだけを抽出するには、よりシンプルな
+                    Walker バージョンを使用するかもしれません</p>
+                    <pre><code>require &#39;rugged&#39;
+
+repo_path = &#39;./my_git_repo&#39;
+repo = Rugged::Repository.new(repo_path)
+
+walker = Rugged::Walker.new(repo)
+walker.sorting(Rugged::SORT_TOPO | Rugged::SORT_REVERSE)
+walker.push(repo.head.target_id)
+
+walker.each do |commit|
+  puts &quot;Commit: #{commit.oid} - #{commit.message}&quot;
+  commit.tree.each_blob do |blob|
+    puts &quot;  File: #{blob[:name]}&quot;
+    puts &quot;  Content:&quot;
+    puts repo.lookup(blob[:oid]).content
+  end
+end
+</code></pre>
+                    <p>できるだけシンプルにするために each_blob
+                    を使用します。 「.git
+                    ディレクトリだけを含む空のリポジトリ」が何を意味するのかを確認するために、.git
+                    には操作するものは何もありません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

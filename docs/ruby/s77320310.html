@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でのメモリ使用量の監視 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でのメモリ使用量の監視",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby でのメモリ使用量の監視</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>基本的に、私は Windows 10
+                    で選択したアプリケーションのメモリ使用量を好きなだけ監視する個人プロジェクトを行っています。詳細は必要ありません。</p>
+                    <p>私が試したのは、sys/proctable
+                    モジュールを使用してすべてのプロセスにアクセスすることでした
+                    メインコード:</p>
+                    <pre><code>process_name = &quot;chrome.exe&quot; #for example
+target = processes.find { |process| process.cmdline&amp;.include?(process_name) }
+ram_bytes = target.working_set_size
+</code></pre>
+                    <p>しかし、基本的に目に見える問題は、
+                    .working_set_size
+                    がプロセスが動作するために最小限のメモリ使用量を返すことです
+                    — 「ワーキング セット サイズ (WSS)
+                    は、アプリケーションが動作し続けるために必要なメモリ量です」]
+                    —(https://
+                    www.brendangregg.com/wss.html#:~:text=The%20Working%20Set%20Size%20(WSS,memory%20that%20is%20frequently%20used.)
+                    – そして、その関数は、たとえば、Chrome が 400 MB の
+                    RAM
+                    を使用しているときにコードが実行されると、プログラムは約
+                    100 ～ 120 を返す可能性があります。</p>
+                    <p>最後に、私が欲しいのは、プログラムの実行時に実行中のアプリケーションのメモリ使用量にアクセスできるモジュールと関数です。何度も言いますが、私のOSはWindows10です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>リンクしたページを読み続けてください。ワーキング
+                    セットのサイズは、あなたが思っているものと異なります。あなたはそのページを十分に読んでいませんでした。</p>
+                    <p>必要な数値は RSS
+                    または常駐セットのサイズだと思います。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

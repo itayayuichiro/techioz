@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「ロードするファイルはありません – net/https」 - Heroku、Ruby、Ubuntu 10.04 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「ロードするファイルはありません – net/https」 - Heroku、Ruby、Ubuntu 10.04",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「ロードするファイルはありません – net/https」
+- Heroku、Ruby、Ubuntu 10.04</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この問題が他のブログや stackoverflow
+                    スレッドに投稿されているのを見てきましたが、誰も答えを持っていないようです。
+                    Heroku
+                    を実行しようとすると、次のエラーが発生します。</p>
+                    <pre><code>/usr/local/heroku/vendor/gems/rest-client-1.6.1/lib/restclient.rb:9:in `rescue in &lt;top (required)&gt;&#39;: no such file to load -- net/https. Try running apt-get install libopenssl-ruby (LoadError)
+from /usr/local/heroku/vendor/gems/rest-client-1.6.1/lib/restclient.rb:5:in `&lt;top (required)&gt;&#39;
+from /usr/local/heroku/vendor/gems/rest-client-1.6.1/lib/rest_client.rb:2:in `require&#39;
+from /usr/local/heroku/vendor/gems/rest-client-1.6.1/lib/rest_client.rb:2:in `&lt;top (required)&gt;&#39;
+from /usr/local/heroku/lib/heroku/client.rb:2:in `require&#39;
+from /usr/local/heroku/lib/heroku/client.rb:2:in `&lt;top (required)&gt;&#39;
+from /usr/local/heroku/lib/heroku.rb:3:in `require&#39;
+from /usr/local/heroku/lib/heroku.rb:3:in `&lt;top (required)&gt;&#39;
+from /usr/local/heroku/lib/heroku/cli.rb:1:in `require&#39;
+from /usr/local/heroku/lib/heroku/cli.rb:1:in `&lt;top (required)&gt;&#39;
+from /usr/bin/heroku:29:in `require&#39;
+from /usr/bin/heroku:29:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>問題は、libopenssl-ruby
+                    がすでに最新バージョンであることです。</p>
+                    <p>他にこの問題に遭遇した人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ubuntu
+                    10.04でも同様の問題が発生したので、次のように修正しました。</p>
+                    <p>編集：</p>
+                    <p>より迅速な修正: /usr/local/heroku/bin/heroku
+                    が使用している Ruby のバージョンを確認してください
+                    私が持っていたのは：</p>
+                    <pre><code>#!/usr/bin/env ruby1.9.1
+</code></pre>
+                    <p>次に、適切なライブラリをインストールします。</p>
+                    <pre><code>$ sudo apt-get install libopenssl-ruby1.9.1
+</code></pre>
+                    <p>古い：</p>
+                    <p>RVM をインストールします:
+                    http://beginrescueend.com/rvm/install/</p>
+                    <p>~/.bashrc に以下を追加します。</p>
+                    <pre><code>[[ -s &quot;$HOME/.rvm/scripts/rvm&quot; ]] &amp;&amp; . &quot;$HOME/.rvm/scripts/rvm&quot; 
+</code></pre>
+                    <p>走る：</p>
+                    <pre><code>$ source ~/.bachrc
+</code></pre>
+                    <p>それから：</p>
+                    <pre><code>$ rvm remove 1.9.2
+$ rvm pkg install openssl
+$ rvm install 1.9.2 -C --with-openssl-dir=$HOME/.rvm/usr
+</code></pre>
+                    <p>最後のコマンドを実行した後、次の出力が表示されました。ruby-1.9.2-p290
+                    に注目してください。</p>
+                    <pre><code>Installing Ruby from source to: /my/home/dir/.rvm/rubies/ruby-1.9.2-p290, this may take a while depending on your cpu(s)
+</code></pre>
+                    <p>/usr/local/heroku/bin/heroku を編集します
+                    最初の行を次のように変更します。</p>
+                    <pre><code>#!/usr/bin/env ruby1.9.1
+</code></pre>
+                    <p>に：</p>
+                    <pre><code>#!/usr/bin/env ruby-1.9.2-p290 
+</code></pre>
+                    <p>これらすべてが機能するには、不足しているライブラリをいくつかインストールする必要がある場合があります。これは、何を見つけるのに役立ちます。</p>
+                    <pre><code>$ rvm notes
+</code></pre>
+                    <p>これがお役に立てば幸いです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mac osx 11.6 に Ruby 2.6.x および 3.0.x をインストールすると、ruby-install が失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mac osx 11.6 に Ruby 2.6.x および 3.0.x をインストールすると、ruby-install が失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mac osx 11.6 に Ruby 2.6.x および 3.0.x
+をインストールすると、ruby-install が失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby-install
+                    を実行するとビルドに失敗します。これは rbenv
+                    の問題でも報告されています
+                    (https://github.com/rbenv/ruby-build/issues/1725)。</p>
+                    <p>たとえば、Ruby 2.6.8 をインストールする場合</p>
+                    <pre><code># installing via ruby-install ( https://github.com/postmodern/ruby-install )
+ruby-install ruby 2.6.8
+</code></pre>
+                    <p>次のエラーが発生します</p>
+                    <pre><code>ossl_x509store.c:452:30: note: &#39;)&#39; token is here
+    result = rb_funcall(ctx, rb_intern(&quot;verify&quot;), 0);
+                             ^~~~~~~~~~~~~~~~~~~
+../.././include/ruby/ruby.h:1826:56: note: expanded from macro &#39;rb_intern&#39;
+        __extension__ (RUBY_CONST_ID_CACHE((ID), (str))) : \
+                                                       ^
+../.././include/ruby/ruby.h:2602:20: note: expanded from macro &#39;rb_funcall&#39;
+        rb_funcallv(recv, mid, \
+                          ^~~
+6 warnings generated.
+linking shared-object openssl.bundle
+installing default openssl libraries
+make[2]: Leaving directory &#39;/Users/xxxxx/src/ruby-2.6.8/ext/openssl&#39;
+make[2]: Entering directory &#39;/Users/xxxxx/src/ruby-2.6.8/ext/ripper&#39;
+extracting ripper.y from ../.././parse.y
+compiling compiler ripper.y
+ripper.y:762.9-16: syntax error, unexpected identifier, expecting string
+make[2]: *** [Makefile:332: ripper.c] Error 1
+make[2]: Leaving directory &#39;/Users/xxxxx/src/ruby-2.6.8/ext/ripper&#39;
+make[1]: *** [exts.mk:257: ext/ripper/all] Error 2
+make[1]: Leaving directory &#39;/Users/xxxxx/src/ruby-2.6.8&#39;
+make: *** [uncommon.mk:286: build-ext] Error 2
+!!! Compiling ruby 2.6.8 failed!
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コンパイラの問題のようです。まず、Xcode
+                    が適切にインストールされていることを確認します。私の場合はすでにインストールされていましたが、念のため再インストールすることもできます。コンパイルには数分かかるため、これが人々が問題を解決する時間を節約するのに役立つことを願っています。</p>
+                    <pre><code># check xcode, should yield : /Library/Developer/CommandLineTools
+xcode-select -p
+
+# check xcode, should yield : xcode-select version 2384
+xcode-select -v
+
+# install xcode-select
+xcode-select --install
+
+# reinstall openssl and version 3
+brew reinstall [email protected]
+
+# install build dependancies
+brew install openssl readline libyaml zlib bison [email protected]
+
+# ensure build is using bison
+export PATH=&quot;$(brew --prefix [email protected])/bin:$PATH&quot;
+
+# set ruby compilation flags
+export CFLAGS=&quot;-Wno-error=implicit-function-declaration&quot;
+export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix [email protected]) --with-readline-dir=$(brew --prefix readline) --with-libyaml-dir=$(brew --prefix libyaml) --with-zlib-dir=$(brew --prefix zlib)&quot;
+
+# install ruby via ruby-install
+ruby-install ruby 2.6.8
+</code></pre>
+                    <p>失敗した場合はさらにいくつかの手順を実行します</p>
+                    <pre><code># ensure that openssl is linked
+brew unlink openssl &amp;&amp; brew link openssl --force
+
+# load openssl 1.1 for compilation
+export LDFLAGS=&quot;-L/opt/homebrew/opt/[email protected]/lib&quot;
+export CPPFLAGS=&quot;-I/opt/homebrew/opt/[email protected]/include&quot;
+export PKG_CONFIG_PATH=&quot;/opt/homebrew/opt/[email protected]/lib/pkgconfig&quot;
+
+# install ruby via ruby-install
+ruby-install ruby 2.7.7
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

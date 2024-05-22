@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>作成または初期化します。データベースとサーバーの負荷を最小限に抑える方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "作成または初期化します。データベースとサーバーの負荷を最小限に抑える方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>作成または初期化します。データベースとサーバーの負荷を最小限に抑える方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails フレームワークで Ruby
+                    で書いています。仮定の状況が理解できません。
+                    get_date 関数が約 1,000
+                    万個の要素の配列を返したとします。各要素には、fk、name、detail
+                    のフィールドが含まれます。
+                    同じフィールドを含むテーブルもあります。部分的に埋まっています。
+                    fk - 一意のインデックス付きフィールド。
+                    私の仕事は、テーブルにエントリが存在するかどうかを確認することです。記録がない場合は作成する必要があります。レコードが存在する場合は、名前フィールドと詳細フィールドが無関係になる可能性があるため、それらのフィールドを更新する必要があります。
+                    データベースとサーバーへの負荷をできるだけ少なくするコードを書く必要があります</p>
+                    <p>私は提案します：</p>
+                    <pre><code>get_data.each do |item|
+          field = MyField.find_or_initialize_by_fk(item[&#39;fk&#39;])
+          field.update_attributes(
+              {
+                  :name       =&gt; item[&#39;name&#39;],
+                  :detail    =&gt; item[&#39;detail&#39;]
+              }
+          )
+          field.save
+end
+</code></pre>
+                    <p>または</p>
+                    <pre><code>get_data.each do |item|
+          field = MyField.find_or_create_by_fk(item[&#39;fk&#39;])
+          field.update_attributes(
+              {
+                  :name       =&gt; item[&#39;name&#39;],
+                  :detail    =&gt; item[&#39;detail&#39;]
+              }
+          )
+end
+</code></pre>
+                    <p>これらともう一方のどちらが良いでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>最初のバージョンの方が優れています。これは、既存の可能性のあるレコードを検索するクエリと、既存のレコードを更新するか新しいレコードを作成するクエリの
+                    2 つのクエリだけを実行するためです。</p>
+                    <p>2
+                    番目のバージョンは、既存のレコードが見つからなかった場合にデータベースに対して
+                    3 つのリクエストを実行します。1
+                    つはレコードの検索を試み、2
+                    番目は新しいレコードを作成し、3
+                    番目は新しく作成されたレコードを更新します。</p>
+                    <p>ただし、代わりに、1
+                    つのクエリで新しいレコードを挿入または既存のレコードを更新する
+                    upsert を使用することをお勧めします。</p>
+                    <pre><code>get_data.each do |item|
+  MyField.upsert(
+    { fk: item[&#39;fk&#39;], name: item[&#39;name&#39;], detail: item[&#39;detail&#39;] },
+    on_duplicate: &#39;name = EXCLUDED.name, detail = EXCLUDED.detail&#39;,
+    unique_by: :fk
+  )
+end
+</code></pre>
+                    <p>たった 1
+                    回のクエリで大量のレコードのバッチを挿入または更新できる
+                    upsert_all もあることに注意してください。 get_data
+                    の実装方法と使用方法に少し依存します。ただし、一般的な考え方は、レコードをバッチでロードし、1
+                    つのクエリで各バッチを upsert_all することです。</p>
+                    <p>もう 1 つのさらにパフォーマンスの高い方法は、SQL
+                    で 1 つのクエリを使用してこれを直接実行し、おそらく
+                    SQL の UPSERT
+                    コマンドを再度使用することです。それがどのように見えるかは、使用中のデータベース
+                    テーブルの正確なスキーマによって異なります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

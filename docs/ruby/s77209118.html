@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OpenSSL v3 で「モジュラス」と「指数」を使用して RSA キーを作成すると、Ruby on Rails で機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OpenSSL v3 で「モジュラス」と「指数」を使用して RSA キーを作成すると、Ruby on Rails で機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OpenSSL v3
+で「モジュラス」と「指数」を使用して RSA キーを作成すると、Ruby on Rails
+で機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RSA 公開キーの係数と指数文字列を持っています。
+                    Ruby on Rails で OpenSSL::PKey::RSA を使用して
+                    OpenSSL::PKey::RSA を作成したいと考えています。 3
+                    つの異なる方法で試してみましたが、環境に何か問題があると思われますが、特定できません。何かアイデアはありますか？</p>
+                    <p>バージョン:</p>
+                    <pre><code>ruby 3.2.1 (2023-02-08 revision 31819e82c8) [arm64-darwin22]
+Rails 7.0.8
+OpenSSL 3.1.2 1 Aug 2023
+</code></pre>
+                    <p>私はこれをします：</p>
+                    <pre><code>modulus = k[&#39;n&#39;]
+exponent= k[&#39;e&#39;]
+rsa = OpenSSL::PKey::RSA.new
+rsa.set_key_rsa(k[&#39;n&#39;], k[&#39;e&#39;], 2)
+</code></pre>
+                    <p>そしてエラーが発生します:</p>
+                    <pre><code>undefined method `set_key_rsa&#39; for #&lt;OpenSSL::PKey::RSA:0x000000010a1468a0 oid=rsaEncryption&gt;
+</code></pre>
+                    <p>私はこれをします：</p>
+                    <pre><code>modulus = k[&#39;n&#39;]
+exponent= k[&#39;e&#39;]
+rsa = OpenSSL::PKey::RSA.new
+rsa.set_key(k[&#39;n&#39;], k[&#39;e&#39;], 2) # &lt;---- used set_key
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <pre><code>rsa#set_key= is incompatible with OpenSSL 3.0
+</code></pre>
+                    <pre><code>rsa = OpenSSL::PKey::RSA.new
+rsa.n = OpenSSL::BN.new(Base64.urlsafe_decode64(k[&#39;n&#39;]), 2)
+rsa.e = OpenSSL::BN.new(Base64.urlsafe_decode64(k[&#39;e&#39;]), 2)
+</code></pre>
+                    <p>エラーが発生します:</p>
+                    <pre><code>undefined method `n=&#39; for #&lt;OpenSSL::PKey::RSA:0x000000010ab56e08 oid=rsaEncryption&gt;
+</code></pre>
+                    <p>うーん、何が起こっているのですか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が試したことに興味がない場合は、解決策の部分に進んでください。</p>
+                    <p>LTI プラットフォームから送信された JWT
+                    トークンを検証するためのキーセットを取得するための
+                    URL を含む LTI
+                    ツールを作成しています。キーセット内のキーには、JWT
+                    をデコードする RSA キーを作成するための係数 (n)
+                    と指数 (e) の値が含まれています。</p>
+                    <p>問題が2つあったのですが、</p>
+                    <p>OpenSSL v3 以前で動作する最初の Gist
+                    を見つけましたが、OpenSSL v3
+                    では動作しませんでした。ありがたいことに、この素晴らしい人が
+                    OpenSSL v3
+                    でこれを実現する方法をコメントで共有してくれました。解決策については、2
+                    番目のリンクの Gist
+                    または以下のコードを確認してください。</p>
+                    <p>2 番目のリンクで提供されている Gist
+                    コードを共有します (念のため)。</p>
+                    <pre><code># Given n and e in typical encoding, like that found on a jwks well-known.
+# For example for google, from https://www.googleapis.com/oauth2/v3/certs
+n = &quot;t0VFy4n4MGtbMWJKk5qfCY2WGBja2WSWQ2zsLziSx9p1QE0QgXtr1x85PnQYaYrAvOBiXm2mrxWnZ42MxaUUu9xyykTDxsNWHK--ufchdaqJwfqd5Ecu-tHvFkMIs2g39pmG8QfXJHKMqczKrvcHHJrpTqZuos1uhYM9gxOLVP8wTAUPNqa1caiLbsszUC7yaMO3LY1WLQST79Z8u5xttKXShXFv1CCNs8-7vQ1IB5DWQSR2um1KV4t42d31Un4-8cNiURx9HmJNJzOXbTG-vDeD6sapFf5OGDsCLO4YvzzkzTsYBIQy_p88qNX0a6AeU13enxhbasSc-ApPqlxBdQ&quot;
+e = &quot;AQAB&quot;
+
+rsa = create_rsa_key(n, e)
+
+def create_rsa_key(n, e)
+  data_sequence = OpenSSL::ASN1::Sequence([
+                                            OpenSSL::ASN1::Integer(base64_to_long(n)),
+                                            OpenSSL::ASN1::Integer(base64_to_long(e))
+                                          ])
+  asn1 = OpenSSL::ASN1::Sequence(data_sequence)
+  OpenSSL::PKey::RSA.new(asn1.to_der)
+end
+
+def base64_to_long(data)
+  decoded_with_padding = Base64.urlsafe_decode64(data) + Base64.decode64(&quot;==&quot;)
+  decoded_with_padding.to_s.unpack(&quot;C*&quot;).map do |byte|
+    byte_to_hex(byte)
+  end.join.to_i(16)
+end
+
+def byte_to_hex(int)
+  int &lt; 16 ? &quot;0&quot; + int.to_s(16) : int.to_s(16)
+end
+</code></pre>
+                    <p>これがお役に立てば幸いです!</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

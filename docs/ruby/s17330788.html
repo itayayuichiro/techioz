@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>工場が登録されていません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "工場が登録されていません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>工場が登録されていません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>よろしくお願いします！RSpec
+                    を使用してモデルをテストしたいのですが、タイプミスに遭遇した可能性があり、見つけることができません。誰か少し手伝ってくれませんか？私は長い間それに苦労してきましたが、間違いが見つかりません。</p>
+                    <p>ユーザー仕様.rb</p>
+                    <pre><code>require &#39;spec_helper&#39;
+
+describe User do
+     it &quot;has a valid factory&quot; do
+        FactoryGirl.build(:user).should be_valid
+     end
+     it &quot;is invalid without an e-mail&quot;
+     it &quot;is invalid without a correct e-mail&quot; 
+     it &quot;is invalid without a password&quot; 
+     it &quot;is invalid without a matching password confrimation&quot; 
+end
+</code></pre>
+                    <p>ユーザー.rb</p>
+                    <pre><code>FactoryGirl.define do
+    factory :user do |f|
+        f.email &quot;[email protected]&quot;
+        f.password &quot;ruby&quot;
+        f.password_confrimation &quot;ruby&quot;
+    end
+end
+</code></pre>
+                    <p>spec_helper.rb</p>
+                    <pre><code># This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;
+ENV[&quot;RAILS_ENV&quot;] ||= &#39;test&#39;
+require File.expand_path(&quot;../../config/environment&quot;, __FILE__)
+require &#39;rspec/rails&#39;
+require &#39;rspec/autorun&#39;
+require &#39;factory_girl&#39;
+
+# Requires supporting ruby files with custom matchers and macros, etc,
+# in spec/support/ and its subdirectories.
+Dir[Rails.root.join(&quot;spec/support/**/*.rb&quot;)].each { |f| require f }
+
+RSpec.configure do |config|
+  # ## Mock Framework
+  #
+  # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
+  #
+  # config.mock_with :mocha
+  # config.mock_with :flexmock
+  # config.mock_with :rr
+
+  # Remove this line if you&#39;re not using ActiveRecord or ActiveRecord fixtures
+  config.fixture_path = &quot;#{::Rails.root}/spec/fixtures&quot;
+
+  # If you&#39;re not using ActiveRecord, or you&#39;d prefer not to run each of your
+  # examples within a transaction, remove the following line or assign false
+  # instead of true.
+  config.use_transactional_fixtures = true
+
+  # If true, the base class of anonymous controllers will be inferred
+  # automatically. This will be the default behavior in future versions of
+  # rspec-rails.
+  config.infer_base_class_for_anonymous_controllers = false
+
+  # Run specs in random order to surface order dependencies. If you find an
+  # order dependency and want to debug it, you can fix the order by providing
+  # the seed, which is printed after each run.
+  #     --seed 1234
+  config.order = &quot;random&quot;
+end
+</code></pre>
+                    <p>エラー</p>
+                    <pre><code>Factory not registered: user
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの質問によると、間違ったファイルにファクトリ定義があります。それは
+                    user.rb にあります。 rspec
+                    を使用する場合、これはテスト フォルダー (spec)
+                    内のfactory.rb にある必要があります。</p>
+                    <pre><code># user.rb
+
+FactoryGirl.define do
+    factory :user do |f|
+        f.email &quot;[email protected]&quot;
+        f.password &quot;ruby&quot;
+        f.password_confrimation &quot;ruby&quot;
+    end
+end
+</code></pre>
+                    <p>上記をこれに変更します (f
+                    変数も必要ありません)</p>
+                    <pre><code># spec/factories.rb
+
+FactoryGirl.define do
+    factory :user do
+        email &quot;[email protected]&quot;
+        password &quot;ruby&quot;
+        password_confrimation &quot;ruby&quot;
+    end
+end
+</code></pre>
+                    <p>また、コメントにあるように、gem ‘factory_girl’
+                    だけではなく、gem ‘factory_girl_rails’ が Gemfile
+                    にあることを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

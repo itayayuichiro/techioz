@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mac os BigSur での Libvmaf の brew Formula の変更方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mac os BigSur での Libvmaf の brew Formula の変更方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mac os BigSur での Libvmaf の brew Formula
+の変更方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>mac OS BigSur に libvmaf
+                    依存関係をインストールするときにエラーが発生します。</p>
+                    <p>インストール時のエラーは次のとおりです。</p>
+                    <pre><code>brew install libvmaf
+</code></pre>
+                    <p>このエラーは、数式が次のコマンドを実行すると発生します。</p>
+                    <pre><code>system &quot;ninja&quot;, &quot;-vC&quot;, &quot;build&quot;
+</code></pre>
+                    <p>ただし、brew install libvmaf を使用すると、brew
+                    は元の式で再コンパイルされ、依然としてエラーが発生します。</p>
+                    <p>ただし、プリコンパイルされたフォルダー
+                    (エラーのないフォルダー)
+                    を使用するように元の数式を変更することはできません。</p>
+                    <p>元の libvmaf の式は次のとおりです。</p>
+                    <pre><code>class Libvmaf &lt; Formula
+  desc &quot;Perceptual video quality assessment based on multi-method fusion&quot;
+  homepage &quot;https://github.com/Netflix/vmaf&quot;
+  url &quot;https://github.com/Netflix/vmaf/archive/refs/tags/v3.0.0.tar.gz&quot;
+  sha256 &quot;7178c4833639e6b989ecae73131d02f70735fdb3fc2c7d84bc36c9c3461d93b1&quot;
+  license &quot;BSD-2-Clause-Patent&quot;
+
+  bottle do
+    sha256 cellar: :any,                 arm64_sonoma:   &quot;bdc90ebc175c1f071be4ce895051586583177c3b1029817dc1078472a3da8261&quot;
+    sha256 cellar: :any,                 arm64_ventura:  &quot;cc4765c5f45c5f87bcc42dba73fada9659abbf47bb9adb68bd406c26ac23380a&quot;
+    sha256 cellar: :any,                 arm64_monterey: &quot;2c9b931ff4d557c6f731b1e834464f96e2620e77f1b857c2ec3061bb589e42da&quot;
+    sha256 cellar: :any,                 sonoma:         &quot;a3ad27257fe552feb0d8ba3f2285feb7a6a772b845514e8d97bf0f9a9c0f1830&quot;
+    sha256 cellar: :any,                 ventura:        &quot;28589a2b48fbd851749f57be19eda359e64056f289f899b80a52224dc3a6ad71&quot;
+    sha256 cellar: :any,                 monterey:       &quot;bb97b9845e37e7090fecfff2e47c32c08c18ea4161da8d88134a7f7be4e07c22&quot;
+    sha256 cellar: :any_skip_relocation, x86_64_linux:   &quot;5cb81b38b8c402fc0c12a8a639a7208406958d27a1f8a513c706a5636903cdc4&quot;
+  end
+
+  depends_on &quot;meson&quot; =&gt; :build
+  depends_on &quot;ninja&quot; =&gt; :build
+  depends_on &quot;vim&quot; =&gt; :build
+
+  on_intel do
+    depends_on &quot;nasm&quot; =&gt; :build
+  end
+
+  def install
+    Dir.chdir(&quot;libvmaf&quot;) do
+      system &quot;meson&quot;, *std_meson_args, &quot;build&quot;
+      system &quot;ninja&quot;, &quot;-vC&quot;, &quot;build&quot;
+      system &quot;ninja&quot;, &quot;-vC&quot;, &quot;build&quot;, &quot;install&quot;
+    end
+    pkgshare.install &quot;model&quot;
+  end
+
+  test do
+    (testpath/&quot;test.c&quot;).write &lt;&lt;~EOS
+      #include &lt;libvmaf/libvmaf.h&gt;
+      int main() {
+        return 0;
+      }
+    EOS
+
+    flags = [
+      &quot;-I#{HOMEBREW_PREFIX}/include/libvmaf&quot;,
+      &quot;-L#{lib}&quot;,
+    ]
+
+    system ENV.cc, &quot;test.c&quot;, &quot;-o&quot;, &quot;test&quot;, *flags
+    system &quot;./test&quot;
+  end
+end
+
+
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私自身もこれに取り組んでいます。どこかに重大な変更があったようです
+                    (おそらく vim
+                    のアップデートで?)。これに関係があると思います。
+                    https://github.com/orgs/Homebrew/Discussions/5093</p>
+                    <p>ああ、わかりました、修正できたと思います!!!!</p>
+                    <p>したがって、これを修正するために 5
+                    日前に公開されたパッチによって、この問題を引き起こしたのは
+                    vim の重大な変更でした。 0052.9.1。</p>
+                    <p>vim –version
+                    を実行すると、バージョンの内訳が表示されます。
+                    バージョン9.1 …… 含まれるパッチ: 1 ～ 50 &lt;-
+                    少なくとも 1 ～ 52 である必要があります。</p>
+                    <p>brew update vim を実行すると、何らかの理由で brew
+                    が 9.1.0050 以降のパッチを取得できませんでした。 vim
+                    のリンクを解除してから最新バージョンをインストールすると、問題が解決されるはずです。走ってみる</p>
+                    <pre><code>brew unlink vim   
+brew install --HEAD vim
+</code></pre>
+                    <p>次に、vim –version
+                    をもう一度確認すると、アップグレードされているはずです。次に、libvmaf
+                    を brew install すると、g2g になるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

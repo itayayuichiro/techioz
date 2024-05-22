@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails MiniMagick 情報: 値を取得するには? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails MiniMagick 情報: 値を取得するには?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails MiniMagick 情報: 値を取得するには?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>画像から黒いバーを削除したいのですが、うまく機能する
+                    bash スクリプトを見つけました</p>
+                    <pre><code>margin=$(convert input.jpg -fuzz 10% -set page &quot;%[@]&quot; -format &quot;%[fx:h-page.height-page.y]&quot; info:)
+magick input.jpg -gravity South -chop 0x$margin -gravity North -chop 0x$margin output.jpg
+</code></pre>
+                    <pre><code>convert input.jpg -fuzz 10% -set page &quot;%[@]&quot; -format &quot;%[fx:h-page.height-page.y]&quot; info:
+</code></pre>
+                    <p>たとえば 140 を返します。これは黒いバーのピクセル
+                    サイズです
+                    しかし、Rubyインターフェイスを使用してこの値を設定することはできません</p>
+                    <pre><code>convert = MiniMagick::Tool::Convert.new
+convert &lt;&lt; &quot;test.jpg&quot;
+convert.fuzz(&quot;10%&quot;)
+convert.set(&#39;page &quot;%[@]&quot;&#39;)
+convert.format(&quot;%[fx:h-page.height-page.y]&quot;)
+convert.call
+</code></pre>
+                    <p>このコマンドは戻り値を返します</p>
+                    <pre><code>test.jpg[0] JPEG 1920x1080 1920x1080+0+0 8-bit sRGB 57180B 0.010u 0:00.018\n%[fx:h-page.height-page.y][1] JPEG 1920x1080 1920x1080+0+0 8-bit sRGB 47180B 0.010u 0:00.009
+</code></pre>
+                    <p>バックマージンの値を取得するにはどうすればよいですか?この文字列には
+                    140 が含まれていません</p>
+                    <p>電話したら</p>
+                    <pre><code>convert.command.join &#39; &#39;
+</code></pre>
+                    <p>分かりました</p>
+                    <pre><code>convert test.jpg -fuzz 10% -set page %[@] -format %[fx:h-page.height-page.y]
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>convert = MiniMagick::Tool::Convert.new
+convert &lt;&lt; &quot;test.jpg&quot;
+convert.fuzz(&quot;10%&quot;)
+convert.set &#39;page&#39;, &#39;%[@]&#39;
+convert.format &#39;%[fx:h-page.height-page.y]&#39;
+convert &lt;&lt; &quot;info:&quot;
+convert.call
+</code></pre>
+                    <p>これにより正しい値が返されます。引数の配置を手伝ってくれた
+                    chatgpt に感謝します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

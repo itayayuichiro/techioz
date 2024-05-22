@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 + Turbo: ナビゲーション時に読み込み状態を表示しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 + Turbo: ナビゲーション時に読み込み状態を表示しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7 + Turbo:
+ナビゲーション時に読み込み状態を表示しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アプリケーションにターボ
+                    フレームを設定し、ユーザーがナビゲートできるようにしました。問題は、ユーザーがフレーム内で移動すると、ターボ
+                    フレームが更新され、その間に読み込み状態が表示されるまでに少し時間がかかることです。さて、それが起こらず、新しいフレームの準備ができるまで古いフレームを表示し、その後古いフレームを置き換えて、ユーザーが読み込み状態を決して見ないようにすることを希望します。それは可能ですか？それ以降、ナビゲーション時にフレームのコンテンツが現在のように「スナップ」しなくなるため、これを実行したいと考えています。</p>
+                    <p>これが私の（簡略化された）コードです:</p>
+                    <p>インデックス.html.erb</p>
+                    <pre><code>&lt;%= turbo_frame_tag &quot;posts&quot;, src: search_path do %&gt;
+  Loading results...
+&lt;% end %&gt;
+</code></pre>
+                    <p>_posts.html.erb</p>
+                    <pre><code>&lt;%= turbo_frame_tag &quot;posts&quot; do %&gt;
+  &lt;%= link_to &quot;Next Page&quot;, search_path(page: (params[:page]&amp;.to_i || 0) + 1) %&gt;
+  &lt;% posts.each do |post| %&gt;
+    &lt;div&gt;
+      &lt;p&gt;&lt;%= post.name %&gt;&lt;/p&gt;
+      &lt;p&gt;&lt;%= post.body %&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>post_controller.rb</p>
+                    <pre><code>class PostsController &lt; ApplicationController
+  ...
+  def search
+    posts = Post.all
+    posts = posts.offset((params[:page]&amp;.to_i || 0) * 50).limit(50)
+    render(partial: &quot;posts&quot;, locals: { posts: posts })
+  end
+  ...
+end
+</code></pre>
+                    <p>前もって感謝します！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>有益な提案をありがとうございました!私はそれを考え出した。問題は、Feather
+                    Icons Library を使用していて、このライブラリでは
+                    Javascript
+                    を使用してビューにアイコンを配置する必要があることでした。
+                    Javascript
+                    はビューがレンダリングされてからさらに数ミリ秒かかるため、アイコンはその後読み込まれ、ビューのレイアウトがわずかに変更されます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

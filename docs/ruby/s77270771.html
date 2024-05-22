@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails API コントローラーの最適化によるパフォーマンスの向上 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails API コントローラーの最適化によるパフォーマンスの向上",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails API
+コントローラーの最適化によるパフォーマンスの向上</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>module Api
+  module V1
+    class AngularDashboardApisController &lt; BaseController
+      include RolesHelper
+      before_action :verify_auth_token
+      before_action -&gt; { verify_user_permission(2) }
+
+  def dashboard_data_a
+    @user = User.find_by(id: params[:user_id])
+
+    unless @user
+      return json_response(&#39;Bad Request&#39;, false, [], :bad_request)
+    end
+
+    get_con_tech
+
+    if !params[:from_date].present? &amp;&amp; !params[:to_date].present?
+      params[:from_date] = DateTime.now.beginning_of_month.to_date
+      params[:to_date] = Date.today
+    else
+      params[:from_date] = params[:from_date].to_date
+      params[:to_date] = params[:to_date].to_date
+    end
+
+    all_years = Lead.pluck(:created_at).map { |x| x.year }.uniq
+    
+    check_role(@user, params)
+    filter_by_scope
+    set_old_and_new_country_tech_hash_A_and_B
+    graph_data
+    lead_user_summary
+
+    json_success_send_dashboard_graph_response(&#39;Dashboard-A&#39;, true,@countries_A, @countries_B, @countries_C,@country_total_A, @country_total_B,@country_total_C, @country_tech_array_hash_A, @country_tech_array_hash_B, @country_tech_array_hash_C,Hash[@technology_hash_A.sort_by{|k, v| v}].keys, Hash[@technology_hash_B.sort_by{|k, v| v}].keys, Hash[@technology_hash_C.sort_by{|k, v| v}].keys,@graphdata_lst, @Summary,all_years, :ok)
+  end
+  
+  def graph_data
+    graph_lead = sort_by_date(@country_tech_graph)
+    @graphdata_map = Hash.new(0) # Initialize a default value of 0 for missing keys
+    @graphdata_lst = []
+  
+    if params[:mode] == &#39;month&#39; || params[:mode] == &#39;day&#39; || params[:mode] == &#39;week&#39;
+      graph_lead.each do |lead|
+        date_key = case params[:mode]
+                   when &#39;month&#39;
+                     month_map[lead.date.month.to_s]
+                   when &#39;day&#39;, &#39;week&#39;
+                     lead.date.to_date
+                   end
+  
+        @graphdata_map[date_key] += 1
+      end
+    end
+  
+    @graphdata_map.each do |key, value|
+      @graphdata_lst.push({ name: &quot;#{key}&quot;, value: &quot;#{value}&quot;, tooltip: &quot;#{key}&quot; })
+    end
+  end      
+
+  def filter_by_scope
+    @country_tech_hash_A, @country_tech_hash_A_graph, @country_tech_hash_id_A = filter_and_group_leads(@technology_hash_A, params)
+    @country_tech_hash_B, @country_tech_hash_B_graph, @country_tech_hash_id_B = filter_and_group_leads(@technology_hash_B, params)
+    @country_tech_hash_C, @country_tech_hash_C_graph, @country_tech_hash_id_C = filter_and_group_leads(@technology_hash_C, params)
+
+    @country_tech_graph = @country_tech_hash_A + @country_tech_hash_B + @country_tech_hash_C
+
+    @country_tech_hash_A = @country_tech_hash_A_graph
+    @country_tech_hash_B = @country_tech_hash_B_graph
+    @country_tech_hash_C = @country_tech_hash_C_graph
+  end
+
+  def set_old_and_new_country_tech_hash_A_and_B
+    @new_country_tech_hash_id_A = {}
+    @country_tech_hash_id_A.each do |key,value|
+      if key[0] == nil
+        key[0] = &#39;unknown&#39;
+      end
+      k=key[0]+&quot;&quot;, &quot;&quot;+key[1]
+      @new_country_tech_hash_id_A[key[2]]=k
+    end
+    @new_country_tech_hash_id_A = @new_country_tech_hash_id_A.each_with_object({}) { |(k,v),g| (g[v] ||= []) &lt;&lt; k }
+
+    @country_tech_array_hash_A = {}
+    @country_tech_array_A = []
+    @countries_A = Set.new
+    @countries_B = Set.new
+    @countries_C = Set.new
+    index = 0
+    @klass = Klass.find_by(name: &quot;Lead&quot;)
+    @fields = @user.fields_for_table_with_order1(klass: @klass)
+    @country_tech_hash_A.each do |key,value|
+      array = []
+      @countries_A.add(key[0])
+      ids = @new_country_tech_hash_id_A[[key[0],key[1]]]
+      @leads = Lead.where(&#39;id in (?)&#39;, ids).select(@fields.pluck(:name))
+      if @country_tech_array_hash_A.key? (key[1])
+        @country_tech_array_hash_A[key[1]] = @country_tech_array_hash_A[key[1]].push(array.push(key[0],value,@leads))
+      else
+        @country_tech_array_A = []
+        @country_tech_array_hash_A[key[1]] = @country_tech_array_A.push(array.push(key[0],value,@leads))
+      end
+      @country_hash_A[key[0]] = index
+      index = index + 1
+      if @country_total_A.key? (key[0])
+        @country_total_A[key[0]] = @country_total_A[key[0]] + value
+      else
+        @country_total_A[key[0]] =  value
+      end
+    end
+
+    @new_country_tech_hash_id_B = {}
+    @country_tech_hash_id_B.each do |key,value|
+      if key[0] == nil
+        key[0] = &#39;unknown&#39;
+      end
+      k=key[0]+&quot;&quot;, &quot;&quot;+key[1]
+      @new_country_tech_hash_id_B[key[2]]=k
+    end
+    @new_country_tech_hash_id_B = @new_country_tech_hash_id_B.each_with_object({}) { |(k,v),g| (g[v] ||= []) &lt;&lt; k }
+    @country_tech_array_hash_B = {}
+    @country_tech_array_B = []
+    @country_tech_hash_B.each do |key,value|
+      array = []
+      @countries_B.add(key[0])
+      ids = @new_country_tech_hash_id_B[[key[0],key[1]]]
+      @leads = Lead.where(&#39;id in (?)&#39;, ids).select(@fields.pluck(:name))
+      if @country_tech_array_hash_B.key? (key[1])
+        @country_tech_array_hash_B[key[1]] = @country_tech_array_hash_B[key[1]].push(array.push(key[0],value,@leads))
+      else
+        @country_tech_array_B = []
+        @country_tech_array_hash_B[key[1]] = @country_tech_array_B.push(array.push(key[0],value,@leads))
+      end
+      @country_hash_B[key[0]] = index
+      index = index + 1
+      if @country_total_B.key? (key[0])
+        @country_total_B[key[0]] = @country_total_B[key[0]] + value
+      else
+        @country_total_B[key[0]] =  value
+      end
+    end
+
+    @new_country_tech_hash_id_C = {}
+    @country_tech_hash_id_C.each do |key,value|
+      if key[0] == nil
+        key[0] = &#39;unknown&#39;
+      end
+      k=key[0]+&quot;&quot;, &quot;&quot;+key[1]
+      @new_country_tech_hash_id_C[key[2]]=k
+    end
+    @new_country_tech_hash_id_C = @new_country_tech_hash_id_C.each_with_object({}) { |(k,v),g| (g[v] ||= []) &lt;&lt; k }
+    @country_tech_array_hash_C = {}
+    @country_tech_array_C = []
+    @country_tech_hash_C.each do |key,value|
+      array = []
+      @countries_C.add(key[0])
+      ids = @new_country_tech_hash_id_C[[key[0],key[1]]]
+      @leads = Lead.where(&#39;id in (?)&#39;, ids).select(@fields.pluck(:name))
+      if @country_tech_array_hash_C.key? (key[1])
+        @country_tech_array_hash_C[key[1]] = @country_tech_array_hash_C[key[1]].push(array.push(key[0],value,@leads))
+      else
+        @country_tech_array_C = []
+        @country_tech_array_hash_C[key[1]] = @country_tech_array_C.push(array.push(key[0],value,@leads))
+      end
+      @country_hash_C[key[0]] = index
+      index = index + 1
+      if @country_total_C.key? (key[0])
+        @country_total_C[key[0]] = @country_total_C[key[0]] + value
+      else
+        @country_total_C[key[0]] =  value
+      end
+    end
+  end
+
+  def get_con_tech
+    @country_hash_A = {}
+    @country_hash_B = {}
+    @country_hash_C = {}
+    @technology_hash_A = {}
+    @technology_hash_B = {}
+    @technology_hash_C = {}
+
+    @technology_A = CountryTechnology.where(group:&#39;A&#39;,country_technology:&#39;technology&#39;)
+    @technology_B = CountryTechnology.where(group:&#39;B&#39;,country_technology:&#39;technology&#39;)
+    @technology_C = CountryTechnology.where(group:&#39;C&#39;,country_technology:&#39;technology&#39;)
+
+    @technology_A.each do |technology|
+      @technology_hash_A[technology.name] = technology.position
+    end
+
+    @technology_B.each do |technology|
+      @technology_hash_B[technology.name] = technology.position
+    end
+
+    @technology_C.each do |technology|
+      @technology_hash_C[technology.name] = technology.position
+    end
+      @country_total_A = Hash[@country_hash_A.sort_by{|k, v| v}]
+      @country_total_B = Hash[@country_hash_B.sort_by{|k, v| v}]
+      @country_total_C = Hash[@country_hash_C.sort_by{|k, v| v}]
+      @country_total_A.each { |k, v| @country_total_A[k] = 0 }
+      @country_total_B.each { |k, v| @country_total_B[k] = 0 }
+      @country_total_C.each { |k, v| @country_total_C[k] = 0 }
+  end
+
+  def lead_user_summary
+    @LeadgroupByUser = Lead.filter_by_from_to_date_tech(params[:from_date], params[:to_date], @technology_hash_A.keys + @technology_hash_B.keys + @technology_hash_C.keys)
+  
+    filters = {
+      source: params[:source],
+      is_closed: params[:is_closed],
+      live_chat_handle_name: params[:live_chat_handle_name],
+      if_paid: params[:if_paid],
+      if_organic: params[:if_organic],
+      supportdesk: params[:supportdesk],
+      terminate_reasons: params[:terminate_reasons],
+      device: params[:device],
+      user_id: params[:assign_to],
+      technology: params[:technology]
+    }
+  
+    filters.each do |filter_name, filter_value|
+      @LeadgroupByUser = @LeadgroupByUser.send(&quot;filter_by_#{filter_name}&quot;, filter_value) if filter_value.present? &amp;&amp; filter_value != &quot;All&quot;
+    end
+  
+    @Summaryhash = @LeadgroupByUser.group(:user_id).count
+    @LeadgroupByUser1 = @LeadgroupByUser.filter_by_is_closed(&quot;Yes&quot;)
+    @Summaryhash1 = @LeadgroupByUser1.group(:user_id).count
+    @Summary = []
+    @klass = Klass.find_by(name: &quot;Lead&quot;)
+    @fields = @user.fields_for_table_with_order1(klass: @klass)
+  
+    @Summaryhash.each do |key, value|
+      total_closed_count = @Summaryhash1[key].present? ? @Summaryhash1[key] : 0
+      @assignedLeads1 = @LeadgroupByUser.where(user_id: key).select(:id, @fields.pluck(:name))
+      @Summary.push({&#39;key&#39;: key, &#39;total_assigned_count&#39;: value, &#39;total_closed_count&#39;: total_closed_count, &#39;assigned_leads&#39;: @assignedLeads1, &#39;labels&#39;: @fields.pluck(:name)})
+    end
+  end
+
+  private
+
+  def sort_by_date(arr)
+    arr.sort_by { |h| h[&quot;date&quot;].to_date.to_s.split(&#39;-&#39;) }
+  end
+
+  def filter_and_group_leads(technology_hash, params)
+    filtered_leads = Lead.filter_by_from_to_date_tech(params[:from_date], params[:to_date], technology_hash.keys)
+    filtered_leads = filtered_leads.filter_by_source(params[:source]) if params[:source].present? &amp;&amp; params[:source] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_is_closed(params[:is_closed]) if params[:is_closed].present? &amp;&amp; params[:is_closed] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_livechathandle(params[:live_chat_handle_name]) if params[:live_chat_handle_name].present? &amp;&amp; params[:live_chat_handle_name] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_if_paid(params[:if_paid]) if params[:if_paid].present? &amp;&amp; params[:if_paid] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_if_organic(params[:if_organic]) if params[:if_organic].present? &amp;&amp; params[:if_organic] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_supportdesk(params[:supportdesk]) if params[:supportdesk].present? &amp;&amp; params[:supportdesk] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_terminate_reasons(params[:terminate_reasons]) if params[:terminate_reasons].present? &amp;&amp; params[:terminate_reasons] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_device(params[:device]) if params[:device].present? &amp;&amp; params[:device] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_user_id(params[:assign_to]) if params[:assign_to].present? &amp;&amp; params[:assign_to] != &quot;All&quot;
+    filtered_leads = filtered_leads.filter_by_technology(params[:technology]) if params[:technology].present? &amp;&amp; params[:technology] != &quot;All&quot;
+  
+    graph_data = filtered_leads.group(:country, :technology).count
+    country_tech_hash_id = filtered_leads.group(:country, :technology, :id).count
+
+    return filtered_leads, graph_data, country_tech_hash_id
+  end
+end
+end
+end
+</code></pre>
+                    <p>データベースからデータを取得する Rails API
+                    コントローラーを使用していますが、パフォーマンスの問題が発生しています。
+                    API
+                    が同じデータを取得するのにかかる時間は毎回異なります。パフォーマンスを向上させるためにコードを最適化するためのアドバイスを探しています。</p>
+                    <p>パフォーマンスを向上させるためにコードをリファクタリングすることで、dashboard_data_a
+                    メソッドの最適化を試みました。具体的には、データベース
+                    クエリをリファクタリングし、頻繁にアクセスされるデータのキャッシュを追加しました。</p>
+                    <p>また、フィルタリング用の共通関数
+                    filter_and_group_leads()
+                    も作成しましたが、これでは時間の複雑さは軽減されません。そのため、これらの最適化により、特にダッシュボードのデータを取得するリクエストの応答時間の大幅な短縮につながると期待していました。
+                    A.ただし、若干の改善はありましたが、応答時間にはまだ大きなばらつきがあり、さらに改善の余地があると考えています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コーディングスタイルが冗長すぎます。</p>
+                    <p>サンディ・メッツについて聞いたことがありますか？彼女はコーディング
+                    スタイルについて詳しく研究しています。彼女はこう言います。メソッドには最大
+                    5
+                    行が必要です。したがって、メソッドをより小さな理解しやすいチャンクに分割することが、ある程度重要になります。</p>
+                    <p>set_old_and_new_country_tech_hash_A_and_B
+                    メソッドには 98
+                    行あり、発生している問題、特にパフォーマンスの問題を調べて特定するにはあまりにも奇妙です。もう一度これに取り組み、あなたの質問を編集します。私のコントローラーは、白い線を含む全長がこれの半分のサイズです。したがって、より小さなメソッドを作成することは、パフォーマンスの問題を特定するのにも役立ちます。</p>
+                    <p>コードベースのパフォーマンスを支援することは、現状ではやや不可能です。実際、これは私が人生で見た中で最も長いコントローラー
+                    アクションであり、私は Ruby On Rails に 15
+                    年間取り組んでいます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

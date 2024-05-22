@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マークダウンでブロック引用符にメタデータを割り当てる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マークダウンでブロック引用符にメタデータを割り当てる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マークダウンでブロック引用符にメタデータを割り当てる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>マークダウンのブロック引用符を特定のメタ情報
+                    (作成者/ソース、日付、リンク)
+                    に関連付ける必要があります。</p>
+                    <p>その情報はデータ属性に含まれ、CSS
+                    はそれらの属性の情報を使用してフッターを表示します。</p>
+                    <pre><code>&lt;blockquote data-source=&quot;some source&quot; data-date=&quot;some date&quot; data-link=&quot;some link&quot;&gt;some quote...&lt;/blockquote&gt;
+</code></pre>
+                    <p>問題は、これらのデータ属性を設定するためにマークダウン構文をどのようにフォーマットするかです。</p>
+                    <p>私の現在の答えは、通常の blockquote
+                    構文の前に追加の行を追加することです。</p>
+                    <pre><code>&gt; &lt;source={some source} date={some date} link={some link}&gt;
+&gt; some quote...
+</code></pre>
+                    この文字列は、マークダウン ライブラリ Red Carpet
+                    (Ruby) のカスタム
+                    レンダラーに渡され、ブロック引用符として認識されます。正規表現を使用してメタデータを抽出し、対応する
+                    <blockquote>
+                    <p>タグをレンダリングします。</p>
+                    <pre><code>class CustomRenderer &lt; Redcarpet::Render::HTML
+  include Rouge::Plugins::Redcarpet
+
+  def block_quote(quote)
+    pattern = /&amp;lt;source={(?&lt;source&gt;[^}]+)} date={(?&lt;date&gt;[^}]+)}( link={(?&lt;link&gt;[^}]+)?})?&amp;gt;(&lt;br&gt;)?(\n)?/m
+    match = pattern.match(quote)
+
+    if match
+      quote.sub!(pattern, &#39;&#39;)
+
+      %{&lt;blockquote data-source=&quot;#{match[:source]}&quot; data-date=&quot;#{match[:date]}&quot; data-link=&quot;#{match[:link]}&quot;&gt;#{quote}&lt;/blockquote&gt;}
+    else
+      %{&lt;blockquote&gt;#{quote}&lt;/blockquote&gt;}
+    end
+  end
+end
+</code></pre>
+                    <p>このアプローチはうまく機能しますが、見た目は醜いです。具体的に言うと、これはかなり扱いにくい正規表現です。もっと一般的に言えば、もっと簡単な方法があるはずだという気持ちを払拭することはできません。</p>
+                    <p>文字列を解析する前に前処理することを検討しましたが、どのように前処理しても、最終的には
+                    block_quote
+                    メソッドを呼び出す必要があり、何らかの方法でメタデータをそこで抽出する必要があると思います。</p>
+                    <p>マークダウン文字列全体のメタデータを取得する方法があることも承知しています。ただし、これには出力にメタデータは含まれません。</p>
+                    <p>これを行うより良い方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その後、Kramdown gem
+                    が私が必要とするものを提供してくれることがわかりました。</p>
+                    <p>ブロックレベル要素のカスタム属性をサポートします。彼らの構文を使用すると、おそらく次のようなことができるでしょう。</p>
+                    <pre><code>&gt; A nice blockquote
+{: data-source=&quot;...&quot; data-date=&quot;...&quot; data-link=&quot;...&quot;}
+</code></pre>
+                    <p>そして、それによって次のものが生成されるはずです。</p>
+                    <pre><code>&lt;blockquote data-source=&quot;...&quot; data-date=&quot;...&quot; data-link=&quot;...&quot;&gt;
+  A nice blockquote
+&lt;/blockquote&gt;
+</code></pre>
+                    <p>互換性のない既存のマークダウン構文があるため、この
+                    gem
+                    は使用できません。また、ユーザーに任意のカスタム属性
+                    (XSS)
+                    を設定させるのは危険だと思うので、ホワイトリストが必要になります。しかし、他の人に役立つかもしれないので、ここに残しておきます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

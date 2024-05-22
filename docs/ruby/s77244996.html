@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails - before_action が早期にレンダリングされるときに after_action を実行する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails - before_action が早期にレンダリングされるときに after_action を実行する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails - before_action
+が早期にレンダリングされるときに after_action を実行する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>常に after_action
+                    を呼び出したいコントローラーがあります</p>
+                    <pre><code>before_action :auth
+after_action :track, only [:index]
+
+def index 
+ render json: ..., status: 200
+end
+
+def show
+...
+end
+
+def auth
+ return if some_condition
+ render json: ..., status 422
+end
+
+def track 
+ status = response.status if response.successful?
+ # do something with status
+end 
+</code></pre>
+                    <p>after_action
+                    が常に呼び出されるようにする最善の方法は何ですか?現時点では、実際にインデックス
+                    アクションに到達した場合にのみ呼び出されます。</p>
+                    <p>after_action の唯一のセクションに :auth
+                    を追加してみました</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>after_action
+                    コールバックは、それに関連付けられたアクションが実行された場合にのみ呼び出されます。どのアクションが実行されるかに関係なく、トラック
+                    after_action
+                    が常に呼び出されるようにしたい場合は、before_action
+                    を使用して各アクションの開始時にトラックを呼び出すことができます。</p>
+                    <pre><code>before_action :auth
+before_action :track
+
+def index 
+  render json: ..., status: 200
+end
+
+def show
+  # ...
+end
+
+def auth
+  return if some_condition
+  render json: ..., status: 422
+end
+
+def track 
+  status = response.status if response.successful?
+  # do something with status
+end 
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

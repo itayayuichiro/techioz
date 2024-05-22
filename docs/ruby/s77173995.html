@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails の悲観的ロック戦略が Rails 7 / Postgresql アプリで機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails の悲観的ロック戦略が Rails 7 / Postgresql アプリで機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails の悲観的ロック戦略が Rails 7 /
+Postgresql アプリで機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7 アプリでは、Postgresql
+                    データベースを使用して、jsonb フィールド
+                    データを含むモデル Stat があります。 jsonb
+                    フィールド
+                    データに独自の行を追加するいくつかの非同期プロセスで、大規模な同時実行が発生しています。</p>
+                    <p>同時実行の回復力をテストするために、Rspec
+                    テストを作成しました。キーと値のペア {“<index>”
+                    =&gt; “ok”} をデータ jsonb フィールドに 20
+                    回追加します。最後に、データ
+                    フィールドのランダムな長さを取得します。弾力性がある場合、長さは常に「20」でなければなりません。</p>
+                    <pre><code>threads = 20.times.map.with_index do |_, index|
+       Thread.new do
+             stat = Stat.find(stat_id)
+             stat.with_lock do
+                   stat.update!(data: stat.data.merge({index =&gt; &quot;ok&quot;}))
+             end
+       end
+end
+      
+threads.map &amp;:join
+stat = Stat.find(stat_id)
+expect(stat.data.length).to eq(20)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails のデフォルトでは、テスト
+                    サンプルは単一のトランザクションで実行され、テストの最後にロールバックされて
+                    DB
+                    が元の状態に復元されます。これは、これらすべてのスレッドを作成しているにもかかわらず、それらはすべてプールから同じ
+                    DB
+                    接続に集められていることを意味します。つまり、各スレッドのロックは他のスレッドから分離されていません。</p>
+                    <p>use_transactional_fixtures
+                    をオフにすると、希望する動作が表示されます
+                    (RSpec::Rails v6 には、トランザクション
+                    テストをオフにするための優れたヘルパーがあります)。ただし、DB
+                    を自分でクリーンアップする必要もあります。これをテストに投げ込みます。</p>
+                    <pre><code>include RSpec::Rails::FixtureSupport
+uses_transaction &quot;the name of your test&quot;
+after { Stat.delete_all }
+</code></pre>
+                    <p>また、おそらく、database.yml の接続プール
+                    サイズを増やして、少なくとも 20
+                    個の接続を使用できるようにする必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

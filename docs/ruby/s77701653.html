@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Postgres 本番データベースを整理する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Postgres 本番データベースを整理する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Postgres 本番データベースを整理する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>あるテーブル（contract）から別のテーブル（weekly_record）に列（スコアと呼ばれる）を移動しました。
+                    Weekly_record
+                    の新しい移行を作成しました。ただし、私はそれを元のテーブルから「手動で」削除しました。具体的には、元の移行の列を削除しました。</p>
+                    <p>csv ファイルを介してデータを新しいローカル
+                    データベースにシードし直し、「スコア」が新しいテーブルに保存されていることを確認し、古い列はすべての履歴を削除したため存在しないため、開発中はすべて問題ありません。</p>
+                    <p>しかし、運用環境では、古いレコードはすべてそのまま残っており、DB
+                    を削除して再シードしたくありません
+                    (そうする必要がある場合を除く)。それに対処する最善の方法がわかりません。</p>
+                    <p>次のオプションが表示されます。</p>
+                    <p>実稼働データベースを操作するのはまだ少し怖いです。私はローカルのものを常に消去して再構築することに慣れています</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    移行システムは、順次動作するように設計されています。ローカルで以前の移行に戻って変更した場合、Rails
+                    は移行を実行する順序を認識または認識できません。</p>
+                    <p>本番環境と一致するように移行を元に戻すことが最善です。シード
+                    ファイルがあるため、開発 DB
+                    を削除し、本番環境に合わせて移行を再実行できます。</p>
+                    <p>その後、以下を実行する新しい移行を生成します。</p>
+                    <p>リポジトリ内に移行ファイルの長いリストが残るのが嫌な場合は、すべての環境が同期した後でいつでも削除できます。ただし、過去の移行を遡って編集すると、現在直面しているような問題が発生することがよくあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

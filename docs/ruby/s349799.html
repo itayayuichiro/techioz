@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>クライアントベースの Web サイト (Ruby on Rails) に最適なデータベース戦略 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "クライアントベースの Web サイト (Ruby on Rails) に最適なデータベース戦略",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>クライアントベースの Web サイト (Ruby on
+Rails) に最適なデータベース戦略</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、小規模なニッチ市場のニーズに応える優れた
+                    Web サイト
+                    システムを構築しました。私は昨年、Capistrano
+                    を使用してソフトウェアのコピーを Web
+                    サーバーに展開することで、これらの Web
+                    サイトを販売してきました。</p>
+                    <p>これらの Web
+                    サイトの唯一の違いは、データベース、CSS
+                    ファイル、および個々のクライアントのグラフィック
+                    デザインに使用される少数の画像セットであると私は思いました。</p>
+                    <p>それ以外はすべてまったく同じ、または同じであるべきです…現在、これらのサイトを約
+                    20
+                    個展開しているため、すべてを同じコードで更新し続けるのが面倒になってきています。そしてこの問題はさらに悪化するばかりです。</p>
+                    <p>このシステムをリファクタリングして、デプロイされた
+                    1 セットの Ruby コードを使用し、受信リクエストの URL
+                    によって正しいデータベースなどを動的に選択できるようにする必要があると考えています。</p>
+                    <p>データベースを扱うには次の 2
+                    つの方法があるようです。</p>
+                    <p>すべての CRUD 操作に client_id
+                    フィールドを追加するためにアプリケーション内のすべてのモデルをリファクタリングする必要がないため、現時点では複数データベースのアプローチが最も簡単です。</p>
+                    <p>ただし、データベースを移行するたびに、数十または数百の異なるデータベースに対して「rake
+                    db:merge」を実行しなければならないのは面倒です。もちろんこれはスクリプトで実行できますが、あまり良い匂いではありません。</p>
+                    <p>一方、すべてのクライアントの「アイテム」テーブルには
+                    20,000 ～ 50,000 のアイテムが含まれます。 items
+                    テーブルに 50 万件または 100
+                    万件のアイテムがある場合、全文検索の速度が心配になります。
+                    client_id
+                    フィールドにインデックスがある場合でも、アイテムが異なるクライアント
+                    データベースに分割されていれば、検索が高速になるのではないかと思います。</p>
+                    <p>この問題に取り組む最善の方法について知識のある方がいらっしゃいましたら、ぜひお聞きしたいと思っています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は複数データベースのアプローチを採用することにしました。アプリケーション全体を作り直す必要がないので、これが私にとって最も簡単な方法です。</p>
+                    <p>私がやろうとしているのは、application_controller
+                    に before_filter
+                    を追加して、すべてのコントローラーに適用することです…次のようなものです。</p>
+                    <pre><code>before_filter :client_db         # switch to client&#39;s db
+</code></pre>
+                    <p>次に、application_controller.rb
+                    に次のような内容を含めます。</p>
+                    <pre><code> def client_db
+    @client = Client.find(params[:client_id]) 
+    spec = Client.configurations[RAILS_ENV] 
+    new_spec = spec.clone 
+    new_spec[&quot;database&quot;] = @client.database_name
+    ActiveRecord::Base.establish_connection(new_spec) 
+ end
+</code></pre>
+                    <p>次に、example.com?client_id=12345 のような URL
+                    により、正しいデータベースが選択されます。</p>
+                    <p>Mongrel の前でプロキシとして Apache
+                    を使用しているため、Apache はクライアントの Web
+                    サイト URL に基づいて、すべてのリクエストに正しい
+                    client_id を追加します。したがって、client_id
+                    は実際にはユーザーに表示される URL
+                    の一部ではありません。 Apache と Mongrel
+                    の間でのみ渡されます。これを適切に説明できているかどうかはわかりませんが、これは機能し、物事をクリーンかつシンプルに保ちます。</p>
+                    <p>将来単一のデータベースを使用する必要があると判断した場合は、すべてのコードをリファクタリングできます。現時点では、これが最も簡単なアプローチのようです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

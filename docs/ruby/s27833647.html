@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>eager_load=true の影響は何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "eager_load=true の影響は何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>eager_load=true の影響は何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>非運用環境では、eager_load が false
+                    であることが好ましい理由を知りたいのですが?私が聞いた議論の
+                    1 つは、eager_load は Rails
+                    とアプリケーションのほとんどをメモリに熱心にロードするというものです。したがって、個々のテストにeager_loadを使用すると、実行が遅くなります。ただし、これにより、Rails
+                    やアプリケーション関連のコードをロードせずにテストをどのように実行するのかなど、いくつかの疑問が生じます。熱心にロードされている
+                    Rails およびアプリケーション関連のコードは何ですか?
+                    config.eager_load_namespaces
+                    は次のクラスを提供します。</p>
+                    <pre><code>ActiveSupport
+ActionDispatch
+ActiveModel
+ActionView
+ActionController
+ActiveRecord
+ActionMailer
+Jquery::Rails::Engine
+MyApp::Application
+</code></pre>
+                    <p>これらのクラスとそのサブクラスはすべて積極的にロードされていますか?</p>
+                    <p>開発環境またはテスト環境でeager_load =
+                    falseを使用することの明らかな欠点は何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストは、必要なコードを使用しようとするときに、オンデマンドで必要なコードをロードします。
+                    たとえば、あるコード行では、テストで ActiveRecord
+                    クラスを使用したいとします。 eager_load を false
+                    に設定すると、このクラスはまだ必要ないため、バニラの
+                    Ruby プログラムでは例外が発生します。ただし、Rails
+                    プロジェクト内では、テストで使用する ActiveRecord
+                    がオンデマンドで必要になります。したがって、必要なコード部分のみが必要になるため、最終的には
+                    1 つのテストがより高速に実行されます。</p>
+                    <p>この手法は積極的な読み込みの逆であり、自動読み込みと呼ばれます。</p>
+                    <p>https://github.com/rails/rails
+                    を確認してください。それはたくさんのものです。</p>
+                    <p>はい</p>
+                    <p>開発環境では、起動時間が短縮されるため、これは利点であり、ベスト
+                    プラクティスです
+                    (スプリングなどのプリローダーを使用する場合は無視されます)。おそらく、cache_classes=false
+                    オプションを使用すると、リロードの回数が減るため、変更のリロードも容易になります
+                    (単なる推測)。</p>
+                    <p>テスト環境では、コードのメトリクスを推定したい場合に、eager_load=false
+                    を使用できない場合があります。
+                    コードカバレッジやスタイルチェックなど。例えば。
+                    simple_cov
+                    では、テストを開始する前にすべてのコードを一括ロードする必要があります。</p>
+                    <p>また、一般に、一部のライブラリは、メソッドを呼び出す前であってもすでに使用可能である必要があるクラスのロード時に初期化を行うため、積極的なロードでは使用できないことが発生する可能性があります。ただし、これはまれなケースです。そうは言っても、neo4j.rb
+                    gem でこのようなことが起こりました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>nanoc でタグごとにページを生成する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "nanoc でタグごとにページを生成する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>nanoc でタグごとにページを生成する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は nanoc
+                    を初めて使用するので、まだやり方を模索中です。サイトの準備ができました。見た目も機能も良好です。ただし、タグ領域が必要です。私はそれを達成することができます</p>
+                    <pre><code>&lt;%= tags_for(post, params = {:base_url =&gt; &quot;http://example.com/tag/&quot;}) %&gt;
+</code></pre>
+                    <p>しかし、タグ用のページを生成するにはどうすればよいでしょうか?たとえば、「NFL」というタグがあるため、ユーザーがそれをクリックするたびに、NFL
+                    に対応する記事のリストが表示される
+                    http://example.com/tag/nfl
+                    に誘導される必要があります。</p>
+                    <p>それを行うレイアウトをセットアップできます。しかし、それではどのようなロジックを使用すればよいのでしょうか?また、これにはヘルパーが必要ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>新しい項目を動的に生成するために、Rules
+                    ファイル内で前処理ブロックを使用できます。単一の新しい項目が追加される前処理ブロックの例を次に示します。</p>
+                    <pre><code>preprocess do
+  items &lt;&lt; Nanoc::Item.new(
+    &quot;some content here&quot;,
+    { :attributes =&gt; &#39;here&#39;, :awesomeness =&gt; 5000 },
+    &quot;/identifier/of/this/item&quot;)
+end
+</code></pre>
+                    <p>タグごとにページが必要な場合は、最初にすべてのタグを収集する必要があります。重複したくないので、セットでこれを行っています。</p>
+                    <pre><code>require &#39;set&#39;
+tags = Set.new
+items.each do |item|
+  item[:tags].each { |t| tags.add(t.downcase) }
+end
+</code></pre>
+                    <p>最後に、すべてのタグをループして、それらのアイテムを生成します。</p>
+                    <pre><code>tags.each do |tag|
+  items &lt;&lt; Nanoc::Item.new(
+    &quot;&quot;,
+    { :tag =&gt; tag },
+    &quot;/tags/#{tag}/&quot;)
+end
+</code></pre>
+                    <p>これで、/tags/*/ に特定のコンパイル
+                    ルールを作成できるようになり、「tags」レイアウトを使用してレンダリングされるようになります。これにより、:tag
+                    属性の値が取得され、このタグを持つすべてのアイテムが検索され、リスト。そのレイアウトは次のようになります。</p>
+                    <pre><code>&lt;h1&gt;&lt;%= @item[:tag] %&gt;&lt;/h1&gt;
+&lt;ul&gt;
+  &lt;% items_with_tag(@item[:tag]).each do |i| %&gt;
+    &lt;li&gt;&lt;%= link_to i[:title], i %&gt;&lt;/li&gt;
+  &lt;% end %&gt;
+&lt;/ul&gt;
+</code></pre>
+                    <p>そして、大まかに言えば、それがあなたが望むものであるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

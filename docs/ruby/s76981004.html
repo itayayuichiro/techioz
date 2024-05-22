@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マルチレベル (3 レベル) ネストされたモデルがレコードを更新できず、「レコードは正常に更新されました」というメッセージが表示される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マルチレベル (3 レベル) ネストされたモデルがレコードを更新できず、「レコードは正常に更新されました」というメッセージが表示される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マルチレベル (3 レベル)
+ネストされたモデルがレコードを更新できず、「レコードは正常に更新されました」というメッセージが表示される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Railsを取得するのにまだ苦労していますが、しばらくお待ちください。マルチレベルのネストされたモデル関係があります。以下で構成されます。Quotation、HAS_ONE
+                    RealServiceGroup、HAS_MANY RealSegment、次に
+                    HAS_MANY RealQuoteLine(s)。ユーザーがどのサービス
+                    グループを使用するかを決定すると、すべてのテーゼがプロトタイプ
+                    モデルからコピーされます
+                    (簡単にするためにプロトタイプ
+                    モデルは省略されています。Real がプロトタイプ
+                    モデルからコピーされたものだと考えてください)
+                    したがって、コピーは期待どおりに進み、Real
+                    は問題なく作成されます。ただし、見積を完了するには、RealQuoteLine
+                    の ‘quantity’ 属性と ‘unit_price’
+                    属性が必要です。編集（更新）して保存する必要があります。私の問題は、新しい値が保持されないことです。
+                    関連するコードは次のとおりです。
+                    app/models/quote.rb</p>
+                    <pre><code>class Quotation &lt; ApplicationRecord
+  belongs_to :request
+  has_one :service_group, class_name: &quot;ServiceGroup&quot;
+  has_one :real_service_group, class_name: &quot;RealServiceGroup&quot;, dependent: :destroy
+
+  enum :state, %i[en_proceso enviada facturada comentada fondos], default: :en_proceso
+
+  # after_create :get_real_service_group
+
+  accepts_nested_attributes_for :service_group, reject_if: -&gt;(attributes){ attributes[&#39;title&#39;].blank? }, allow_destroy: true
+  accepts_nested_attributes_for :real_service_group, reject_if: -&gt;(attributes){ attributes[&#39;title&#39;].blank? }, allow_destroy: true
+
+  def get_real_service_group(service_group)
+    real_service_group = RealServiceGroup.new(service_group.attributes.except(&#39;id&#39;))
+    real_service_group.title += &#39; (work) &#39;
+    real_service_group.quotation_id = self.id
+    real_service_group.save
+    service_group.segments.each do |segment|
+      real_segment = real_service_group.real_segments.build(segment.attributes.except(&#39;id&#39;, &#39;service_group_id&#39;).merge(real_service_group_id: real_service_group.id))
+      real_segment.title += &#39; (work) &#39;
+      real_segment.save
+      segment.quote_lines.each do |quote_line|
+        real_quote_line = real_segment.real_quote_lines.build(quote_line.attributes.except(&#39;id&#39;, &#39;segment_id&#39;).merge(real_segment_id: real_segment.id))
+        real_quote_line.save
+      end
+    end
+    real_service_group.save
+    self.real_service_group = real_service_group
+    save
+  end
+end
+</code></pre>
+                    <p>app/models/real_service_group.rb</p>
+                    <pre><code>class RealServiceGroup &lt; ApplicationRecord
+  belongs_to :quotation, inverse_of: :real_service_group, optional: true
+  has_many :real_segments, class_name: &#39;RealSegment&#39;, dependent: :destroy
+
+  accepts_nested_attributes_for :real_segments, reject_if: -&gt;(attributes){ attributes[&#39;title&#39;].blank? }, allow_destroy: true
+end
+</code></pre>
+                    <p>app/models/real_segment.rb</p>
+                    <pre><code>class RealSegment &lt; ApplicationRecord
+  belongs_to :real_service_group
+  has_many :real_quote_lines, dependent: :destroy
+
+  accepts_nested_attributes_for :real_quote_lines, reject_if: -&gt;(attributes){ attributes[&#39;quote_concept&#39;].blank? }, allow_destroy: true
+end
+</code></pre>
+                    <p>app/models/real_quote_line.rb</p>
+                    <pre><code>class RealQuoteLine &lt; ApplicationRecord
+  belongs_to :real_segment, class_name: &quot;RealSegment&quot;
+end
+</code></pre>
+                    <p>app/controllers/quotation_controller.rb
+                    (#create、#update、#quotation_params のみ)</p>
+                    <pre><code>def create
+    @quotation = Quotation.new(quotation_params)
+    console
+    respond_to do |format|
+      if @quotation.save
+        service_group = ServiceGroup.find(params[:quotation][:service_group_id])
+        @quotation.get_real_service_group(service_group)
+        format.html { redirect_to work_quotation_url(@quotation), notice: &#39;Se ha creado exitosamente la Cotización.&#39; }
+        format.json { render :show, status: :created, location: @quotation }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @quotation.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+def update
+    respond_to do |format|
+      ActiveRecord::Base.transaction do
+        if @quotation.update(quotation_params)
+          format.html { redirect_to quotation_url(@quotation), notice: &quot;Quotation was successfully updated.&quot; }
+          format.json { render :show, status: :ok, location: @quotation }
+        else
+          format.html { render :edit, status: :unprocessable_entity }
+          format.json { render json: @quotation.errors, status: :unprocessable_entity }
+        end
+      end
+    end
+  end
+def quotation_params
+      params.require(:quotation).permit(
+        :request_id, :total, :state,
+        real_service_group_attributes: {
+          title: :title,
+          tax_rate: :tax_rate,
+          retencion: :retencion,
+          usd_exchange_rate: :usd_exchange_rate,
+          base_padron: :base_padron,
+          impuesto_general_importacion: :impuesto_general_importacion,
+          padron_importadores: :padron_importadores,
+          real_segments_attributes: [
+            :id,
+            :title,
+            :currency,
+            :iva,
+            :retention,
+            real_quote_lines_attributes: [
+              :id,
+              :quote_concept,
+              :quantity,
+              :unit_price
+            ]
+          ]
+        }
+      )
+    end
+</code></pre>
+                    <p>config/routes.rb</p>
+                    <pre><code>Rails.application.routes.draw do
+  resources :quote_lines
+  resources :service_groups
+  resources :segments
+  resources :real_quote_lines
+  resources :quotations do
+    collection do
+      get &#39;line_fields&#39;
+    end
+    member do
+      get &#39;work&#39;
+    end
+  end
+  resources :requests
+  resources :clients
+  resources :notes
+  resources :quotation_concepts
+
+  get &#39;start_assign&#39; =&gt; &#39;requests#unassigned&#39;
+  get &#39;request_inbox&#39; =&gt; &#39;requests#inbox&#39;
+  
+  get  &#39;logout&#39; =&gt; &#39;sessions#destroy&#39;
+  get  &#39;login&#39;  =&gt; &#39;sessions#new&#39;
+  post &#39;login&#39;  =&gt; &#39;sessions#create&#39;
+  
+  resources :users
+  root &#39;static_pages#main&#39;
+  
+end
+</code></pre>
+                    <p>app/views/quotations/work.html.erb
+                    (これはまだ完了していません。小計と引用符
+                    -cotizacion- total を計算するための Stimulus
+                    コードを追加する必要があります)</p>
+                    <pre><code>&lt;div&gt;
+  &lt;h3&gt;Ahora se completará la cotización&lt;/h3&gt;
+&lt;/div&gt;
+&lt;table class=&quot;show-table&quot; &gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;fw-light&quot;&gt;Cotización:&lt;/td&gt;
+    &lt;td&gt;&lt;%= @quotation.id %&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;fw-light&quot;&gt;Requerimiento:&lt;/td&gt;
+    &lt;td&gt;&lt;%= @quotation.request.description %&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;fw-light&quot;&gt;Cliente:&lt;/td&gt;
+    &lt;td&gt;&lt;%= @quotation.request.client.name %&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;%= form_with(model: @quotation) do |form| %&gt;
+  &lt;% @quotation.real_service_group.tap do |rsg| %&gt;
+    &lt;% total_cotizacion = 0 %&gt;
+    &lt;table class=&quot;cot-table&quot;&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;
+            &lt;th&gt;Servicio:&lt;/th&gt;
+            &lt;th colspan=&quot;3&quot;&gt;&lt;%= rsg.title %&gt;&lt;/th&gt;
+          &lt;/tr&gt;
+          &lt;% rsg.real_segments.each do |rs| %&gt;
+            &lt;tr&gt;
+              &lt;th&gt;Segmento:&lt;/th&gt;
+              &lt;th&gt;&lt;%= rs.title %&gt;&lt;/th&gt;
+              &lt;th&gt;Moneda:&lt;/th&gt;
+              &lt;th&gt;&lt;%= rs.currency %&gt;&lt;/th&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+              &lt;th&gt;Concepto&lt;/th&gt;
+              &lt;th&gt;Cantidad&lt;/th&gt;
+              &lt;th&gt;Precio Unitario&lt;/th&gt;
+              &lt;th&gt;importe&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+            &lt;% subtotal_segmento = 0 %&gt;
+            &lt;% rs.real_quote_lines.each do |rql| %&gt;
+              &lt;tr data-controller=&quot;linea-cotizacion&quot;&gt;
+                &lt;td&gt;&lt;%= rql.quote_concept %&gt;&lt;/td&gt;
+                &lt;%= form.fields_for &quot;real_service_group_attributes[real_segments_attributes][][real_quote_lines_attributes][]&quot;, rql do |quote_line_fields| %&gt;
+                    &lt;% quote_line_fields.hidden_field :id %&gt;
+                    &lt;td&gt;&lt;%= quote_line_fields.number_field :quantity, data: { target: &#39;linea-cotizacion.quantity&#39; } %&gt;&lt;/td&gt;
+                    &lt;td&gt;
+                      &lt;%= quote_line_fields.number_field :unit_price, 
+                                                data: { 
+                                                  target: &#39;linea-cotizacion.unitPrice&#39;,
+                                                  action: &#39;focusout-&gt;linea-cotizacion#updateImporte&#39;
+                                                } %&gt;
+                    &lt;/td&gt;
+                    &lt;%= content_tag(:td, &#39;&#39;, id: &#39;importe&#39;, class: &quot;fw-bold&quot;) %&gt;
+              &lt;/tr&gt;
+              &lt;% end %&gt; &lt;%# fields_for %&gt;
+            &lt;% end %&gt; &lt;%# rs.real_quote_lines %&gt;
+            &lt;%# Aquí va el renglón para el subtotal del segmento %&gt;
+            &lt;tr style=&quot;background-color: darkgray;&quot;&gt;
+              &lt;td colspan=&quot;3&quot; class=&quot;text-end&quot;&gt;Subtotal&lt;/td&gt;
+              &lt;td id=&quot;subtotal-segmento&quot;&gt;&lt;%= number_to_currency(subtotal_segmento) %&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;% end %&gt; &lt;%# rs.real_segments %&gt;
+        &lt;tr style=&quot;background-color: cadetblue;&quot;&gt;
+          &lt;td colspan=&quot;3&quot; class=&quot;text-end&quot;&gt;Total&lt;/td&gt;
+          &lt;td&gt;&lt;%= number_to_currency(total_cotizacion) %&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/table&gt;
+  &lt;% end %&gt; &lt;%# rsg.real_service_group.tap %&gt;
+  &lt;div&gt;
+    &lt;%= form.submit &quot;Guardar Cotización&quot;, class: &quot;btn btn-primary&quot; %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt; &lt;%# form_with %&gt;
+</code></pre>
+                    <p>そして最後に、これがコンソール (ログ)
+                    に表示される内容です。</p>
+                    <pre><code>19:37:45 web.1  | Started PATCH &quot;/quotations/58&quot; for ::1 at 2023-08-31 19:37:45 -0600
+19:37:45 web.1  | Processing by QuotationsController#update as TURBO_STREAM
+19:37:45 web.1  |   Parameters: {&quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, &quot;quotation&quot;=&gt;{&quot;real_service_group_attributes&quot;=&gt;{&quot;real_segments_attributes&quot;=&gt;[{&quot;real_quote_lines_attributes&quot;=&gt;{&quot;117&quot;=&gt;{&quot;quantity&quot;=&gt;&quot;10&quot;, &quot;unit_price&quot;=&gt;&quot;134.0&quot;}, &quot;118&quot;=&gt;{&quot;quantity&quot;=&gt;&quot;10&quot;, &quot;unit_price&quot;=&gt;&quot;154.0&quot;}, &quot;119&quot;=&gt;{&quot;quantity&quot;=&gt;&quot;10&quot;, &quot;unit_price&quot;=&gt;&quot;15.0&quot;}}}]}}, &quot;commit&quot;=&gt;&quot;Guardar Cotización&quot;, &quot;id&quot;=&gt;&quot;58&quot;}
+19:37:45 web.1  |   Quotation Load (0.2ms)  SELECT &quot;quotations&quot;.* FROM &quot;quotations&quot; WHERE &quot;quotations&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 58], [&quot;LIMIT&quot;, 1]]
+19:37:45 web.1  |   ↳ app/controllers/quotations_controller.rb:77:in `set_quotation&#39;
+19:37:45 web.1  |   TRANSACTION (0.1ms)  BEGIN
+19:37:45 web.1  |   ↳ app/controllers/quotations_controller.rb:53:in `block (2 levels) in update&#39;
+19:37:45 web.1  |   RealServiceGroup Load (0.3ms)  SELECT &quot;real_service_groups&quot;.* FROM &quot;real_service_groups&quot; WHERE &quot;real_service_groups&quot;.&quot;quotation_id&quot; = $1 LIMIT $2  [[&quot;quotation_id&quot;, 58], [&quot;LIMIT&quot;, 1]]
+19:37:45 web.1  |   ↳ app/controllers/quotations_controller.rb:53:in `block (2 levels) in update&#39;
+19:37:45 web.1  |   Request Load (0.2ms)  SELECT &quot;requests&quot;.* FROM &quot;requests&quot; WHERE &quot;requests&quot;.&quot;id&quot; = $1 LIMIT $2  [[&quot;id&quot;, 12], [&quot;LIMIT&quot;, 1]]
+19:37:45 web.1  |   ↳ app/controllers/quotations_controller.rb:53:in `block (2 levels) in update&#39;
+19:37:45 web.1  |   TRANSACTION (0.1ms)  COMMIT
+19:37:45 web.1  |   ↳ app/controllers/quotations_controller.rb:52:in `block in update&#39;
+19:37:45 web.1  | Redirected to http://localhost:3000/quotations/58
+19:37:45 web.1  | Completed 302 Found in 15ms (ActiveRecord: 4.0ms | Allocations: 7940)
+19:37:45 web.1  | 
+19:37:45 web.1  | 
+19:37:45 web.1  | Started GET &quot;/quotations/58&quot; for ::1 at 2023-08-31 19:37:45 -0600
+19:37:45 web.1  | Processing by QuotationsController#show as TURBO_STREAM
+19:37:45 web.1  |   Parameters: {&quot;id&quot;=&gt;&quot;58&quot;}
+
+</code></pre>
+                    <p>これは私が得たもののスクリーンショットです:</p>
+                    <p>誰かが私を助けてくれることを願っています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ビュー
+                    テンプレートで、real_service_group[real_segments_attributes][][real_quote_lines_attributes][]
+                    がある場所に、次のように _attributes
+                    を追加してみてください。</p>
+                    <pre><code>&lt;%= form.fields_for &quot;real_service_group_attributes[real_segments_attributes][][real_quote_lines_attributes][]&quot;, rql do |quote_line_fields| %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

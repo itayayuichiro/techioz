@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails のスルーモデルに検証を追加する必要がありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails のスルーモデルに検証を追加する必要がありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails
+のスルーモデルに検証を追加する必要がありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>class Product &lt; ActiveRecord::Base
+  has_many :collaborators
+  has_many :users, :through =&gt; :collaborators
+end
+
+class User &lt; ActiveRecord::Base
+  has_many :collaborators
+  has_many :products, :through =&gt; :collaborators
+end
+
+class Collaborator &lt; ActiveRecord::Base
+  belongs_to :product
+  belongs_to :user
+  validates :product_id, presence: true
+  validates :user_id, presence: true
+ end
+</code></pre>
+                    <p>スルーモデルの検証部分で問題が発生しています。
+                    Userモデルから新しいレコードを作成するとき</p>
+                    <p>User.create!(name: “ユーザー名”, product_ids: [1,
+                    2, 3]) =&gt; Collaborator
+                    が有効であるというエラーが返されます。
+                    ここでの問題は、validates:user_id, presents: true
+                    がこれをブロックすることです。この行をもう一度コメントすると、再び正常に動作し、Collaborator
+                    テーブルに作成された新しいレコードには user_id と
+                    product_id が残ります。</p>
+                    <p>Rails6.1を使用しています</p>
+                    <p>Rails
+                    のスルーモデルに検証を追加する必要がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails &gt;= 5 では、belongs_to
+                    表記により検証が自動的に追加されます。 6.1
+                    ソースを参照</p>
+                    <p>あなたのケースで検証が機能しない場合は、おそらく
+                    Rails.application.config.active_record.belongs_to_required_by_default
+                    を使用するでしょう。</p>
+                    <p>grepしてみてください</p>
+                    <pre><code>git grep belongs_to -- config
+</code></pre>
+                    <p>デフォルトの設定を使用する方が良いと思います。ユーザーの存在を検証する必要が本当にない場合は、optional:
+                    true オプションを追加するだけです。</p>
+                    <pre><code>belongs_to :user, optional: true
+</code></pre>
+                    <p>それはビジネス
+                    ロジックによって異なりますが、インターネット上の誰かがそれを知っている可能性は低いです:)</p>
+                    <p>いずれにせよ、アプリケーション層に列の存在を検証する場合は、データベース層に
+                    NOT NULL 制約を追加することをお勧めします。</p>
+                    <p>ちなみに、Rails
+                    5から始まる中間抽象モデルApplicationRecordは使用されます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

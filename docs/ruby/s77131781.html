@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby - ユーザーの数をサイズ 3、4、または 5 のグループに分割します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby - ユーザーの数をサイズ 3、4、または 5 のグループに分割します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby - ユーザーの数をサイズ 3、4、または 5
+のグループに分割します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>指定された数のユーザーを、それぞれ 3、4、または 5
+                    人のユーザーを含む 2
+                    つ以上のグループに分割する必要があるアプリを作成しています。
+                    8 人を超える任意の数のユーザーが存在できます。</p>
+                    <p>たとえば、11 人のユーザーはサイズ 4、4、3 の 3
+                    つのグループに分けることができます。これを [4,4,3]
+                    と指定します。その他の例としては以下のようなものがある。</p>
+                    <p>各グループに 3、4、または 5
+                    人のユーザーが含まれ、グループ
+                    サイズの合計が指定されたユーザー数と等しくなるような、任意の数のユーザー
+                    グループのコレクションを取得するにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>グループの数を最小限に抑える</p>
+                    <pre><code>def groupem(n)
+  raise ArgumentError if n &lt; 9
+  m = n/5
+  case n%5
+  when 0
+    [5]*m
+  when 1
+    [5]*(m-1) &lt;&lt; 3 &lt;&lt; 3
+  when 2
+    [5]*(m-1) &lt;&lt; 4 &lt;&lt; 3
+  when 3
+    [5]*m &lt;&lt; 3
+  else # 4
+    [5]*m &lt;&lt; 4
+  end
+end
+</code></pre>
+                    <pre><code>groupem(8)
+  #=&gt; ArgumentError
+
+(9..20).each { |n| puts &quot;#{n.to_s.rjust(2)} users: #{groupem(n)}&quot; }
+ 9 users: [3, 3, 3]
+10 users: [3, 3, 4]
+11 users: [5, 3, 3]
+12 users: [5, 4, 3]
+13 users: [5, 5, 3]
+14 users: [5, 5, 4]
+15 users: [5, 5, 5]
+16 users: [5, 5, 3, 3]
+17 users: [5, 5, 4, 3]
+18 users: [5, 5, 5, 3]
+19 users: [5, 5, 5, 4]
+20 users: [5, 5, 5, 5]
+</code></pre>
+                    <p>グループ数を最大化する</p>
+                    <pre><code>def groupem(n)
+  raise ArgumentError if n &lt; 9
+  m = n/3
+  case n%3
+  when 0
+    [3]*m
+  when 1
+    [3]*(m-1) &lt;&lt; 4
+  else # 2
+    [3]*(m-1) &lt;&lt; 5
+  end
+end
+</code></pre>
+                    <pre><code>groupem(8)
+  #=&gt; ArgumentError
+
+(9..20).each { |n| puts &quot;#{n.to_s.rjust(2)} users: #{groupem(n)}&quot; }
+ 9 users: [3, 3, 3]
+10 users: [3, 3, 4]
+11 users: [3, 3, 5]
+12 users: [3, 3, 3, 3]
+13 users: [3, 3, 3, 4]
+14 users: [3, 3, 3, 5]
+15 users: [3, 3, 3, 3, 3]
+16 users: [3, 3, 3, 3, 4]
+17 users: [3, 3, 3, 3, 5]
+18 users: [3, 3, 3, 3, 3, 3]
+19 users: [3, 3, 3, 3, 3, 4]
+20 users: [3, 3, 3, 3, 3, 5]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

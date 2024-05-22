@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails Cron ジョブが構成されたグローバル Ruby バージョン MacOS で実行されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails Cron ジョブが構成されたグローバル Ruby バージョン MacOS で実行されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails Cron ジョブが構成されたグローバル Ruby
+バージョン MacOS で実行されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は rbenv を使用して複数の Ruby
+                    バージョンを管理しています。グローバルおよびシェル
+                    Ruby のバージョンは 2.7.6 に設定しています。
+                    Rails7.0.4を使用しています。私のMacOSのバージョンはMonterey
+                    12.5.1です。 rbenv global も 2.7.6
+                    を出力します。</p>
+                    <p>私は、everywhere gem を使用して、単純な cron
+                    ジョブを作成しています。私のschedule.rbは以下のようになります</p>
+                    <pre><code>set :output, &quot;./log/cron_log.log&quot;
+
+every 1.minute do
+  runner &quot;puts &#39;Hello, world&#39;&quot;
+end
+</code></pre>
+                    <p>しかし、私のcrontabログファイルではこれを取得しています</p>
+                    <pre><code>/Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:54:in `pwd&#39;: Operation not permitted - getcwd (Errno::EPERM)
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:54:in `lockfile_contents&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:41:in `lockfile_version&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:10:in `bundler_version&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:17:in `block in prioritize!&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:17:in `find_index&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/bundler_version_finder.rb:17:in `prioritize!&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems/dependency.rb:282:in `matching_specs&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems.rb:257:in `find_spec_for_exe&#39;
+    from /Library/Ruby/Site/2.6.0/rubygems.rb:284:in `activate_bin_path&#39;
+    from /usr/bin/bundle:23:in `&lt;main&gt;&#39; 
+</code></pre>
+                    <p>私の MacOS バージョンのデフォルトのシェルは zsh
+                    です。しかし、どうやら cron は bash -l -c
+                    を使用して実行されているようです。そこで、rbenvのgithubページの指示に従い、以下のように.bash_profileをセットアップしました</p>
+                    <pre><code>#.bash_profile
+eval &quot;$(rbenv init - bash)&quot;
+
+#.bashrc
+source .bash_profile
+</code></pre>
+                    <p>しかし、私はまだ同じ出力を取得しています。誰かがこれについて私を助けてくれますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>MacOS
+                    で同様の問題に直面している人は、github.com/rvm/rvm
+                    RVM を試してみてください。 Ruby のバージョン
+                    マネージャーを RVM
+                    に切り替えると、この問題は解決しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

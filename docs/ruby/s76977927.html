@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby: 配列の列の長さが X より大きい場合に activerecord をクエリする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby: 配列の列の長さが X より大きい場合に activerecord をクエリする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby: 配列の列の長さが X より大きい場合に
+activerecord をクエリする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のpostgresデータベースには次のテーブルがあります。</p>
+                    <pre><code>  create_table &quot;tracking_infos&quot;, force: :cascade do |t|
+    t.text &quot;carriers&quot;, default: [], array: true
+    t.text &quot;tracking_numbers&quot;, default: [], array: true
+    t.string &quot;order_id&quot;
+    t.integer &quot;shop_id&quot;
+    t.datetime &quot;created_at&quot;, precision: 6, null: false
+    t.datetime &quot;updated_at&quot;, precision: 6, null: false
+    t.index [&quot;order_id&quot;], name: &quot;index_tracking_on_order_id&quot;, unique: true
+  end
+</code></pre>
+                    <p>そして、私がやろうとしているのは、このテーブルをクエリして、tracking_numbers.length
+                    が 1 より大きいレコードを返すことだけです。</p>
+                    <p>どこから始めればよいのか本当にわかりません。TrackingInfo.all.pluck(:tracking_numbers)
+                    を試してから、返された配列をいじってみました。でもそれはダメなんです。</p>
+                    <p>助言がありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく、Postgres の array_length
+                    関数を使用する必要があります
+                    (ドキュメントを参照)。</p>
+                    <pre><code>TrackingInfo.where(&quot;ARRAY_LENGTH(tracking_numbers, 1) &gt; ?&quot;, 1).count
+</code></pre>
+                    <p>ARRAY_LENGTH の 2 番目の引数は配列の次元を表し
+                    (ほとんどの場合 1 である必要があります)、where の 2
+                    番目の引数は ?
+                    を置き換えることに注意してください。プレースホルダー。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

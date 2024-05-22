@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>だからこそエラーが出る。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "だからこそエラーが出る。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>だからこそエラーが出る。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のフォーラムにチャット
+                    システムを実装しようとしましたが、うまくいきました。</p>
+                    <p>ただし、ルートを次から変更したい場合:</p>
+                    <pre><code>NoMethodError in RoomsController#show
+undefined method `message&#39; for nil:NilClass
+Extracted source (around line #19):              
+    @messages = @single_room.message.order(created_at: :asc)
+</code></pre>
+                    <p>チャットももう機能しません。部屋のコントローラー/ショーで何が問題なのかはすでに特定しましたが、何が原因なのか、どう修正するのかわかりません。これに関連するコードを教えます。問題</p>
+                    <p>ユーザー</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+  has_many :posts
+  has_one_attached :photo
+  has_many :comments, dependent: :destroy
+  acts_as_voter
+  has_many :notifications, as: :recipient, dependent: :destroy
+
+  scope :all_except, -&gt;(user) {where.not(id: user)}
+  after_create_commit {broadcast_append_to &#39;users&#39;}
+  has_many :messages
+
+  def to_param
+    username
+  end
+
+  def message
+    @user = User.find(params[:id])
+  end
+
+  def increase_karma(count = 1)
+    update_attribute(:karma, karma + count)
+  end
+
+  def decrease_karma(count = 1)
+    update_attribute(:karma, karma - count)
+  end
+
+  validates :username, length: { in: 4..32 }, presence: true,
+                      uniqueness: { case_sensitive: false }
+  # validates :password, length: { minimum: 8 }
+  # VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i.freeze
+  # validates :email, presence: true, length: { maximum: 255 },
+  #                   format: { with: VALID_EMAIL_REGEX },
+  #                   uniqueness: { case_sensitive: false }
+  # validates :admin_level, numericality: { only_integer: true,
+  #                                         less_than_or_equal_to: 3 }
+  # validates_numericality_of(:admin_level, only_integer: true, less_than_or_equal_to: 3)
+
+  before_save { username.downcase! }
+  before_save { email.downcase! }
+  before_save :default_user
+  def default_user
+    self.admin_level = 1
+  end
+end
+
+</code></pre>
+                    <p>ユーザーコントローラー</p>
+                    <pre><code>class UsersController &lt; ApplicationController
+  def show
+    @user = User.find_by_username(params[:id])
+  end
+
+  def create
+    @user = User.new(user_params)
+    @user.user_id = current_user.id
+    if @user.save
+      redirect_to user_path(@user)
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @user = User.find(params[:id])
+  end
+
+  def update
+    @user = User.find(params[:id])
+    if @user.update_attributes(user_params)
+      flash[:success] = &quot;User and oversight updated&quot;
+      redirect_to root_path
+    else
+      flash[:error] = &quot;Something went wrong, please try again&quot;
+      render &#39;new&#39;
+    end
+  end
+
+  private
+
+  def user_params
+    params.require(:user).permit(:username, :email, :photo, :bio)
+  end
+
+  def get_name(user1, user2)
+    user = [user1, user2].sort
+    &quot;private_#{user[0].id}_#{user[1].id}&quot;
+  end
+end
+
+</code></pre>
+                    <p>部屋</p>
+                    <pre><code>class Room &lt; ApplicationRecord
+  validates_uniqueness_of :name
+  scope :public_rooms, -&gt; { where(is_private: false) }
+  after_create_commit { broadcast_if_public }
+  has_many :messages
+  has_many :participants, dependent: :destroy
+
+  def to_param
+    name
+  end
+
+  def broadcast_if_public
+    broadcast_append_to &#39;rooms&#39; unless is_private
+  end
+
+  def show
+    @user = User.find_by_username(params[:id])
+    @users = User.all_except(current_user)
+
+    @room = Room.new
+    @rooms = Room.public_rooms
+    @room_name = get_name(@user, current_user)
+    @single_room = Room.where(name: @room_name).first || Room.create_private_room([@user, current_user], @room_name)
+
+    @message = Message.new
+    @messages = @single_room.messages.order(created_at: :asc)
+    render &#39;rooms/index&#39;
+  end
+
+  def self.create_private_room(users, room_name)
+    single_room = Room.create(name: room_name, is_private: true)
+    users.each do |user|
+      Participant.create(user_id: user.id, room_id: single_room.id)
+    end
+    single_room
+  end
+end
+
+</code></pre>
+                    <p>ルームコントローラー</p>
+                    <pre><code>class RoomsController &lt; ApplicationController
+  before_action :authenticate_user!
+
+  def index
+    @room = Room.new
+    @rooms = Room.public_rooms
+
+    @users = User.all_except(current_user)
+    render &#39;index&#39;
+  end
+
+  def show
+    @single_room = Room.find_by_name(params[:id])
+
+    @room = Room.new
+    @rooms = Room.public_rooms
+
+    @message = Message.new
+    @messages = @single_room.messages.order(created_at: :asc)
+
+    @users = User.all.all_except(current_user)
+    render &#39;index&#39;
+  end
+
+  def create
+    @room = Room.create(name: params[&quot;room&quot;][&quot;name&quot;])
+  end
+end
+
+</code></pre>
+                    <p>メッセージ</p>
+                    <pre><code>class Message &lt; ApplicationRecord
+  belongs_to :user
+  belongs_to :room
+  after_create_commit { broadcast_append_to room }
+  before_create :confirm_participant
+
+  def confirm_participant
+    return unless room.is_private
+
+    is_participant = Participant.where(user_id: user.id, room_id: room.id).first
+    throw :abort unless is_participant
+  end
+end
+
+</code></pre>
+                    <p>メッセージコントローラー</p>
+                    <pre><code>class MessagesController &lt; ApplicationController
+  def create
+    @message = current_user.messages.create(body: message_params[:body], room_id: params[:room_id])
+  end
+
+  private
+
+  def message_params
+    params.require(:message).permit(:body)
+  end
+end
+</code></pre>
+                    <p>クラスがメソッドを特定できると思います、ありがとう!</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>RoomsController で、params[:id]
+                    値に次の名前が含まれているため、ルートを
+                    site/rooms/id から site/rooms/name
+                    形式に変更した後、params[:id] を params[:name]
+                    に変更するのを忘れたと思います。
+                    IDの代わりにルーム。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

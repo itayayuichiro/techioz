@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 のネストされた多対多の関連付けに対する許可されていないパラメーター | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 のネストされた多対多の関連付けに対する許可されていないパラメーター",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7
+のネストされた多対多の関連付けに対する許可されていないパラメーター</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Business、Store、Product、StoreProduct の 4
+                    つのモデルがあります。</p>
+                    <p>ビジネスには多くの店舗と商品があります</p>
+                    <p>店舗には多くの商品があり、商品は多くの店舗に属する必要があります。ストアに属する商品を選択するときに、各商品の数量も指定したいと考えています。これは、新規ストア
+                    フォームと編集ストア
+                    フォームのネストされたフォームを通じて行う必要があり、私はスティミュラスのネストされたフォーム
+                    コンポーネントを使用しています。</p>
+                    <p>ストアフォームを保存するときに、許可されていないパラメーターを取得します。</p>
+                    <p>エラー</p>
+                    <pre><code>Unpermitted parameters: :Product_ids, :quantity, :_destroy. Context: { controller:
+StoresController, action: update, request: #&lt;ActionDispatch::Request:0x00007f5cc927cfe0&gt;, 
+params: {&quot;_method&quot;=&gt;&quot;patch&quot;, &quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, &quot;store&quot;=&gt;{&quot;name&quot;=&gt;&quot;Arikeade Trendings, Challenge&quot;, 
+&quot;Product_ids&quot;=&gt;&quot;6&quot;, &quot;quantity&quot;=&gt;&quot;10&quot;, &quot;_destroy&quot;=&gt;&quot;false&quot;}, 
+&quot;button&quot;=&gt;&quot;&quot;, &quot;controller&quot;=&gt;&quot;stores&quot;, &quot;action&quot;=&gt;&quot;update&quot;, &quot;business_id&quot;=&gt;&quot;3&quot;, &quot;id&quot;=&gt;&quot;2&quot;} }
+</code></pre>
+                    <p>ストア.rb</p>
+                    <pre><code>  # validates presence, uniqueness, length and case-sensitivity of name attribute
+  validates :name, presence: true, uniqueness: {scope: :business_id, message: &quot;Store  name must be unique&quot;}, length: { minimum: 3, maximum: 255 }
+
+  belongs_to :user
+  belongs_to :business
+
+  # store products association
+  has_many :store_products, inverse_of: :store, dependent: :destroy
+  has_many :products, through: :store_products, dependent: :destroy
+
+  # accepted nested form attributes
+  accepts_nested_attributes_for :store_products, reject_if: :all_blank, allow_destroy: true
+end
+
+</code></pre>
+                    <p>ストア製品.rb</p>
+                    <pre><code>class StoreProduct &lt; ApplicationRecord
+  validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  belongs_to :product
+  belongs_to :store
+end
+</code></pre>
+                    <p>製品.rb</p>
+                    <pre><code>class Product &lt; ApplicationRecord
+  ...
+
+  belongs_to :user
+  belongs_to :business
+
+  # store products association
+  has_many :store_products, dependent: :destroy
+  has_many :stores, through: :store_products
+  
+  &#39;&#39;&#39;
+
+end
+</code></pre>
+                    <p>ストア_コントローラー.rb</p>
+                    <pre><code>class StoresController &lt; ApplicationController
+    
+    ...
+
+    def new
+        @store = Store.new
+    end
+
+    def create
+        @store = @business.stores.build(store_params)
+        @store.user = current_user
+        if @store.save
+            respond_to do |format|
+                format.html { redirect_to business_store_path(@business, @store), notice: &#39;store successfully created&#39; }
+            end
+        else
+            render :new, status: :unprocessable_entity
+        end
+    end
+
+    def edit
+        
+    end
+
+    def update
+        if @store .update(store_params)
+            respond_to do |format|
+                format.html { redirect_to business_store_url(@business, @store), notice: &#39;store successfully updated&#39; }
+            end
+        else
+            render :edit, status: :unprocessable_entity
+        end
+    end
+
+    private
+
+    def store_params
+        params.require(:store).permit(:name, product_ids: [], store_products_attributes: [:id, :_destroy, :quantity, :product_id])
+    end
+
+    def find_store
+      @store ||= Store.find(params[:id])
+    end
+
+    def find_business
+        @business ||= Business.find(params[:business_id])
+    end
+
+    def find_products
+        @business = Business.find(params[:business_id])
+        @products ||= @business.products.pluck(:name, :id)
+    end
+
+    ...
+
+end
+
+</code></pre>
+                    <p>ストア/フォーム</p>
+                    <pre><code>&lt;div data-controller=&#39;nested-form&#39;&gt;
+    &lt;%= form_with model: [business, store] do |f| %&gt;
+        &lt;%= render &#39;shared/error_messages&#39;, f: f %&gt;
+
+        &lt;div class=&quot;mb-3&quot;&gt;
+            &lt;%= f.text_field :name, placeholder: &#39;Store name&#39;, class: &#39;form-control&#39; %&gt;
+        &lt;/div&gt;
+
+        &lt;!--&lt;div data-controller=&quot;tom-select&quot;&gt;
+            &lt;small&gt;Add products to store&lt;/small&gt;
+            &lt;%#= f.select :product_ids, @products, {}, { multiple: true, id: &quot;select-products&quot;, class: &#39;mb-3 form-control&#39; } %&gt;
+        &lt;/div&gt;--&gt;
+
+        &lt;div class=&quot;d-block w-100 mt-3&quot;&gt;
+            &lt;h6&gt;&lt;small&gt;Add store products:&lt;/small&gt;&lt;/h6&gt;
+            &lt;hr&gt;
+        &lt;/div&gt;
+
+        &lt;%# Custom logic for nested form %&gt;
+        &lt;template data-nested-form-target=&quot;template&quot;&gt;
+            &lt;div class=&quot;nested-form-wrapper row w-100&quot; data-new-record=&quot;&lt;%= f.object.new_record? %&gt;&quot;&gt;
+                &lt;div class=&quot;col-md-4&quot; data-controller=&quot;tom-select&quot;&gt;
+                    &lt;%= f.select :Product_id, @products, { include_blank: &quot;Select Product&quot; }, class: &quot;form-control mb-3 form-control&quot; %&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;col-md-4&quot;&gt;
+                    &lt;%= f.number_field :quantity, placeholder: &#39;Quantity&#39;, class: &quot;form-control&quot; %&gt;
+                &lt;/div&gt;
+
+                &lt;div class=&quot;col-md-3&quot;&gt;
+                    &lt;button type=&quot;button&quot; class=&quot;btn btn-danger btn-sm border&quot; style=&quot;font-size: 10px;&quot; data-action=&quot;nested-form#remove&quot;&gt;Remove product&lt;/button&gt;
+                &lt;/div&gt;
+
+
+                &lt;%= f.hidden_field :_destroy %&gt;
+            &lt;/div&gt;
+        &lt;/template&gt;
+
+        &lt;!-- Inserted elements will be injected before that target. --&gt;
+        &lt;div data-nested-form-target=&quot;target&quot;&gt;&lt;/div&gt;
+
+        &lt;button type=&quot;button&quot; class=&quot;btn btn-success w-100 mb-3&quot; style=&quot;font-size: 10px;&quot; data-action=&quot;nested-form#add&quot;&gt;Add Product&lt;/button&gt;
+
+        &lt;div class=&quot;submit&quot;&gt;
+            &lt;%= link_to business_stores_path(@business), class: &quot;btn btn-light rounded-1 border me-2&quot; do %&gt;
+                &lt;%= image_tag &quot;x.png&quot;, width: &quot;19&quot; %&gt;
+            &lt;% end %&gt;
+
+            &lt;%= button_tag type: &#39;Submit&#39;, class: &quot;btn btn-success rounded-1 border&quot; do %&gt;
+                &lt;%= image_tag &quot;check.png&quot;, width: &quot;19&quot; %&gt;
+            &lt;% end %&gt;
+        &lt;/div&gt;
+    &lt;% end %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いくつかのこと:</p>
+                    <p>フォーム内で生成された HTML
+                    を確認する必要があります。
+                    store_product_attributes[quantity] や
+                    store_product_attributes[_delete] のようなフォーム
+                    フィールド名を生成する必要があります。</p>
+                    <p>1 つの方法は次のようなものです。</p>
+                    <pre><code>f.fields_for :product_attributes do |prod_attr|
+  ...
+  &lt;%= prod_attr.number_field :quantity, placeholder: &#39;Quantity&#39;, class: &quot;form-control&quot; %&gt;
+
+  ...
+
+  &lt;%= prod_attr.hidden_field :_destroy %&gt;
+
+  ...
+end
+</code></pre>
+                    <p>私は刺激について詳しくないので、それがこれにどのように影響するかわかりません。ただし、これはフォーム
+                    パラメータでネストされた属性を取得するための標準コードです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

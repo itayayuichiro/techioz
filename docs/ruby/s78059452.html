@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ターボ ストリームとカスタム アクション ケーブル チャネルの接続の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ターボ ストリームとカスタム アクション ケーブル チャネルの接続の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ターボ ストリームとカスタム アクション
+ケーブル チャネルの接続の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような erb ビューからカスタム アクション
+                    ケーブル チャネルを使用してターボ
+                    ストリーム接続をセットアップしようとしています。</p>
+                    <p>ビュー</p>
+                    <pre><code>&lt;%= turbo_stream_from &quot;image_viewer_#{@image.id}&quot;, channel: &quot;ImageViewerChannel&quot;, data: {image_id: @image.id} %&gt;
+&lt;%= turbo_frame_tag &quot;connected_users&quot; do %&gt;
+  &lt;%= render &#39;connected_users&#39;, count: 0 %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>チャネル</p>
+                    <pre><code>class ImageViewerChannel &lt;  ApplicationCable::Channel
+  extend Turbo::Streams::Broadcasts, Turbo::Streams::StreamName
+  include Turbo::Streams::StreamName::ClassMethods
+
+  @@connected_users_count = 0
+
+  def subscribed
+    @@connected_users_count += 1
+    @image_id = params[:image_id]
+    stream_from &quot;image_viewer_#{@image_id}&quot;
+    broadcast_connected_users_count
+  end
+
+.....
+
+
+  private
+
+  def broadcast_connected_users_count
+    ActionCable.server.broadcast(
+      &quot;image_viewer_#{@image_id}&quot;,
+      Turbo::StreamsChannel.broadcast_replace_to(
+        &quot;connected_users&quot;,
+        target: &quot;connected_users&quot;,
+        partial: &quot;images/connected_users&quot;,
+        locals: { count: @@connected_users_count }
+      )
+    )
+  end
+</code></pre>
+                    <p>しかし、接続が適切に機能しているようには見えません。redisが実行されていて、チャネルがエレバントストリーム識別子を使用して接続を正常に確立するスティミュラスコントローラーを使用して接続を受け入れていることを確認したため、私の仮定はそれが問題であるということです景色。また、<span
+                    class="citation" data-cites="image">@image</span>
+                    インスタンス変数が関連するコントローラーから適切に設定されており、HTML
+                    で次の出力が生成されることも確認しました。</p>
+                    <pre><code>&lt;turbo-cable-stream-source channel=&quot;ImageViewerChannel&quot; data-image-id=&quot;14&quot; signed-stream-name=&quot;ImltYWdlX3ZpZXdlcl8xNCI=--0eeda72e7a5478708717f1013f6a650e5b36c5f313a38a50a980e004a841b092&quot;&gt;&lt;/turbo-cable-stream-source&gt;
+</code></pre>
+                    <p>助けていただければ幸いです:)</p>
+                    <p>編集：</p>
+                    <p>さらなるデバッグを支援するために詳細を追加し、show.html.erb
+                    から他のすべてを削除して、次のようにしました。</p>
+                    <pre><code>&lt;%= turbo_stream_from &quot;image_viewer_#{@image.id}&quot;, channel: &quot;ImageViewerChannel&quot;, data: {image_id: @image.id} %&gt;
+&lt;%= tag.div id: :connected_users do %&gt;
+  &lt;%= render &quot;images/connected_users&quot;, count: 0 %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>コントローラ：</p>
+                    <pre><code>  def show
+    @image = Image.find(params[:id])
+  end
+</code></pre>
+                    <p>完全な HTML 出力:</p>
+                    <pre><code>&lt;main class=&quot;container mx-auto mt-28 px-5 flex&quot;&gt;
+  &lt;turbo-cable-stream-source channel=&quot;ImageViewerChannel&quot; data-image-id=&quot;15&quot; signed-stream-name=&quot;ImltYWdlX3ZpZXdlcl8xNSI=--b6210244563c1b1182cf3b15f63f8425aae5eb267eb38660507bae79fb80e1ca&quot;&gt;&lt;/turbo-cable-stream-source&gt;
+  &lt;div id=&quot;connected_users&quot;&gt;
+    &lt;p&gt; Medcial Image Viewer - Connected Users: 0 &lt;/p&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+</code></pre>
+                    <p>アプリのログ:</p>
+                    <pre><code>Started GET &quot;/images/15&quot; for 127.0.0.1 at 2024-03-01 16:31:51 +0500
+Processing by ImagesController#show as HTML
+  Parameters: {&quot;id&quot;=&gt;&quot;15&quot;}
+  Image Load (0.1ms)  SELECT &quot;images&quot;.* FROM &quot;images&quot; WHERE &quot;images&quot;.&quot;id&quot; = ? LIMIT ?  [[&quot;id&quot;, 15], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/images_controller.rb:28:in `set_image&#39;
+  CACHE Image Load (0.0ms)  SELECT &quot;images&quot;.* FROM &quot;images&quot; WHERE &quot;images&quot;.&quot;id&quot; = ? LIMIT ?  [[&quot;id&quot;, 15], [&quot;LIMIT&quot;, 1]]
+  ↳ app/controllers/images_controller.rb:22:in `show&#39;
+  Rendering layout layouts/application.html.erb
+  Rendering images/show.html.erb within layouts/application
+  Rendered images/_connected_users.erb (Duration: 0.0ms | Allocations: 14)
+  Rendered images/show.html.erb within layouts/application (Duration: 0.3ms | Allocations: 244)
+  Rendered layout layouts/application.html.erb (Duration: 6.3ms | Allocations: 6107)
+Completed 200 OK in 8ms (Views: 6.6ms | ActiveRecord: 0.1ms | Allocations: 7407)
+</code></pre>
+                    <p>Redis が実行されています:</p>
+                    <pre><code>brew services                                                                                           main * ] 4:30 pm
+Name          Status     User        File
+postgresql@14 error  256 xyz ~/Library/LaunchAgents/[email protected]
+redis         started   xyz  ~/Library/LaunchAgents/homebrew.mxcl.redis.plist
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いくつか気になる点があります。独自のターボ
+                    ストリーム チャネルを設定しましたが、依然として
+                    Turbo::StreamsChannel
+                    を通じて更新を送信しています。あなたは更新を受信するためにconnected_usersを購読していません。
+                    Broadcast_replace_to はターボ
+                    フレームを置き換えます。つまり、最初の更新後はターゲットが存在しません。ターボ
+                    ストリームが機能するためにターボ
+                    フレームは必要ありません。</p>
+                    <pre><code>class ImageViewerChannel &lt; ApplicationCable::Channel
+  include Turbo::Streams::Broadcasts
+  include Turbo::Streams::StreamName
+
+  @@connected_users_count = 0
+
+  def subscribed
+    @@connected_users_count += 1
+    @image_id = params[:image_id]
+    stream_from &quot;image_viewer_#{@image_id}&quot;
+    broadcast_connected_users_count
+  end
+
+  private
+
+    def broadcast_connected_users_count
+      # NOTE: if you `extend Turbo::Streams::Broadcasts` then you have to 
+      #       call it as a class method `ImageViewerChannel.broadcast_update_to`
+      broadcast_update_to(
+        &quot;image_viewer_#{@image_id}&quot;,     # &lt;= this is where you&#39;re streaming from
+                                         #    that&#39;s where the broadcast goes
+        target: &quot;connected_users&quot;,
+        partial: &quot;images/connected_users&quot;,
+        locals: {count: @@connected_users_count}
+      )
+    end
+end
+</code></pre>
+                    <pre><code>&lt;%= turbo_stream_from &quot;image_viewer_#{@image.id}&quot;, channel: &quot;ImageViewerChannel&quot;, data: {image_id: @image.id} %&gt;
+
+&lt;%= tag.div id: :connected_users do %&gt;
+  &lt;%= render &quot;images/connected_users&quot;, count: 0 %&gt;
+&lt;% end %&gt;
+</code></pre>
+                    <p>Turbo::StreamsChannel
+                    から継承することもできると思います。</p>
+                    <pre><code>class ImageViewerChannel &lt; Turbo::StreamsChannel
+  @@connected_users_count = 0
+
+  def subscribed
+    super
+    @@connected_users_count += 1
+    broadcast_connected_users_count
+  end
+
+  private
+
+    def broadcast_connected_users_count
+      ImageViewerChannel.broadcast_update_to(
+        verified_stream_name_from_params,
+        target: &quot;connected_users&quot;,
+        partial: &quot;images/connected_users&quot;,
+        locals: {count: @@connected_users_count}
+      )
+    end
+end
+</code></pre>
+                    <p>アップデート</p>
+                    <p>これが私が得たものです:</p>
+                    <pre><code>&lt;turbo-cable-stream-source channel=&quot;ImageViewerChannel&quot; data-image-id=&quot;1&quot; signed-stream-name=&quot;ImltYWdlX3ZpZXdlcl8xIg==--e5b0cbf8cc93373099c4c70b75fe8e397096882718b43d3638649d1da1c225ee&quot; connected=&quot;&quot;&gt;&lt;/turbo-cable-stream-source&gt;
+
+&lt;div id=&quot;connected_users&quot;&gt;
+  &lt;div&gt; 2 &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+                    <pre><code>  Rendered images/_connected_users.html.erb (Duration: 0.1ms | Allocations: 10)
+ImageViewerChannel is streaming from image_viewer_1
+[ActionCable] Broadcasting to image_viewer_1: &quot;&lt;turbo-stream action=\&quot;update\&quot; target=\&quot;connected_users\&quot;&gt;&lt;template&gt;&lt;div&gt; 2 &lt;/div&gt;\n&lt;/template&gt;&lt;/turbo-stream&gt;&quot;
+ImageViewerChannel is transmitting the subscription confirmation
+ImageViewerChannel transmitting &quot;&lt;turbo-stream action=\&quot;update\&quot; target=\&quot;connected_users\&quot;&gt;&lt;template&gt;&lt;div&gt; 2 &lt;/div&gt;\n&lt;/template&gt;&lt;/turbo-stream&gt;&quot; (via streamed from image_viewer_1)
+ImageViewerChannel transmitting &quot;&lt;turbo-stream action=\&quot;update\&quot; target=\&quot;connected_users\&quot;&gt;&lt;template&gt;&lt;div&gt; 2 &lt;/div&gt;\n&lt;/template&gt;&lt;/turbo-stream&gt;&quot; (via streamed from image_viewer_1)
+</code></pre>
+                    <p>そしてケーブルメッセージ:</p>
+                    <pre><code>{
+  &quot;identifier&quot;: &quot;{\&quot;channel\&quot;:\&quot;ImageViewerChannel\&quot;,\&quot;signed_stream_name\&quot;:\&quot;ImltYWdlX3ZpZXdlcl8xIg==--e5b0cbf8cc93373099c4c70b75fe8e397096882718b43d3638649d1da1c225ee\&quot;,\&quot;image_id\&quot;:\&quot;1\&quot;}&quot;,
+  &quot;message&quot;: &quot;&lt;turbo-stream action=\&quot;update\&quot; target=\&quot;connected_users\&quot;&gt;&lt;template&gt;&lt;div&gt; 2 &lt;/div&gt;\n&lt;/template&gt;&lt;/turbo-stream&gt;&quot;
+}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

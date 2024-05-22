@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>結合されたRailsテーブルの列挙型を参照するクエリ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "結合されたRailsテーブルの列挙型を参照するクエリ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>結合されたRailsテーブルの列挙型を参照するクエリ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のドメイン
+                    モデルを簡略化した次の表現を考えてみましょう。</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  has_many :tags
+end
+
+class Tag &lt; ApplicationRecord
+  belongs_to :item
+  enum :value, %i{hot cold}
+
+  validates :value, uniqueness: { scope: :item_id }
+end
+</code></pre>
+                    <p>すべてのアイテムには、プログラムに関連する可能性のあるアイテムのプロパティを示す
+                    0
+                    個以上のタグがあります。この例では、有効なタグは「hot」と「cold」のみです。</p>
+                    <p>「ホット」とタグ付けされたすべてのアイテムを検索したい場合は、次のように書くことができます。</p>
+                    <pre><code>Item.joins(:tags).where(&#39;tags.value = 0&#39;)
+</code></pre>
+                    <p>当然のことながら、列挙型の整数値の代わりに「ホット」という単語を書きたいと思います。名前付き引数を使用して
+                    ActiveRecord の処理を強制することができます。</p>
+                    <pre><code>Item.joins(:tags).where(&#39;tags.value&#39;: &#39;hot&#39;)
+</code></pre>
+                    <p>しかし、名前が有効な Ruby
+                    識別子ではない名前付き引数を持つのは、ある意味…間違っているように感じます。このような奇妙な疑似変数を使用せずに、このクエリを作成するもっと巧妙な方法はあるでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはもっと良い感じですか？</p>
+                    <pre><code>Item.joins(:tags).where(tags: {value: :hot})
+</code></pre>
+                    <p>または</p>
+                    <pre><code>class Item &lt; ApplicationRecord
+  has_many :tags
+
+  scope :tagged, -&gt;(value) { joins(:tags).where(tags: {value:}) }
+end
+
+Item.tagged(:hot)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

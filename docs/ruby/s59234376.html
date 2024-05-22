@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「srb tc」が RSpec テストの「expect」メソッドと「eq」メソッドを見つけられないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「srb tc」が RSpec テストの「expect」メソッドと「eq」メソッドを見つけられないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「srb tc」が RSpec
+テストの「expect」メソッドと「eq」メソッドを見つけられないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は実験的なオープンソース プロジェクト
+                    (ruby_crystal_codemod) で Sorbet
+                    を試しています。ネストされたテスト
+                    プロジェクト内の一部の RSpec
+                    テストで型チェックを機能させる方法がわかりません。
+                    srb tc を実行すると、次のような型チェック
+                    エラーが表示されます。</p>
+                    <pre><code>spec/src/example_class_annotated_spec.rb:6: Method it does not exist on T.class_of(&lt;root&gt;) https://srb.help/7003
+     6 |  it &#39;should add @foo and @bar&#39; do
+     7 |    instance = ExampleClass.new(2, 3, 4)
+     8 |    expect(instance.add).to eq 5
+     9 |  end
+
+spec/src/example_class_annotated_spec.rb:8: Method expect does not exist on T.class_of(&lt;root&gt;) https://srb.help/7003
+     8 |    expect(instance.add).to eq 5
+            ^^^^^^^^^^^^^^^^^^^^
+    https://github.com/sorbet/sorbet/tree/67cd17f5168252fdec1ad04839b31fdda8bc6155/rbi/core/kernel.rbi#L2662: Did you mean: Kernel#exec?
+    2662 |  def exec(*args); end
+            ^^^^^^^^^^^^^^^
+
+spec/src/example_class_annotated_spec.rb:8: Method eq does not exist on T.class_of(&lt;root&gt;) https://srb.help/7003
+     8 |    expect(instance.add).to eq 5
+                                    ^^^^
+
+# etc.
+</code></pre>
+                    <p>これは、GitHub
+                    上のネストされたプロジェクトのソース
+                    ディレクトリです。</p>
+                    <p>次のコマンドを実行して型エラーを再現できるはずです。</p>
+                    <pre><code>cd /tmp
+git clone https://github.com/DocSpring/ruby_crystal_codemod.git
+cd ruby_crystal_codemod
+git checkout sorbet-rspec-type-checking-error
+cd spec/fixtures/rspec_project/
+bundle install
+bundle exec srb tc
+</code></pre>
+                    <p>次のタイプ エラーが表示されるはずです。</p>
+                    <pre><code>spec/src/example_class_annotated_spec.rb:6: Method it does not exist on T.class_of(&lt;root&gt;) https://srb.help/7003
+     6 |  it &#39;should add @foo and @bar&#39; do
+     7 |    instance = ExampleClass.new(2, 3, 4)
+     8 |    expect(instance.add).to eq 5
+     9 |  end
+
+# etc.
+</code></pre>
+                    <p>spec/fixtures/rspec_project/sorbet/rbi/gems/rspec-core.rbi
+                    などの RBI ファイルに問題があるのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>生成された RBI
+                    ファイルには何も問題はありません。</p>
+                    <p>RSpec は DSL
+                    に大きく依存します。ブロックを受け入れる
+                    RSpec.describe のようなメソッドを呼び出すと、RSpec
+                    は特定のバインディングを使用して特定のスコープでそのブロックを実行し、RSpec
+                    テスト DSL
+                    を呼び出すことができるようになります。</p>
+                    <p>Sorbet が RSpec
+                    メソッドの知識を得るには、この動作を認識する必要があります。メソッドによって受け取られたコード
+                    ブロックが実行されるバインディングについて Sorbet
+                    にヒントを与える方法はいくつかあります。これについては、Sorbet
+                    のドキュメントで読むことができます。</p>
+                    <p>あなたが言及した RBI
+                    ファイルを見ると、この情報は含まれていません。 gem
+                    の自動 RBI ジェネレーターは、通常、gem 内にどの定数
+                    (クラス、モジュール)
+                    とどのメソッドが存在するかを確立することに限定されます。これには、これらのメソッドまたはその引数の署名は含まれません。</p>
+                    <p>特定のブロックのバインドに関するヒントがない場合、Sorbet
+                    は、ブロックがブロックの外部コンテキストにバインドされていると想定します。たとえば、Ruby
+                    のトップレベルで RSpec.describe
+                    を使用する場合、それが Sorbet が description
+                    に渡されるブロックに対して想定するコンテキストです。
+                    Ruby のグローバル スコープには eq
+                    の定義がないため、型チェックは失敗します。</p>
+                    <p>これを解決するには、さまざまなレベルの努力と報酬を伴いながら、できることはたくさんあります。</p>
+                    <p>1 と 3 は大した作業ではないと思うので、2
+                    番目のオプションの進め方について詳しく説明します。</p>
+                    <p>次のような rspec の shim ファイルを
+                    sorbet/rbi/shims/rspec.rbi に作成します。</p>
+                    <pre><code># typed: strict
+
+module RSpec
+end
+</code></pre>
+                    <p>このファイルでは、RSpec
+                    メソッドに渡されるブロックのバインドについて何も想定しないようにするために必要な署名を追加します。たとえば、説明から始めましょう。自動生成された
+                    RBI
+                    にアクセスすると、次の宣言があることがわかります。</p>
+                    <pre><code>  def self.describe(*args, &amp;example_group_block); end
+</code></pre>
+                    <p>これを独自の RBI
+                    ファイルにコピーし、独自の署名を先頭に追加しましょう。</p>
+                    <pre><code># typed: strict
+
+module RSpec
+  sig do
+    params(
+      args: T.untyped,
+      example_group_block: T.proc.bind(T.untyped).void
+    ).void
+  end
+  def self.describe(*args, &amp;example_group_block); end
+end
+</code></pre>
+                    <p>これで、説明するために渡したブロックが T.untyped
+                    にバインドされていることを Sorbet
+                    に伝えました。このタイプはエスケープ
+                    ハッチとして機能し、あらゆるメソッド呼び出しを許可するため、Sorbet
+                    は内部のメソッドが欠落していることについて文句を言いません。タイプチェッカーが完全に無視できるようになるまで、異なる
+                    RSpec
+                    クラスの他のメソッドに対してもこの操作を繰り返す必要がある場合があります。</p>
+                    <p>これにより、仕様ファイルで # typed: true
+                    を使用できるようになります。これは完璧ではなく、実際にはパッチにすぎませんが、少なくともいくつかの非常に基本的な型チェック機能を提供します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails を使用する場合、Sprockets ディレクティブはマニフェスト ファイルでどのように読み取られますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails を使用する場合、Sprockets ディレクティブはマニフェスト ファイルでどのように読み取られますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails を使用する場合、Sprockets
+ディレクティブはマニフェスト ファイルでどのように読み取られますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>なぜ最初にディレクティブをコメントアウトし、等号を追加する必要があるのでしょうか?ディレクティブのコメントを外して、ブラウザに
+                    application.js ファイルをロードすると、jquery
+                    ライブラリの内容が表示されなくなります。Rails
+                    は初めてなので、ご容赦ください…今日、アセット
+                    パイプラインを調査しているときにマニフェスト
+                    ファイル (application.js) を見ていたところ、//=
+                    require jquery
+                    などのディレクティブがどのように読み取られているのか興味がありました。これがバックグラウンドでどのように動作しているのか興味があります。これはSprocketsがバックグラウンドで何かを行っているのでしょうか?どうやって？</p>
+                    <p>また、独自のカスタム CSS
+                    スタイルシートを追加する場合、application.css
+                    マニフェスト ファイルに require
+                    ディレクティブを追加しますか、それとも &lt;link
+                    rel=“stylesheet” type=“text/css” href=
+                    などのスタイルシート リンクを追加しますか?
+                    “mystyle.css”&gt;?それとも両方やりますか？マニフェストファイル内に直接CSSを追加すべきではないと思います…</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>どこまで知っているかわからないので、詳しく説明してみます。</p>
+                    <p>Rails はアセット (画像、CSS、js ファイルなど)
+                    を別々の場所に保存するため、すべてが整然としており、開発者にとって使いやすいものになっています。それが
+                    Assed Pipeline と呼ばれるものです。 Rails
+                    がこれらのアセット (CSS ファイルなど)
+                    をロードすると、複数の呼び出しを避けるために、すべてのアプリ
+                    ファイルから 1
+                    つの大きなファイルが作成されます。そして、マニフェストは、その大きなCSSファイルにどのファイルを含めるかというRailsのマップまたはルールのようなもので、この
+                    *=
+                    はRailsに正確に何を含めるべきかを指示するものです（私はこれをRails構文と考えています）。したがって、次のような場合:</p>
+                    <pre><code>//= require jquery
+//= require jquery_ujs
+//= require turbolinks
+//= require_tree . 
+</code></pre>
+                    <p>require_tree 。 //= require jquery などは Rails
+                    に javascripts
+                    フォルダーからすべてのファイルを取得するように指示しますが、
+                    //= require jquery などは Rails
+                    に特殊なケース、つまり通常 gem
+                    によって使用されるアセット (これらのファイルは
+                    javascripts/stylesheets
+                    フォルダーに決して保存しないので、 //= require_tree
+                    .見えません）。</p>
+                    <p>独自の CSS
+                    ファイルを追加する場合は、それをスタイルシート
+                    フォルダーに追加するだけで、require_tree が Rails
+                    にそれを全体像に含めるように通知します。しかし、Rails
+                    にはスキャフォールディングという優れた機能があります。コマンド
+                    Rails g scaffold User
+                    を使用してオブジェクトをスキャフォールディングすると、ビュー、コントローラー、モデル、テストなど、すべてが
+                    Rails によって作成されます
+                    (他に何があるかは誰にもわかりません:))。したがって、この場合、CSS
+                    ファイルを作成する必要さえありません。CSS
+                    ルールをそれに挿入するだけで、Rails が require_tree
+                    によるファイルを見つけます。</p>
+                    <p>Sass ファイルの場合は少し別の話になります。</p>
+                    <p>したがって、Bootstrap を使用する場合
+                    (おそらくそうするでしょう)、これも理解しておくことが重要です。</p>
+                    <p>お役に立てれば</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

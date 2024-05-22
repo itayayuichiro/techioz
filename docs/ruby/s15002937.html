@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>tmux の自動設定 RBENV_VERSION を停止する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "tmux の自動設定 RBENV_VERSION を停止する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>tmux の自動設定 RBENV_VERSION
+を停止する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>tmux を起動すると、tmux は RBENV_VERSION
+                    を自動設定します…</p>
+                    <p>誰かそれを止める方法を知っていますか？</p>
+                    <p>自動で設定してくれるのでやる必要がある</p>
+                    <p>$ エクスポート RBENV_VERSION</p>
+                    <p>設定を解除して .ruby-version
+                    が機能するようにします。 THX。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>tmux 自体が勝手に RBENV_VERSION を設定
+                    (または設定解除)
+                    することはありません。これを引き起こしている設定がいくつかあります。</p>
+                    <p>私の推測では、tmux サーバーを起動したときに
+                    RBENV_VERSION が設定され、それが tmux
+                    の「グローバル環境」 (tmux
+                    によって起動されたすべてのプロセスによって継承される基本環境)
+                    の一部になっていると思います。これを確認できます</p>
+                    <pre><code>tmux show-environment -g | grep RBENV
+</code></pre>
+                    <p>そこに存在する場合は、次のコマンドで削除できます。</p>
+                    <pre><code>tmux set-environment -gu RBENV_VERSION
+</code></pre>
+                    <p>RBENV_VERSION がすでに設定されているときに tmux
+                    を起動することがよくある場合 (そして、それを tmux
+                    の「内部」に送信したくない場合)、上記のコマンドを
+                    ~/.tmux.conf
+                    ファイルに追加して、毎回クリアされるようにすることができます。サーバーを起動するとき。</p>
+                    <p>もう 1 つの可能性は、それが tmux
+                    の「セッション環境」の一部であるということです。この環境はグローバル環境の上に「階層化」され、セッション内の新しいウィンドウおよびペインに対して開始されるプロセスによって継承される環境を形成します。次のコマンドで確認できます
+                    (セッション内で実行するか、-t sessname
+                    を追加してセッションを指定します)。</p>
+                    <pre><code>tmux show-environment | grep RBENV
+</code></pre>
+                    <p>これが存在する場合は、同様の方法で設定を解除できます。</p>
+                    <pre><code>tmux set-environment -u RBENV_VERSION
+</code></pre>
+                    <p>最後に、変数がグローバル環境にもセッション環境にも存在しない場合は、シェル初期化ファイル内の何かから取得されている可能性があります。デフォルトでは、tmux
+                    はログイン
+                    シェルを開始するため、シェル設定の対応する部分
+                    (.bash_profile、.bash_login、.profile など)
+                    およびその他の初期化部分を必ず確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

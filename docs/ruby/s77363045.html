@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>列の値に基づいたカスタム has_one | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "列の値に基づいたカスタム has_one",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>列の値に基づいたカスタム has_one</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails の初心者は、ActiveRecords
+                    を使用してこの関係をモデル化できるかどうか疑問に思っていました。</p>
+                    <p>次のモデルがあります(簡略化):</p>
+                    <pre><code>User:
+ - name
+ - email 
+</code></pre>
+                    <pre><code>Client:
+ - name
+ - address
+</code></pre>
+                    <p>そして、これらのテーブルの両方に関連するモデルの出席者がありますが、type
+                    列があります。</p>
+                    <pre><code>| id | join_type | join_id | 
+|----|-----------|---------|
+|  1 |    user   |    1    |
+|  2 |   client  |    1    |
+</code></pre>
+                    <p>has_one
+                    リレーションを使用してアクティブなレコードでそれをモデル化する方法はありますか?</p>
+                    <p>何かのようなもの：</p>
+                    <pre><code>class Attendee &lt; ApplicationRecord
+
+    # OBVIOUSLY DOESNT WORK
+    has_one :user, -&gt;() { where(join_type: &#39;user&#39;) }, :class_name =&gt; &#39;User&#39;
+    has_one :client, -&gt;() { where(join_type: &#39;client&#39;) }, :class_name =&gt; &#39;Client&#39;
+
+end
+</code></pre>
+                    <p>つまり、正しい左結合が生成されるのでしょうか?</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この構造で出席者テーブルを作成します</p>
+                    <pre><code>class CreateAttendees &lt; ActiveRecord::Migration[7.0]
+  def change
+    create_table :attendees do |t|
+      t.timestamps
+      t.string :linked_object_type
+      t.bigint :linked_object_id
+    end
+
+    # optinal
+    add_index :attendees, %i[linked_object_type linked_object_id]
+  end
+end
+
+</code></pre>
+                    <pre><code># app/models/client_attendee.rb
+class Attendee &lt; ApplicationRecord
+  belongs_to :linked_object, polymorphic: true, foreign_type: :linked_object_type
+end
+</code></pre>
+                    <p>次に、次のようにAttendeeインスタンスからユーザー/クライアントにアクセスできます</p>
+                    <pre><code>   attendee = Attendee.first
+   linked_object = attendee.linked_object # Depends on linked object type it will return the relative model instance
+</code></pre>
+                    <p>ユーザー/顧客から出席者にアクセスしたい場合は、次のように定義できます。</p>
+                    <pre><code># frozen_string_literal: true
+
+# This model is used to store user data
+class User &lt; ApplicationRecord
+  has_many :attendees, as: :linked_object, linked_object_type: &#39;User&#39; # You can scope it yourself, and define has_one depends on your design. 
+end
+
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

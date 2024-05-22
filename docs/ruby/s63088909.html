@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby+Minitest を使用してパラメータ化されたテストを作成する可能性はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby+Minitest を使用してパラメータ化されたテストを作成する可能性はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby+Minitest
+を使用してパラメータ化されたテストを作成する可能性はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>最近、Ruby+Minitest を使用する自動テスト
+                    プロジェクトに取り組み始めました。提供した入力データの数と同じ回数
+                    1
+                    つのテストを実行できるかどうか疑問に思っています。</p>
+                    <p>だから、私は次のようなものを持っています（コードはNDAの下にあるため、実際の例を提供することはできません）</p>
+                    <pre><code>def test_new_registrations
+  result = process_new_entry(list_entries)
+  assert(validator_method(result), result)
+end
+</code></pre>
+                    <p>重要なのは、process_new_entry
+                    メソッド内にループがあることです。このループを削除して、list_entries
+                    にあるエントリの数だけこのテストを実行するだけです。</p>
+                    <p>Java+Selenium の TestNG から、テスト
+                    メソッド内で入力データを 1
+                    つずつ渡すデータプロバイダーを使用するという概念を思い出しました。
+                    同様のアプローチをここで実装できる可能性はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたが持っている場合：</p>
+                    <pre><code>class MyTest
+  TESTCASES = {
+    # input =&gt; expected
+    a: &quot;a&quot;,
+    b: &quot;b&quot;,
+    c: &quot;c&quot;,
+  }
+
+  def test_testcases
+    TESTCASES.each do |entry, expected|
+      result = process_one(entry)
+      assert(expected, result)
+    end
+  end
+end
+</code></pre>
+                    <p>そして、実際に各ケースを独自のテストで実行したい場合は、次のようにします。</p>
+                    <pre><code>MyTest
+  TESTCASES = {
+    # input =&gt; expected
+    a: &quot;a&quot;,
+    b: &quot;b&quot;,
+    c: &quot;c&quot;,
+  }
+
+  TESTCASES.each do |entry, expected|
+    define_method(&quot;test_testcase_#{entry}&quot;) do
+      result = process_one(entry)
+      assert(expected, result)
+    end
+  end
+end
+</code></pre>
+                    <p>Java
+                    とまったく同じ構文が本当に必要な場合は、上記をライブラリに変換して、これが機能するようにすることが可能です。</p>
+                    <pre><code>testcase_parameters(TESTCASES) # left as an exercise to the reader
+def test_testcase(entry, expected)
+  assert(expected, process_one(entry))
+end
+</code></pre>
+                    <p>しかし、それについてあまりにも間接的/抽象的であることに利点があるとは思えません。コードと実行状態を検査可能でデバッグしやすい状態に保ち、明示的に保つことをお勧めします。</p>
+                    <pre><code>class MyTest
+  TESTCASES = {
+    # input =&gt; expected
+    a: &quot;a&quot;,
+    b: &quot;b&quot;,
+    c: &quot;c&quot;,
+  }
+
+  def test_testcases
+    results = TESTCASES.map do |entry, expected|
+      result = process_one(entry)
+      [entry, [expected, result]]
+    end
+
+    invalid_results = results.select { |e, (ex, res)| ex != res }
+
+    # This is a very easy-to-breakpoint place in code, to easily view all results:
+    # binding.pry
+
+    assert_empty invalid_results # failure cases will be printed out by test output
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

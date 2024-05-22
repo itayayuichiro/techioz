@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>シンサーバー自動再起動スクリプト | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "シンサーバー自動再起動スクリプト",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>シンサーバー自動再起動スクリプト</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はubuntuの初心者ですが、Microsoftからのメンテナンスのために仮想マシンが自動的に再起動するというAzureの問題に直面しています。</p>
+                    <p>このため、私のアプリケーションはダウンしています。
+                    また、再起動やシステムのアップデートがいつ行われるかについて、Windows
+                    側からの確認はありません。</p>
+                    <p>Thin Server
+                    を起動しても、特定のポート、つまりポート
+                    3000、3001、3002、3003
+                    などに対して開いたままにするにはどうすればよいですか。教えてください。</p>
+                    <p>さまざまなブログを参照し、再起動時にシンサーバーが自動的に起動するように
+                    init.d に変更を加えました。</p>
+                    <pre><code>user: root
+group: webuser
+pid: tmp/pids/thin.pid
+timeout: 30
+wait: 30
+log: log/thin.log
+max_conns: 1024
+require: []
+environment: production
+max_persistent_conns: 512
+servers: 1
+threaded: true
+no-epoll: true
+daemonize: true
+socket: tmp/sockets/thin.sock
+chdir: webuser/app
+tag: hey aux
+</code></pre>
+                    <p>上記を試しましたが失敗しました。</p>
+                    <p>以下は私の etc/init.d シンファイルです:-</p>
+                    <pre><code># Do NOT &quot;set -e&quot;
+
+DAEMON=/usr/bin/thin
+SCRIPT_NAME=/etc/init.d/thin
+
+# Exit if the package is not installed
+[ -x &quot;$DAEMON&quot; ] || exit 0
+
+run_action() {
+        ACTION=&quot;$1&quot;
+
+    if [ -x /usr/bin/ruby1.8 ]; then
+        /usr/bin/ruby1.8 $DAEMON $ACTION --all /etc/thin1.8
+    fi
+
+    if [ -x /usr/bin/ruby1.9.1 ]; then
+        /usr/bin/ruby1.9.1 $DAEMON $ACTION --all /etc/thin1.9.1
+    fi
+
+}
+
+case &quot;$1&quot; in
+  start)
+    run_action start
+    ;;
+  stop)
+    run_action stop
+    ;;
+  restart|force-reload|reload)
+    run_action restart
+    ;;
+  *)
+    echo &quot;Usage: $SCRIPT_NAME {start|stop|restart}&quot; &gt;&amp;2
+    exit 3
+    ;;
+esac
+
+:
+</code></pre>
+                    <p>スクリプトが正しいか間違っているかはわかりませんが、コードは機能しないようです。
+                    誰かこれを手伝ってくれませんか。
+                    よろしくお願いします</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このスクリプトをシンに使用するとよいでしょう。ただし、私の経験から言えば、起動時にアプリケーションの起動を管理するには、Foreman
+                    と upstart
+                    を併用する方が良いでしょう。動作が改善され、設定が簡単になりました。</p>
+                    <p>それ以外は、スタックを理解したかどうかわかりません。Azure
+                    上の Windows 2012 サーバー上で実行されている Ubuntu
+                    VM 上に、Ruby Web
+                    アプリケーションをデプロイしていますか?</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

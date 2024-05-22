@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq ジョブがモデルの after_commit コードから失敗するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq ジョブがモデルの after_commit コードから失敗するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq ジョブがモデルの after_commit
+コードから失敗するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この Sidekiq ジョブを実行すると、Foo
+                    レコードが正常に作成されます。しかし、Foo の
+                    after_commit
+                    でエラーが発生するため、ジョブ全体が失敗し、デッド
+                    ジョブ キューに入れられてしまいます。 after_commit
+                    エラーを修正してジョブを再実行すると、別の Foo
+                    レコードが作成されます (または再試行時に作成されます
+                    😬) これは望ましくありません。</p>
+                    <p>Foo
+                    レコードが正常に作成された後、PerformAndCreateFooJob
+                    が正常に完了することを期待します。 after_commit
+                    ロジックによってジョブが失敗することはありません。</p>
+                    <pre><code>class PerformAndCreateFooJob
+  include Sidekiq::Job
+  sidekiq_options retry: 0
+
+  def perform = Foo.create
+end
+</code></pre>
+                    <pre><code>class Foo &lt; ApplicationRecord
+  after_commit -&gt; () { raise }
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それは、あなたが呼び出している作成の一部（実際には保存の一部）であるためです。</p>
+                    <p>ガイドで説明されているように、insert
+                    を使用してコールバックをスキップする</p>
+                    <p>追加する価値があります…ジョブが冪等であることを確認することがベスト
+                    プラクティスです。ジョブが再試行される理由は数多くあります。これには、独自のアプリ
+                    ロジックだけでなく、他のシステム条件も含まれます。通常の状況では、これは最初に
+                    find_by を使用するだけで済みます (ジョブ キュー
+                    ロジックが同じレコード/データに対して多数のジョブを作成する可能性が低いと仮定します)。または、DB
+                    内で一意の制約を設定し、そこで障害を救済するロジックが必要になる場合もあります。
+                    。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

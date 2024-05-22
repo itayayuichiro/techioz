@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アプリで Base64 イメージをファイルとして保存する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アプリで Base64 イメージをファイルとして保存する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アプリで Base64
+イメージをファイルとして保存する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コントローラーでbase64画像をファイルとして保存できず、エラーも発生しません。データベースには保存したくないのですが、パブリックフォルダーにのみ保存します。</p>
+                    <p>私はRails 4.2.8とRuby
+                    2.1を使用しています。これはレガシーアプリであり、base64画像を生成するためにhtml2canvasを使用しています。</p>
+                    <p>私のコントローラーの定義:</p>
+                    <pre><code>def save_image
+  image = params[:image]
+  file = &quot;#{Rails.root}/public/dashboard.png&quot;
+  File.open(file,&#39;wb&#39;) do |f|
+    f.write Base64.decode64(image)
+  end
+  file.save
+end
+</code></pre>
+                    <p>Tempfileを使用して既存のファイルを使用しようとしましたが、「image
+                    =
+                    request.body[‘image’]」はどちらも機能しません。</p>
+                    <p>ルート：</p>
+                    <pre><code>post &#39;save_image&#39; =&gt; &#39;intranet/dashboard#save_image&#39;
+</code></pre>
+                    <p>そして、html2canvas関数でpost
+                    reqを呼び出します。</p>
+                    <pre><code>html2canvas(document.getElementById(&#39;list&#39;)).then(canvas =&gt; {
+        base64String = canvas.toDataURL();
+        var url = &#39;/save_image&#39;;
+        $.ajax({
+            type: &quot;POST&quot;,
+            url: url,
+            dataType: &#39;text&#39;,
+            data: {
+                image : base64String
+            }
+        });
+      });
+</code></pre>
+                    <p>ログにアラートが表示されず、これをデバッグする方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私はこれで解決します:</p>
+                    <pre><code>protect_from_forgery except: [:save_image]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

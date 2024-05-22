@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>多対多モデルでコンソール経由でレコードを作成できない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "多対多モデルでコンソール経由でレコードを作成できない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>多対多モデルでコンソール経由でレコードを作成できない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私が使用しているもの: Rails 6.1.4 と Ruby
+                    3.1.1p18</p>
+                    <p>Rails で多対多の関連付けを試してから 1
+                    分が経ちましたが、これについては少し迷っています。助け/ヒントをいただければ幸いです。</p>
+                    <p>ご要望があれば、投稿を編集してさらに情報を追加させていただきます。</p>
+                    <p>Rails アプリの living_muay_thai/
+                    内にディレクトリを作成し、その中に 2
+                    つのモデル間に多対多の関係を作成しようとしています。コードはすべて揃っています。コンソール
+                    (開発)
+                    を使用して、結合テーブルにレコードを作成しようとすると、エラーが発生します。</p>
+                    <pre><code>3.1.1 :009 &gt; sb.errors.full_messages
+ =&gt; [&quot;Living muay thai student must exist&quot;, &quot;Living muay thai badge must exist&quot;]
+</code></pre>
+                    <p>私のコード:</p>
+                    <pre><code>generate models/migrations:
+
+rails generate model living_muay_thai/Student
+rails generate model living_muay_thai/Badge
+</code></pre>
+                    <p>この時点では、結合テーブルをどのように作成したか思い出せません。いくつかの異なる生成行を試したと思いますが、いずれも長すぎるインデックス名でエラーが発生したため、そのエラーを解消するために手動で編集することになりました。</p>
+                    <pre><code>Migrations:
+
+Students:
+
+class CreateLivingMuayThaiStudents &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :living_muay_thai_students do |t|
+      t.string :fname 
+      t.string :lname 
+      t.timestamps
+    end
+  end
+end
+
+--------------------------
+Badges:
+
+class CreateLivingMuayThaiBadges &lt; ActiveRecord::Migration[6.1]
+  def up
+    create_table :living_muay_thai_badges do |t|
+      t.string  :color 
+      t.string  :category
+      t.integer :number
+
+      t.timestamps
+    end
+  end
+
+  def down
+    drop_table :living_muay_thai_badges
+  end
+end
+
+------------------
+StudentBadges (joins table)
+
+class CreateLivingMuayThaiStudentBadges &lt; ActiveRecord::Migration[6.1]
+  def change
+    create_table :living_muay_thai_student_badges do |t|
+      t.integer :student_id
+      t.integer :badge_id
+
+      t.timestamps
+    end
+    add_index :living_muay_thai_student_badges, :student_id, name: &#39;students_index&#39;
+    add_index :living_muay_thai_student_badges, :badge_id, name: &#39;badges_index&#39;
+  end
+end
+</code></pre>
+                    <p>学生バッジの移行では、いくつかのチュートリアルで説明されている方法でエラーが発生したため、この方法
+                    (上記) を実行しました…インデックス名が長すぎます…
+                    したがって、この方法は機能しました。</p>
+                    <pre><code>Models:
+
+Students:
+
+# == Schema Information
+#
+# Table name: living_muay_thai_students
+#
+#  id         :bigint           not null, primary key
+#  fname      :string
+#  lname      :string
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+class LivingMuayThai::Student &lt; ApplicationRecord
+    has_many :living_muay_thai_student_badges
+    has_many :living_muay_thai_badges, through: :living_muay_thai_student_badges
+
+    has_many :living_muay_thai_levels
+end
+
+----------------------
+Badges:
+
+# == Schema Information
+#
+# Table name: living_muay_thai_badges
+#
+#  id         :bigint           not null, primary key
+#  category   :string
+#  color      :string
+#  number     :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+class LivingMuayThai::Badge &lt; ApplicationRecord
+    has_many :living_muay_thai_student_badges
+    has_many :living_muay_thai_students, through: :living_muay_thai_student_badges
+end
+
+---------------------
+StudentBadge
+
+# == Schema Information
+#
+# Table name: living_muay_thai_student_badges
+#
+#  id         :bigint           not null, primary key
+#  badge_id   :integer
+#  student_id :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
+# Indexes
+#
+#  badges_index    (badge_id)
+#  students_index  (student_id)
+#
+class LivingMuayThai::StudentBadge &lt; ApplicationRecord
+  belongs_to :living_muay_thai_student
+  belongs_to :living_muay_thai_badge
+end
+</code></pre>
+                    <p>(??)まだコントローラーを具体化していません。その前にコンソールでこれをテストしたかったのです。それが私の問題と因果関係があるかどうかはわかりません。</p>
+                    <p>コンソール：</p>
+                    <pre><code># create a student:
+3.1.1 :001 &gt; s1=LivingMuayThai::Student.create(:fname =&gt; &#39;John&#39;, :lname=&gt;&#39;Smith&#39;)
+# works
+
+# create a badge:
+3.1.1 :002 &gt; b1=LivingMuayThai::Badge.create(:color =&gt; &#39;White&#39;, :category =&gt; &#39;Beginner&#39;, :number =&gt; 1)
+# works
+
+# create record in joins table:
+3.1.1 :003 &gt; sb=LivingMuayThai::StudentBadge.create(:student_id =&gt; s1.id, :badge_id =&gt; b1.id)
+ =&gt; #&lt;LivingMuayThai::StudentBadge:0x00007f713867a970 id: nil, student_id: 11, badge_id: 140, created_at: nil, updated_at: nil&gt; 
+3.1.1 :004 &gt; sb.valid?
+ =&gt; false 
+3.1.1 :005 &gt; sb.errors.full_messages
+ =&gt; [&quot;Living muay thai student must exist&quot;, &quot;Living muay thai badge must exist&quot;]
+</code></pre>
+                    <p>ご覧いただきありがとうございます。とても有難い。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、関連付けをどのように定義するか、またどのような列とテーブルの名前を付けるかです。現在、それらは
+                    Rails 規約に対応していません</p>
+                    <p>結合テーブルの明示的な列名を使用して、belongs_to
+                    を次のように定義します。</p>
+                    <pre><code>class LivingMuayThai::StudentBadge &lt; ApplicationRecord
+  belongs_to :living_muay_thai_student, class_name: &#39;LivingMuayThai::Student&#39;, foreign_key: :student_id
+  belongs_to :living_muay_thai_badge, class_name: &#39;LivingMuayThai::Badge&#39;, foreign_key: :badge_id
+end
+</code></pre>
+                    <p>列名を変更することもできます。この場合、:foreign_key
+                    オプションを指定する必要はありません。</p>
+                    <pre><code>change_table :living_muay_thai_student_badges do |t|
+  t.rename :student_id, :living_muay_thai_student_id
+  t.rename :badge_id, :living_muay_thai_badge_id
+end
+</code></pre>
+                    <p>2
+                    番目のオプションは、列名に基づいて関連付け名を変更することです
+                    (列名はそのままにしておきます (student_id と
+                    Badge_id)。</p>
+                    <pre><code>class LivingMuayThai::StudentBadge &lt; ApplicationRecord
+  belongs_to :student
+  belongs_to :badge
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

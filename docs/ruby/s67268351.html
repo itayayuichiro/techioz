@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>これで CORS エラーが解決され、機能するようになりました。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "これで CORS エラーが解決され、機能するようになりました。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>これで CORS
+エラーが解決され、機能するようになりました。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>レール 6.1.3.1 Rスペック</p>
+                    <p>基本的な動作仕様コード:</p>
+                    <pre><code>describe &quot;index&quot; do
+  it &quot;should show me the list&quot; do
+    visit dashboard_targets_path
+  end
+end
+</code></pre>
+                    <p>ルートファイル</p>
+                    <pre><code>namespace :dashboard do
+  resources :targets 
+end
+</code></pre>
+                    <p>エラーには例外が表示されますが、奇妙なことに、アプリを呼び出していないかのように見え、テストコードで正しく失敗するだけです。</p>
+                    <pre><code>  1) interaction for Dashboard::TargetsController index should show me the list
+     Failure/Error: visit dashboard_targets_path
+     
+     NoMethodError:
+       undefined method `empty?&#39; for nil:NilClass
+     # ./spec/system/dashboard/targets_behavior_spec.rb:16:in `block (3 levels) in &lt;top (required)&gt;&#39;
+     # /Users/jason/.rvm/gems/ruby-2.6.6/gems/webmock-3.12.2/lib/webmock/rspec.rb:37:in `block (2 levels) in &lt;main&gt;&#39;
+     # /Users/jason/.rvm/gems/ruby-2.6.6/gems/rspec-wait-0.0.9/lib/rspec/wait.rb:46:in `block (2 levels) in &lt;main&gt;&#39;
+
+</code></pre>
+                    <p>テストコード内で失敗しているようです。デバッガーにドロップしてdashboard_targets_pathを直接実行すると、同じ例外が発生します。したがって、問題はテスト環境内でヘルパーを使用していることだけです。</p>
+                    <p>開発環境内では、この機能は機能します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ここでの問題は、config/environments/test.rb
+                    ファイルにdefault_url_options があることです。</p>
+                    <pre><code>config.action_mailer.default_url_options = { host: &#39;localhost&#39;, port: 3000 }
+</code></pre>
+                    <p>Rails gem
+                    に消えるエラーが発生した場合、それらをデバッグする良い方法は次のとおりです。</p>
+                    <pre><code>begin
+  // your failing code here
+rescue StandardError =&gt; e
+  puts e.backtrace
+  byebug
+  puts e.inspect
+  raise (e)
+end
+</code></pre>
+                    <p>警告:
+                    フロー制御に例外処理を明示的に使用する場合を除き、このコードをアプリ内に残したり、チェックインしたりしないでください
+                    (推奨されません!)。これはデバッグ目的でのみ推奨されます。</p>
+                    <p>ここでは、Gem
+                    内の失敗している行番号への完全なバックトレースが表示されます。
+                    Gem
+                    をデバッグするときは注意してください。行った変更は必ず元に戻してください。また、Gem
+                    コード内のモンキー
+                    パッチは製品コードに影響を与えないことを確認してください。</p>
+                    <p>gem pristine <gem name> または gem pristine –all
+                    を実行すると、ローカルにインストールされた gem
+                    に加えられた変更を元に戻すことができることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

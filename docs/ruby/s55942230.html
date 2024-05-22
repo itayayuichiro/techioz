@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュ内の値である配列内の重複した要素とそれに対応する ID を削除します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュ内の値である配列内の重複した要素とそれに対応する ID を削除します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュ内の値である配列内の重複した要素とそれに対応する
+ID を削除します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列の値を持つハッシュがあります。最もパフォーマンスの高い方法で、配列内の繰り返し要素と対応する
+                    ID を削除するにはどうすればよいですか?</p>
+                    <p>これが私のハッシュの例です</p>
+                    <pre><code>hash = { 
+  &quot;id&quot; =&gt; &quot;sjfdkjfd&quot;,
+  &quot;name&quot; =&gt; &quot;Field Name&quot;,
+  &quot;type&quot; =&gt; &quot;field&quot;,
+  &quot;options&quot; =&gt; [&quot;Language&quot;, &quot;Question&quot;, &quot;Question&quot;, &quot;Answer&quot;, &quot;Answer&quot;],
+  &quot;option_ids&quot; =&gt; [&quot;12345&quot;, &quot;23456&quot;, &quot;34567&quot;, &quot;45678&quot;, &quot;56789&quot;]
+}
+</code></pre>
+                    <p>私の考えているアイデアはこんな感じです</p>
+                    <pre><code>hash[&quot;options&quot;].each_with_index { |value, index |
+  h = {}
+  if h.key?(value)
+    delete(value)
+    delete hash[&quot;option_ids&quot;].delete_at(index)
+  else 
+    h[value] = index
+  end
+}
+</code></pre>
+                    <p>結果は次のようになります。</p>
+                    <pre><code>hash = { 
+  &quot;id&quot; =&gt; &quot;sjfdkjfd&quot;,
+  &quot;name&quot; =&gt; &quot;Field Name&quot;,
+  &quot;type&quot; =&gt; &quot;field&quot;,
+  &quot;options&quot; =&gt; [&quot;Language&quot;, &quot;Question&quot;, &quot;Answer&quot;],
+  &quot;option_ids&quot; =&gt; [&quot;12345&quot;, &quot;23456&quot;, &quot;45678&quot;]
+}
+</code></pre>
+                    <p>options と option_id
+                    の値を削除すると、それらの値のインデックスが変更されることを考慮する必要があることはわかっています。しかし、これを行う方法がわかりません</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が最初に思いついたアイデアは、値を圧縮して uniq
+                    を呼び出し、その後、最初の形式に戻る方法を考えることでした。</p>
+                    <pre><code>h[&#39;options&#39;].zip(h[&#39;option_ids&#39;]).uniq(&amp;:first).transpose
+#=&gt; [[&quot;Language&quot;, &quot;Question&quot;, &quot;Answer&quot;], [&quot;12345&quot;, &quot;23456&quot;, &quot;45678&quot;]]
+</code></pre>
+                    <pre><code>h[&#39;options&#39;], h[&#39;option_ids&#39;] = h[&#39;options&#39;].zip(h[&#39;option_ids&#39;]).uniq(&amp;:first).transpose
+
+h #=&gt; {&quot;id&quot;=&gt;&quot;sjfdkjfd&quot;, &quot;name&quot;=&gt;&quot;Field Name&quot;, &quot;type&quot;=&gt;&quot;field&quot;, &quot;options&quot;=&gt;[&quot;Language&quot;, &quot;Question&quot;, &quot;Answer&quot;], &quot;option_ids&quot;=&gt;[&quot;12345&quot;, &quot;23456&quot;, &quot;45678&quot;]}
+</code></pre>
+                    <p>手順は次のとおりです。</p>
+                    <pre><code>h[&#39;options&#39;].zip(h[&#39;option_ids&#39;])
+#=&gt; [[&quot;Language&quot;, &quot;12345&quot;], [&quot;Question&quot;, &quot;23456&quot;], [&quot;Question&quot;, &quot;34567&quot;], [&quot;Answer&quot;, &quot;45678&quot;], [&quot;Answer&quot;, &quot;56789&quot;]]
+
+h[&#39;options&#39;].zip(h[&#39;option_ids&#39;]).uniq(&amp;:first)
+#=&gt; [[&quot;Language&quot;, &quot;12345&quot;], [&quot;Question&quot;, &quot;23456&quot;], [&quot;Answer&quot;, &quot;45678&quot;]]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

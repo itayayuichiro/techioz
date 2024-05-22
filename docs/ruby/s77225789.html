@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SQL 構文エラー - ActiveRecord::StatementInvalid: PG::SyntaxError: エラー | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SQL 構文エラー - ActiveRecord::StatementInvalid: PG::SyntaxError: エラー",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SQL 構文エラー -
+ActiveRecord::StatementInvalid: PG::SyntaxError: エラー</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails で SQL
+                    クエリを構築するメソッドを作成しましたが、理由はわかりませんが、コードは正しいように見えますが、構文エラーが発生しました。
+                    おそらくここで誰かが問題を見つけることができるでしょうか？それはおそらく私が気づいていないかなり明白な何かです。</p>
+                    <p>私のコード:</p>
+                    <pre><code>def build_query(info_arr)
+  &lt;&lt;~SQL
+     SELECT * FROM word_group_values WHERE account_id = :account_id
+       AND word_group_id &lt;&gt; :word_group_id
+       AND (&quot;title&quot;, location) IN #{info_arr.join(&#39;, &#39;)}
+  SQL
+end
+</code></pre>
+                    <p>得られるエラー:</p>
+                    <pre><code>ActiveRecord::StatementInvalid: PG::SyntaxError: ERROR:  syntax error at or near &quot;)&quot; LINE 2: AND (&quot;title&quot;, location) IN () ^ : SELECT * FROM word_group_values WHERE account_id = 110
+ AND (&quot;title&quot;, location) IN ()
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>SQL 文字列が必要な理由はわかりませんが、2
+                    つの列でレコードをフィルターするには、次の原則に従って
+                    SQL クエリを作成できます。</p>
+                    <pre><code>SELECT * FROM table WHERE (column1, column2) IN ((valu11, value21), (valu12, value22));
+</code></pre>
+                    <p>これは、文字列に外側かっこと内側かっこが必要であることを意味します</p>
+                    <p>SQLクエリをサニタイズすることを忘れないでください</p>
+                    <pre><code>def build_query(account_id:, word_group_id:, titles_locations_filters: [])
+  base_query =
+    ActiveRecord::Base.sanitize_sql(
+      [
+        &lt;&lt;~SQL.squish,
+          SELECT * FROM word_group_values
+          WHERE account_id = :account_id
+          AND word_group_id &lt;&gt; :word_group_id
+        SQL
+        account_id:, word_group_id:
+      ]
+    )
+
+  return base_query if titles_locations_filters.empty?
+
+  title_locations =
+    titles_locations_filters.map do |title, location|
+      ActiveRecord::Base.sanitize_sql([
+        &#39;(:title, :location)&#39;, # inner brackets
+        title:, location:
+      ])
+    end.join(&#39;, &#39;)
+
+  &quot;#{base_query} AND (title, location) IN (#{title_locations})&quot; # outer brackets
+end
+</code></pre>
+                    <p>そしてそれをそのように呼びます</p>
+                    <pre><code>account_id = 100
+word_group_id = 200
+titles_locations_filters = [%w[title1 location1], %w[title2 location2]]
+
+build_query(account_id:, word_group_id:)
+# SELECT * FROM word_group_values
+# WHERE account_id = 100
+# AND word_group_id &lt;&gt; 200
+
+build_query(account_id:, word_group_id:, titles_locations_filters:)
+# SELECT * FROM word_group_values
+# WHERE account_id = 100
+# AND word_group_id &lt;&gt; 200
+# AND (title, location) IN ((&#39;title1&#39;, &#39;location1&#39;), (&#39;title2&#39;, &#39;location2&#39;))
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

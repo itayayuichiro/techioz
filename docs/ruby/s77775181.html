@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails を使用して、サイズ変更した画像を既存の PDF に追加する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails を使用して、サイズ変更した画像を既存の PDF に追加する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+を使用して、サイズ変更した画像を既存の PDF に追加する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby on Rails
+                    プロジェクトに取り組んでおり、私の目標は、サイズ変更された画像、特に署名を既存の
+                    PDF
+                    に追加することです。高度な機能を備えた複雑な署名ではなく、単純な画像を追加しようとしているということを強調したいと思います。</p>
+                    <p>私が実装したコードは次のとおりです。</p>
+                    <pre><code>def add_image_to_pdf
+  # Get the original PDF and the image
+  original_pdf_path = Rails.root.join(&quot;public&quot;, &quot;uploads&quot;, &quot;document&quot;, &quot;pdf&quot;, &quot;original.pdf&quot;).to_s
+  image_path = Rails.root.join(&quot;public&quot;, &quot;uploads&quot;, &quot;images&quot;, &quot;signature_image.jpeg&quot;).to_s
+
+  # Output path for the new PDF
+  output_pdf_path = Rails.root.join(&quot;public&quot;, &quot;uploads&quot;, &quot;document&quot;, &quot;pdf&quot;, &quot;document_with_image.pdf&quot;).to_s
+
+  # Temporary path for the image converted to PDF
+  temp_pdf_path = Rails.root.join(&quot;public&quot;, &quot;uploads&quot;, &quot;temp_image.pdf&quot;).to_s
+
+  # Resize the image using MiniMagick and convert it to PDF
+  image = MiniMagick::Image.open(image_path)
+  image.resize &quot;1000x1000&quot;
+  image.format &quot;pdf&quot;
+  image.write temp_pdf_path
+
+  # Load the original PDF and the resized image
+  original_pdf = CombinePDF.load(original_pdf_path)
+  image_page = CombinePDF.load(temp_pdf_path).pages[0]
+
+  # Combine the original PDF with the resized image
+  pdf = CombinePDF.new
+  pdf &lt;&lt; original_pdf
+  pdf.pages.each { |page| page &lt;&lt; image_page }
+  pdf.save output_pdf_path
+
+  # Delete the temporary file
+  File.delete(temp_pdf_path) if File.exist?(temp_pdf_path)
+
+  render json: { status: &quot;Success&quot;, message: &quot;Image added to PDF successfully&quot;, output_pdf_path: output_pdf_path }
+end
+</code></pre>
+                    <p>私の努力にもかかわらず、サイズ変更された画像が既存の
+                    PDF 内に正確に配置されません。 PDF
+                    内の指定された位置に画像を正確に配置する方法についてアドバイスを求めています。</p>
+                    <p>具体的な質問:</p>
+                    <p>PDF
+                    への画像追加の精度を高めるためのガイダンスや提案をいただければ幸いです。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>[注意]私は HexaPDF
+                    の作者です。商用利用するにはライセンスを購入する必要があります。]</p>
+                    <p>HexaPDF または Prawn を prawn-templates gem
+                    と一緒に使用することをお勧めします。</p>
+                    <p>コードから、ソース PDF
+                    の各ページの上に既存の画像を追加したいと思います。
+                    HexaPDF の場合、コードは次のようになります。</p>
+                    <pre><code>doc = HexaPDF::Document.open(original_pdf_path)
+image = doc.images.add(image_path)
+doc.pages.each do |page|
+  page.canvas(type: :overlay).image(image, at: [0, 0])
+end
+doc.write(output_pdf_path, optimize: true)
+</code></pre>
+                    <p>画像の配置に関するご質問ですが、各ページの左下隅を
+                    (0, 0) として at 部分を変更します。 #image
+                    メソッドで width および/または height
+                    キーワード引数を指定することで、画像のサイズを変更することもできます。</p>
+                    <p>#image
+                    メソッドの詳細については、https://hexapdf.gettalong.org/documentation/api/HexaPDF/Content/Canvas.html#method-i-image
+                    を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

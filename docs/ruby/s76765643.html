@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>複数のモデルとの関連付けが多い | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "複数のモデルとの関連付けが多い",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>複数のモデルとの関連付けが多い</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>3つのモデルがあります
+                    ユーザーテーブルの属性は、name:string、age:integer、kind:integer
+                    です。
+                    登録テーブルの属性は、user_id:integer、tutor_id:integer、event_id:integer、favorite:boolean
+                    です。 イベント テーブルの属性は name:string です。
+                    ここで、ユーザーの種類は学生、チューター、またはチューター_スチューデントになります。</p>
+                    <pre><code> # user.rb
+    class User &lt; ApplicationRecord
+      enum kind: { student: 0, tutor: 1, tutor_student: 2 }
+    
+      has_many :registrations
+      has_many :tutors, through: :registrations
+      has_many :favorites, -&gt; { where(registrations: { favorite: true }) }, through: :tutors, source: :event, class_name: &#39;Event&#39;
+    
+    end
+    
+    # Event.rb
+    class Event &lt; ApplicationRecord
+      has_many :registrations, foreign_key: :program_id
+      has_many :users, through: :registrations
+      has_many :tutors, through: :registrations
+    end
+    
+    # registration.rb
+    class Registration &lt; ApplicationRecord
+      belongs_to :user
+      belongs_to :tutor, class_name: &#39;User&#39;
+      belongs_to :event
+    end
+</code></pre>
+                    <p>ここが問題です</p>
+                    <p>私が与えた上記のダミーデータサンプルのような多くの関係を介して、ユーザーイベントのお気に入りの講師を取得しようとしています</p>
+                    <pre><code>user.tutors.favorites
+</code></pre>
+                    <p>しかし、このエラーが発生します</p>
+                    <pre><code>undefined method `favorites&#39; for #&lt;User::ActiveRecord_Associations_CollectionProxy:0x00007f04e8a7b540&gt;
+</code></pre>
+                    <p>誰か私の関連付けを修正するのを手伝ってくれませんか。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>発生しているエラーに関して、未定義のメソッドが発生する理由は、技術的には単一のユーザーではなくユーザーのコレクションに対して
+                    .favorites を呼び出しているためです。</p>
+                    <p>次のようなものを使用すると、ユーザーの講師のお気に入りにアクセスできます。</p>
+                    <pre><code>user.tutors.joins(:registrations).where(registrations: {favorite: true})
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

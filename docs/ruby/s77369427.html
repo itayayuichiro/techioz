@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>この Ruby のタイプミスは何として解析されるのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "この Ruby のタイプミスは何として解析されるのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>この Ruby
+のタイプミスは何として解析されるのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    にはきちんとした安全ナビゲーション演算子があります。
+                    foo&amp;.bar と書くと、foo がたまたま nil
+                    でない限り、foo.bar が返されます。foo が nil
+                    の場合は、単純にショートして nil を返します。</p>
+                    <p>さて、私は急いでいるプログラマなので、誤ってドットとアンパサンドを入れ替えて
+                    foo.&amp;bar
+                    と入力してしまいました。解析エラーが発生すると予想していましたが、実際には</p>
+                    <pre><code>3.1.0 :002 &gt; foo.&amp;bar
+(irb):2:in `&lt;main&gt;&#39;: undefined local variable or method `bar&#39; for main:Object (NameError)
+</code></pre>
+                    <p>実際、bar
+                    というローカル変数を定義すると、それで問題ないようです。</p>
+                    <pre><code>3.1.0 :003 &gt; bar = 42
+ =&gt; 42 
+3.1.0 :004 &gt; foo.&amp;bar
+ =&gt; 42 
+</code></pre>
+                    <p>この状況での .&amp; 解析とは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    の中置演算子は明示的なドットを使用して呼び出すことができるため、次の
+                    2 つは同等です。</p>
+                    <pre><code>a + b
+a.+(b)
+</code></pre>
+                    <p>同じことが単一のアンパサンド演算子にも当てはまり、通常は「ビットごとの論理積」演算を実行するために定義されます。また、Ruby
+                    では、演算子の順序に必要でない限り、引数リストの括弧を省略できます。したがって、
+                    foo.&amp;bar は実際には foo.&amp; bar
+                    、またはそれほどあいまいではない foo.&amp;(bar)
+                    であり、これは foo &amp; bar (foo の型が何であれ def
+                    &amp; ) の明示的な呼び出しと同等です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

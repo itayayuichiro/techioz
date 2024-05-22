@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>GithubアクションでのParallel_testsの使用方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "GithubアクションでのParallel_testsの使用方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>GithubアクションでのParallel_testsの使用方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>github アクションでParallel_tests
+                    を使用してテスト
+                    スイートを実行しようとしていますが、適切な解決策が見つかりませんでした。
+                    公式ドキュメントには 1 つありますが、これは gitlab
+                    用です。</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/grosser/parallel_tests/wiki/Distributed-Parallel-Tests-on-CI-systems</p>
+                    <p>助けていただければ幸いです、ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>.github/workflows/tests.yml
+                    にドロップできるサンプル
+                    ワークフローを次に示します。</p>
+                    <pre><code>name: Rails Tests
+
+on: push
+
+env:
+  PGHOST: localhost
+  PGUSER: postgres
+  RAILS_ENV: test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        # Set N number of parallel jobs you want to run
+        # Remember to update ci_node_index below to 0..N-1
+        ci_node_total: [6]
+        # set N-1 indexes for parallel jobs
+        # When you run 2 parallel jobs then first job will have index 0, the second job will have index 1 etc
+        ci_node_index: [0, 1, 2, 3, 4, 5]
+
+    services:
+      postgres:
+        image: postgres:11.5
+        ports: [&quot;5432:5432&quot;]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:5
+        ports: [&quot;6379:6379&quot;]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+
+    - name: Set node version (from .tool-versions)
+      run: echo &quot;NODE_VERSION=$(cat .tool-versions | grep nodejs | sed &#39;s/^nodejs //&#39;)&quot; &gt;&gt; $GITHUB_ENV
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - uses: bahmutov/npm-install@v1
+
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get -yqq install libpq-dev postgresql-client
+
+    - name: Test Prep
+      env:
+        CI_NODE_INDEX: ${{ matrix.ci_node_index }}
+      run: |
+        bundle exec rake parallel:create[&quot;1&quot;] parallel:load_schema[&quot;1&quot;]
+
+    - name: Run tests
+      env:
+        RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
+        CI_NODE_INDEX: ${{ matrix.ci_node_index }}
+      run : |
+        bundle exec parallel_test spec/ -n $CI_NODE_TOTAL --only-group $CI_NODE_INDEX --type rspec
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

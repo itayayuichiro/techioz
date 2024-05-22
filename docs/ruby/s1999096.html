@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OpenSSLによるデジタル署名検証 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OpenSSLによるデジタル署名検証",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OpenSSLによるデジタル署名検証</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で OpenSSL を使用して CMS/PKCS #7
+                    メッセージを検証するにはどうすればよいですか? PKCS
+                    #7 メッセージはユーザー
+                    メッセージのデジタル署名として使用されるため、新しいユーザー
+                    メッセージに署名し、受信メッセージを検証する必要があります。
+                    ドキュメントやグーグルで役立つものは何も見つかりませんでした。
+                    署名用のコードサンプルはいくつか見つかりましたが、検証用のコードサンプルは見つかりませんでした。</p>
+                    <pre><code>signed = OpenSSL::PKCS7::sign(crt, key, data, [], OpenSSL::PKCS7::DETACHED)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>すべてがスニペットにあるとおりに定義されており、署名が切り離され、信頼できるルート、証明書
+                    crt、署名付き署名、およびデータ
+                    データへの証明書チェーンがないと仮定すると、次のようにすれば、必要な動作が行われるはずです。</p>
+                    <pre><code>store = OpenSSL::X509::Store.new
+p7 = OpenSSL::PKCS7.new(signed.to_der)
+verified = p7.verify([crt], store, data, 
+                     OpenSSL::PKCS7::DETACHED | OpenSSL::PKCS7::NOVERIFY)
+</code></pre>
+                    <p>(これはテストしていません、YMMV)</p>
+                    <p>これを見つけた経緯の全文は、私が使用したすべてのソースへのリンクとともにここに記載されているので、さらに詳しい情報が必要な場合は、どこにでもアクセスしてください。</p>
+                    <p>OpenSSL::PKCS7
+                    のドキュメントを見ると、次のような知恵が詰まっています。</p>
+                    <p>そして、ちょっとGoogleで調べても何も出てきません。つまり、より極端な措置を講じる必要があるということです。
+                    OpenSSL::PKCS7 を使用して署名を検証している人を
+                    Google コード検索してみましょう。</p>
+                    <p>ふーむ。いくつかのテストケースが見つかりました。それは良い;少なくとも単体テストがあり、機能が実際に動作することを示し、どのように機能するかをデモンストレーションするのに役立ちます。</p>
+                    <pre><code>store = OpenSSL::X509::Store.new
+store.add_cert(@ca_cert)
+ca_certs = [@ca_cert]
+
+data = &quot;aaaaa\r\nbbbbb\r\nccccc\r\n&quot;
+tmp = OpenSSL::PKCS7.sign(@ee1_cert, @rsa1024, data, ca_certs)
+p7 = OpenSSL::PKCS7::PKCS7.new(tmp.to_der)
+certs = p7.certificates
+signers = p7.signers
+assert(p7.verify([], store))
+assert_equal(data, p7.data)
+</code></pre>
+                    <p>それはそれほど悪いことではありません。証明書ストアをクレートします。データに署名し、署名されたデータから新しい
+                    OpenSSL::PKCS7
+                    オブジェクトを作成します。次に、証明書を呼び出して署名に使用された証明書チェーンを抽出し、署名者を呼び出して署名者を抽出し、verify
+                    を呼び出して署名が有効であることを確認できます。信頼できる
+                    CA 証明書を含む証明書ストアを検証する 2
+                    番目の引数として渡しているようです。そして、データを呼び出すことでデータを抽出できます。</p>
+                    <p>しかし、最初の引数は何を意味するのでしょうか?私たちのテストケースでは、最初の引数として空のリスト以外のものを渡す人はいないようです。ふーむ。謎。話は戻ります。</p>
+                    <p>verify の 3
+                    番目のオプションの引数は、分離された署名を検証するために使用されるようです。</p>
+                    <pre><code>data = &quot;aaaaa\nbbbbb\nccccc\n&quot;
+flag = OpenSSL::PKCS7::BINARY|OpenSSL::PKCS7::DETACHED
+tmp = OpenSSL::PKCS7.sign(@ee1_cert, @rsa1024, data, ca_certs, flag)
+p7 = OpenSSL::PKCS7::PKCS7.new(tmp.to_der)
+a1 = OpenSSL::ASN1.decode(p7)
+
+certs = p7.certificates
+signers = p7.signers
+assert(!p7.verify([], store))
+assert(p7.verify([], store, data))
+</code></pre>
+                    <p>最初の引数に戻ります。コード検索を行ったときに見つかったのはテスト
+                    ケースだけではありません。他にもいくつかの用途が見つかりました。実際、2
+                    番目の引数は最初の引数を使用しているようです。</p>
+                    <pre><code># &#39;true&#39; if signature was created using given cert, &#39;false&#39; otherwise
+def match?(cert)
+  @p7.verify([cert.raw_cert], @store, nil, OpenSSL::PKCS7::NOVERIFY)
+end
+</code></pre>
+                    <p>ああ、わかりました。これは、チェックする証明書のリストです。そして
+                    4
+                    番目のパラメータがあり、フラグで構成されているようです。
+                    OpenSSL
+                    のドキュメントを確認すると、このわかりにくい名前
+                    (NOVERIFY フラグで検証しますか?)
+                    は、渡された証明書と署名に埋め込まれた証明書に対してのみ署名をチェックする必要があり、証明書チェーン全体を検証しようとしてはいけないことを意味していることがわかります。信頼できる
+                    CA ストア。</p>
+                    <p>これはすべて有益な情報ですが、何か不足しているものはありますか?ありがたいことに、Ruby
+                    はオープンソース
+                    ソフトウェアなので、「ソースを使用してください、ルーク!」ということができます。
+                    Google
+                    コード検索を少しいじってみたところ、ossl_pkcs7_verify
+                    の定義が見つかりました。やや難解な名前を除けば、コードは非常に簡単に読むことができます。基本的には、引数を
+                    OpenSSL
+                    が理解できる形式に変換し、以下を呼び出すだけです。</p>
+                    <pre><code>ok = PKCS7_verify(p7, x509s, x509st, in, out, flg);
+</code></pre>
+                    <p>したがって、本当にドキュメントを探したいのはそこのようです。</p>
+                    <p>詳細については、マニュアル
+                    ページ全体を参照してください。</p>
+                    <p>ああ、余談ですが、検索中にこの警告を見つけました。
+                    Ruby 1.9 では、おそらく Ruby 1.8
+                    の一部の以降のバージョンでは、クラスが冗長な
+                    OpenSSL::PKCS7::PKCS7 から OpenSSL::PKCS7
+                    に移動されたようです。</p>
+                    <pre><code>warn(&quot;Warning: OpenSSL::PKCS7::PKCS7 is deprecated after Ruby 1.9; use OpenSSL::PKCS7 instead&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

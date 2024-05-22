@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby (モンキーパッチ配列) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby (モンキーパッチ配列)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby (モンキーパッチ配列)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>配列クラスへのモンキーパッチ適用で問題が発生しています。この課題には
+                    8 つの仕様を満たす必要がありました。</p>
+                    <p>他はすべて合格しているように見えるため、私が問題を抱えている部分についての
+                    RSpec と書面による要件のみを提供します。</p>
+                    <p>Array Class Monkey Patch
+                    の書面による要件は次のとおりです。</p>
+                    <p>Array クラスに関して満たす必要がある RSpec
+                    は次のとおりです。</p>
+                    <pre><code>describe Array do
+  describe &#39;#new_map&#39; do
+    it &quot;returns an array with updated values&quot; do
+      array = [1,2,3,4]
+      expect( array.new_map(&amp;:to_s) ).to eq( %w{1 2 3 4} )
+      expect( array.new_map{ |e| e + 2 } ).to eq( [3, 4, 5, 6] )
+    end
+
+    it &quot;does not call #map&quot; do
+      array = [1,2,3,4]
+      array.stub(:map) { &#39;&#39; }
+      expect( array.new_map(&amp;:to_s) ).to eq( %w{1 2 3 4} )
+    end
+
+    it &quot;does not change the original array&quot; do
+      array = [1,2,3,4]
+      expect( array.new_map(&amp;:to_s) ).to eq( %w{1 2 3 4} )
+      expect( array ).to eq([1,2,3,4])
+    end
+  end
+
+  describe &#39;#new_select!&#39; do
+    it &quot;selects according to the block instructions&quot; do
+      expect( [1,2,3,4].new_select!{ |e| e &gt; 2 } ).to eq( [3,4] )
+      expect( [1,2,3,4].new_select!{ |e| e &lt; 2 } ).to eq( [1] )
+    end
+
+    it &quot;mutates the original collection&quot; do
+      array = [1,2,3,4]
+      array.new_select!(&amp;:even?)
+      expect(array).to eq([2,4])
+    end
+  end
+end
+</code></pre>
+                    <p>私のコード:</p>
+                    <pre><code>class Array
+  def new_map 
+    new_array = []
+    self.each do |num|
+      new_array &lt;&lt; num.to_s
+    end
+    new_array
+  end
+  
+  def new_select!(&amp;block)
+    self.select!(&amp;block)
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ブロックはメソッドのようなもので、メソッド呼び出しの後にブロックを指定します。次に例を示します。</p>
+                    <pre><code>[1, 2, 3].map() {|x| x*2} #&lt;---block
+           ^
+           |
+       method call(usually written without the trailing parentheses)
+</code></pre>
+                    <p>ブロックは暗黙的にメソッドに送信され、メソッド内で
+                    yield
+                    を使用してブロックを呼び出すことができます。</p>
+                    <p>yield -&gt;
+                    メソッド呼び出しの後に指定されたブロックを呼び出します。
+                    Ruby では、yield は yield() と同等であり、概念的には
+                    block()
+                    のようにブロックを呼び出すことと同等です。</p>
+                    <p>yield(x) -&gt; 引数 x
+                    を送信してメソッド呼び出しの後に指定されたブロックを呼び出します。これは、block(x)
+                    のようにブロックを呼び出すことと概念的に同等です。</p>
+                    <p>したがって、new_map()
+                    を実装する方法は次のとおりです。</p>
+                    <pre><code>class Array
+  def new_map
+    result = []
+
+    each do |item|
+      result &lt;&lt; yield(item)
+    end
+
+    result
+
+  end
+end
+
+arr = [1, 2, 3].new_map {|x| x*2}
+p arr
+
+--output:--
+[2, 4, 6]
+</code></pre>
+                    <p>このコメントは少し高度ですが、実際には、
+                    new_map() 内で each() メソッドを呼び出すために
+                    self.each()
+                    を記述する必要はありません。すべてのメソッドは、何らかのオブジェクト、つまり、レシーバーと呼ばれるドットの左側のオブジェクトによって呼び出されます。たとえば、次のように書くと、</p>
+                    <pre><code>self.each {....}
+</code></pre>
+                    <p>self はメソッド呼び出し each() の受信者です。</p>
+                    <p>受信者を指定せずに次のように記述する場合は、次のようにします。</p>
+                    <pre><code>each {....}
+</code></pre>
+                    <p>…受信側では、ruby はその時点で self
+                    変数に割り当てられているオブジェクトを使用します。上記の
+                    new_map() 内で、ruby は new_map() メソッドを呼び出す
+                    Array を self に割り当てるため、 each() はその Array
+                    内の項目をステップ実行します。</p>
+                    <p>Ruby は通知なしに self
+                    変数の値を常に変更するため、self
+                    変数には少し注意する必要があります。したがって、コード内の特定の時点で
+                    Ruby が self
+                    変数に何を割り当てているかを知る必要があります。これには経験が必要です。ただし、コード内の特定の時点で
+                    Ruby がどのオブジェクトを self
+                    に割り当てたかを知りたい場合は、次のように書くだけで済みます。</p>
+                    <pre><code>puts self
+</code></pre>
+                    <p>new_map() の中に self.each {…}
+                    を書いているのを見ると、経験豊富な Ruby
+                    専門家は鳴いたり舌打ちしたりするでしょうが、私の意見では、コードのわかりやすさはコードの扱いやすさよりも優先されます。初心者にとってはそこに
+                    self
+                    を書く方が理にかなっているため、次のようにしてください。先に行ってそれをやってください。もう少し経験を積み、誇示したい場合は、明示的なレシーバーが不要な場合は削除できます。明示的なリターンの場合も同様の状況です。</p>
+                    <pre><code>def some_method
+    ...
+    return result
+end
+</code></pre>
+                    <p>そして暗黙的な戻り値:</p>
+                    <pre><code>def some_method
+    ...
+    result
+end
+</code></pre>
+                    <p>new_map()
+                    は次のように記述できることに注意してください。</p>
+                    <pre><code>class Array
+  def new_map(&amp;my_block)  #capture the block in a variable
+    result = []
+
+    each do |item|
+      result &lt;&lt; my_block.call(item) #call the block
+    end
+
+    result
+
+  end
+end
+
+arr = [1, 2, 3].new_map {|x| x*2}
+p arr
+
+--output:--
+[2, 4, 6]
+</code></pre>
+                    <p>これを、yield() を使用した例と比較してください。
+                    yield() を使用すると、あたかも Ruby
+                    がブロックをキャプチャするために yield
+                    という名前のパラメーター変数を作成するかのようです。ただし、yield
+                    では、別の構文 ()
+                    を使用してブロックを呼び出すか、ブロックの引数がない場合は、メソッドを呼び出すときと同じように括弧を削除できます。一方、ブロックをキャプチャするために独自のパラメータ変数を作成する場合、たとえば、
+                    def new_map(&amp;my_block)
+                    の場合、ブロックを呼び出すには別の構文を使用する必要があります。</p>
+                    <p>または：</p>
+                    <p>#2 は、() の代わりに []
+                    を置き換えることを除いて、メソッドを呼び出すための構文とまったく同じであることに注意してください。</p>
+                    <p>繰り返しになりますが、経験豊富な Rubyist
+                    は、パラメータ変数でブロックをキャプチャする代わりに、yield
+                    を使用してブロックを呼び出します。ただし、パラメータ変数でブロックをキャプチャする必要がある状況もあります。ブロックをさらに別のメソッドに渡したい場合。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

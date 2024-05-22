@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sequelクエリですべてのデータセットを返す方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sequelクエリですべてのデータセットを返す方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sequelクエリですべてのデータセットを返す方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails スコープは nil ではなく
+                    all(ActiveRecord::Relation) を返します。
+                    条件がnilの場合にメソッドチェーンを使用できるようにします。</p>
+                    <pre><code>class MyClass &lt; ApplicationRecord
+  scope :my_filter, -&gt;(condition) { where(condition: condition) if condition.present? }
+end
+
+MyClass.where(foo: &#39;foo&#39;).my_filter(condition).order(:date)
+</code></pre>
+                    <p>Sequel にも同様の機能を実装したいのですが、Sequel
+                    ではすべてが Array
+                    を返すため、このコードはうまく機能しません。 Rails
+                    スコープと同様の機能を Sequel
+                    で作成するにはどうすればよいですか?</p>
+                    <pre><code>class MyClass &lt; Sequel::Model
+  dataset_module do
+    def my_filter(condition)
+      return all if condition.nil?
+      where(condition: condition) 
+    end
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>where
+                    はデータセットを返すので、「すべて」も同じオブジェクトを返すことを希望していると思います。</p>
+                    <p>識別したように、すべてが配列を返します。ただし、clone
+                    または self
+                    を使用してデータセットを取得できます。</p>
+                    <p>したがって、実装を次のように変更するだけです。</p>
+                    <pre><code>class MyClass &lt; Sequel::Model
+  datase_module do
+    def my_filter(condition)
+      return clone if condition.nil?
+      where(condition: condition) 
+    end
+  end
+end
+</code></pre>
+                    <p>動作例: https://replit.com/<span class="citation"
+                    data-cites="engineersmnky/SequelGemRailsScope#main.rb">@engineersmnky/SequelGemRailsScope#main.rb</span></p>
+                    <p>追加情報：</p>
+                    <p>クローンを選択したのは、ほとんどのクエリ
+                    メソッドがこのメソッドを利用しているためです
+                    (ActiveRecord での生成と同様)。</p>
+                    <p>データセット#cloneは次のようになります</p>
+                    <pre><code>def clone(opts = nil || (return self))
+  c = super(:freeze=&gt;false)
+  c.opts.merge!(opts)
+  unless opts.each_key{|o| break if COLUMN_CHANGE_OPTS.include?(o)}
+    c.clear_columns_cache
+  end
+  c.freeze
+end
+</code></pre>
+                    <p>clone のメソッド
+                    シグネチャは、条件が渡されない場合に実行をショートカットし、単に
+                    self を返します。</p>
+                    <p>コメントに記載されているように、</p>
+                    <p>ただし、コメントには次のようにも書かれています</p>
+                    <p>したがって、代わりに return self
+                    を使用することも選択できます。*</p>
+                    <p>*上記の例では両方のオプションを実装して、それらの同一の機能に加えて、メソッド
+                    シグネチャが非常に興味深いことを示しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

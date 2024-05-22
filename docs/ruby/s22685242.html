@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>チェックボックスのあるテーブルで 2 つの ID を渡します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "チェックボックスのあるテーブルで 2 つの ID を渡します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>チェックボックスのあるテーブルで 2 つの ID
+を渡します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はアプリケーションでロールを作成するのに苦労していました。Gem
+                    Rolify
+                    をインストールしたところ、次のコードのモデルロールが作成されました。</p>
+                    <pre><code> class Role &lt; ActiveRecord::Base 
+ has_and_belongs_to_many :users, :join_table =&gt; :users_roles
+ has_many :abilities
+ end
+</code></pre>
+                    <p>また、データベースに存在するユーザーの ID
+                    とロールの ID を保存する結合テーブル users_roles
+                    も自動的に作成されました。管理者、患者、医師の 3
+                    つの役割を作成しました。私の質問は、登録にチェックボックスを備えたこの:users_rolesテーブルに値を渡すにはどうすればよいかということです
+                    %%
+                    登録内のコードを変更するにはどうすればよいですか</p>
+                    <pre><code>  &lt;div class=&quot;form-group&quot;&gt;
+    &lt;%= f.label :roles %&gt;
+    &lt;% Role.all.each do |role| %&gt;
+        &lt;%= check_box_tag &quot;user[role_ids][]&quot;, role.id, @user.role_ids.include(role.id)%&gt;
+        &lt;%= role.name %&gt;&lt;br /&gt;
+    &lt;% end %&gt;
+  &lt;/div&gt; 
+</code></pre>
+                    <p>たとえば、患者をチェックするたびに、users_roles
+                    テーブルで私の user_id とそのテーブル内の role_id
+                    との接続が作成されるようにします。</p>
+                    <p>まず第一に、ロールコントローラーがありません。次に、ユーザーコントローラーにこれが私のコードです</p>
+                    <pre><code> class UsersController &lt; ApplicationController
+
+    before_filter :authenticate_user!
+    load_and_authorize_resource
+
+    def index
+      @users = User.all
+    end
+
+    def show
+       @user = User.find(params[:id])
+    end
+
+    def update
+    @user = User.find(params[:id])
+
+    current_user.update(user_params)
+    end
+    def user_params
+      params[:user].permit(
+          {:role_ids =&gt; []}
+      )
+    end
+ end
+</code></pre>
+                    <p>チェックボックスから HTML
+                    で生成されたコードは次のとおりです。</p>
+                    <pre><code>       &lt;div class=&quot;form-group&quot;&gt;
+    &lt;label for=&quot;user_roles&quot;&gt;Roles&lt;/label&gt;
+
+        &lt;input id=&quot;user_role_ids_&quot; name=&quot;user[role_ids][]&quot; type=&quot;checkbox&quot; value=&quot;1&quot; /&gt;
+        admin&lt;br /&gt;
+        &lt;input id=&quot;user_role_ids_&quot; name=&quot;user[role_ids][]&quot; type=&quot;checkbox&quot; value=&quot;2&quot; /&gt;
+        patient&lt;br /&gt;
+        &lt;input id=&quot;user_role_ids_&quot; name=&quot;user[role_ids][]&quot; type=&quot;checkbox&quot; value=&quot;3&quot; /&gt;
+        doctor&lt;br /&gt;
+
+  &lt;/div&gt;
+</code></pre>
+                    <p>前もって感謝します！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今日は HTML
+                    を見ただけですが、これはブラウザを混乱させるでしょう。これを見て、name
+                    パラメータにロールの ID を含めるように View
+                    コードを変更する必要があります。</p>
+                    <pre><code>  &lt;%= check_box_tag &quot;user[role_ids][#{role.id}]&quot;, role.id, @user.role_ids.include(role.id)%&gt;
+</code></pre>
+                    <p>それはうまくいくかもしれません。結果として得られる
+                    params
+                    ハッシュを見て、これが役立つかどうかを確認してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>rspec を使用して rake タスクのコンテキスト内でオブジェクトをスパイするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "rspec を使用して rake タスクのコンテキスト内でオブジェクトをスパイするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>rspec を使用して rake
+タスクのコンテキスト内でオブジェクトをスパイするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の設定があります。</p>
+                    <pre><code>class Simple
+  def self.test; end
+end
+
+task a_simple_job: :environment do
+  counter = 0
+  while counter &lt; 2    
+    Simple.test
+    counter += 1
+  end
+end
+
+require &quot;rails_helper&quot;
+describe &quot;a_simple_job&quot; do
+  subject { Rake::Task[:a_simple_job].invoke }
+  before do
+    Rails.application.load_tasks
+    allow(Simple).to receive(:test)
+    subject
+  end
+
+  # It seems like rspec cannot spy on objects created in the context of rake tasks
+  it &quot;calls test twice&quot; do
+    expect(Simple).to receive(:test).once
+  end
+end
+</code></pre>
+                    <p>なぜそうなるのか:</p>
+                    <p>(単純な(クラス)).test</p>
+                    <p>期待: 引数を指定して 1 回</p>
+                    <p>受信: 引数を指定した場合は 0 回</p>
+                    <p>rake タスクのコンテキストと rspec
+                    について何か足りないものはありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>accept の代わりに have_received
+                    を使用するべきでした。これは、アサーションの前にすでにタスク
+                    (したがって Simple.test)
+                    を呼び出しているためです。</p>
+                    <p>参考:
+                    https://rubydoc.info/github/rspec/rspec-mocks/RSpec%2FMocks%2FExampleMethods:have_received</p>
+                    <p>私のマシンで動作するようにしました。</p>
+                    <pre><code># lib/tasks/simple_task.rake
+
+task a_simple_job: :environment do
+  counter = 0
+  while counter &lt; 2
+    Simple.test
+    puts &quot;counter: #{counter}&quot;
+    counter += 1
+  end
+end
+</code></pre>
+                    <pre><code># lib/simple.rb
+
+class Simple
+  def self.test
+    puts &quot;test&quot;
+  end
+end
+</code></pre>
+                    <pre><code># spec/lib/tasks/simple_task_spec.rb
+
+require &quot;rails_helper&quot;
+require &quot;simple&quot;
+
+describe &quot;a_simple_job&quot; do
+  subject { Rake::Task[:a_simple_job].invoke }
+  before do
+    Rails.application.load_tasks
+    allow(Simple).to receive(:test)
+  end
+
+  it &quot;calls test twice&quot; do
+    Rake::Task[:a_simple_job].invoke
+    expect(Simple).to have_received(:test).twice # Because it is called twice in the loop
+  end
+end
+
+</code></pre>
+                    <p>これがテスト結果です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

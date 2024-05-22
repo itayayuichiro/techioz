@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>数値/エポック値を selected_at に割り当てることは、Rails 7.1.0.rc1 では非推奨になりました。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "数値/エポック値を selected_at に割り当てることは、Rails 7.1.0.rc1 では非推奨になりました。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>数値/エポック値を selected_at
+に割り当てることは、Rails 7.1.0.rc1 では非推奨になりました。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 7.1
+                    にアップグレードすると非推奨の警告が表示され、Google
+                    に検索結果がありません。</p>
+                    <p>警告は「非推奨警告: 数値/エポック値を selected_at
+                    に割り当てることは非推奨です」です。代わりに Time
+                    オブジェクトを使用してください。</p>
+                    <p>これは、wait_until を使用してバックグラウンド
+                    ジョブをスケジュールしているときに発生します。テストで渡す値は、時間の値を示す
+                    1.month.from.now です。</p>
+                    <p>警告を発していると思われる行:</p>
+                    <pre><code>NotifyAudienceJob.set(wait_until: published_at).perform_later(audience.id)
+</code></pre>
+                    <p>警告をトリガーするテスト:</p>
+                    <pre><code>  test &#39;creating audiences for a scheduled article with notifications enabled should schedule notifications&#39; do
+    @article.update!(published_at: 1.month.from_now)
+
+    assert_enqueued_with(job: NotifyAudienceJob) do
+      post admin_news_feed_article_audiences_url(@article), params: { whole_organisation: true }
+    end
+  end
+</code></pre>
+                    <p>これに対する修正方法について何か提案がある人はいますか?</p>
+                    <p>警告は ActiveJob の次の行からのものです</p>
+                    <p>注: これは Rails 7.1.0.rc2 で修正されました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>前述したように、このオブジェクトを Time
+                    オブジェクトに変換します</p>
+                    <pre><code>1.month.from_now.to_time
+</code></pre>
+                    <p>現在は Time オブジェクトではありません</p>
+                    <pre><code>1.month.from_now.class # =&gt; ActiveSupport::TimeWithZone
+1.month.from_now.to_time.class # =&gt; Time
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

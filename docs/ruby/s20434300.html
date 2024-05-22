@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>目標 IRR を考慮してキャッシュ フローを計算する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "目標 IRR を考慮してキャッシュ フローを計算する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>目標 IRR を考慮してキャッシュ
+フローを計算する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これに対する答えがすでにどこかにある場合は申し訳ありません。数時間探していますが、探しているものが見つかりません。</p>
+                    <p>目標 IRR を指定してキャッシュ
+                    フローを計算するための単純な財務計算ツールを構築しています。例えば：</p>
+                    <p>他にも変数や機能がありますが、ここでやろうとしていることには重要ではありません。指定された数のキャッシュ
+                    フローの IRR
+                    を計算できるライブラリや関数はたくさん見つかりましたが、指定された
+                    IRR のキャッシュ
+                    フローを取得しようとしても何も表示されません。</p>
+                    <p>現時点での唯一の解決策は、基本的にループを実行して値を入力し、IRR
+                    が目標 IRR
+                    より高いか低いかを確認し、必要なキャッシュ
+                    フローが得られるまで IRR
+                    を計算し続けることだと思います。 。</p>
+                    <p>これは、この特定の問題に対処する最善の方法でしょうか?それとも、私が見逃している、それに対処するためのより良い方法があるのでしょうか？大変助かりました！</p>
+                    <p>また、参考までに、私はこれを Ruby on Rails
+                    で構築しています。</p>
+                    <p>編集：</p>
+                    <p>IRR関数:</p>
+                    <p>NPV = -(I) + CF[1]/(1 + R)^1 + CF[2]/(1 + R)^2 +
+                    … + CF[n]/(1 + R)^n</p>
+                    <p>NPV = 正味現在価値 (この値は可能な限り 0
+                    に近い必要があります)</p>
+                    <p>I = 初期投資 (この例では 8,000,000)</p>
+                    <p>CF = キャッシュ フロー
+                    (これは私が計算しようとしている値です。手で計算すると、最終的に
+                    ,618,875
+                    になります。財務計算機では、次のように解いているため、すべてのキャッシュ
+                    フローが同じになります。彼ら。）</p>
+                    <p>R = 目標収益率 (10%)</p>
+                    <p>n = 年 (つまり、この例は 5 で終わります)</p>
+                    <p>私たちが扱う数値は数億単位であるため、誤差の
+                    0.005% 以内でキャッシュ
+                    フローを計算しようとしています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>させて</p>
+                    <pre><code>v0 = initial value
+vn = value after n periods
+n  = number of periods
+r  = annual rate of return
+y  = required annual net income
+</code></pre>
+                    <p>1 期間の割引係数は次のとおりです。</p>
+                    <pre><code>j = 1/(1+r)
+</code></pre>
+                    <p>投資の現在価値は次のとおりです。</p>
+                    <pre><code>pv = - v0 + j*y  + j^2*y + j^3*y +..+ j^n*y + j^n*vn
+   = - v0 + y*(j + j^2   + j^3   +..+ j^n)  + j^n*vn
+   = - v0 + y*sn + j^n*vn
+</code></pre>
+                    <p>どこ</p>
+                    <pre><code>sn = j + j^2 + j^3 + j^4 +..+ j^n
+</code></pre>
+                    <p>sn は次のように計算できます。</p>
+                    <pre><code>sn       = j + j^2 + j^3 + j^4 +..+ j^n
+j*sn     =     j^2 + j^3 + j^4 +..+ j^n + j^(n+1)
+sn -j*sn = j*(1 - j^n)
+sn       = j*(1 - j^n)/(1-j)
+         = (1 - j^n)/[(1+r)(r/(1+r)]
+         = (1 - j^n)/r  
+</code></pre>
+                    <p>pv = 0 に設定し、y を求めます。</p>
+                    <pre><code>y*sn =  v0 - vn * j^n   
+y    = (v0 - vn * j^n)/sn
+     =  r * (v0 - vn * j^n)/(1 - j^n)
+</code></pre>
+                    <p>私たちの Ruby メソッド:</p>
+                    <pre><code>def ann_ret(v0, vn, n, r)
+  j = 1/(1+r)
+  (r * (v0 - vn * j**n)/(1 - j**n)).round(2)
+end
+</code></pre>
+                    <p>年次複利の場合:</p>
+                    <pre><code>ann_ret(18000000, 13000000, 5, 0.1)       # =&gt; 2618987.4
+</code></pre>
+                    <p>半年複利の場合:</p>
+                    <pre><code>2 * ann_ret(18000000, 13000000, 10, 0.05) # =&gt; 2595045.75
+</code></pre>
+                    <p>毎日の配合では:</p>
+                    <pre><code>365 * ann_ret(18000000, 13000000, 5*365, 0.10/365) # =&gt; 2570881.20 
+</code></pre>
+                    <p>これらの値は、計算した必要な年間収益とはわずかに異なります。現在価値の計算式を比較すれば、その違いを説明できるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

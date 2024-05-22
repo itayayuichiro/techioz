@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby 3 でハッシュ値のパターン マッチを実行してハッシュ キーを取得することは可能ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby 3 でハッシュ値のパターン マッチを実行してハッシュ キーを取得することは可能ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby 3 でハッシュ値のパターン
+マッチを実行してハッシュ キーを取得することは可能ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby3のパターンマッチングについての質問です。</p>
+                    <p>ハッシュがあります:</p>
+                    <pre><code>h = {
+  x: [1, 2, 3],
+  y: [11, 12, 13],
+  z: [100, 101],
+}
+</code></pre>
+                    <p>整数 (たとえば、13)
+                    が与えられた場合、ハッシュ値にその整数 (この例では
+                    :y) が含まれるハッシュ
+                    キーを見つけたいと思います。</p>
+                    <p>もちろん、パターン マッチングを使用せずに Ruby
+                    でこれを行う方法はあります。</p>
+                    <p>ここでは、これを達成するためにハッシュに対して
+                    Ruby 3 のパターン
+                    マッチングを使用することだけに興味があります。通常、Ruby
+                    のパターン
+                    マッチングは、値ではなく、ハッシュのキーに基づいて一致します。また、このハッシュには多くのキーが含まれており、キーの名前は事前にわかりません。</p>
+                    <p>私が見つけた最も近い方法は、最初にハッシュを配列に変換し、その配列でパターン
+                    マッチングを使用することです。</p>
+                    <pre><code>def find_the_key(a_hash, a_number)
+  case a_hash.to_a
+  in [*, [the_key, [*, ^a_number, *]], *]
+    the_key
+  else
+    :key_not_found
+  end
+end
+
+puts find_the_key(h, 13)   =&gt; :y
+puts find_the_key(h, 999)  =&gt; :key_not_found
+
+</code></pre>
+                    <p>ハッシュ自体のパターンマッチングを使用することで、つまり最初に配列に変換せずに、これを機能させる方法はありますか?</p>
+                    <p>この問題を解決するためにパターン
+                    マッチングを適用する他の方法はありますか?</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これが私が思いつく限り最も近いものです。まず、パターンの一致を
+                    a_hash.values に制限し
+                    (とにかく一致するのはこれだけです)、 =&gt;the_value
+                    を使用して一致の必要な部分を変数に割り当て、次に
+                    a_hash.key( を使用してキーを見つけます)値）：</p>
+                    <pre><code>h = {
+  x: [1, 2, 3],
+  y: [11, 12, 13],
+  z: [100, 101],
+}
+
+def find_the_key(a_hash, a_number)
+   case a_hash.values
+   in [*, [*, ^a_number, *]=&gt;the_value, *]
+     the_key = a_hash.key(the_value)
+   else
+     :key_not_found
+   end
+ end
+ 
+
+puts find_the_key(h, 13) #=&gt;  y
+puts find_the_key(h, 77) #=&gt;  key_not_found
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Puma ワーカーのタイムアウトにより Pry セッションがタイムアウトする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Puma ワーカーのタイムアウトにより Pry セッションがタイムアウトする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Puma ワーカーのタイムアウトにより Pry
+セッションがタイムアウトする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ローカルでアプリを実行中に binding.pry
+                    にアクセスすると、通常どおり pry
+                    セッションに入りますが、約 1
+                    分後にサーバー出力に次のような内容が表示されます。</p>
+                    <p>[54438] !タイムアウトしたワーカーの終了:
+                    54455</p>
+                    <p>その後、サーバーは 1 ～ 2
+                    秒ループで実行されているように見えます (pry
+                    セッションにつながるクエリを再実行します)。同じ
+                    binding.pry から新しい pry
+                    セッションに戻ります。ただし、入力するたびにこの新しい
+                    pry
+                    セッションでは例外となります。入力しているものが何も表示されません。この問題を解決する唯一の方法は、サーバーを終了して再起動することです。</p>
+                    <p>config/puma.rb
+                    ファイルに次の行を挿入しようとしましたが、違いはないようです。</p>
+                    <p>worker_timeout 900 if ENV[“RACK_ENV”] ==
+                    “開発”</p>
+                    <p>唯一機能するのは、.env ファイルで所有する puma
+                    ワーカーの数を 0 に設定することです。例えば</p>
+                    <p>プーマ_ワーカー=0</p>
+                    <p>ピューマ労働者をすべて排除する以外に、この問題を回避する方法はあるでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Puma 設定ファイルは Puma
+                    の初期化時に読み取られますが、アプリケーションはまだロードされていません。それが
+                    Rails.env.development
+                    の理由ですか?リクエストのスコープ内にないため、RACK_ENV
+                    を使用しても機能しません。</p>
+                    <p>開発のためにのみworker_timeoutを変更したい場合は、次のようなことを行う必要があります。</p>
+                    <pre><code>worker_timeout 900 unless ENV.key?(&#39;RAILS_ENV&#39;) &amp;&amp; ENV[&#39;RAILS_ENV&#39;] != &#39;development&#39;
+</code></pre>
+                    <p>つまり、RAILS_ENV
+                    が設定されていない場合、または開発に設定されている場合は、タイムアウトを
+                    900 に設定します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

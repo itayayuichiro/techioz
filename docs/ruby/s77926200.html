@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>収量分野は何をするのですか?魔法はどのように作用するのでしょうか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "収量分野は何をするのですか?魔法はどのように作用するのでしょうか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>収量分野は何をするのですか?魔法はどのように作用するのでしょうか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;% provide(:title, &quot;Home&quot;) %&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;&lt;%= full_title(yield(:title)) %&gt;&lt;/title&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+    &lt;%= csrf_meta_tags %&gt;
+    &lt;%= csp_meta_tag %&gt;
+
+    &lt;%= stylesheet_link_tag &quot;application&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; %&gt;
+    &lt;%= debug(params) if Rails.env.development? %&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;%= yield %&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>yield
+                    はメソッドに渡されたブロックを呼び出すだけです。 ERB
+                    テンプレートはプレーンな Ruby
+                    コードにコンパイルされます。プロセス全体を説明するのは難しいですが、例を示します。</p>
+                    <pre><code># render_example.rb
+
+# you could see this method name in your layouts or templates:
+#  
+#   &lt;%= __method__ %&gt;
+#
+# it looks like this: _app_views_layouts_application_html_erb__1249814135074865580_182580
+def application_layout
+  &quot;&lt;html&gt;&quot;+
+    &quot;&lt;title&gt;&quot;+
+      yield(:title) +
+    &quot;&lt;/title&gt;&quot;+
+    &quot;&lt;body&gt;&quot;+
+      yield +
+    &quot;&lt;/body&gt;&quot;+
+  &quot;&lt;/html&gt;&quot;
+end
+
+# your template
+def index_template
+  content_for :title do
+    &quot;my title&quot;
+  end
+  &quot;content&quot;
+end
+
+# to show how yield(:title) works
+def content_for name
+  @content_for ||= {}
+  @content_for[name] = yield
+end
+
+def render
+  template = index_template
+
+  # this block is called when yield or yield(:title) is called 
+  application_layout do |content|
+    if content
+      @content_for[content]
+    else
+      template
+    end
+  end
+end
+
+p render
+</code></pre>
+                    <pre><code>$ ruby render_example.rb
+&quot;&lt;html&gt;&lt;title&gt;my title&lt;/title&gt;&lt;body&gt;content&lt;/body&gt;&lt;/html&gt;&quot;
+</code></pre>
+                    <p>実際の application_layout でコンパイルされた erb
+                    コードがどのように見えるか知りたい場合は、次のようにします。</p>
+                    <pre><code>def _app_views_layouts_application_html_erb__2833155640507924630_37360(local_assigns, output_buffer)
+  @virtual_path = &quot;layouts/application&quot;;; @output_buffer.safe_append=&#39;&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;title&gt;Stackoverflow&lt;/title&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+      &lt;link rel=&quot;icon&quot; type=&quot;image/ico&quot; href=&quot;favicon.ico&quot;&gt;
+      &#39;.freeze; @output_buffer.append=( csrf_meta_tags ); @output_buffer.safe_append=&#39;
+      &#39;.freeze; @output_buffer.append=( csp_meta_tag ); @output_buffer.safe_append=&#39;
+      &#39;.freeze; @output_buffer.append=( stylesheet_link_tag &quot;tailwind&quot;, &quot;actiontext&quot;, &quot;inter-font&quot;, &quot;data-turbo-track&quot;: &quot;reload&quot; ); @output_buffer.safe_append=&#39;
+      &#39;.freeze; @output_buffer.append=( javascript_importmap_tags ); @output_buffer.safe_append=&#39;
+  &#39;.freeze;
+  @output_buffer.safe_append=&#39;  &lt;/head&gt;
+    &lt;body&gt;
+      &lt;main class=&quot;container grid px-5 mx-auto mt-28&quot;&gt;
+        &lt;div&gt;
+          &#39;.freeze; @output_buffer.append=( yield ); @output_buffer.safe_append=&#39;
+        &lt;/div&gt;
+      &lt;/main&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;
+  &#39;.freeze;
+  @output_buffer
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

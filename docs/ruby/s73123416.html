@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Net::SFTP がcurve25519-sha256 アルゴリズムを使用して接続しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Net::SFTP がcurve25519-sha256 アルゴリズムを使用して接続しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Net::SFTP がcurve25519-sha256
+アルゴリズムを使用して接続しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は net-sftp gem を使用して、curve25519-sha256
+                    アルゴリズムを使用している sftp
+                    サーバーに接続しています。クライアントがこのアルゴリズムをサポートしていないというエラーが発生します。問題セクションを読み、それに関する多くの議論を見つけ、いくつかの方法を試しましたが、それでも動作させることができません。以下は私のコードです</p>
+                    <pre><code>require &#39;net/sftp&#39;
+Net::SSH::Transport::Algorithms::DEFAULT_ALGORITHMS[:kex].unshift(&quot;[email protected]&quot;)
+Net::SFTP.start(&#39;ip_address_of_site&#39;, &#39;password&#39;, { password: &#39;password&#39;, append_all_supported_algorithms: true, verify_host_key: :never, verbose: :debug}, verify_host_key: :never) do |sftp|
+  ssh.sftp.connect do |sftp|
+    puts sftp.inspect
+  end
+end
+</code></pre>
+                    <p>次のエラーが発生します</p>
+                    <pre><code>net-ssh-6.1.0/lib/net/ssh/transport/algorithms.rb:407:in `negotiate&#39;: could not settle on kex algorithm (Net
+::SSH::Exception)
+Server kex preferences: curve25519-sha256,[email protected]
+Client kex preferences: ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1,d
+iffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1
+</code></pre>
+                    <p>Mac
+                    ソフトウェアを使用して接続すると正常に動作するため、パスワードに問題はありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>たくさん試した結果、次のような解決策があることがわかりました。同じことをしている人の助けになるかもしれません。</p>
+                    <p>Gemfile に gem を追加する</p>
+                    <pre><code>gem &#39;x25519&#39;
+</code></pre>
+                    <p>スクリプトに次の行を追加します</p>
+                    <pre><code>require &#39;x25519&#39;
+</code></pre>
+                    <p>これにより、そのアルゴリズムを使用してトリック
+                    アンド コネクトが実行されます。ただし、これは Mac M1
+                    プロセッサではなく Intel
+                    プロセッサでも動作します。</p>
+                    <p>net-ssh ライブラリには次のコードがあります。</p>
+                    <pre><code>if Net::SSH::Authentication::ED25519Loader::LOADED
+  DEFAULT_ALGORITHMS[:host_key].unshift(
+    &#39;[email protected]&#39;,
+    &#39;ssh-ed25519&#39;
+  )
+end
+
+if Net::SSH::Transport::Kex::Curve25519Sha256Loader::LOADED
+  DEFAULT_ALGORITHMS[:kex].unshift(
+    &#39;curve25519-sha256&#39;,
+    &#39;[email protected]&#39;
+  )
+end
+</code></pre>
+                    <p>これら 2 つの gem (x25519、ed25519)
+                    がインストールされている場合は、それらが読み込まれます。そのため、gem
+                    をインストールしてロードすると問題が解決します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

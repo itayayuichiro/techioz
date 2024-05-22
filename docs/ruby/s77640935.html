@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>map doを使用してネストされた配列を持つオブジェクトの配列をリファクタリングする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "map doを使用してネストされた配列を持つオブジェクトの配列をリファクタリングする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>map
+doを使用してネストされた配列を持つオブジェクトの配列をリファクタリングする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコードを使用して、複数のオブジェクトの配列内に存在する「usageByMonth」配列を再マップしようとしています。</p>
+                    <pre><code>categorisedFeatures = response[:categorisedFeatures].map do |feature|
+   newHistorical = (feature.dig(1, :historical)).map do |historical|
+     usageByMonthRefactor = historical.dig(:usageByMonth)&amp;.map { |(k, v)| { &#39;month&#39;: k, &#39;value&#39;: v } }
+           newEntry = historical.merge({
+               usageByMonth: usageByMonthRefactor
+            })
+     end
+    newFeature = feature.dig(1).merge ({
+      historical: newHistorical
+    }) 
+ feature&amp;.map { |(k,v)| k=k , v=newFeature}
+
+ end
+</code></pre>
+                    <p>問題は、出力が同じ「履歴」オブジェクトを複数回繰り返していることですが、その理由がわかりません。</p>
+                    <p>以下は、「feature」要素の 1 つの出力例です。</p>
+                    <p>CMS
+                    {:historyal=&gt;[{:internalName=&gt;“TOTAL_BLOG_POSTS_LIVE_EOM”,
+                    :definition=&gt;“ブログライブ”,
+                    :toolTip=&gt;“レポート月末のステータスが「公開済み」のブログの数。”,
+                    :tags
+                    =&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ブログ”、:usageByMonth=&gt;[{:month=&gt;:SEP、:value=&gt;“741”}、{:month=&gt;:OCT
+                    , :value=&gt;“741”}, {:month=&gt;:AUG,
+                    :value=&gt;“741”}]},
+                    {:internalName=&gt;“BLOG_POST_VIEWS”,
+                    :setting=&gt;“ページビュー”, :toolTip= &gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER”,
+                    :name=&gt;“ブログ”,
+                    :usageByMonth=&gt;[{:month=&gt;:SEP,
+                    :value=&gt;“6651”}, { :month=&gt;:OCT,
+                    :value=&gt;“6601”}, {:month=&gt;:AUG,
+                    :value=&gt;“6957”}]},
+                    {:internalName=&gt;“LANDING_PAGE_VIEWS”,
+                    :setting=&gt;“ページビュー”、:toolTip=&gt;:null、:tags=&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ランディング
+                    ページ”、:usageByMonth=&gt;[{:month=&gt;:SEP、:value=
+                    &gt;“68”}、{:month=&gt;:OCT、:value=&gt;“163”}、{:month=&gt;:AUG、:value=&gt;“116”}]}、{:internalName=&gt;“WEBSITE_PAGE_VIEWS”
+                    , :setting=&gt;“ページビュー”, :toolTip=&gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER”,
+                    :name=&gt;“ウェブサイトページ”,
+                    :usageByMonth=&gt;[{:month= &gt;:SEP,
+                    :value=&gt;“1041”}, {:month=&gt;:OCT,
+                    :value=&gt;“979”}, {:month=&gt;:AUG,
+                    :value=&gt;“1268”}]}], :リアルタイム=&gt;[]}
+                    {:historyal=&gt;[{:internalName=&gt;“TOTAL_BLOG_POSTS_LIVE_EOM”,
+                    :definition=&gt;“ブログライブ”,
+                    :toolTip=&gt;“レポート月末のステータスが「公開済み」のブログの数。”,
+                    :tags
+                    =&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ブログ”、:usageByMonth=&gt;{:SEP=&gt;“741”、:OCT=&gt;“741”、:AUG=&gt;“741”}
+                    }, {:internalName=&gt;“BLOG_POST_VIEWS”,
+                    :setting=&gt;“ページビュー”, :toolTip=&gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER”,
+                    :name=&gt;“ブログ”,
+                    :usageByMonth=&gt;{:SEP=&gt;“6651”, :OCT=&gt;“6601”,
+                    :AUG=&gt;“6957”}},
+                    {:internalName=&gt;“LANDING_PAGE_VIEWS”,
+                    :setting=&gt;“ページビュー”, :
+                    toolTip=&gt;:null、:tags=&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ランディング
+                    ページ”、:usageByMonth=&gt;{:SEP=&gt;“68”、:OCT=&gt;“163”
+                    , :AUG=&gt;“116”}},
+                    {:internalName=&gt;“WEBSITE_PAGE_VIEWS”,
+                    :definition=&gt;“ページビュー”, :toolTip=&gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER” 、:name=&gt;“Web
+                    サイト
+                    ページ”、:usageByMonth=&gt;{:SEP=&gt;“1041”、:OCT=&gt;“979”、:AUG=&gt;“1268”}}]、:realtime=&gt;[]}
+                    {:historyal=&gt;[{:internalName=&gt;“TOTAL_BLOG_POSTS_LIVE_EOM”,
+                    :definition=&gt;“ブログライブ”,
+                    :toolTip=&gt;“レポート月末のステータスが「公開済み」のブログの数。”,
+                    :tags
+                    =&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ブログ”、:usageByMonth=&gt;[{:month=&gt;:SEP、:value=&gt;“741”}、{:month=&gt;:OCT
+                    , :value=&gt;“741”}, {:month=&gt;:AUG,
+                    :value=&gt;“741”}]},
+                    {:internalName=&gt;“BLOG_POST_VIEWS”,
+                    :setting=&gt;“ページビュー”, :toolTip= &gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER”,
+                    :name=&gt;“ブログ”,
+                    :usageByMonth=&gt;[{:month=&gt;:SEP,
+                    :value=&gt;“6651”}, { :month=&gt;:OCT,
+                    :value=&gt;“6601”}, {:month=&gt;:AUG,
+                    :value=&gt;“6957”}]},
+                    {:internalName=&gt;“LANDING_PAGE_VIEWS”,
+                    :setting=&gt;“ページビュー”、:toolTip=&gt;:null、:tags=&gt;[]、:type=&gt;“NUMBER”、:name=&gt;“ランディング
+                    ページ”、:usageByMonth=&gt;[{:month=&gt;:SEP、:value=
+                    &gt;“68”}、{:month=&gt;:OCT、:value=&gt;“163”}、{:month=&gt;:AUG、:value=&gt;“116”}]}、{:internalName=&gt;“WEBSITE_PAGE_VIEWS”
+                    , :setting=&gt;“ページビュー”, :toolTip=&gt;:null,
+                    :tags=&gt;[], :type=&gt;“NUMBER”,
+                    :name=&gt;“ウェブサイトページ”,
+                    :usageByMonth=&gt;[{:month= &gt;:SEP,
+                    :value=&gt;“1041”}, {:month=&gt;:OCT,
+                    :value=&gt;“979”}, {:month=&gt;:AUG,
+                    :value=&gt;“1268”}]}], :リアルタイム=&gt;[]}</p>
+                    <p>私の元の入力は次のとおりです。</p>
+                    <pre><code>response = {
+  &quot;months&quot;: [
+    &quot;AUG&quot;,
+    &quot;SEP&quot;,
+    &quot;OCT&quot;
+  ],
+  &quot;categorisedTiers&quot;: {
+    &quot;CMS&quot;: &quot;FREE&quot;,
+    &quot;MARKETING&quot;: &quot;FREE&quot;,
+    &quot;OPERATIONS&quot;: &quot;FREE&quot;,
+    &quot;SALES&quot;: &quot;FREE&quot;,
+    &quot;SERVICE&quot;: &quot;FREE&quot;
+  },
+  &quot;categorisedFeatures&quot;: {
+    &quot;PLATFORM&quot;: {
+      &quot;historical&quot;: [
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CONTACTS_CREATED_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;New contacts&quot;,
+          &quot;toolTip&quot;: &quot;Number of contacts that were created in the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;33&quot;,
+            &quot;OCT&quot;: &quot;35&quot;,
+            &quot;AUG&quot;: &quot;40&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CONTACTS_QUALIFIED_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;MQLs&quot;,
+          &quot;toolTip&quot;: &quot;Number of contacts that were set with internal value &#39;marketingqualifiedlead&#39; in the &#39;lifecycle stage&#39; property in the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CONTACTS_BECAME_CUSTOMERS_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;Customers&quot;,
+          &quot;toolTip&quot;: &quot;Number of contacts that were set with internal value &#39;customer&#39; in the &#39;lifecycle stage&#39; property in the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;CONTACTS_SCORED&quot;,
+          &quot;definition&quot;: &quot;Contacts scored&quot;,
+          &quot;toolTip&quot;: &quot;Overall percentage of all contacts with the &#39;HubSpot score&#39; not equal to 0, in the report month.&quot;,
+          &quot;tags&quot;: [
+            &quot;PRO+&quot;
+          ],
+          &quot;type&quot;: &quot;PERCENTAGE&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;25.09&quot;,
+            &quot;OCT&quot;: &quot;25.05&quot;,
+            &quot;AUG&quot;: &quot;25.11&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;PERCENTAGE_CONTACTS_ASSIGNED&quot;,
+          &quot;definition&quot;: &quot;Contacts assigned&quot;,
+          &quot;toolTip&quot;: &quot;Overall percentage of contacts with an owner.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;PERCENTAGE&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;19.67&quot;,
+            &quot;OCT&quot;: &quot;19.65&quot;,
+            &quot;AUG&quot;: &quot;19.67&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CONTACTS_CONTACTED_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;Contacts contacted&quot;,
+          &quot;toolTip&quot;: &quot;Number of contacts that were contacted through a call, chat conversation, LinkedIn message, postal mail, meeting, sales email, SMS, or WhatsApp message in the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Contacts&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;3&quot;,
+            &quot;OCT&quot;: &quot;3&quot;,
+            &quot;AUG&quot;: &quot;5&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CONVERSATIONS_STARTED_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;Conversations started&quot;,
+          &quot;toolTip&quot;: &quot;Number of conversations started, via any channel, in the report month (e.g. emails, chats, FaceBook Messanger, etc.)&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Conversations&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CUSTOM_REPORTS&quot;,
+          &quot;definition&quot;: &quot;Custom reports&quot;,
+          &quot;toolTip&quot;: &quot;Total number of custom reports as of the end of the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Reporting&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;AUG&quot;: &quot;27&quot;,
+            &quot;SEP&quot;: &quot;27&quot;,
+            &quot;OCT&quot;: &quot;27&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_DASHBOARDS&quot;,
+          &quot;definition&quot;: &quot;Dashboards&quot;,
+          &quot;toolTip&quot;: &quot;Total number of dashboards as of the end of the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Reporting&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;AUG&quot;: &quot;4&quot;,
+            &quot;SEP&quot;: &quot;4&quot;,
+            &quot;OCT&quot;: &quot;4&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_TEMPLATE_EMAIL_SENDS_THIS_MONTH&quot;,
+          &quot;definition&quot;: &quot;Templates sent&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Templates&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_PAGE_VIEWS&quot;,
+          &quot;definition&quot;: &quot;Page views&quot;,
+          &quot;toolTip&quot;: &quot;Number of page views recorded in the report month. A page view is counted every time the HubSpot tracking code is loaded on a browser.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Traffic Analytics&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;13522&quot;,
+            &quot;OCT&quot;: &quot;12599&quot;,
+            &quot;AUG&quot;: &quot;18599&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_WORKFLOWS_CREATED_IN_MONTH&quot;,
+          &quot;definition&quot;: &quot;Workflows created&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [
+            &quot;PRO+&quot;
+          ],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Workflows&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;1&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        }
+      ],
+      &quot;realtime&quot;: [
+        {
+          &quot;internalName&quot;: &quot;TOTAL_CUSTOM_OBJECTS&quot;,
+          &quot;definition&quot;: &quot;Active custom objects&quot;,
+          &quot;toolTip&quot;: &quot;Total number of active custom objects. This data is real time.&quot;,
+          &quot;tags&quot;: [
+            &quot;ENTERPRISE&quot;
+          ],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Custom Objects&quot;,
+          &quot;realtimeValue&quot;: &quot;0&quot;
+        }
+      ]
+    },
+    &quot;OPERATIONS&quot;: {
+      &quot;historical&quot;: [
+        {
+          &quot;internalName&quot;: &quot;DUPLICATE_RECORDS&quot;,
+          &quot;definition&quot;: &quot;Duplicate records&quot;,
+          &quot;toolTip&quot;: &quot;Count of duplicate records at end of report month.&quot;,
+          &quot;tags&quot;: [
+            &quot;PRO+&quot;
+          ],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Data Quality&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;AUG&quot;: &quot;0&quot;,
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;TOTAL_PROGRAMMABLE_ACTION_EVENTS&quot;,
+          &quot;definition&quot;: &quot;Programmable actions&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [
+            &quot;PRO+&quot;
+          ],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Workflows&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;0&quot;,
+            &quot;OCT&quot;: &quot;0&quot;,
+            &quot;AUG&quot;: &quot;0&quot;
+          }
+        }
+      ],
+      &quot;realtime&quot;: [
+        {
+          &quot;internalName&quot;: &quot;DATASETS_CREATED&quot;,
+          &quot;definition&quot;: &quot;Datasets live&quot;,
+          &quot;toolTip&quot;: &quot;Number of datasets at the end of the report month. This data is real time.&quot;,
+          &quot;tags&quot;: [
+            &quot;ENTERPRISE&quot;
+          ],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Dataset&quot;,
+          &quot;realtimeValue&quot;: &quot;0&quot;
+        }
+      ]
+    },
+    &quot;CMS&quot;: {
+      &quot;historical&quot;: [
+        {
+          &quot;internalName&quot;: &quot;TOTAL_BLOG_POSTS_LIVE_EOM&quot;,
+          &quot;definition&quot;: &quot;Blogs live&quot;,
+          &quot;toolTip&quot;: &quot;Number of blogs with a \&quot;published\&quot; status at the end of the report month.&quot;,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Blogs&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;741&quot;,
+            &quot;OCT&quot;: &quot;741&quot;,
+            &quot;AUG&quot;: &quot;741&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;BLOG_POST_VIEWS&quot;,
+          &quot;definition&quot;: &quot;Page views&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Blogs&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;6651&quot;,
+            &quot;OCT&quot;: &quot;6601&quot;,
+            &quot;AUG&quot;: &quot;6957&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;LANDING_PAGE_VIEWS&quot;,
+          &quot;definition&quot;: &quot;Page views&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Landing Pages&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;68&quot;,
+            &quot;OCT&quot;: &quot;163&quot;,
+            &quot;AUG&quot;: &quot;116&quot;
+          }
+        },
+        {
+          &quot;internalName&quot;: &quot;WEBSITE_PAGE_VIEWS&quot;,
+          &quot;definition&quot;: &quot;Page views&quot;,
+          &quot;toolTip&quot;: :null,
+          &quot;tags&quot;: [],
+          &quot;type&quot;: &quot;NUMBER&quot;,
+          &quot;name&quot;: &quot;Website Pages&quot;,
+          &quot;usageByMonth&quot;: {
+            &quot;SEP&quot;: &quot;1041&quot;,
+            &quot;OCT&quot;: &quot;979&quot;,
+            &quot;AUG&quot;: &quot;1268&quot;
+          }
+        }
+      ],
+      &quot;realtime&quot;: []
+    }
+    
+  }
+}
+</code></pre>
+                    <p>助けていただければ幸いです。</p>
+                    <p>最後の「map」引数の代わりに、最後に「newFeature」を再宣言してみました。ただし、繰り返される「履歴」オブジェクトがなくなったときにこれが発生すると、「キー」値が取得できません。たとえば、最初のオブジェクトのキーは「PLATFORM」です。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードの次の行が重複の原因です。</p>
+                    <pre><code>feature&amp;.map { |(k,v)| k=k , v=newFeature}
+</code></pre>
+                    <p>feature には 2
+                    つの要素があるため、簡単な例を示します。</p>
+                    <pre><code>[0,1]&amp;.map { |(k,v)| k=2 , v=3} =&gt;&gt;&gt;&gt; [[2, 3], [2, 3]]
+</code></pre>
+                    <p>この場合、feature を配列に入れて最後に flatten
+                    を追加すると問題は解決します。</p>
+                    <pre><code>[feature]&amp;.map { |(k,v)| k=k , v=newFeature}.flatten
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

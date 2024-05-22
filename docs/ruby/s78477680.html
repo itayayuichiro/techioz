@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Rails 7.1.3 での引数の数が間違っています (1 が指定され、0 が期待されます) [クローズ済み] | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Rails 7.1.3 での引数の数が間違っています (1 が指定され、0 が期待されます) [クローズ済み]",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Rails 7.1.3 での引数の数が間違っています
+(1 が指定され、0 が期待されます) [クローズ済み]</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Service クラスの category.name
+                    で並べ替えるスコープを作成しようとしています。
+                    カテゴリはサービス
+                    カテゴリの名前を含むモデルであり、カテゴリ名フィールドで並べ替えたいのですが、次のエラーが発生します。
+                    引数の数が間違っています (1 が指定され、0
+                    が期待されます)</p>
+                    <p>それは間違っています？</p>
+                    <p>Rails 7.1.3 で mysql order
+                    を呼び出す方法をすべて変更しましたが、同じエラーが発生します。</p>
+                    <p>スコープコードは次のとおりです。</p>
+                    <pre><code>class Service &lt; ApplicationRecord
+  before_save :delete_photo, if: -&gt;{ remove_photo == &quot;1&quot; &amp;&amp; 
+  photo.attached? }
+
+  attr_accessor :remove_photo
+
+  belongs_to :company
+  belongs_to :branch, optional: true
+  belongs_to :family
+  belongs_to :subfamily
+  belongs_to :gender_type, optional: true
+  belongs_to :category, optional: true
+  belongs_to :service_location, optional: true
+  belongs_to :base_service, class_name: &#39;Service&#39;, optional: true
+  has_many :additional_features, class_name: 
+ &#39;ServiceAdditionalFeature&#39;, dependent: :destroy
+  has_and_belongs_to_many :branches
+  has_and_belongs_to_many :employees
+  has_one_attached :photo
+  has_one_attached :video
+
+  validate :photo_format
+  validate :video_format
+
+  after_create :set_sequence_number_after_create
+
+  scope :with_company, -&gt;(company) { where company: company }
+  scope :with_branch, -&gt;(branch) { where branch: branch }
+  scope :with_owner_or_assigned_branch, -&gt;(branch) { joins(&quot;LEFT 
+  JOIN branches_services ON branches_services.service_id = 
+  services.base_service_id AND branches_services.branch_id = # 
+ {branch.present? &amp;&amp; branch.id.present? ? branch.id : -1}&quot;)
+                                                
+.where(&quot;IFNULL(services.branch_id, -1) = #{branch.present? &amp;&amp; 
+branch.id.present? ? branch.id : -1} AND 
+(services.base_service_id IS NULL OR 
+branches_services.service_id IS NOT NULL)&quot;) }
+
+scope :left_join_branch, -&gt;(branch) { joins(&quot;LEFT JOIN 
+branches_services ON branches_services.service_id = services.id 
+AND branches_services.branch_id = #{branch.present? &amp;&amp; 
+branch.id.present? ? branch.id : -1}&quot;).select(&quot;services.*, 
+IF(branches_services.branch_id IS NOT NULL, 1, 0) AS 
+is_selected&quot;) }
+
+scope :inner_join_employee, -&gt;(employee) { 
+joins(:employees).where(employees: { id: employee }).distinct }
+scope :left_join_employee, -&gt;(employee) { joins(&quot;LEFT JOIN 
+employees_services ON employees_services.service_id = 
+services.id AND employees_services.employee_id = # 
+{employee.present? ? employee.id : -1}&quot;).select(&quot;services.*, 
+IF(employees_services.employee_id IS NOT NULL, 1, 0) AS 
+is_selected&quot;) }
+scope :with_gender_type, -&gt;(gender_type) { where(&quot;(# 
+{gender_type} = 3 AND gender_type_id IS NULL) OR gender_type_id 
+= #{gender_type}&quot;) }
+scope :with_category, -&gt;(category) { where category: category }
+scope :ordered, -&gt; { order recurrent: :desc }
+scope :inner_join_subfamily, -&gt; { 
+joins(:family).joins(:subfamily).select(&quot;services.*, 
+CONCAT(IFNULL(CONCAT(services.internal_reference_code, &#39; - &#39;), 
+&#39;&#39;), services.name) AS fullname, families.id AS family_id, 
+families.name AS family_name, subfamilies.id AS subfamily_id, 
+subfamilies.name AS subfamily_name&quot; ) }
+
+
+  scope :left_join_category, -&gt; { joins(&quot;LEFT JOIN categories ON categories.id = services.category_id&quot;).select(&quot;services.*, CONCAT(IFNULL(CONCAT(services.internal_reference_code, &#39; - &#39;), &#39;&#39;), services.name) AS fullname, IFNULL(categories.id,  -1) AS category_id, IFNULL(categories.name, &#39;--&#39;) AS category_name&quot; ) }
+
+  scope :ordered_by_subfamily, -&gt; { order(&quot;families.name ASC, subfamilies.name ASC, CONCAT(IFNULL(CONCAT(services.internal_reference_code, &#39; - &#39;), &#39;&#39;), services.name) ASC&quot;) }
+
+  scope :ordered_by_category, -&gt; { order(&quot;categories.name ASC&quot;) }
+
+  scope :ordered_by_service, -&gt; { order(&quot;CONCAT(IFNULL(CONCAT(services.internal_reference_code, &#39; - &#39;), &#39;&#39;), services.name) ASC&quot;) }
+
+
+
+  
+</code></pre>
+                    <p>そして、それはコントローラー内で使用されます。</p>
+                    <pre><code>  def set_services_by_company
+      @services_categories = Hash.new
+
+
+  services = Service.with_company(@user.company_default).with_branch(nil).left_join_category.left_join_branch(@branch).ordered_by_category
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>長いスコープチェーンの中で</p>
+                    <pre><code>services = Service.with_company(@user.company_default)
+                  .with_branch(nil)
+                  .left_join_category
+                  .left_join_branch(@branch)
+                  .ordered_by_category
+</code></pre>
+                    <p>left_join_branch(<span class="citation"
+                    data-cites="branch">@branch</span>)
+                    を引数を指定して呼び出しますが、left_join_branch
+                    スコープは引数を受け入れません。</p>
+                    <p>スコープを次のように変更します</p>
+                    <pre><code>services = Service.with_company(@user.company_default)
+                  .with_branch(nil)
+                  .left_join_category
+                  .left_join_branch
+                  .ordered_by_category
+</code></pre>
+                    <p>すでに問題が解決されている可能性があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

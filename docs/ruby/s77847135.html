@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6でネストされたn + 1の問題を解決する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6でネストされたn + 1の問題を解決する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6でネストされたn +
+1の問題を解決する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>4つのモデルを持っています。ジェムバレットを導入しました。多くの機器を含むプロポーザルを入力すると、N+1
+                    の問題アラートが表示されます。提案項目にincludes(:equipment)を入れるよう求められます。表示しますが、N
+                    +1 メッセージが常に表示されます。</p>
+                    <p>提案</p>
+                    <pre><code>class Proposal &lt; ApplicationRecord
+  belongs_to :client
+  has_many :proposal_items, dependent: :destroy
+  accepts_nested_attributes_for :proposal_items, reject_if: :all_blank, allow_destroy: true
+</code></pre>
+                    <p>クライアント</p>
+                    <pre><code>class Client &lt; ApplicationRecord
+    has_many :clients
+    has_many :proposals
+</code></pre>
+                    <p>提案事項</p>
+                    <pre><code>class ProposalItem &lt; ApplicationRecord
+  belongs_to :proposal
+  belongs_to :equipment
+</code></pre>
+                    <p>装置</p>
+                    <pre><code>class Equipment &lt; ApplicationRecord
+  belongs_to :category
+  has_many :proposal_items
+</code></pre>
+                    <p>それを提案コントローラーに入れてみました。</p>
+                    <pre><code>def index
+    @proposals = Proposal.includes(:job, :employee, :client, proposal_item: :equipment). 
+</code></pre>
+                    <p>ただし、それはインデックスメソッドの場合です。
+                    show メソッドに入ると、n +1
+                    アラートが表示されます。</p>
+                    <p>解決方法を知っている人はいますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず最初に、モデルについて 1
+                    つの提案をしたいと思います。おそらくモデルはすでにお持ちで、スニペットに入れるのを忘れているだけかもしれませんが、次のとおりです。</p>
+                    <pre><code>class Proposal &lt; ApplicationRecord
+  belongs_to :client
+  has_many :proposal_items, dependent: :destroy
+  has_many : Equipment, through: :proposal_items
+  accepts_nested_attributes_for :proposal_items, reject_if: :all_blank, allow_destroy: true
+</code></pre>
+                    <p>これにより、次のことができるようになります。</p>
+                    <pre><code> @proposals = Proposal.includes(:job, :employee, :client, :proposal_items)
+</code></pre>
+                    <p>おそらく、問題は解決するはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

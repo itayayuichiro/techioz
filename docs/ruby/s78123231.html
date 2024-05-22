@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>スキップされた rspec テストを実行し、合格すると失敗します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "スキップされた rspec テストを実行し、合格すると失敗します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>スキップされた rspec
+テストを実行し、合格すると失敗します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>たくさんのテストがあるとしましょう:</p>
+                    <p>spec/code_spec.rb:</p>
+                    <pre><code>require &quot;rails_helper&quot;
+
+RSpec.describe Code do
+  xit { Code.evaluate(&quot;Twitter.search&quot;) }
+  xit { Code.evaluate(&quot;Slack.send&quot;) }
+  xit { Code.evaluate(&quot;Twitter.send&quot;) }
+end
+</code></pre>
+                    <p>わかりました:</p>
+                    <pre><code>~/s/d/code&gt; rspec spec/code_spec.rb
+
+Randomized with seed 54828
+
+Code
+  example at ./spec/code_spec.rb:5 (PENDING: Temporarily skipped with xit)
+  example at ./spec/code_spec.rb:6 (PENDING: Temporarily skipped with xit)
+  example at ./spec/code_spec.rb:4 (PENDING: Temporarily skipped with xit)
+
+Pending: (Failures listed here are expected and do not affect your suite&#39;s status)
+
+  1) Code 
+     # Temporarily skipped with xit
+     # ./spec/code_spec.rb:5
+
+  2) Code 
+     # Temporarily skipped with xit
+     # ./spec/code_spec.rb:6
+
+  3) Code 
+     # Temporarily skipped with xit
+     # ./spec/code_spec.rb:4
+
+
+Finished in 0.00251 seconds (files took 3.32 seconds to load)
+3 examples, 0 failures, 3 pending
+
+Randomized with seed 54828
+</code></pre>
+                    <p>私が望んでいるのは、rspec
+                    がテストを実行し、テストが成功した場合に失敗し、理想的にはテストをスキップしないようにする必要があることを私に通知することです。</p>
+                    <p>出来ますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストの説明に「保留中:
+                    ’保留中の理由」を追加できます。</p>
+                    <p>すべてはここで説明されています
+                    https://www.joshmcarthur.com/til/2019/05/27/pending-block-examples-with-rspec.html</p>
+                    <p>このテストは rspec によって実行されますが、テスト
+                    スイート全体が失敗することはありません</p>
+                    <pre><code>it &#39;adds 1 + 1 and equals 3&#39;, pending: true do
+  expect(1 + 1).to eq 3
+end
+</code></pre>
+                    <p>しかし、エラーは発生しなかったため、このテストは失敗します</p>
+                    <pre><code>it &#39;adds 1 + 1 and equals 2&#39;, pending: true do
+  expect(1 + 1).to eq 2
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

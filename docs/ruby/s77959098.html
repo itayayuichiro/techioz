@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでParquetファイルの列タイプを変更する(Parquet Gemを使用) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでParquetファイルの列タイプを変更する(Parquet Gemを使用)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでParquetファイルの列タイプを変更する(Parquet
+Gemを使用)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>データ ウェアハウスには多数の Parquet
+                    ファイルがあります。以前のファイル ~700
+                    の一部では、列のスキーマ タイプが int32
+                    であるべきときに string に設定されています。 Parquet
+                    が不変であることを理解する。これらのファイルを正しい列タイプで書き直す最良の方法を探しています。私は赤い寄木細工の宝石を使用したルビーを使用しています。</p>
+                    <p>列を int
+                    にキャストしてから、ファイルを新しい場所に保存しようとしました。エラーにはなりませんが、動作しません。私が使用している方法の概要を以下に示します。助けていただければ幸いです。</p>
+                    <pre><code>def castCol(col = nil)
+  filesWritten = 0
+  getParquets.each do |file|
+    table = Arrow::Table.load(file)
+    if table.heading.data_type == &quot;string&quot;
+      newFileLoc = @saveDir + File.path(file)
+      puts newFileLoc
+
+      # Create Dir if Required
+      unless File.directory?(File.dirname(newFileLoc))
+        FileUtils.mkdir_p(File.dirname(newFileLoc))
+      end
+
+      table.heading.cast(&#39;int32&#39;)
+      table.save(newFileLoc)
+
+      filesWritten += 1
+    end
+  end
+  puts &quot;Numebr of File Written: #{filesWritten}&quot;
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>変換はPythonで書きました。 PyArrow
+                    ライブラリはより適切に文書化されていますが、これはおそらく予想されることです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

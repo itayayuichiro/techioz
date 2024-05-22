@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>PGconn.connect ….切断はどこですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "PGconn.connect ….切断はどこですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>PGconn.connect ….切断はどこですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>環境：</p>
+                    <p>psql (PostgreSQL) 9.6.3 レール 5.1.1 ルビー
+                    2.4.1p111</p>
+                    <p>質問：</p>
+                    <p>(Devise)
+                    ユーザーの大規模なグループがあり、それぞれが個別の
+                    Postgres ユーザーである場合があります。
+                    SomePostgresRole01、SomePostgresRole02 など。</p>
+                    <p>正常に実行できます:</p>
+                    <pre><code>conn = PGconn.connect(&quot;localhost&quot;, 5432,&quot;&quot;,&quot;&quot;,&quot;db_development&quot;,&quot;SomePostgresRole01&quot;,&quot;SomePassword&quot;)
+</code></pre>
+                    <p>conn.disconnect
+                    メソッドが見つかりません。そのような機能は存在しますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>.close()
+                    を使用して接続を閉じることができます。例外の後でもデータベース接続を確実に閉じるために使用されます。</p>
+                    <pre><code>begin
+   conn = PGconn.connect(&quot;localhost&quot;, 5432,&quot;&quot;,&quot;&quot;,&quot;db_development&quot;,&quot;SomePostgresRole01&quot;,&quot;SomePassword&quot;)
+rescue PG::Error =&gt; e
+    puts e.message     
+ensure
+    conn.close if conn
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

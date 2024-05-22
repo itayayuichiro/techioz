@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>DynamoDB クエリの並べ替えられたデータ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "DynamoDB クエリの並べ替えられたデータ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>DynamoDB クエリの並べ替えられたデータ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>DynamoDB テーブルがあり、フィールド user_id と
+                    date があります。ユーザーの最新のレコードを 10
+                    レコードずつバッチで取得するために、同等の SQL
+                    クエリ SELECT * FROM Posts WHERE user_id IN (1, 2,
+                    3) ORDER BY date DESC LIMIT 10
+                    を作成したいと考えています。 Ruby
+                    aws-sdkを使用しています</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この場合、user_id はパーティション
+                    キー、日付はソート キーである必要があります。</p>
+                    <p>ユーザーごとに 1 つずつ、計 3
+                    つのクエリ操作を実行できます。 ScanIndexForward を
+                    false に設定し、Limit を 10
+                    に設定します。これにより、各ユーザーの最新の 10
+                    レコードが返されます。</p>
+                    <p>テーブルのキーが異なる場合は、クエリの効率を確保するために必要なキーを使用してグローバル
+                    セカンダリ インデックスを作成できます。</p>
+                    <p>PartiQL ExecuteStatement
+                    を使用すると、キーが私が提案したものと同じであれば、テーブルに対して共有した正確な
+                    SQL ステートメントを実行できるようになります。 1
+                    回のリクエストで最大 50 個のパーティション
+                    キーを返すことができます。順序付けはキーごとに行われ、すべてのアイテム間の順序付けは行われません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

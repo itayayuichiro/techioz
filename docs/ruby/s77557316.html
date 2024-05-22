@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sorbet は Zlib::GzipReader をメソッドのパラメータとして許可しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sorbet は Zlib::GzipReader をメソッドのパラメータとして許可しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sorbet は Zlib::GzipReader
+をメソッドのパラメータとして許可しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Sorbet 署名を含むこの Ruby コード:</p>
+                    <pre><code>sig { params(source: T.any(String, Zlib::GzipReader)).returns(T::Boolean) }
+def file?(source)
+  source.is_a?(String) &amp;&amp; File.exist?(source.to_s)
+end
+</code></pre>
+                    <p>次のエラーが生成されます。</p>
+                    <pre><code>Malformed type declaration. Generic class without type arguments Zlib::GzipReader https://srb.help/5045
+</code></pre>
+                    <p>ソースの明らかにされたタイプは
+                    Zlib::GzipReader[T.anything]
+                    ですが、それを指定すると別のエラーが発生します。</p>
+                    <pre><code> Method [] does not exist on T.class_of(Zlib::GzipReader)[Zlib::GzipReader[T.anything]] https://srb.help/7003
+</code></pre>
+                    <p>これは zlib.rbi
+                    の関連する行で、共分散と関係があると思いますが、それを機能させる方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これには、この PR を Sorbet
+                    へのアップストリームに促した原因と同じ根本原因があります:
+                    https://github.com/sorbet/sorbet/pull/6324</p>
+                    <p>同様の PR を開いて、Zlib::GzipReader の型変数を
+                    T.untyped に修正できると思います
+                    (Zlib::GzipReader#each
+                    は指定されたブロックに文字列インスタンスを生成するようなので、おそらく
+                    String にすることもできます)。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

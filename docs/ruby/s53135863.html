@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>macOS Mojave の「ruby/config.h」ファイルが見つかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "macOS Mojave の「ruby/config.h」ファイルが見つかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>macOS Mojave
+の「ruby/config.h」ファイルが見つかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>macOS Mojave(10.14.1) 上で Ruby
+                    support(–enable-rubyinterp) を使用して vim(8.1.0509)
+                    をビルドしようとすると、次のエラーが発生します。</p>
+                    <pre><code>In file included from /System/Library/Frameworks/Ruby.framework/Versions/2.3/usr/include/ruby-2.3.0/ruby.h:33:
+/System/Library/Frameworks/Ruby.framework/Versions/2.3/usr/include/ruby-2.3.0/ruby/ruby.h:24:10: fatal error:
+      &#39;ruby/config.h&#39; file not found
+#include &quot;ruby/config.h&quot;
+</code></pre>
+                    <p>Xcode10.1をインストールしました。</p>
+                    <pre><code>xcode-select -p
+/Applications/Xcode.app/Contents/Developer
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>注:
+                    この回避策は機能しますが、パスをやみくもにコピー/貼り付けすることはできません。代わりに、インストール時に発生したエラーを確認してください。それは次のようなことを言います</p>
+                    <p>そこで、記載されているログを開いて、何が見つからないかを確認してください。リンクする必要がある
+                    MacOSX_<em>.</em>.sdk と universal-darwin-__
+                    の正しいバージョンが表示されます。</p>
+                    <p>Catalina、Big
+                    Surなど（2020年、2021年、2022年、2023年現在）</p>
+                    <p>更新: この回避策は 2023
+                    年の時点でも機能します。以下のコマンドについては、macOS
+                    のバージョン環境に応じてバージョン文字列 (例:
+                    11.1、ruby 2.6、universal-darwin20 など)
+                    を変更してください。</p>
+                    <p>macOS と Xcode の最近のバージョン (Catalina 10.15
+                    や Xcode 12.2 など) では、これが壊れています。 Xcode
+                    と xcode-select –install
+                    を再インストールしても、まったく役に立ちませんでした
+                    (すでに投稿されている解決策は古いようです)。 RVM
+                    は厄介な問題を引き起こす可能性があるため、使いたくありませんでした。</p>
+                    <p>手動でシンボリックリンクを作成することで回避策を実行しました。</p>
+                    <pre><code>cd /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0/ruby
+ln -sf ../../../../Headers/ruby/config.h
+</code></pre>
+                    <p>Ruby/config.h は次の場所にあります。
+                    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/Headers/ruby/config.h。</p>
+                    <p>現在の xcode インストールに応じて SDK バージョン
+                    (例: 上記の例では 11.1)
+                    を変更する必要があります。</p>
+                    <p>また、 …/universal-darwin19/ruby/config.h
+                    が見つからない (Commonmark gem
+                    がインストールできない (jekyll MacOS に必要))
+                    という別のエラーが発生する可能性も非常に高くなります。次のようにしてすぐに修正できます。</p>
+                    <pre><code>cd /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0
+ln -sf universal-darwin20 universal-darwin19
+</code></pre>
+                    <p>この回避策を使用した後、ポッドのインストール時に次のようなクラッシュが発生した場合:</p>
+                    <p>この解決策に従ってください</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

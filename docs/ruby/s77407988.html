@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>「rails db:system:change –to=postgresql」の後に「rails server」、「rails db:merge」が動作を停止する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "「rails db:system:change –to=postgresql」の後に「rails server」、「rails db:merge」が動作を停止する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>「rails db:system:change
+–to=postgresql」の後に「rails server」、「rails
+db:merge」が動作を停止する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>再現する手順：</p>
+                    <p>「rails
+                    サーバー」を実行しようとすると、ターミナル出力は正常に見えますが、Microsoft
+                    Edge
+                    ブラウザ経由で接続しようとすると、無限にロードされるだけです。
+                    「rails server」はステップ6の前で動作します。</p>
+                    <p>「rails
+                    db:merge」を実行すると、エラーが発生せずに無限実行のままになります。以下のトレースを参照してください。</p>
+                    <p>Render.com にデプロイすると機能します。</p>
+                    <p>これがプロジェクト全体です。何が起こっているか理解したら非公開にします:
+                    https://github.com/Ferdodonna/sample_app</p>
+                    <p>ステップ 6 の前の Gemfile、ステップ 6 の後、gem
+                    “sqlite3”、“1.4.2” は gem “pg”、“1.4.2”
+                    になります。</p>
+                    <pre><code>source &quot;https://rubygems.org&quot;
+git_source(:github) { |repo| &quot;https://github.com/#{repo}.git&quot; }
+ruby &quot;3.1.2&quot;
+
+gem &quot;rails&quot;, &quot;7.0.4&quot;
+
+gem &quot;sassc-rails&quot;, &quot;2.1.2&quot;
+
+gem &quot;sprockets-rails&quot;, &quot;3.4.2&quot;
+
+gem &quot;importmap-rails&quot;, &quot;1.1.0&quot;
+
+gem &quot;turbo-rails&quot;, &quot;1.1.1&quot;
+
+gem &quot;stimulus-rails&quot;, &quot;1.0.4&quot;
+
+gem &quot;jbuilder&quot;, &quot;2.11.5&quot;
+
+gem &quot;puma&quot;, &quot;5.6.4&quot;
+
+gem &quot;bootsnap&quot;, &quot;1.12.0&quot;, require: false
+
+group :development, :test do
+  gem &quot;sqlite3&quot;, &quot;1.4.2&quot;
+  gem &quot;debug&quot;, &quot;1.5.0&quot;, platforms: %i[ mri mingw x64_mingw ]
+end
+
+group :development do
+  gem &quot;web-console&quot;, &quot;4.2.0&quot;
+end
+
+group :test do
+  gem &quot;capybara&quot;, &quot;3.37.1&quot;
+  gem &quot;selenium-webdriver&quot;, &quot;4.2.0&quot;
+  gem &quot;webdrivers&quot;, &quot;5.0.0&quot;
+  gem &quot;rails-controller-testing&quot;, &quot;1.0.5&quot;
+  gem &quot;minitest&quot;, &quot;5.15.0&quot;
+  gem &quot;minitest-reporters&quot;, &quot;1.5.0&quot;
+  gem &quot;guard&quot;, &quot;2.18.0&quot;
+  gem &quot;guard-minitest&quot;, &quot;2.4.6&quot;
+end
+
+group :production do
+  gem &quot;pg&quot;, &quot;1.3.5&quot;
+end
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem.
+# Uncomment the following line if you&#39;re running Rails
+# on a native Windows system:
+gem &quot;tzinfo-data&quot; #, platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+</code></pre>
+                    <p>ステップ6後の「railsサーバー」のターミナル出力</p>
+                    <pre><code>=&gt; Booting Puma
+=&gt; Rails 7.0.4 application starting in development
+=&gt; Run `bin/rails server --help` for more startup options
+*** SIGUSR2 not implemented, signal based restart unavailable!
+*** SIGUSR1 not implemented, signal based restart unavailable!
+*** SIGHUP not implemented, signal based logs reopening unavailable!
+Puma starting in single mode...
+* Puma version: 5.6.4 (ruby 3.1.2-p20) (&quot;Birdie&#39;s Version&quot;)
+*  Min threads: 5
+*  Max threads: 5
+*  Environment: development
+*          PID: 10656
+* Listening on http://[::1]:3000
+* Listening on http://127.0.0.1:3000
+Use Ctrl-C to stop
+</code></pre>
+                    <p>ステップ 6 後の「rails db:merge
+                    –trace」のターミナル出力</p>
+                    <pre><code>&gt;rails db:migrate --trace
+** Invoke db:migrate (first_time)
+** Invoke db:load_config (first_time)
+** Invoke environment (first_time)
+** Execute environment
+** Execute db:load_config
+** Execute db:migrate
+
+</code></pre>
+                    <p>ステップ 6 の後に「rails db:merge
+                    –trace」を中止するためのターミナル出力</p>
+                    <pre><code>...
+** Execute db:migrate
+rails aborted!
+Interrupt:
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/pg-1.3.5-x64-mingw-ucrt/lib/pg/connection.rb:627:in `wait_writable&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/pg-1.3.5-x64-mingw-ucrt/lib/pg/connection.rb:627:in `async_connect_or_reset&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/pg-1.3.5-x64-mingw-ucrt/lib/pg/connection.rb:707:in `new&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/pg-1.3.5-x64-mingw-ucrt/lib/pg.rb:69:in `connect&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/postgresql_adapter.rb:78:in `new_client&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/postgresql_adapter.rb:37:in `postgresql_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:656:in `public_send&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:656:in `new_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:700:in `checkout_new_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:679:in `try_to_checkout_new_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:640:in `acquire_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:341:in `checkout&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:181:in `connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_adapters/abstract/connection_handler.rb:211:in `retrieve_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_handling.rb:313:in `retrieve_connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/connection_handling.rb:280:in `connection&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/tasks/database_tasks.rb:262:in `migrate&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/activerecord-7.0.4/lib/active_record/railties/databases.rake:92:in `block (2 levels) in &lt;main&gt;&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:281:in `block in execute&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:281:in `each&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:281:in `execute&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:219:in `block in invoke_with_call_chain&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:199:in `synchronize&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:199:in `invoke_with_call_chain&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/task.rb:188:in `invoke&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:182:in `invoke_task&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:138:in `block (2 levels) in top_level&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:138:in `each&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:138:in `block in top_level&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:147:in `run_with_threads&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:132:in `top_level&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/railties-7.0.4/lib/rails/commands/rake/rake_command.rb:24:in `block (2 levels) in perform&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/application.rb:208:in `standard_exception_handling&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/railties-7.0.4/lib/rails/commands/rake/rake_command.rb:24:in `block in perform&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/rake-13.1.0/lib/rake/rake_module.rb:59:in `with_application&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/railties-7.0.4/lib/rails/commands/rake/rake_command.rb:18:in `perform&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/railties-7.0.4/lib/rails/command.rb:51:in `invoke&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/railties-7.0.4/lib/rails/commands.rb:18:in `&lt;main&gt;&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/bootsnap-1.12.0/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:30:in `require&#39;
+C:/Ruby31-x64/lib/ruby/gems/3.1.0/gems/bootsnap-1.12.0/lib/bootsnap/load_path_cache/core_ext/kernel_require.rb:30:in `require&#39;
+bin/rails:4:in `&lt;main&gt;&#39;
+Tasks: TOP =&gt; db:migrate
+Terminate batch job (Y/N)? y
+</code></pre>
+                    <p>アプリケーションにローカルで接続することを期待して
+                    Rails サーバーを実行してみました。</p>
+                    <p>アプリケーションにローカルで接続することを期待して
+                    Rails サーバーを実行してみました。</p>
+                    <p>存在せず、「railsサーバー」がエミュレートしないpostgresqlデータベースに接続しようとしていると思います。しかし、私はRubyだけでなくRubyOnRailsも初めてなので、よくわかりません。それを回避する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Github の config/database.yml
+                    を見てみましょう。そこには次のものがあります:</p>
+                    <pre><code>default: &amp;default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+
+development:
+  &lt;&lt;: *default
+  database: sample_app_development
+</code></pre>
+                    <p>これは基本的にローカルホスト上の存在しないサーバーに接続しようとします。したがって、これを次のように変更する必要があります</p>
+                    <pre><code>development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+</code></pre>
+                    <p>さらに、Gemfile
+                    内のバージョン文字列を変更することもできます。</p>
+                    <pre><code> gem sqlite3, &#39;~&gt; 1.6&#39;           #, &quot;1.4.2&quot; --&gt; https://rubygems.org/gems/sqlite3/
+ gem pg , &#39;~&gt; 1.5&#39;               #, &quot;1.3.5&quot; --&gt; https://rubygems.org/gems/pg/
+</code></pre>
+                    <p>どちらの宝石も過去にいくつかのアップデートを受けているためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7: 許可されていない認証トークン | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7: 許可されていない認証トークン",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7: 許可されていない認証トークン</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私が手伝ってもらうために雇われたプロジェクトで他の人が作った機能にバグを見つけました。これを行ったプログラマは不在で、インターネット上でもこのエラーについて何も見つかりませんでした。そのため、ここで誰かが問題の原因についてアイデアを持っていることを願っています。</p>
+                    <p>関連するモデルは Project と ProjectFilter です。
+                    ProjectFilter はターボ
+                    ドロップダウン経由で作成され、(名前が示すように)
+                    ユーザーのニーズに応じて既存のプロジェクトをフィルターします。</p>
+                    <p>プロジェクトコントローラー:</p>
+                    <pre><code>def new_filter
+  @filter = ProjectFilter.new filter_params
+  respond_to do |format|
+    format.html { render layout: nil }
+  end
+end
+
+def create_filter
+  index
+end
+
+private
+ def filter_params
+  p = params.permit(:sort_col, :sort_dir, filter: {})
+  p.except(:filter).merge(p[:filter])
+ end
+  
+ def filter_and_sort
+   @projects_before_filtering = @projects
+   filter_projects
+   sort_projects
+ end
+
+ def filter_projects
+   @filter = params[:filter]&amp;.permit(:area_id, :vision, :country_code, :progress) || {}
+   @filter.reject! { |_k, v| v.blank? }
+   @projects = ProjectFilter.new(@filter).filter(@projects)
+ end
+</code></pre>
+                    <p>これがどのように機能するかを示すスクリーンショットをいくつか示します。</p>
+                    <p>すべてのプロジェクトとドロップダウン</p>
+                    <p>フィルター 1 つ</p>
+                    <p>2つのフィルター</p>
+                    <p>スクリーンショットは現在のリポジトリの前のバージョンのものです
+                    (プロジェクトは数か月前に保留され、再開されたとき、会社は古いリポジトリを破棄し、何らかの理由で新しいコピーをアップロードしました)。この古いバージョンでは、この機能は動作します。しかし、新しいものの最初のアップロードにロールバックしても、そうではありません。</p>
+                    <p>両方のリポジトリのコードをチェックしたところ、モデル、コントローラー、ビュー、さらには構成ファイルなど、この機能に関連するどのファイルにもまったく違いがありませんでした。</p>
+                    <p>このような状況を考えると、次のような問題が生じます。</p>
+                    <p>現在のリポジトリでは、この機能を使用しようとすると、発生すべきではない
+                    3 つのことが発生します。</p>
+                    <pre><code>Unpermitted parameters: :authenticity_token, :sort_col, :sort_dir, :filter. 
+Context: { controller: ProjectsController, action: create_filter, request: 
+#&lt;ActionDispatch::Request:0x00007f944a714130&gt;, params: {&quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;,
+&quot;sort_col&quot;=&gt;&quot;&quot;, &quot;sort_dir&quot;=&gt;&quot;&quot;, &quot;filter&quot;=&gt;{&quot;vision&quot;=&gt;&quot;startup&quot;, &quot;area_id&quot;=&gt;&quot;&quot;,
+&quot;country_code&quot;=&gt;&quot;&quot;, &quot;progress&quot;=&gt;&quot;&quot;}, &quot;controller&quot;=&gt;&quot;projects&quot;, &quot;action&quot;=&gt;&quot;create_filter&quot;} }
+</code></pre>
+                    <p>上記のコントローラーに示されているように、パラメーターが許可されているにもかかわらず。そして、どうすれば真正性トークンが許可されないのでしょうか??自動的に許可されるんじゃないの？</p>
+                    <p>create_filter アクションの index
+                    の下にデバッガーを配置すると、次の結果が得られました。</p>
+                    <pre><code>params:
+#&lt;ActionController::Parameters {&quot;authenticity_token&quot;=&gt;&quot;[FILTERED]&quot;, &quot;sort_col&quot;=&gt;&quot;&quot;, 
+&quot;sort_dir&quot;=&gt;&quot;&quot;, &quot;filter&quot;=&gt;#&lt;ActionController::Parameters {&quot;vision&quot;=&gt;&quot;startup&quot;, &quot;area_id&quot;=&gt;&quot;&quot;,
+ &quot;country_code&quot;=&gt;&quot;&quot;, &quot;progress&quot;=&gt;&quot;&quot;} permitted: false&gt;, &quot;controller&quot;=&gt;&quot;projects&quot;,
+ &quot;action&quot;=&gt;&quot;create_filter&quot;} permitted: false&gt;
+
+@filter:
+#&lt;ActionController::Parameters {&quot;vision&quot;=&gt;&quot;startup&quot;} permitted: true&gt;
+</code></pre>
+                    <p>これは、古いリポジトリ内の同じデバッガー
+                    クエリの結果とまったく同じです。それでも、この機能は古いものでは機能しますが、新しいものでは機能しません。</p>
+                    <p>すでに確認したこと:</p>
+                    <p>何か確認すべき点はありますか?徹底的につまづくのでロングショットでも大歓迎です。ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは完全な答えではありませんが、調べられる箇所がいくつかあると思います。</p>
+                    <p>gemfile ファイルと gemfile.lock
+                    ファイルを比較します。 Turbolinks や Hotwire
+                    で重大なバージョン変更が表示されると思います。</p>
+                    <p>また、JavaScript
+                    ファイルを比較すると、ある時点でプロジェクトが
+                    Turbolinks から Hotwire の Turbo
+                    に切り替わった可能性があるようです。</p>
+                    <p>id=“filter” を持つ HTML
+                    要素だけを使用することはできません。<turbo-frame>
+                    要素である必要があります。おそらくこれがこの問題の理由です。</p>
+                    <p>そして、それは明らかではありません。なぜなら、このプロジェクトは、通常の
+                    HTML 要素に UJS タグを使用する古い Turbolinks
+                    から、特殊な DOM 要素を期待する Hotwire の Turbo
+                    にアップグレードされたと考えられるからです (Hotwire
+                    に詳しくない場合は、Hotwire
+                    を確認してください)。</p>
+                    <p>許可されていないパラメータに関しては、<span
+                    class="citation"
+                    data-cites="engineersmnky">@engineersmnky</span>
+                    の言うことは完全に正しいです。 #filter_params
+                    でパラメータが許可されていることがわかるため、パラメータが許可されていると仮定しています。しかし、それは呼び出されるメソッドではありません。</p>
+                    <pre><code>def filter_and_sort
+   @projects_before_filtering = @projects
+   filter_projects #&lt;- doesn&#39;t permit :authenticity_token, :sort_col, :sort_dir, :filter
+   sort_projects #&lt;- not shown in your code
+ end
+</code></pre>
+                    <p>ビューや JS
+                    コード、およびコントローラーの残りの部分がなければ、さらにデバッグするのは困難ですが、これが役立つことを願っています。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RubyでFFI::Libraryを使用してバイナリ.soライブラリをアンロードまたは指定するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RubyでFFI::Libraryを使用してバイナリ.soライブラリをアンロードまたは指定するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RubyでFFI::Libraryを使用してバイナリ.soライブラリをアンロードまたは指定するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>libcurlライブラリを行でロードするethon
+                    gemがあります。</p>
+                    <pre><code>ffi_lib_flags :now, :global
+ffi_lib [&#39;ibcurl.so&#39;, &#39;libcurl.so.4&#39;]
+extend Ethon::Curls::Functions # it attaches functions from libcurl
+</code></pre>
+                    <p>モンキーパッチを作ります</p>
+                    <pre><code>ffi_lib_flags :now, :global
+ffi_lib &#39;/home/myuser/libs/libcurl.so&#39;
+attach_function :easy_impersonate, :curl_easy_impersonate, [:pointer, :string, :int], :int # attach custom function from patched libcurl
+extend Ethon::Curls::Functions # it attaches default functions from patched libcurl
+</code></pre>
+                    <p>FFI は、curl_easy_impersonate
+                    関数を見つけましたが、それを呼び出すと、コード 48
+                    が返されます (libcurl
+                    ドキュメントでは、そのような関数が見つからなかったことを意味します)。</p>
+                    <p>ただし、gem ffi_lib [‘libcurl.so’,
+                    ‘libcurl.so.4’] の行を ffi_lib
+                    ‘/home/myuser/libs/libcurl.so’
+                    に直接置き換えると、この関数を呼び出すと 0
+                    が返され、機能します。私がそうしたいように。これは、FFI
+                    が gem
+                    によってロードされたライブラリに最初にアクセスするためだと私は考えています。</p>
+                    <p>質問: FFI
+                    を使用してこのライブラリをアンロードする方法、または関数呼び出しに使用するライブラリを明示的に指定する方法はありますか?</p>
+                    <p>追伸モンキーパッチでやりたいのですが、たった1行を変更するためにgemをフォークしたくありません。本番環境でサポートするには不便です。</p>
+                    <p>添付されたメソッドを削除しようとし、削除するメソッド
+                    ffi_libraries を持つ libcurl ライブラリ
+                    オブジェクトを見つけ、ロードされた libcurl
+                    の痕跡を見つけようとしましたが、見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>FFI
+                    ライブラリには、ロードされたライブラリをアンロードする方法が提供されていないと思います。</p>
+                    <p>ライブラリを「アンロード」する必要がある場合は、FFI::Library
+                    自体の外部でこれを処理する必要があります。 Ruby
+                    プロセスを再起動してみてください。</p>
+                    <p>または、FFI
+                    バインディングがロードされる前にこれを試すこともできます。LD_LIBRARY_PATH
+                    環境変数を設定して、パッチを適用した libcurl.so
+                    が配置されているディレクトリを指定することもできます。これにより、ローダーが使用するライブラリ検索パスが変更され、Ruby
+                    スクリプトが LD_LIBRARY_PATH
+                    の指定されたディレクトリからパッチが適用された
+                    libcurl.so を取得できるようになります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

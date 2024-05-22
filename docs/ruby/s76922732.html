@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RVM を使用した Ruby のインストール中にエラーが発生しました:「__rvm_make -j8」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RVM を使用した Ruby のインストール中にエラーが発生しました:「__rvm_make -j8」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RVM を使用した Ruby
+のインストール中にエラーが発生しました:「__rvm_make -j8」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>RVMを使用して最新の安定したRubyバージョン（3.1.x、3.2.x）をインストールしようとしていました。ただし、これらのバージョンの
+                    rvm install コマンドは、Ruby
+                    のコンパイル時に失敗します。たとえば、実行しようとすると、</p>
+                    <pre><code>rvm install 3.1.4
+</code></pre>
+                    <p>次の出力が得られます。</p>
+                    <pre><code>Searching for binary rubies, this might take some time.
+No binary rubies available for: osx/13.5/arm64/ruby-3.1.4.
+Continuing with compilation. Please read &#39;rvm help mount&#39; to get more information on binary rubies.
+Checking requirements for osx.
+Updating certificates bundle &#39;/opt/homebrew/etc/[email protected]/cert.pem&#39;
+Requirements installation successful.
+Installing Ruby from source to: /Users/davidlj95/.rvm/rubies/ruby-3.1.4, this may take a while depending on your cpu(s)...
+ruby-3.1.4 - #downloading ruby-3.1.4, this may take a while depending on your connection...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 19.9M  100 19.9M    0     0  12.8M      0  0:00:01  0:00:01 --:--:-- 12.8M
+No checksum for downloaded archive, recording checksum in user configuration.
+/Users/davidlj95/.rvm/tmp/rvm_src_74481
+ruby-3.1.4 - #extracting ruby-3.1.4 to /Users/davidlj95/.rvm/src/ruby-3.1.4 - please wait
+ruby-3.1.4 - #configuring - please wait
+ruby-3.1.4 - #post-configuration - please wait
+ruby-3.1.4 - #compiling - please wait
+Error running &#39;__rvm_make -j8&#39;,
+please read /Users/davidlj95/.rvm/log/1692282742_ruby-3.1.4/make.log
+
+There has been an error while running make. Halting the installation.
+</code></pre>
+                    <p>less -p error
+                    /Users/davidlj95/.rvm/log/1692282742_ruby-3.1.4/make.log
+                    でファイル内のエラーを探しました。</p>
+                    <p>失敗する前に表示される最後のエラーは OpenSSL
+                    に関連しているようです。</p>
+                    <pre><code>ossl_ts.c:829:5: error: incomplete definition of type &#39;struct TS_verify_ctx&#39;
+    TS_VERIFY_CTX_set_certs(ctx, x509inter);
+    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ...
+make[1]: *** [ext/openssl/all] Error 2
+make: *** [build-ext] Error 2
++__rvm_make:0&gt; return 2
+1 warning and 1 error generated.
+</code></pre>
+                    <p>M1/ARMチップセットのMacBook Proを使用しています。
+                    macOS ベンチュラ 13.5 を搭載。</p>
+                    <p>私はもう試した：</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby ビルド ガイドが示唆しているように、Homebrew
+                    によってインストールされたライブラリがどこにインストールされているかを示す、コンパイル前のステップの構成引数環境変数をエクスポートします。これを実行するには、次のコマンドを実行します。</p>
+                    <pre><code>export CONFIGURE_ARGS=&quot;&quot;
+for ext in openssl readline libyaml zlib; do 
+  CONFIGURE_ARGS=&quot;${CONFIGURE_ARGS} --with-$ext-dir=$(brew --prefix $ext)&quot; 
+done
+</code></pre>
+                    <p>次に、rvm install
+                    コマンドを実行します。コンパイルが成功し、その Ruby
+                    バージョンがインストールされました。いくつかの Ruby
+                    バージョンで動作しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

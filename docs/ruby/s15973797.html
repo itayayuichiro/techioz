@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby プロセスを永久に実行し続けるための最良の方法は何でしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby プロセスを永久に実行し続けるための最良の方法は何でしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+プロセスを永久に実行し続けるための最良の方法は何でしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>マイクロタスク (データベースへのクエリの挿入)
+                    を作成する file.rb
+                    を毎秒実行する必要があります。</p>
+                    <p>for ループ (1..10^9) を使用しましたが、CPU
+                    使用率超過のアラートが表示されました。では、すべての
+                    CPU を無駄にしない最善の方法は何でしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>永久に実行する最も簡単な方法はループすることです</p>
+                    <pre><code>loop do
+  run_db_insert
+  sleep 1
+end
+</code></pre>
+                    <p>1 Hz のレートを維持することが重要な場合は、DB
+                    の挿入にはある程度の時間がかかるため、1
+                    秒のスリープは各サイクルに dbtime + 1
+                    秒かかることを意味し、着実に遅れが生じることに注意してください。
+                    DB インタラクションが 1
+                    秒未満であることが確実な場合は、次の 1
+                    秒間隔に合わせてスリープを変更できます。</p>
+                    <pre><code>loop do
+  run_db_insert
+  sleep(Time.now.to_f.ceil - Time.now.to_f)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

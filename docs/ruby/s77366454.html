@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>デフォルトスコープのRspec | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "デフォルトスコープのRspec",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>デフォルトスコープのRspec</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーモデル:</p>
+                    <pre><code>default_scope { where(:flg =&gt; &#39;0&#39;) }
+enum deleted_flg: { disabled: &#39;1&#39;, enabled: &#39;0&#39; }
+</code></pre>
+                    <p>ユーザー仕様:</p>
+                    <pre><code>describe &#39;default scope&#39; do
+  it &#39;returns deleted_flg&#39; do
+    user = build(:user, first_name: &#39;Test&#39;, flg: &quot;0&quot;)
+    expect(user.deleted_flg).to eq &quot;enabled&quot;
+  end
+end
+</code></pre>
+                    <p>私が書いた仕様がデフォルトのスコープに対して正しいかどうかはわかりません。</p>
+                    <p>助けていただければ幸いです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「デフォルトのスコープ」は、モデルに対するすべての操作のマクロ
+                    (フィルターや並べ替え順序など) です。</p>
+                    <p>たとえば、これが User
+                    というクラスにある場合は、次のように表示されることが予想されます。</p>
+                    <pre><code>User.all # =&gt; SELECT * FROM users WHERE deleted_flg = 0
+</code></pre>
+                    <p>2 つ以上のレコードを作成し、User.all
+                    が予期された順序で予期されたレコードを返すかどうかを確認することでテストできます
+                    (該当する場合)。例えば：</p>
+                    <pre><code>describe &#39;default scope&#39; do
+  it &#39;returns enabled users only&#39; do
+    enabled_user = create(:user, flg: &#39;0&#39;)
+    disabled_user = create(:user, flg: &#39;1&#39;)
+    expect(User.all).to eq [enabled_user]
+  end
+end
+</code></pre>
+                    <p>ボーナス：</p>
+                    <p>enum
+                    の真の可能性を最大限に活用していないのです。重要なのは、これらの数値を「人間に優しい」方法で参照できることです。</p>
+                    <p>例えば：</p>
+                    <pre><code>default_scope { where(flg: :enabled) }
+
+# Or even:
+default_scope { enabled }
+</code></pre>
+                    <p>そして：</p>
+                    <pre><code>disabled_user = create(:user, flg: :disabled)
+</code></pre>
+                    <p>詳細については、ドキュメントを参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ローカルのロールバックデータベースがサーバーRails 7のpostgresを更新しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ローカルのロールバックデータベースがサーバーRails 7のpostgresを更新しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ローカルのロールバックデータベースがサーバーRails
+7のpostgresを更新しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>サーバー上で Rails 7
+                    を実行していますが、新しいテーブルを追加すると移行され、サーバー
+                    データベースで確認できます。しかし、開発環境でロールバックして変更を加えてから移行すると、サーバーのデータベースが更新されませんでした。</p>
+                    <p>データベース.yml</p>
+                    <pre><code># SQLite. Versions 3.8.0 and up are supported.
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem &quot;sqlite3&quot;
+#
+default: &amp;default
+  adapter: sqlite3
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  timeout: 5000
+
+development:
+  &lt;&lt;: *default
+  database: db/development.sqlite3
+
+# Warning: The database defined as &quot;test&quot; will be erased and
+# re-generated from your development database when you run &quot;rake&quot;.
+# Do not set this db to the same as development or production.
+test:
+  &lt;&lt;: *default
+  database: db/test.sqlite3
+
+production:
+  &lt;&lt;: *default
+  database: db/production.sqlite3
+</code></pre>
+                    <p>デプロイ/production.rb :</p>
+                    <pre><code>server &#39;ip_here&#39;, user: &#39;user_here&#39;, roles: %w{app db web}
+</code></pre>
+                    <p>私も試してみました:</p>
+                    <pre><code>cap production deploy:migrate
+</code></pre>
+                    <p>しかしうまくいきませんでした。また、新しく更新された移行ファイルがサーバーに存在するかどうかを調べたところ、存在します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたは移行がどのようにデプロイされるかを誤解しています。</p>
+                    <p>一言で言えば、私のアドバイスは次のとおりです。</p>
+                    <p>この質問の対象となっている特定の移行ファイル
+                    (古いバージョンと新しいバージョン)
+                    を共有していませんが、たとえば次のようなものを使用するとよいでしょう。</p>
+                    <pre><code>change_column
+rename_column
+rename_index
+rename_table
+</code></pre>
+                    <p>または、2
+                    つのステップで変更を行うこともできます。列の削除 …
+                    列の追加</p>
+                    <p>実稼働システムは、ロールバックしてから再移行する必要があることをなぜ認識しなかったのでしょうか?</p>
+                    <p>各移行ファイルには特定のバージョン番号が付いています。
+                    20240502100000。実稼働環境にデプロイして移行した後、実稼働データベースにはこの移行が「適用済み」として保存されます。</p>
+                    <p>ファイルを編集して再デプロイしたとき、実稼働システムの観点からは、この移行はすでに適用されています。ファイルが編集されたことは認識されず、ロールバックして再度移行するための明示的なコマンドを実行することもありませんでした。</p>
+                    <p>このため、通常は新しい移行ファイルを作成することが最善の方法となります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>レールが部分的に見つかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "レールが部分的に見つかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>レールが部分的に見つかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなフォルダー構造があります</p>
+                    <pre><code>project/app/views/api/users/_user.json.jbuilder
+</code></pre>
+                    <p>エラーは</p>
+                    <pre><code>Searched in:
+  * &quot;/Users/name/Desktop/etc/etc/project/app/views&quot;
+
+ActionView::MissingTemplate - Missing partial api/users/_user.json.jbuilder with {:locale=&gt;[:en], :formats=&gt;[:html], :variants=&gt;[], :handlers=&gt;[:raw, :erb, :html, :builder, :ruby, :jbuilder]}.
+</code></pre>
+                    <p>レンダリングしようとしています</p>
+                    <pre><code>  &lt;script type=&quot;text/javascript&quot;&gt;
+    window.currentUser = &lt;%= render(&quot;api/users/user.json.jbuilder&quot;,
+        user: current_user).html_safe %&gt;
+  &lt;/script&gt;
+</code></pre>
+                    <p>まったく同じコードが Rails 5.xx
+                    では機能しましたが、現在は Rails 7.xx
+                    を使用しているため、このエラーで行き詰まっています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails 7
+                    では、ファイルに拡張子を含めるとエラーが発生します。</p>
+                    <pre><code>&lt;%= render partial: &quot;api/users/user&quot;, 
+    formats: [:json], 
+    handlers: [:jbuilder],
+    locals: { user: current_user } %&gt;
+</code></pre>
+                    <p>Works and Rails
+                    は部分的なものを見つけることができます。この場合、エラー
+                    メッセージはまったく役に立ちません。正しく実行しているように見えるだけです。また、部分レンダリングに渡す必要があるオプション
+                    ハッシュに関するドキュメントがまったく見つかりません。
+                    Github Copilot
+                    が自動的にそれを補完してくれたので、それに関する情報を見つけようとしてインターネットを探しましたが、見つかりませんでした。</p>
+                    <p>エラーメッセージを見るだけだと思います</p>
+                    <pre><code>{:locale=&gt;[:en], :formats=&gt;[:html], :variants=&gt;[], :handlers=&gt;[:raw, :erb, :html, :builder, :ruby, :jbuilder]}
+</code></pre>
+                    <p>次に、オプションがロケール、フォーマット、バリアント、ハンドラーであることに気づきましたか?</p>
+                    <p>ここで答えが見つかりました Rails 7
+                    の一部が欠落しています</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

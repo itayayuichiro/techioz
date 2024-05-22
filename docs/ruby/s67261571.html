@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RailsでAPIシリアライザー応答のUTC形式を設定するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RailsでAPIシリアライザー応答のUTC形式を設定するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RailsでAPIシリアライザー応答のUTC形式を設定するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ロンドンゾーンで申請時間を設定しました</p>
+                    <pre><code>config.time_zone = &#39;London&#39;
+</code></pre>
+                    <p>ただし、夏時間の問題を避けるために、API
+                    応答の日時を UTC 形式で返す必要があります。</p>
+                    <p>API
+                    コントローラーのみのタイムゾーンを変更してみました -
+                    API 応答の UTC 時間を設定するための before
+                    アクションを追加しました</p>
+                    <pre><code> api_controller.rb
+
+ before_action :set_utc_time
+
+ def set_utc_time
+  Time.zone = &#39;UTC&#39;
+ end
+</code></pre>
+                    <p>ただし、Webアプリケーションの応答にも反映されているようで、アプリケーション全体でロンドンのタイムゾーンがUTCに変更されます。</p>
+                    <pre><code>response_formatter.rb
+
+Time.use_zone(&#39;UTC&#39;) do
+render json: response_data, status: :ok
+end
+</code></pre>
+                    <p>そこで、ブロック内にタイムゾーンを設定してシリアライザー応答フォーマッタのタイムゾーンを実行しようとしましたが、うまくいかないようです</p>
+                    <p>注: fast_json_api
+                    シリアライザーを使用しています</p>
+                    <pre><code>sample serialiser:
+
+class LinguistUnavailabilitySerializer
+  include FastJsonapi::ObjectSerializer
+  attributes :id, :linguist_id, :departure_time, :return_time, :reason
+end
+
+</code></pre>
+                    <p>API レスポンスのみに UTC
+                    タイムゾーン形式を設定する必要がありますが、アプリケーションのタイムゾーンには反映されないはずです</p>
+                    <p>何か案は ？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>時間属性の属性を再定義してみてはいかがでしょうか
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/Netflix/fast_jsonapi#attributes
+                    そして、メソッドzone_offsetを使用して、現地時間と新しいタイムゾーンの間の加算を行います
+                    例えば</p>
+                    <pre><code>sample serialiser:
+
+class LinguistUnavailabilitySerializer
+  include FastJsonapi::ObjectSerializer
+  attributes :id, :linguist_id, :departure_time, :return_time, :reason
+
+  attribute :departure_time do |object|
+    a = %w(%Y %m %d %H %M %S)
+    # [&quot;%Y&quot;, &quot;%m&quot;, &quot;%d&quot;, &quot;%H&quot;, &quot;%M&quot;, &quot;%S&quot;]
+    tm = departure_time
+    # 2014-11-03 17:46:02 +0530
+    a.map { |s| tm.strftime(s) }
+    # [&quot;2014&quot;, &quot;11&quot;, &quot;03&quot;, &quot;17&quot;, &quot;46&quot;, &quot;02&quot;]
+    a.map! { |s| tm.strftime(s).to_i }
+    # [2014, 11, 3, 17, 46, 2]
+    Time.new(*a, Time.zone_offset(&#39;PST&#39;))
+  end
+end
+</code></pre>
+                    <p>https://stackoverflow.com/a/26714154/10124678
+                    に基づく変換時間</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

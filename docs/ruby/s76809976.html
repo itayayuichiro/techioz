@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby On Rails 7 - 登録用のカスタムコントローラーを考案する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby On Rails 7 - 登録用のカスタムコントローラーを考案する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby On Rails 7 -
+登録用のカスタムコントローラーを考案する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails
+                    アプリケーションに認証を含めようとしています。私は同じためにDevise
+                    gemを使用しています。以下がシナリオです。</p>
+                    <p>目的: Devise Registrations
+                    コントローラーではなく、Employees
+                    コントローラーを使用して新しいユーザーを作成したいと考えています。</p>
+                    <p>以下は私がやったことです:</p>
+                    <p><strong>従業員管理者</strong></p>
+                    <pre><code>class EmployeesController &lt; ApplicationController
+
+  # GET /employees or /employees.json
+  def index
+   @employees = User.search_employee(params[:employeesearchfield])
+  end
+
+  # GET /employees/1 or /employees/1.json
+  def show
+   
+   User.archive_employee(params[:id])
+   @employee = User.find(params[:id])
+   
+  end
+
+  # GET /employees/new
+ ** def new
+    @employee = User.new
+  end
+**
+  def import 
+    User.import(params[:file])
+    redirect_to employees_url, notice: &quot;Data imported.&quot;
+  end
+
+  def export
+  @employees = User.all
+  respond_to do |format|
+     format.csv { send_data @employees.to_csv, filename: &quot;employees-#{DateTime.now.strftime(&quot;%d%B%Y&quot;)}.csv&quot;}
+    end 
+  end
+
+  def delete_multiple
+   @employees = User.find(params[:employee_ids])
+   #Array objects can be deleted one by one only.
+   @employees.each(&amp;:destroy)
+   redirect_to employees_url, notice: &quot;Employee was successfully destroyed.&quot;
+  end
+
+  ** def create
+    @employee = User.new(employee_params)
+    if @employee.save
+      redirect_to root_path, notice: &quot;Please check your email for confirmation instructions.&quot;
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end**
+
+  private
+
+  def employee_params
+    params.require(:user).permit(:name, :department, :employedon, :manager, :appraisalrating, :ctc, :empcategory, :empnumber, :post, :DOB, :personalemail, :contact, :officelocation, :workstyle, :gender, :companyname, :workshift, :address, :socialstatus, :employeepermanentillness, :phstatus, :bpay, :lastrevision, :appraisalcomments, :sup1, :sup2, :sup3, :sup4, :skillcategory, :estatus, :role)
+  end
+
+ 
+end
+
+</code></pre>
+                    <p>Routes.rb ファイルで、登録コントローラーの Devise
+                    ルートを次のようにオーバーライドしました。</p>
+                    <p>ルートファイル</p>
+                    <pre><code>devise_for :employees, controllers: { registrations: &quot;employees/new&quot; }
+</code></pre>
+                    <p><strong>新しいユーザーフォーム</strong></p>
+                    <pre><code>&lt;div class = &quot;container&quot;&gt;
+
+
+&lt;%= form_with model: @employee, url: new_employee_path, method: :post do |f| %&gt;
+&lt;div class = &quot;container&quot;&gt;
+  
+    &lt;div class = &quot;row&quot;&gt;
+
+        &lt;p class=&quot;display-6&quot;&gt;ACCOUNT INFORMATION&lt;/p&gt;
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                  &lt;b&gt;USERNAME:&lt;/b&gt;
+                 &lt;%= f.email_field :email, placeholder: &quot;Enter username&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                 &lt;/div&gt;
+
+                 &lt;div class=&quot;form-group col-6&quot;&gt;
+                 &lt;b&gt;DEFAULT PASSWORD&lt;/b&gt;
+                 &lt;%= f.password_field :password, placeholder: &quot;Enter password (Minimum length: 6 characters)&quot;, class: &#39;form-content form-content w-100 p-1&#39; %&gt;
+                 &lt;/div&gt;
+    &lt;/div&gt;
+</code></pre>
+                    <p>質問: フォームを送信すると、ルーティング
+                    エラーが発生します。
+                    「ActionController::RoutingError ([POST]
+                    “/employees/new”
+                    に一致するルートがありません):」</p>
+                    <p>期待される結果:
+                    新しいユーザーが作成されます。</p>
+                    <p>試してみてください: Employee Controller が
+                    Devise::RegistrationsController
+                    から継承すべきかどうか混乱しています。試してみましたが、またエラーが発生してしまいました。この概念を理解できず、助けを求めたいと思いました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コントローラーを宣言するときは、次のことを行うだけです。コントローラー内のアクションや名前空間内のコントローラーではなく、コントローラーを宣言します。</p>
+                    <p>この行</p>
+                    <p>Device_for :employees、controllers: { 登録数:
+                    “employees/new” }</p>
+                    <p>コントローラーを探します:</p>
+                    <p>app/controllers/employees/new_controller.rb</p>
+                    <p>でも、あなたはそれを探しているわけではありませんよね？次のように行を変更する必要があります。</p>
+                    <p>Device_for :employees、controllers: { 登録:
+                    “従業員” }</p>
+                    <p>そして今あなたはターゲットにしています</p>
+                    <p>app/controllers/employees_controller.rb</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

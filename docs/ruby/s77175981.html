@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で、組み込み型と同じように特定のインスタンス変数を取得および設定する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で、組み込み型と同じように特定のインスタンス変数を取得および設定する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+で、組み込み型と同じように特定のインスタンス変数を取得および設定する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby
+                    では、他の言語と同様に、次のように組み込み型を取得および設定できます。</p>
+                    <pre><code>var1 = 12
+if var1 &gt; 10
+  var1 = 90
+end
+</code></pre>
+                    <p>ここで、私が（たとえば）符号なし整数のみを扱い、次のクラスを作成したい愚かな愚かな人だとしましょう。</p>
+                    <pre><code>class UInteger
+  attr_accessor :value
+  ...
+end
+</code></pre>
+                    <p>組み込み変数のゲッターとセッターを模倣して、呼び出しによる値へのアクセスを回避する方法はありますか</p>
+                    <pre><code>uint.value
+</code></pre>
+                    <p>または</p>
+                    <pre><code>uint.value = ...
+</code></pre>
+                    <p>常に、と置き換えてください</p>
+                    <pre><code>uint
+</code></pre>
+                    <p>または</p>
+                    <pre><code>uint = ...
+</code></pre>
+                    <p>?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>はい、しかしそれは決して組み込みの「型」に限定されるものではありません。カスタム
+                    クラスのインスタンスを使用して、まったく同じコードを使用できます。意味のある
+                    &gt; メソッドを提供する必要があります。例:
+                    (デモ目的のため、このクラスは有用なことは何も行いません)</p>
+                    <pre><code>class UInteger
+  def initialize(value)
+    @value = value.to_i
+  end
+
+  def &gt;(other)
+    @value &gt; other.to_i
+  end
+
+  def to_i
+    @value
+  end
+end
+</code></pre>
+                    <p>それ以外の場合、コード構造は同じままです。</p>
+                    <pre><code>var1 = UInteger.new(12)
+if var1 &gt; UInteger.new(10)
+  var1 = UInteger.new(90)
+end
+
+var1 #=&gt; #&lt;UInteger:0x00007f898992ebf8 @value=90&gt;
+</code></pre>
+                    <p>グローバル メソッド UInteger()
+                    を追加して、新しいインスタンスをより簡単に作成することもできます
+                    (BigDecimal
+                    のように)。また、あまり技術的ではない出力のために、その構文に似たカスタム検査メソッドを追加することもできます。</p>
+                    <pre><code>class UInteger
+  # ...
+
+  def inspect
+    &quot;UInteger(#{@value})&quot;
+  end
+end
+
+def UInteger(value) = UInteger.new(value)
+</code></pre>
+                    <p>上記の変更により、コードは次のようになります
+                    (これらの変更は純粋に表面的なものであり、以前と同様に
+                    UInteger のインスタンスです)</p>
+                    <pre><code>var1 = UInteger(12)
+if var1 &gt; UInteger(10)
+  var1 = UInteger(90)
+end
+
+var1 #=&gt; UInteger(90)
+</code></pre>
+                    <p>もちろん、UInteger
+                    インスタンスは実際の整数ではありません。整数値が必要な場合は、それを変換する必要があります。例:</p>
+                    <pre><code>var1 = UInteger(90)
+
+var1.to_i #=&gt; 90
+</code></pre>
+                    <p>これは、文字列のような組み込みクラスからインスタンスを変換することと何ら変わりません。</p>
+                    <pre><code>var1 = &quot;90&quot;
+
+var1.to_i #=&gt; 90
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

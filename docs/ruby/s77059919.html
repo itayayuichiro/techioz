@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku アドオン データベースの運用環境で Filterrific Search が機能しないのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku アドオン データベースの運用環境で Filterrific Search が機能しないのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku アドオン データベースの運用環境で
+Filterrific Search が機能しないのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Rails アプリに filterrific gem (現在 5.2.3)
+                    をよく使用しており、とても気に入っています。奇妙な問題に遭遇しました。開発チームが
+                    Heroku の追加アドオンとして書き込むためのセカンダリ
+                    Postgres
+                    データベースがあります。私のフィルタリフィック設定は実稼働環境のすべてのスコープ
+                    フィルタでうまく機能しますが、検索ではエラーが返されます。
+                    SQL シード
+                    データを使用した開発では、すべてが完璧に機能します。</p>
+                    <p>モデル.rb</p>
+                    <pre><code>filterrific(
+   default_filter_params: { },
+   available_filters: [
+     :sorted_by,
+     :with_search_please,
+     :with_manufacturer,
+     :with_boot_type,
+     :with_firm,
+     :with_monitor_count,
+     :with_ethernet_count,
+   ],
+ )
+
+scope :with_search_please, -&gt;(search_string) {
+  return nil  if search_string.blank?
+  terms = search_string.to_s.downcase.split(/\s+/)
+  terms = terms.map { |e|
+      #(&#39;%&#39; + e + &#39;%&#39;).gsub(/%+/, &#39;%&#39;)
+      (&#39;%&#39; + e.gsub(&#39;*&#39;, &#39;%&#39;) + &#39;%&#39;).gsub(/%+/, &#39;%&#39;)
+    }
+  num_or_conds = 6
+  self.where(
+      terms.map { |term|
+        &quot;(
+        LOWER(Terminals.Model) LIKE ?
+        OR LOWER(Terminals.TermcapModel) LIKE ?
+        OR LOWER(Manufacturers.Name) LIKE ?
+        OR LOWER(TerminalType.Type) LIKE ?
+        OR LOWER(Note.Description) LIKE ?
+        OR LOWER(FirmwarePackage.Version) LIKE ?
+        )&quot;
+      }.join(&#39; AND &#39;),
+      *terms.map { |e| [e] * num_or_conds }.flatten
+    )
+    .joins(:Manufacturers).references(:ManufacturerIds)
+    .joins(:TerminalType).references(:TypeIds)
+    .includes(:Notes).references(:TerminalIds)
+    .joins(:FirmwarePackages).references(:TerminalFirmwarePackages)
+}
+</code></pre>
+                    <p>ログエラー</p>
+                    <pre><code>Completed 500 Internal Server Error in 15ms (ActiveRecord: 3.2ms | Allocations: 6057)
+2023-09-07T12:56:11.955033+00:00 app[web.1]: F, [2023-09-07T12:56:11.954949 #2] FATAL -- : [9e6cf5c0-457c-47aa-9099-a5923e41b1ce]
+2023-09-07T12:56:11.955035+00:00 app[web.1]: [9e6cf5c0-457c-47aa-9099-a5923e41b1ce] ActionView::Template::Error (PG::UndefinedTable: ERROR:  missing FROM-clause entry for table &quot;terminals&quot;
+2023-09-07T12:56:11.955035+00:00 app[web.1]: LINE 2:         LOWER(Terminals.Model) LIKE &#39;%a%&#39;
+2023-09-07T12:56:11.955036+00:00 app[web.1]: ^
+</code></pre>
+                    <p>私は検索クエリを書き換えて、条件を削除したり、単純な
+                    SQL
+                    クエリを作成したりするいくつかの方法を試しました。開発環境ではすべてが問題なく機能し、運用環境ではすべてのフィルタリング
+                    スコープが機能するため、これは特に困難です。これまでにこの問題に遭遇したことがないので、セカンダリ
+                    アドオン
+                    データベースに関係しているはずだとわかっています。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの問題は、「端末」テーブルがクエリの一部ではないことです。</p>
+                    <p>また、Postgres
+                    の二重引用符で囲まれた識別子は大文字と小文字が区別されることにも注意してください。
+                    「端末」対「端末」。</p>
+                    <p>クエリ全体と、このコード
+                    ブロックが定義されている場所に関するコンテキストを投稿していただければ、サポートできる可能性があります。</p>
+                    <p>以上のことを踏まえた上で、このクエリは非常に厄介に思われるため、このクエリを少し整理するお手伝いをさせていただきたいと思います、IMO。</p>
+                    <p>投稿から、あなたの意図は次を検索することであるようです:
+                    「検索文字列内のすべての単語が次の列のいずれかに含まれるレコード:
+                    Terminals.Model、Termins.TermcapModel、Manufacturings.Name、terminalType.Type、Note.Description、ファームウェアパッケージ.バージョン」。</p>
+                    <p>次のように、より簡単な方法でこれを実現できます
+                    (おそらくその過程で問題を解決できます)。</p>
+                    <pre><code>scope :with_search_please, -&gt;(search_string) {
+  return none if search_string.blank? # A scope should not return nil
+
+  search_columns = [
+    Terminal.arel_table[:Model],
+    Terminal.arel_table[:TermcapModel],
+    Manufacturer.arel_table[:Name],
+    TerminalType.arel_table[:Type],
+    Note.arel_table[:Description],
+    FirmwarePackage.arel_table[:Version]
+  ]
+
+  terms = search_string.to_s
+          .gsub(&quot;*&quot;,&quot;%&quot;)
+          .split
+          .map {|term| &quot;%#{term}%&quot;}
+
+  where(search_columns.map {|c| c.matches_any(terms)}.reduce(:and))
+    .joins(:Manufacturers)
+    .joins(:TerminalType)
+    .left_joins(:Notes)
+    .joins(:FirmwarePackages)
+}
+</code></pre>
+                    <p>たとえば、search_string が「A Sun*ny
+                    Day」の場合、次のような WHERE 句が生成されます。</p>
+                    <pre><code>(Terminals.Model ILIKE &#39;%A%&#39; OR Terminals.Model ILIKE &#39;%Sun%ny%&#39; OR Terminals.Model ILIKE &#39;%Day%&#39;) AND 
+(Terminals.TermcapModel ILIKE &#39;%A%&#39; OR Terminals.TermcapModel ILIKE &#39;%Sun%ny%&#39; OR Terminals.TermcapModel ILIKE &#39;%Day%&#39;) AND 
+(Manufacturers.Name ILIKE &#39;%A%&#39; OR Manufacturers.Name ILIKE &#39;%Sun%ny%&#39; OR Manufacturers.Name ILIKE &#39;%Day%&#39;) AND 
+(TerminalType.Type ILIKE &#39;%A%&#39; OR TerminalType.Type ILIKE &#39;%Sun%ny%&#39; OR TerminalType.Type ILIKE &#39;%Day%&#39;) AND 
+(Note.Description ILIKE &#39;%A%&#39; OR Note.Description ILIKE &#39;%Sun%ny%&#39; OR Note.Description ILIKE &#39;%Day%&#39;) AND 
+(FirmwarePackage.Version ILIKE &#39;%A%&#39; OR FirmwarePackage.Version ILIKE &#39;%Sun%ny%&#39; OR FirmwarePackage.Version ILIKE &#39;%Day%&#39;)
+</code></pre>
+                    <p>全文検索を使えば、これをさらに進めることもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで標準出力に出力されているすべての行を検索します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで標準出力に出力されているすべての行を検索します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで標準出力に出力されているすべての行を検索します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Google は私を助けてくれません。私は print
+                    ステートメントやその類のものがたくさんある大規模な
+                    Rails
+                    プロジェクトを持っています。何かが印刷されていますが、何が印刷されているのかわかりません。仕様を見ましたが、印刷出力すべきものが見つかりません。</p>
+                    <p>コンソールに出力される行番号を示す、rspec または
+                    Ruby に渡すことができるフラグはありますか?</p>
+                    <p>それとも、grep コマンド EG grep -Rl ‘p “’
+                    を使用して、これらすべての print
+                    ステートメントを追跡しようとするのでしょうか?</p>
+                    <p>rspec の出力は次のようになります。</p>
+                    <pre><code>&quot;&quot;
+..*.****.......*****.........**.&quot;&quot;
+...&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+.&quot;&quot;
+...**.......&quot;&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>そして変数です！テスト構成の早い段階 (おそらく
+                    spec_helper)</p>
+                    <pre><code>class MyIO &lt; IO
+  def puts(*)
+    debugger
+    super
+  end
+end
+
+$stdout = $stderr = MyIO.new
+</code></pre>
+                    <p>MyIO には、StringIO や File
+                    など、より具体的なスーパークラスが必要になる場合があります。</p>
+                    <p>おそらく、一度実行するだけで犯人を見つけることができるでしょう。表示しても問題ないもので頻繁に呼び出されていることに気付いた場合は、caller_is_whitelisted
+                    でない限り、デバッガー行を複雑なデバッガーになるように調整してください。</p>
+                    <pre><code>def caller_is_whitelisted
+  return true if caller[2 (give or take)].matches(/some_file_that_may_print/)
+  ...
+  false
+end
+</code></pre>
+                    <p>これはすべて非常に大まかなコードであり、非常にひどいものですが、重大な問題があり、それは一時的なものです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

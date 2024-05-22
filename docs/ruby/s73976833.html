@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mac に Ruby 2.6.5 をインストール中に「__rvm_make -j10」を実行するとエラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mac に Ruby 2.6.5 をインストール中に「__rvm_make -j10」を実行するとエラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mac に Ruby 2.6.5
+をインストール中に「__rvm_make -j10」を実行するとエラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>m1 pro チップを搭載した Mac に Ruby 2.6.5
+                    をインストールしようとしていますが、「__rvm_make
+                    -j10」というエラーが発生します。</p>
+                    <p>Googleで検索してみましたが、「__rvm_make
+                    -j10」というエラーは見つかりませんでした。
+                    stackoverflow に同じエラーが発生する質問が 1
+                    つあり、同じ方法を試しましたが、うまくいきません。</p>
+                    <p>「rvm install 2.6.5
+                    –with-out-ext=fiddle」を試してみました Open ssl
+                    1.0でも試してみましたが、どれもうまくいきませんでした。</p>
+                    <pre><code>sammalik@Sams-MacBook-Pro rubyporgram % rvm install 2.6.5
+ruby-2.6.5 - #removing src/ruby-2.6.5 - please wait
+Searching for binary rubies, this might take some time.
+No binary rubies available for: osx/13.0/arm64/ruby-2.6.5.
+Continuing with compilation. Please read &#39;rvm help mount&#39; to get more information on binary rubies.
+Checking requirements for osx.
+Updating certificates bundle &#39;/opt/homebrew/etc/[email protected]/cert.pem&#39;
+Requirements installation successful.
+Installing Ruby from source to: /Users/sammalik/.rvm/rubies/ruby-2.6.5, this may take a while depending on your cpu(s)...
+ruby-2.6.5 - #downloading ruby-2.6.5, this may take a while depending on your connection...
+ruby-2.6.5 - #extracting ruby-2.6.5 to /Users/sammalik/.rvm/src/ruby-2.6.5 - please wait
+ruby-2.6.5 - #configuring - please wait
+ruby-2.6.5 - #post-configuration - please wait
+ruby-2.6.5 - #compiling - please wait
+Error running &#39;__rvm_make -j10&#39;,
+please read /Users/sammalik/.rvm/log/1668327329_ruby-2.6.5/make.log
+There has been an error while running make. Halting the installation.
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby 2.6.x は、Apple のコマンド ライン
+                    ツールのバージョン 14 以降を搭載した Mac
+                    ではサポートされなくなりました。これは macOS Ventura
+                    (13.0) の場合に当てはまります。 Homebrew
+                    がインストールされていると仮定すると、brew config
+                    を実行してバージョンを確認し、下部にある CLT: と
+                    Xcode で始まる行を確認します。</p>
+                    <p>Ruby 2.6 は 2022 年 3
+                    月にサポートが終了したため、セキュリティ上の理由から本番環境では使用しないでください。多くの人は、プロジェクトの
+                    .ruby-version や Gemfile
+                    で指定されているバージョンの Ruby
+                    を使用しなければならないと考えているため、行き詰まってしまいます。代わりに、プロジェクトを新しいバージョンに更新することをお勧めします。</p>
+                    <p>ほとんどの場合、次の手順に従うだけで簡単です。</p>
+                    <p>推奨されるアプローチがわかったので、2.7.7
+                    に更新する前に Ruby 2.6
+                    を使用する特別な必要がある場合に備えて、2
+                    つの解決策を見てみましょう。</p>
+                    <pre><code>By default, binaries installed by gem will be placed into:
+  /opt/homebrew/lib/ruby/gems/2.6.0/bin
+
+You may want to add this to your PATH.
+
+If you need to have ruby first in your PATH, run:
+  echo &#39;export PATH=&quot;/opt/homebrew/opt/ruby/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc
+</code></pre>
+                    <p>これが機能する理由は、これがバージョン 13.3
+                    のコマンド ライン
+                    ツールでコンパイルされたビルド済みバージョンの Ruby
+                    であるためです。ただし、正式にサポートされていないことに注意してください。</p>
+                    <p>RVM
+                    または以前に使用した可能性のある他のバージョン
+                    マネージャーを無効にする必要があることに注意してください。また、このセットアップでは
+                    2.6.10 のみを使用できます。 RVM または別のバージョン
+                    マネージャーを使用してインストールした他のバージョンに切り替えることはできません。</p>
+                    <p>これは、プロジェクトを 2.6.10 で実行してから
+                    2.7.7
+                    に更新できるようにするための一時的な解決策を目的としています。また、いずれの方法でも、プロジェクトを少なくとも
+                    2.6.10 に更新する必要があることに注意してください。
+                    2.6.5
+                    を使用する理由はまったくありません。アプリがシリーズの最新バージョンを実行していることを常に確認する必要があります。
+                    2.6 の場合は 2.6.10、2.7 の場合は 2.7.7、次に
+                    3.0.5、3.1.3 になります。</p>
+                    <p>これは macOS Ventura (13.0)
+                    では不可能なので、時間を無駄にしないでください。
+                    macOS Monterey を使用している場合は、Apple
+                    の開発者サイトからコマンド ライン ツールのバージョン
+                    13.4 をダウンロードしてインストールできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

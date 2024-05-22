@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Nginx の不明なディレクティブ「auth_request」 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Nginx の不明なディレクティブ「auth_request」",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Nginx
+の不明なディレクティブ「auth_request」</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この auth_request モジュールをカスタム nginx
+                    ビルドパックに含めるにはどうすればよいですか?</p>
+                    <p>これが私の構成です:</p>
+                    <pre><code>daemon off;
+# Heroku dynos have at least 4 cores.
+worker_processes &lt;%= ENV[&#39;NGINX_WORKERS&#39;] || 4 %&gt;;
+
+events {
+    use epoll;
+    accept_mutex on;
+    worker_connections &lt;%= ENV[&#39;NGINX_WORKER_CONNECTIONS&#39;] || 1024 %&gt;;
+}
+
+http {
+    gzip on;
+    gzip_comp_level 2;
+    gzip_min_length 512;
+
+    server_tokens off;
+
+    log_format l2met &#39;measure#nginx.service=$request_time request_id=$http_x_request_id&#39;;
+    access_log &lt;%= ENV[&#39;NGINX_ACCESS_LOG_PATH&#39;] || &#39;logs/nginx/access.log&#39; %&gt; l2met;
+    error_log &lt;%= ENV[&#39;NGINX_ERROR_LOG_PATH&#39;] || &#39;logs/nginx/error.log&#39; %&gt;;
+
+    include mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+
+    # Must read the body in 5 seconds.
+    client_body_timeout 5;
+
+    upstream app_server {
+        server unix:/tmp/nginx.socket fail_timeout=0;
+    }
+
+    server {
+        listen &lt;%= ENV[&quot;PORT&quot;] %&gt;;
+        server_name _;
+        keepalive_timeout 5;
+
+    location / {
+        auth_request /_oauth2_token_introspection;
+        proxy_pass http://my_backend;
+    }
+
+
+        
+
+        location /_oauth2_send_request {
+            internal;
+            proxy_method      POST;
+            proxy_set_header  Authorization &quot;Bearer SecretForOAuthServer&quot;;
+            proxy_set_header  Content-Type &quot;application/x-www-form-urlencoded&quot;;
+            proxy_set_body    &quot;token=$http_apikey&amp;token_hint=access_token&quot;;
+            proxy_pass        https://idp.example.com/oauth/token/introspect;
+         }
+
+    }
+}
+</code></pre>
+                    <p>/configure にある build_nginx ファイルに
+                    –with-http_auth_request_module を追加しました。</p>
+                    <pre><code>#!/bin/bash
+# Build NGINX and modules for Heroku.
+# This script is designed to run in a Heroku Stack Docker
+# image. More information on the Heroku Stack can be found
+# at https://devcenter.heroku.com/articles/stack
+
+NGINX_VERSION=${NGINX_VERSION-1.18.0}
+PCRE_VERSION=${PCRE_VERSION-8.44}
+HEADERS_MORE_VERSION=${HEADERS_MORE_VERSION-0.33}
+ZLIB_VERSION=${ZLIB_VERSION-1.2.11}
+UUID4_VERSION=${UUID4_VERSION-master}
+
+nginx_tarball_url=https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+pcre_tarball_url=https://ftp.pcre.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz
+headers_more_nginx_module_url=https://github.com/openresty/headers-more-nginx-module/archive/v${HEADERS_MORE_VERSION}.tar.gz
+uuid4_url=https://github.com/cybozu/nginx-uuid4-module/archive/${UUID4_VERSION}.tar.gz
+zlib_url=http://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+
+temp_dir=$(mktemp -d /tmp/nginx.XXXXXXXXXX)
+
+cd $temp_dir
+echo &quot;Temp dir: $temp_dir&quot;
+
+echo &quot;Downloading $nginx_tarball_url&quot;
+curl -L $nginx_tarball_url | tar xzv
+
+echo &quot;Downloading $pcre_tarball_url&quot;
+(cd nginx-${NGINX_VERSION} &amp;&amp; curl -L $pcre_tarball_url | tar xvz )
+
+echo &quot;Downloading $headers_more_nginx_module_url&quot;
+(cd nginx-${NGINX_VERSION} &amp;&amp; curl -L $headers_more_nginx_module_url | tar xvz )
+
+echo &quot;Downloading $zlib_url&quot;
+(cd nginx-${NGINX_VERSION} &amp;&amp; curl -L $zlib_url | tar xvz )
+
+echo &quot;Downloading $uuid4_url&quot;
+(cd nginx-${NGINX_VERSION} &amp;&amp; curl -L $uuid4_url | tar xvz )
+
+# This will build `nginx`
+(
+  cd nginx-${NGINX_VERSION}
+  ./configure \
+    --with-pcre=pcre-${PCRE_VERSION} \
+    --with-zlib=zlib-${ZLIB_VERSION} \
+    --with-http_gzip_static_module \
+    --with-http_realip_module \
+    --with-http_ssl_module \
+    --with-http_auth_request_module \
+    --prefix=/tmp/nginx \
+    --add-module=${temp_dir}/nginx-${NGINX_VERSION}/headers-more-nginx-module-${HEADERS_MORE_VERSION} \
+    --add-module=${temp_dir}/nginx-${NGINX_VERSION}/nginx-uuid4-module-${UUID4_VERSION}
+  make install
+)
+
+# This will build `nginx-debug`
+(
+  cd nginx-${NGINX_VERSION}
+  ./configure \
+    --with-debug \
+    --with-pcre=pcre-${PCRE_VERSION} \
+    --with-zlib=zlib-${ZLIB_VERSION} \
+    --with-http_gzip_static_module \
+    --with-http_auth_request_module \
+    --with-http_realip_module \
+    --with-http_ssl_module \
+    --prefix=/tmp/nginx-debug \
+    --add-module=${temp_dir}/nginx-${NGINX_VERSION}/headers-more-nginx-module-${HEADERS_MORE_VERSION} \
+    --add-module=${temp_dir}/nginx-${NGINX_VERSION}/nginx-uuid4-module-${UUID4_VERSION}
+  make install
+)
+
+release_dir=$(mktemp -d /tmp/nginx.XXXXXXXXXX)
+
+cp /tmp/nginx/sbin/nginx $release_dir/nginx
+cp /tmp/nginx-debug/sbin/nginx $release_dir/nginx-debug
+cp /tmp/nginx/conf/mime.types $release_dir/mime.types
+tar -zcvf /tmp/nginx-&quot;${STACK}&quot;.tgz -C $release_dir .
+cp /tmp/nginx-&quot;${STACK}&quot;.tgz $1
+</code></pre>
+                    <p>それにもかかわらず、エラーは引き続き発生します:
+                    nginx: [emerg] 不明なディレクティブ
+                    “auth_request”</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは、nginx
+                    が別の場所にインストールされているように思えますが、それは
+                    PATH
+                    にありますか?今日も同じ問題が発生しましたが、これが問題でした。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

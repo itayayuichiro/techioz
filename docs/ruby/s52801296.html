@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でコンパイルされた protobuf メッセージから enum 値を取得する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でコンパイルされた protobuf メッセージから enum 値を取得する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby でコンパイルされた protobuf
+メッセージから enum 値を取得する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなコンパイル済み Ruby protobuf
+                    メッセージがあります。</p>
+                    <pre><code>  require &#39;google/protobuf&#39;
+
+  Google::Protobuf::DescriptorPool.generated_pool.build do
+    add_message &quot;PingPacket&quot; do
+      optional :message_counter, :int32, 1
+      optional :message_type, :enum, 2, &quot;PingPacket.MessageType&quot;
+    end
+    add_enum &quot;PingPacket.MessageType&quot; do
+      value :REPORT, 0
+      value :LOW_BATTERY, 1
+      value :LOCATE_REQUEST, 2
+      value :CHECK_IN, 3
+      value :SOS, 4
+      value :RESTING, 5
+      value :MOVING, 6
+      value :EVENT, 7
+      value :SYSTEM_TEST, 8
+    end
+  end
+
+  PingPacket = Google::Protobuf::DescriptorPool.generated_pool.lookup(&quot;PingPacket&quot;).msgclass
+  PingPacket::MessageType = Google::Protobuf::DescriptorPool.generated_pool.lookup(&quot;PingPacket.MessageType&quot;).enummodule
+</code></pre>
+                    <p>すべての MessageType
+                    値を含む配列を取得しようとしています。私は明白なことを試してみました：</p>
+                    <pre><code>PingPacket::MessageType.enums
+PingPacket::MessageType.values
+PingPacket::MessageType.to_s
+</code></pre>
+                    <p>しかし、何も機能しません。どうすればそれらの値を取得できますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私は Pry で物事を検査するのが好きです。pry
+                    コンソールにコードをロードすると、次の結果が得られます。</p>
+                    <ol type="1">
+                    <li>あなたのクラスはモジュールです</li>
+                    </ol>
+                    <pre><code>[2] pry(main)&gt; PingPacket::MessageType.class
+=&gt; Module
+</code></pre>
+                    <p>クラス内に入ると、次のようになります。</p>
+                    <pre><code>[4] pry(main)&gt; cd PingPacket::MessageType
+[5] pry(PingPacket::MessageType):1&gt; ls
+constants: 
+  CHECK_IN  LOCATE_REQUEST  MOVING  RESTING  SYSTEM_TEST
+  EVENT     LOW_BATTERY     REPORT  SOS    
+PingPacket::MessageType.methods: descriptor  lookup  resolve
+locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
+</code></pre>
+                    <p>次に、すべての定数を検査できます。</p>
+                    <pre><code>[6] pry(PingPacket::MessageType):1&gt; constants
+=&gt; [:CHECK_IN,
+ :SOS,
+ :RESTING,
+ :MOVING,
+ :EVENT,
+ :SYSTEM_TEST,
+ :REPORT,
+ :LOW_BATTERY,
+ :LOCATE_REQUEST]
+</code></pre>
+                    <p>最後に、このトリックを使用してモジュールを形成する定数値を取得できます。</p>
+                    <pre><code>[9] pry(PingPacket::MessageType):1&gt; constants(false).map &amp;method(:const_get)
+=&gt; [3, 4, 5, 6, 7, 8, 0, 1, 2]
+</code></pre>
+                    <p>これでうまくいきます</p>
+                    <pre><code>[12] pry(main)&gt; PingPacket::MessageType.constants(false).map &amp;PingPacket::MessageType.method(:const_get)
+=&gt; [3, 4, 5, 6, 7, 8, 0, 1, 2]
+</code></pre>
+                    <p>また、次のように機能する 3
+                    つのメソッドがあることもわかります。</p>
+                    <pre><code>[31] pry(PingPacket::MessageType):1&gt; resolve :CHECK_IN
+=&gt; 3
+[33] pry(PingPacket::MessageType):1&gt; lookup 3
+=&gt; :CHECK_IN
+[37] pry(PingPacket::MessageType):1&gt; descriptor.each do |i|
+[37] pry(PingPacket::MessageType):1* puts i
+[37] pry(PingPacket::MessageType):1* end
+LOCATE_REQUEST
+SOS
+SYSTEM_TEST
+LOW_BATTERY
+EVENT
+CHECK_IN
+RESTING
+MOVING
+REPORT
+=&gt; nil
+</code></pre>
+                    <p>たとえばこれを確認してください:</p>
+                    <pre><code>[42] pry(PingPacket::MessageType):1&gt; descriptor.each do |i|
+[42] pry(PingPacket::MessageType):1* puts resolve i
+[42] pry(PingPacket::MessageType):1* end
+2
+4
+8
+1
+7
+3
+5
+6
+0
+=&gt; nil
+</code></pre>
+                    <p>最後にすべてを結合して、すべてのキーと値をハッシュに入れましょう</p>
+                    <pre><code>[54] pry(main)&gt; Hash[PingPacket::MessageType.descriptor.collect do |i| [i, PingPacket::MessageType.resolve(i)] end]
+=&gt; {:LOCATE_REQUEST=&gt;2,
+ :SOS=&gt;4,
+ :SYSTEM_TEST=&gt;8,
+ :LOW_BATTERY=&gt;1,
+ :EVENT=&gt;7,
+ :CHECK_IN=&gt;3,
+ :RESTING=&gt;5,
+ :MOVING=&gt;6,
+ :REPORT=&gt;0}
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

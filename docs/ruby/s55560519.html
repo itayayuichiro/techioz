@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>InstanceDouble(session) (anonymous)&gt; 予期しないメッセージを受信しました:[]= | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "InstanceDouble(session) (anonymous)&gt; 予期しないメッセージを受信しました:[]=",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>InstanceDouble(session) (anonymous)&gt;
+予期しないメッセージを受信しました:[]=</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rspec
+                    の動作に問題があります。セッションを使用するサービスのテストを作成して、値を読み取り、この値を上書きしようとしています。</p>
+                    <p>たとえば、テストしたいこと</p>
+                    <pre><code>class CurrentCartService
+  attr_reader :user, :session
+
+  def initialize(user, session)
+    @user = user
+    @session = session
+  end
+
+  def cart_id
+    { id: session[:cart_id] }
+  end
+
+  def assigne_cart_to_session
+    session[:cart_id] = current_cart.id
+  end
+
+</code></pre>
+                    <p>スペック</p>
+                    <pre><code>describe CurrentCartService do
+  let(:current_user) { user }
+  let(:session) { double(&#39;session&#39;) }
+
+  let!(:cart) { create(:cart) }
+
+  subject { described_class.new current_user, session }
+
+  before do
+    allow(session).to receive(:[]).and_return(cart.id)
+  end
+
+  describe &#39;#call&#39; do
+    context &#39;when user is not signed&#39; do
+      let(:user) { nil }
+      it { subject.call }
+    end
+  end
+end
+</code></pre>
+                    <p>バインディング.こじ開け</p>
+                    <pre><code>session[:cart_id]
+=&gt; 574
+</code></pre>
+                    <pre><code>session[:cart_id] = 123
+RSpec::Mocks::MockExpectationError: #&lt;InstanceDouble(session) (anonymous)&gt; received unexpected message :[]= with (:cart_id, 123)
+</code></pre>
+                    <p>これを修正するにはどうすればよいですか?期待して書いてみた</p>
+                    <pre><code>expect(session).to receive(:[])
+</code></pre>
+                    <p>しかし、それは機能しません、それはまだ同じエラーです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このメッセージは、あなたのダブルが引数:cart_id と
+                    123 を持つメッセージ []=
+                    を受信したが、それを予期していなかったということを示しています。</p>
+                    <p>いくつかの基本的なロジックを適用してみましょう。問題は：</p>
+                    <p>したがって、メッセージを取り除くためにできることは
+                    2 つあります。</p>
+                    <p>最初の方法は簡単です。session[:cart_id] =
+                    current_cart.id と書かれている 14
+                    行目を削除するだけです。これは、[]=
+                    を呼び出している唯一の場所だからです。しかし、それはあなたがやりたいことではないと思います。</p>
+                    <p>2番も簡単です。特定のメッセージを期待するように
+                    double に指示できる Expect
+                    と呼ばれるメソッドがあります。したがって、私たちがしなければならないのは、期待を設定することだけです。</p>
+                    <p>適切な失敗メッセージはテスト
+                    フレームワークにおいて非常に重要であり、ありがたいことに
+                    RSpec
+                    には適切な失敗メッセージがあります。失敗メッセージには、テストを進める方法が示されます。引用したメッセージには、必要な情報がすべて含まれています。</p>
+                    <p>何も考えずに、文字通りこの情報をコピー＆ペーストするだけです。</p>
+                    <pre><code>expect(session).to receive(:[]=).with(:cart_id, 123)
+</code></pre>
+                    <p>あるいは、テストの脆弱性を少し減らし、123
+                    をハードコーディングしないようにしたい場合は、次のようなこともできます。</p>
+                    <pre><code>expect(session).to receive(:[]=).with(:cart_id, instance_of(Integer))
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

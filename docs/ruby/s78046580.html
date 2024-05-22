@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>SQLite3 および Rack Basic 認証ではユーザー名を実行パラメータとして使用できません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "SQLite3 および Rack Basic 認証ではユーザー名を実行パラメータとして使用できません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>SQLite3 および Rack Basic
+認証ではユーザー名を実行パラメータとして使用できません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のコード スニペットを考えてみましょう。</p>
+                    <pre><code>require &quot;sqlite3&quot;
+
+db = SQLite3::Database.new &quot;my.db&quot;
+p db.execute(&quot;select * from user where name = ?&quot;, [&quot;my_user_name&quot;])
+</code></pre>
+                    <p>これにより、ユーザー名が「my
+                    username」であるエントリがデータベースに出力されます。これは意図したとおりに機能します。</p>
+                    <p>ここで、次のコード スニペット (config.ru)
+                    について考えてみましょう。</p>
+                    <pre><code>require &quot;rack/auth/basic&quot;
+require &quot;sqlite3&quot;
+
+use Rack::Auth::Basic, &quot;my authentication&quot; do |username, password|
+  p username
+  p db.execute(&quot;select * from user where name = ?&quot;, [username])
+end
+
+run do |env|
+  [200, {}, []]
+end
+</code></pre>
+                    <p>このサーバーにリクエストを送信すると、次のようになります。</p>
+                    <pre><code>curl -X POST -v -ujomy:abc123 localhost:9292 -d &#39;&#39;
+</code></pre>
+                    <p>(ラックアップを使用して)
+                    サーバーを起動したターミナルに次の出力が表示されます。</p>
+                    <pre><code>&quot;my_user_name&quot;
+[]
+</code></pre>
+                    <p>そのため、SQL クエリから結果が返されません。</p>
+                    <p>この行を db.execute
+                    ステートメントの前に挿入すると、次のようになります。</p>
+                    <pre><code>username = &quot;my_user_name&quot;
+</code></pre>
+                    <p>これで実際に結果が返されました。</p>
+                    <p>ユーザー名を username.to_s
+                    に置き換えても機能しません。</p>
+                    <p>ということは、Rack
+                    が提供するユーザー名変数の使用は sqlite
+                    では機能しないのでしょうか? username.class が String
+                    であるにもかかわらず、これはどのようにして可能でしょうか?
+                    username.size も “my_user_name”.size
+                    と等しくなります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これはエンコードの問題です。このブロックでは、ユーザー名とパスワードが「ASCII-8BIT」としてエンコードされます。</p>
+                    <pre><code>use Rack::Auth::Basic, &quot;my authentication&quot; do |username, password|
+  p username
+  p db.execute(&quot;select * from user where name = ?&quot;, [username])
+end
+</code></pre>
+                    <p>これを解決するには、次のように
+                    String#force_encoding
+                    を使用してエンコーディングを変更します。</p>
+                    <pre><code>use Rack::Auth::Basic, &quot;my authentication&quot; do |username, password|
+  p username
+  p db.execute(&quot;select * from user where name = ?&quot;, [username.force_encoding(&#39;UTF-8&#39;)])
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

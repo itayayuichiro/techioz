@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord::Statementカテゴリ#new で無効です | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord::Statementカテゴリ#new で無効です",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord::Statementカテゴリ#new
+で無効です</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>親カテゴリに gem
+                    の祖先を使用したいのですが、次のエラーが発生しました。</p>
+                    <pre><code>ActiveRecord::StatementInvalid in Categories#new PG::SyntaxError:
+ERROR:  syntax error at or near &quot;)&quot; LINE 1: ...ECT &quot;categories&quot;.* FROM &quot;categories&quot; WHERE (id != ) ORDER BY...
+</code></pre>
+                    <p>脳卒中：</p>
+                    <pre><code>&lt;%= form.collection_select :parent_id, Category.where(&quot;id != #{@category.id}&quot;).order(:name), :id, :name, {include_blank: true} %&gt;
+</code></pre>
+                    <p>もうどうすればいいのかわかりません…このエラーが発生するのは初めてです</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題</p>
+                    <p>補間を使用します</p>
+                    <pre><code>Category.where(&quot;id != #{@category.id}&quot;).order(:name)
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="category">@category</span>
+                    が新しいレコードの場合は、まだ ID
+                    がありません。これは、Ruby では nil
+                    であることを意味します。</p>
+                    <pre><code>@category.id
+# =&gt; nil
+</code></pre>
+                    <p>nil
+                    を補間すると、空の文字列にキャストされます。</p>
+                    <pre><code>nil.to_s # =&gt; &quot;&quot;
+</code></pre>
+                    <p>それは、エラーメッセージに (id != )
+                    が含まれているためです。</p>
+                    <p>解決</p>
+                    <p>したがって、そうでない別のクエリを使用することをお勧めします。</p>
+                    <pre><code>Category.where.not(id: @category.id).order(:name)
+</code></pre>
+                    <p>そして最後に</p>
+                    <pre><code>&lt;%= form.collection_select :parent_id, Category.where.not(id: @category.id).order(:name), :id, :name, {include_blank: true} %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

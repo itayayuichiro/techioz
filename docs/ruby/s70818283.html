@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>リスト上でメソッドチェーンを実行できますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "リスト上でメソッドチェーンを実行できますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>リスト上でメソッドチェーンを実行できますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby ではこのようなことをやります。私は Ruby
+                    出身なので、メソッドチェーンを非常に簡単に実行できます。例を見てみましょう。リストからすべての偶数を選択し、それに
+                    5 を追加したい場合。</p>
+                    <pre><code>nums = [...]
+nums.select {|x| x % 2 == 0 }.map { |x| x + 5 }
+</code></pre>
+                    <p>Python では次のようになります</p>
+                    <pre><code>nums = [...]
+list(map(lambda x: x + 5, filter(lambda x: x % 2 == 0, nums)))
+</code></pre>
+                    <p>Python の構文はひどいようです。 Google
+                    で調べてみましたが、良い答えは見つかりませんでした。私が見たのは、カスタム
+                    オブジェクトを使用してこのようなことをどのように実現できるかということだけでしたが、このようにリストを処理するものは何もありませんでした。何かが足りないのでしょうか？</p>
+                    <p>デバッグ コンソールでは、いくつかの ActiveRecord
+                    オブジェクトを配列で取得することが非常に便利で、メソッドをチェーンしてエンティティを処理してデバッグすることができました。
+                    Python では、作業が多すぎるように思えます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby では、すべての列挙可能なオブジェクトに
+                    Enumerable
+                    インターフェイスが含まれているため、あなたが言及したような便利なメソッドをすべて取得できます。しかし、Python
+                    にはイテラブルに共通のスーパークラスがありません。イテラブルは文字通り「<strong>iter</strong>
+                    をサポートするもの」として定義され、すべてのイテラブルのスーパークラスのふりをする
+                    Iterable
+                    と呼ばれる抽象クラスがありますが、実際にはメソッドを提供しておらず、継承内にありません。すべてのイテラブルのチェーン
+                    (<strong>add</strong> を記述して +
+                    をオーバーライドできるのと同じ方法で、dunder
+                    メソッドの魔法を使用して isinstance と issubclass
+                    の動作をオーバーライドします)。</p>
+                    <p>Alakazam
+                    ライブラリはまさにこの機能を実装しています。 (開示:
+                    私はこのライブラリの作成者および管理者ですが、まさにあなたが求めていることを実行するので、ここで言及します)</p>
+                    <p>Alakazam は、任意の Python
+                    反復可能オブジェクトをラップし、すべての組み込み
+                    Python シーケンス メソッド、すべての itertools
+                    モジュール、およびデフォルトでは Python
+                    に含まれていないその他のいくつかの便利なストリーム指向メソッドをメソッドとして提供する
+                    Alakazam クラスを提供します。
+                    。上記の例を考えてみましょう</p>
+                    <pre><code>nums.select {|x| x % 2 == 0 }.map { |x| x + 5 }
+</code></pre>
+                    <p>Python では次のようになります</p>
+                    <pre><code>list(map(lambda x: x + 5, filter(lambda x: x % 2 == 0, nums)))
+</code></pre>
+                    <p>アラカザムの場合は次のようになります</p>
+                    <pre><code>zz.of(nums).filter(lambda x: x % 2 == 0).map(lambda x: x + 5).list()
+</code></pre>
+                    <p>または、Alakazam のラムダ構文を使用する</p>
+                    <pre><code>zz.of(nums).filter(_1 % 2 == 0).map(_1 + 5).list()
+</code></pre>
+                    <p>Alakazam の filter や map
+                    などのメソッドは、必要に応じて Python
+                    の動作に合わせて遅延するため、反復可能オブジェクトを消費して単一のリスト結果を生成するには、最後に
+                    list() を記述する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

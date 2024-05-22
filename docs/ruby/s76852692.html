@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>位置属性との順序付けされた has_many_though 関連付け | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "位置属性との順序付けされた has_many_though 関連付け",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>位置属性との順序付けされた has_many_though
+関連付け</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>プレイリストとソングの 2
+                    つのモデルがあります。プレイリストには、位置属性を持つ結合テーブル
+                    playlist_song_associations
+                    を通じて順序付けられた曲のリストがあります。</p>
+                    <pre><code>class Playlist &lt; ApplicationRecord
+  has_many :playlist_song_associations, dependent: :destroy
+  has_many :songs, through: :playlist_song_associations
+end
+
+class Song &lt; ApplicationRecord
+  has_many :playlist_song_associations, dependent: :destroy
+  has_many :playlists, through: :playlist_song_associations
+end
+
+class PlaylistSongAssociation &lt; ApplicationRecord
+  belongs_to :playlist, touch: true
+  belongs_to :song
+  default_scope { order(position: :asc) }
+end
+</code></pre>
+                    <p>これで、コントローラーの更新メソッドができました。次のようなことを行います。</p>
+                    <pre><code>playlist.songs = get_ordered_songs_from_params
+</code></pre>
+                    <p>そして、get_owned_songs_from_params
+                    配列内の順序に従って関連付けを順序付けしたいと考えています。</p>
+                    <p>Rails
+                    が関連付けの位置属性を自動的に設定するようにこれを設定する方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>それを自動的に行うレールを入手できるかどうかの答えはおそらく「ノー」ですが、もしかしたらそれはあなたが本当に望んでいることではないでしょうか?</p>
+                    <p>セットアップ方法では、PlaylistSongAssociation
+                    は実際のオブジェクトです。まるで意味があるかのように存在している。しかし、実際には、プレイリストのコンテキストの外では意味がありません。決して一人で編集しないでください。</p>
+                    <p>より良いモデルは、Playlist 内に Song_id
+                    の配列を持ち、PlaylistSongAssociation
+                    を削除することです。欠点は、ほぼ確実に曲の参照整合性が失われることです。しかし、それは選択したデータベースによって異なる可能性があり、おそらくそれはあなたにとって本当の懸念ではないかもしれません（曲が削除される可能性が低いか非常にまれである場合、または問題から回復している場合）それ）。</p>
+                    <p>Railsに配列列を追加する</p>
+                    <p>または json
+                    列を使用します。繰り返しますが、データベースによって異なります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ajax で処理できないエンティティ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ajax で処理できないエンティティ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ajax で処理できないエンティティ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「タスク」オブジェクトの「ステータス」パラメータを変更するには、Ajax
+                    リクエストを行う必要があります。
+                    スクリプト、そうです、タスクの ID
+                    と新しいステータスを取得できます。必要なのはそれだけです。ただし、エラーはroutes.rbファイル、またはコントローラーに配置したupdate_status関数、またはいずれにせよajax
+                    URLにあると思います。次のエラーが発生します:
+                    jquery-1.12.4.js:10254 PATCH
+                    http://127.0.0.1:3000/tasks/13/update_status 422
+                    (処理できないエンティティ)</p>
+                    <p>Index.html.erb の js と ajax:</p>
+                    <pre><code>    &lt;script&gt;
+    $(function() {
+      var taskId;
+      $(&quot;.drag&quot;).draggable({
+        revert: &quot;invalid&quot;,
+        start: function(event, ui) {
+          // Stores the task ID when the drag starts
+          taskId = ui.helper.data(&quot;task-id&quot;);
+        }
+      });
+    
+      $(&quot;.box&quot;).droppable({
+        accept: &quot;.drag&quot;,
+        drop: function(event, ui) {
+          // When a child div is dropped onto a parent div
+          $(this).append(ui.helper); // Move a div filha para a div pai
+    
+    
+          // Get the new status based on the parent div
+          var newStatus = $(this).attr(&quot;id&quot;);
+          // Simulate an AJAX request to update task status
+          console.log(&quot;Tarefa &quot; + taskId + &quot; movida para &quot; + newStatus);
+    
+          $.ajax({
+          url: &quot;/tasks/&quot; + taskId + &quot;/update_status&quot;,
+          method: &quot;PATCH&quot;, 
+          data: { task: { status: newStatus } },
+          success: function(response) {
+              console.log(response);
+          }
+    
+        });
+        }
+      });
+      });
+    &lt;/script&gt;
+    &lt;%= link_to &quot;New task&quot;, new_task_path %&gt;
+</code></pre>
+                    <p>ファイルroutes.db:</p>
+                    <pre><code>    Rails.application.routes.draw do
+      resources :tasks do
+        member do
+          patch &#39;update_status&#39; # Nome da rota personalizada
+        end
+      end 
+      root to: &quot;static_pages#index&quot;
+    end
+</code></pre>
+                    <p>ファイルtasks_controller.rbの一部:</p>
+                    <pre><code>    def update
+        respond_to do |format|
+          if @task.update(task_params)
+            format.html { redirect_to task_url(@task), notice: &quot;Task was successfully updated.&quot; }
+            format.json { render :show, status: :ok, location: @task }
+          else
+            format.html { render :edit, status: :unprocessable_entity }
+            format.json { render json: @task.errors, status: :unprocessable_entity }
+          end
+        end
+      end
+    
+      def update_status
+        @task = Task.find(params[:id])
+    
+        # Verifique se o status fornecido é válido (você pode adicionar suas próprias validações aqui)
+        new_status = params[:status]
+    
+        @task.update(status: new_status)
+    
+      end
+</code></pre>
+                    <p>ajaxでステータスを変更しようとしたところ、処理できないエンティティが発生しました</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このコードでは StrongParameters
+                    を使用していないため、エラーが発生する可能性があります。</p>
+                    <p>次のように変更することをお勧めします。</p>
+                    <pre><code>  def update_status
+    @task = Task.find(params[:id])
+
+    new_status = params.require(:task).permit(:status)
+
+    @task.update(status: new_status)
+  end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

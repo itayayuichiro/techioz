@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アホイ ハッシュ プロパティ別のトップ イベント | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アホイ ハッシュ プロパティ別のトップ イベント",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アホイ ハッシュ プロパティ別のトップ
+イベント</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>イベントの特定のプロパティ (「値」)
+                    に基づいて、データベース内の上位 5 つのイベント
+                    (カウント順)
+                    を取得する適切な方法を見つけようとしています。このトップ
+                    5 を取得しやすくするために、hightop gem
+                    も使用しています。</p>
+                    <p>私が使用する場合:</p>
+                    <pre><code>Ahoy::Event.where(time: Date.today.beginning_of_month..Date.today.end_of_month).top(:name, 5)
+</code></pre>
+                    <p>これは機能しますが、イベント名で並べ替えられます。そのイベントに存在する「value」プロパティで並べ替えたいと思います。典型的なイベントは次のようになります。</p>
+                    <pre><code>&lt;Ahoy::Event id: 229, visit_id: 318, user_id: 1, name: &quot;Thing&quot;, properties: {&quot;episode&quot;=&gt;&quot;1&quot;, &quot;title&quot;=&gt;&quot;Test&quot;, &quot;value&quot;=&gt;&quot;Thing Ep 1: Test&quot;}, time: &quot;2017-11-02 11:34:10&quot;&gt;
+</code></pre>
+                    <p>私はやろうとしました：</p>
+                    <pre><code>Ahoy::Event.where(time: Date.today.beginning_of_month..Date.today.end_of_month).top(&quot;properties[&#39;value&#39;]&quot;, 5)
+</code></pre>
+                    <p>同様に：</p>
+                    <pre><code>Ahoy::Event.where(time: Date.today.beginning_of_month..Date.today.end_of_month).top(&quot;properties -&gt;&gt; &#39;value&#39;&quot;, 5)
+</code></pre>
+                    <p>しかし、これにより次のエラーが発生します。「配列ではないため、テキストを添え字として入力できません」。実際にやりたいことを実現する方法はあるのでしょうか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>その理由は、プロパティ列が JSON
+                    列であるため、Arel.sql() メソッドで JSON 抽出演算子
+                    (-&gt;&gt;) を使用して、properties-&gt;&gt;‘value’
+                    式をラップする方法です。</p>
+                    <pre><code>Ahoy::Event.where(time: Date.today.beginning_of_month..Date.today.end_of_month).top(Arel.sql(&quot;properties-&gt;&gt;&#39;value&#39;&quot;), 5)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

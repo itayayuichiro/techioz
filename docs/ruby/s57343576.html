@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord::RecordInvalid (検証に失敗しました: UID を空白にすることはできません) Omniauth LinkedIn Devise | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord::RecordInvalid (検証に失敗しました: UID を空白にすることはできません) Omniauth LinkedIn Devise",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord::RecordInvalid
+(検証に失敗しました: UID を空白にすることはできません) Omniauth LinkedIn
+Devise</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザー モデルを保存中に、(検証に失敗しました:
+                    Uid を空白にすることはできません)
+                    というメッセージが表示されます。 Uid 自体は Identity
+                    オブジェクトに属しており、複数の ID
+                    タイプに対する単一の ID アクセス
+                    ポイントとして機能します。つまり、複数のアカウントを作成しなくても、アプリ内で
+                    Facebook、twitter、または linkedin
+                    のオムニ認証戦略を使用できるようになります。宣伝どおりに機能しないようです。アプリから
+                    LinkedIn
+                    にログインした後、ユーザーを作成できないとします。</p>
+                    <p>request.env の env
+                    参照を交換しようとしました。現在のスコープには存在しないためです。エラーを特定しようとしましたが、Identity
+                    モデルがユーザーを作成する前に ID
+                    を保存しなかった理由を正確に見つけることができませんでした。これは、ユーザー
+                    オブジェクトが作成された直後に失敗し、ユーザーが ID
+                    とともに存在するかどうか、または作成する必要があるかどうかを確認するのではありません。</p>
+                    <p>サーバー開発ログ</p>
+                    <pre><code>Started GET &quot;/users/auth/linkedin&quot; for 127.0.0.1 at 2019-08-03 22:56:03 -0400
+I, [2019-08-03T22:56:04.789247 #23148]  INFO -- omniauth: (linkedin) Request phase initiated.
+Started GET &quot;/users/auth/linkedin/callback?oauth_token=77--2555555-5555-4444-ssfs-dcsfsfsfsfsf93&amp;oauth_verifier=28090&quot; for 127.0.0.1 at 2019-08-03 22:56:31 -0400
+I, [2019-08-03T22:56:32.422234 #23148]  INFO -- omniauth: (linkedin) Callback phase initiated.
+Processing by OmniauthCallbacksController#linkedin as HTML
+  Parameters: {&quot;oauth_token&quot;=&gt;&quot;77--2555555-5555-4444-ssfs-dcsfsfsfsfsf93&quot;, &quot;oauth_verifier&quot;=&gt;&quot;28090&quot;}
+  Identity Load (1.4ms)  SELECT  &quot;identities&quot;.* FROM &quot;identities&quot; WHERE &quot;identities&quot;.&quot;uid&quot; IS NULL AND &quot;identities&quot;.&quot;provider&quot; = ? LIMIT ?  [[&quot;provider&quot;, &quot;linkedin&quot;], [&quot;LIMIT&quot;, 1]]
+  â†³ app/models/identity.rb:7
+   (0.2ms)  begin transaction
+  â†³ app/models/identity.rb:7
+  Identity Exists (1.1ms)  SELECT  1 AS one FROM &quot;identities&quot; WHERE &quot;identities&quot;.&quot;uid&quot; IS NULL AND &quot;identities&quot;.&quot;provider&quot; = ? LIMIT ?  [[&quot;provider&quot;, &quot;linkedin&quot;], [&quot;LIMIT&quot;, 1]]
+  â†³ app/models/identity.rb:7
+   (0.2ms)  rollback transaction
+  â†³ app/models/identity.rb:7
+   (0.2ms)  begin transaction
+  â†³ app/models/user.rb:47
+  User Exists (2.0ms)  SELECT  1 AS one FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;email&quot; = ? LIMIT ?  [[&quot;email&quot;, &quot;[email protected]&quot;], [&quot;LIMIT&quot;, 1]]
+  â†³ app/models/user.rb:47
+  User Create (44.3ms)  INSERT INTO &quot;users&quot; (&quot;email&quot;, &quot;encrypted_password&quot;, &quot;created_at&quot;, &quot;updated_at&quot;, &quot;confirmed_at&quot;) VALUES (?, ?, ?, ?, ?)  [[&quot;email&quot;, &quot;[email protected]&quot;], [&quot;encrypted_password&quot;, &quot;$2a&quot;], [&quot;created_at&quot;, &quot;2019-08-04 02:56:33.928307&quot;], [&quot;updated_at&quot;, &quot;2019-08-04 02:56:33.928307&quot;], [&quot;confirmed_at&quot;, &quot;2019-08-04 02:56:33.921311&quot;]]
+  â†³ app/models/user.rb:47
+   (134.0ms)  commit transaction
+  â†³ app/models/user.rb:47
+   (0.1ms)  begin transaction
+  â†³ app/models/user.rb:54
+  Identity Exists (2.1ms)  SELECT  1 AS one FROM &quot;identities&quot; WHERE &quot;identities&quot;.&quot;uid&quot; IS NULL AND &quot;identities&quot;.&quot;provider&quot; = ? LIMIT ?  [[&quot;provider&quot;, &quot;linkedin&quot;], [&quot;LIMIT&quot;, 1]]
+  â†³ app/models/user.rb:54
+   (0.2ms)  rollback transaction
+  â†³ app/models/user.rb:54
+Completed 422 Unprocessable Entity in 879ms (ActiveRecord: 191.3ms)
+
+
+
+ActiveRecord::RecordInvalid (Validation failed: Uid can&#39;t be blank):
+
+app/models/user.rb:54:in `find_for_oauth&#39;
+(eval):3:in `linkedin&#39;
+</code></pre>
+                    <p>omniauth_callbacks_controller.rb</p>
+                    <pre><code>class OmniauthCallbacksController &lt; Devise::OmniauthCallbacksController
+
+  def self.provides_callback_for(provider)
+    class_eval %Q{
+      def #{provider}
+        @user = User.find_for_oauth(request.env[&quot;omniauth.auth&quot;], current_user)
+
+        if @user.persisted?
+          sign_in_and_redirect @user, event: :authentication
+          set_flash_message(:notice, :success, kind: &quot;#{provider}&quot;.capitalize) if is_navigational_format?
+        else
+          session[&quot;devise.#{provider}_data&quot;] = env[&quot;omniauth.auth&quot;]
+          redirect_to new_user_registration_url
+        end
+      end
+    }
+  end
+
+  [:facebook, :linkedin].each do |provider|
+    provides_callback_for provider
+  end
+
+  def after_sign_in_path_for(resource)
+    if resource.email_verified?
+      super resource
+    else
+      finish_signup_path(resource)
+    end
+  end
+
+  def failure
+    redirect_to root_path
+  end
+end
+</code></pre>
+                    <p>アイデンティティ.rb</p>
+                    <pre><code>class Identity &lt; ApplicationRecord
+  belongs_to :user
+  validates_presence_of :uid, :provider
+  validates_uniqueness_of :uid, :scope =&gt; :provider
+
+  def self.find_for_oauth(auth)
+    find_or_create_by(uid: auth.uid, provider: auth.provider)
+  end
+end
+</code></pre>
+                    <p>ユーザー.rb</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  TEMP_EMAIL_PREFIX = &#39;change@me&#39;
+  TEMP_EMAIL_REGEX = /\Achange@me/
+
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable, :omniauthable, :trackable, :confirmable
+
+  validates_format_of :email, :without =&gt; TEMP_EMAIL_REGEX, on: :update
+
+  def self.find_for_oauth(auth, signed_in_resource = nil)
+
+    # Get the identity and user if they exist
+    identity = Identity.find_for_oauth(auth)
+
+    # If a signed_in_resource is provided it always overrides the existing user
+    # to prevent the identity being locked with accidentally created accounts.
+    # Note that this may leave zombie accounts (with no associated identity) which
+    # can be cleaned up at a later date.
+    user = if signed_in_resource then
+             signed_in_resource
+           else
+             identity.user
+           end
+
+    # Create the user if needed
+    if user.nil?
+
+      # Get the existing user by email if the provider gives us a verified email.
+      # If no verified email was provided we assign a temporary email and ask the
+      # user to verify it on the next step via UsersController.finish_signup
+      email_is_verified = auth.info.email &amp;&amp; (auth.info.verified || auth.info.verified_email)
+      email = auth.info.email if email_is_verified
+      user = User.where(:email =&gt; email).first if email
+
+      # Create the user if it&#39;s a new registration
+      if user.nil?
+        user = User.new(
+            name: auth.extra.raw_info.name,
+            #username: auth.info.nickname || auth.uid,
+            email: email ? email : &quot;#{TEMP_EMAIL_PREFIX}-#{auth.uid}-#{auth.provider}.com&quot;,
+            password: Devise.friendly_token[0,20]
+        )
+        user.skip_confirmation!
+        user.save!
+      end
+    end
+
+    # Associate the identity with the user if needed
+    if identity.user != user
+      identity.user = user  
+      identity.save!     # Where error occurs
+    end
+    user
+  end
+
+  def email_verified?
+    self.email &amp;&amp; self.email !~ TEMP_EMAIL_REGEX
+  end
+
+  protected
+  def confirmation_required?
+    false
+  end
+end
+</code></pre>
+                    <p>予想される動作: ユーザーは Linkedin
+                    アカウントに正常にログインし、アプリにリダイレクトされて登録を完了します。</p>
+                    <p>実際の結果: ユーザー
+                    オブジェクトが作成されますが、ID の保存に失敗し、Uid
+                    が空白のままになります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>エラーは検証エラーであり、UID が null
+                    であり、それが問題です。したがって、nil UID
+                    を持つユーザーレコードがすでに DB
+                    に永続化されているようです。検証では、UID が nil
+                    の別のユーザーを追加することはできません。そのため、何らかの理由で
+                    UID が正しく渡されず、検証が失敗します。 –
+                    ラコステニーコーダー 2019年8月4日5時29分</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

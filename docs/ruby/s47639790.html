@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails 内の生の SQL クエリにパラメータを渡す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails 内の生の SQL クエリにパラメータを渡す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails 内の生の SQL
+クエリにパラメータを渡す</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails アクティブ レコードを使用して生の SQL
+                    クエリを実行したいのですが、クエリはパラメータを受け取るため、そのパラメータをクエリ文字列に安全に渡す適切な方法が見つかりません。クエリは次のとおりです</p>
+                    <pre><code>def self.get_branches_by_workspace_name(workspace_name)
+  branches = ActiveRecord::Base.connection.execute(&quot;
+    select
+      address,
+      phone,
+      email,
+      services
+    from branches as b, workspaces as w
+    where b.workspace_id = w.id and w.name= :workspace_name&quot;, workspace_name).to_a
+  return branches
+end
+</code></pre>
+                    <p>「workspace_name」という名前のパラメータを渡したいと思います。何か助けはありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>モデルにこのメソッドを追加します</p>
+                    <pre><code>  def self.execute_sql(*sql_array)     
+   connection.execute(sanitize_sql_array(sql_array))
+  end
+</code></pre>
+                    <p>これにより、AR モデルで任意の SQL
+                    をサニタイズして実行できるようになります。</p>
+                    <p>次に、次のようなものを実行して SQL
+                    を実行し、クエリによって返される行ごとに 1
+                    つずつハッシュの配列を返します。</p>
+                    <pre><code>ModelName.execute_sql(&quot;select address,phone,email,services from branches as b, workspaces as w 
+    where b.workspace_id = w.id and w.name= ?&quot;, workspace_name)
+
+# =&gt; [{&quot;address&quot;=&gt;&quot;...&quot;,&quot;phone&quot;=&gt;&quot;...&quot;,&quot;email&quot;=&gt;&quot;...&quot;,&quot;services&quot;=&gt;&quot;...&quot;}, ...]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>zsteg 使用時のスタック レベルが深すぎる (SystemStackError) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "zsteg 使用時のスタック レベルが深すぎる (SystemStackError)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>zsteg 使用時のスタック レベルが深すぎる
+(SystemStackError)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は zsteg を使いたいので、ruby
+                    のインストール方法についての教えに従い、ステップバイステップでインストールします。しかし、zsteg
+                    を実行すると何か問題が発生します。</p>
+                    <pre><code>@-VirtualBox:~$ zsteg concat_v.png 
+/home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:369:in prev_scanline_byte&#39;: stack level too deep (SystemStackError)
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:319:in block in decoded_bytes&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:318:in upto&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:318:in decoded_bytes&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line/mixins.rb:17:in prev_scanline_byte&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:377:in prev_scanline_byte&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:319:in block in decoded_bytes&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:318:in upto&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zpng-0.4.5/lib/zpng/scan_line.rb:318:in decoded_bytes&#39;
+     ... 10225 levels...
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zsteg-0.2.13/lib/zsteg.rb:26:in run&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/gems/zsteg-0.2.13/bin/zsteg:8:in &lt;top (required)&gt;&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/bin/zsteg:23:in load&#39;
+    from /home/weis/.rvm/gems/ruby-3.0.0/bin/zsteg:23:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>私は zsteg を使いたいので、ruby
+                    のインストール方法についての教えに従い、ステップバイステップでインストールします。しかし、zsteg
+                    を実行すると何か問題が発生します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「スタック
+                    レベルが深すぎます」エラーは、次のように条件を制限せずにメソッドが再帰的に呼び出されていることを意味します。</p>
+                    <pre><code>def bad_method
+  bad_method # uh-oh it&#39;s calling itself!
+end
+# now call the method
+bad_method # =&gt; SystemStackError (stack level too deep)
+</code></pre>
+                    <p>コード内のどこで問題が発生しているのかを示すトレースバックが表示されるので、問題を見つけることができます。許容スタック深さを増やしても、この問題は解決されません。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

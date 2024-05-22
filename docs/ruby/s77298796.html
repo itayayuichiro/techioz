@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails での多対多の関係を持つ 2 つのモデルの結合 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails での多対多の関係を持つ 2 つのモデルの結合",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails での多対多の関係を持つ 2
+つのモデルの結合</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のモデル間に多対多の関係がある Ruby on Rails
+                    API があります。</p>
+                    <pre><code>class Course &lt; ApplicationRecord
+  has_many :student_courses
+  has_many :students, through: :student_courses
+end
+
+class Student &lt; ApplicationRecord
+  has_many :student_courses
+  has_many :courses, through: :student_courses
+end
+
+class StudentCourse &lt; ApplicationRecord
+  belongs_to :student
+  belongs_to :courses
+end
+</code></pre>
+                    <p>次の形式で json を提供したいと考えています。</p>
+                    <pre><code>[
+  {
+    &quot;course&quot;: &quot;English&quot;,
+    &quot;students&quot;: [
+      &quot;John&quot;,
+      &quot;Sarah&quot;
+    ]
+  },
+  {
+    &quot;course&quot;: &quot;Maths&quot;,
+    &quot;students&quot;: [
+      &quot;John&quot;,
+      &quot;Ella&quot;,
+      &quot;Lee&quot;
+    ]
+  },
+  {
+    &quot;course&quot;: &quot;Classics&quot;,
+    &quot;students&quot;: [
+      &quot;Una&quot;,
+      &quot;Tom&quot;
+    ]
+  }
+]
+</code></pre>
+                    <p>現時点では、ループを使用してこれを行っています。</p>
+                    <pre><code>def index
+  @courses = Course.all
+
+  output = []
+  @courses.each do |course|
+    course_hash = {
+      course: course.name,
+      students: course.students.map { |student| student.name }
+    }
+    output &lt;&lt; course_hash
+  end
+
+  render json: output.to_json
+end
+
+</code></pre>
+                    <p>アクティブ レコード オブジェクトのリレーショナル
+                    マッピングを使用してこれを行うより効率的な方法はありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの例では、Course.all.each
+                    を反復し、各反復内で course.students
+                    を呼び出すと、N+1
+                    の問題が発生します。つまり、すべてのコースを取得するには
+                    1 つのデータベース
+                    クエリがあり、リスト内の個々のコースの学生をロードするには
+                    N 個の追加のデータベース
+                    クエリが必要になります。</p>
+                    <p>N+1 クエリを回避するために、Ruby on Rails
+                    では、インクルードを使用して 1 つまたは最大 2
+                    つのクエリで学生をコースと一緒に一括ロードできます。</p>
+                    <p>もう 1
+                    つの最適化は、配列をそれぞれ反復して変換されたデータを新しい配列にコピーするのではなく、Enumerable#map
+                    で既存の配列を再利用することでメモリ消費を削減することです。</p>
+                    <p>それを一緒に入れて：</p>
+                    <pre><code>def index
+  courses_with_students = Course.includes(:students).map do |course|
+    { course: course.name, students: course.students.map(&amp;:name) }
+  end
+
+  render json: courses_with_students.to_json
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

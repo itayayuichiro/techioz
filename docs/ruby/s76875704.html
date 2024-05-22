@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ubuntu 20.04 VM 上の Rails 5.2 で Puma ワーカーが起動しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ubuntu 20.04 VM 上の Rails 5.2 で Puma ワーカーが起動しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ubuntu 20.04 VM 上の Rails 5.2 で Puma
+ワーカーが起動しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Capistrano を使用し、アプリサーバーとして
+                    Puma を使用し、それに応じて Nginx Web
+                    サーバーを使用してデモ Rail
+                    アプリをデプロイする方法を学んでいました。必要な
+                    puma 設定をファイル _stage.rb に設定し、その後 puma
+                    を SysVinit サービスとして
+                    /etc/init.d/puma_myarticles_staging
+                    として設定しました。実行可能ファイル
+                    puma_init.sh.erb は、後に次のような puma_init.sh
+                    としてリモート サーバーに書き込まれました。</p>
+                    <pre><code>#!/usr/bin/env bash
+
+PATH=/usr/local/bin:/usr/local/sbin/:/sbin:/usr/sbin:/bin:/usr/bin
+DESC=&quot;Puma rack web server&quot;
+NAME=puma_&lt;%=fetch(:full_app_name)%&gt;
+SCRIPT_NAME=/etc/init.d/${NAME}
+APP_ROOT=&lt;%=current_path%&gt;
+PIDFILE=&lt;%= fetch(:puma_pid) %&gt;
+STATE_FILE=&lt;%= fetch(:puma_state) %&gt;
+
+log_daemon_msg() { echo &quot;$@&quot;; }
+log_end_msg() { [ $1 -eq 0 ] &amp;&amp; RES=OK; logger ${RES:=FAIL}; }
+
+run_pumactl(){
+  [ $# -lt 1 ] &amp;&amp; echo &quot;$# params were given, Expected 1&quot; &amp;&amp; exit 1
+  cd ${APP_ROOT} &amp;&amp; &lt;%= fetch(:rbenv_prefix) %&gt; bundle exec pumactl -F &lt;%=fetch(:puma_conf)%&gt; $1
+}
+
+# Function that starts the puma
+#
+start_task() {
+  if [ -e ${PIDFILE} ]; then
+    PID=`cat ${PIDFILE}`
+    # If the puma isn&#39;t running, run it, otherwise restart it.
+    if [ &quot;`ps -A -o pid= | grep -c ${PID}`&quot; -eq 0 ]; then
+      do_start_task
+    else
+      restart_task
+    fi
+  else
+    do_start_task
+  fi
+}
+do_start_task() {
+  log_daemon_msg &quot;--&gt; Woke up puma ${APP_ROOT}&quot;
+  run_pumactl start
+}
+
+# Function that stops the daemon/service
+#
+stop_task() {
+  log_daemon_msg &quot;--&gt; Stopping puma in path: ${APP_ROOT} ...&quot;
+  if [ -e ${PIDFILE} ]; then
+    PID=`cat ${PIDFILE}`
+    if [ &quot;`ps -A -o pid= | grep -c ${PID}`&quot; -eq 0 ]; then
+      log_daemon_msg &quot;--&gt; Puma isn&#39;t running in path: ${APP_ROOT}.&quot;
+    else
+      log_daemon_msg &quot;--&gt; About to kill puma with PID: `cat $PIDFILE` ...&quot;
+      if [ &quot;`ps -A -o pid= | grep -c ${PID}`&quot; -eq 0 ]; then
+        log_daemon_msg &quot;--&gt; Puma isn&#39;t running in path: ${APP_ROOT}.&quot;
+        return 0
+      else
+        run_pumactl stop
+        log_daemon_msg &quot;--&gt; Waiting for status ...&quot;
+        sleep 5
+        if [ &quot;`ps -A -o pid= | grep -c ${PID}`&quot; -eq 0 ]; then
+          log_daemon_msg &quot;--&gt; Puma with pid ${PID} stopped successfully.&quot;
+          rm -f ${PIDFILE} ${STATE_FILE}
+        else
+          log_daemon_msg &quot;--&gt; Unable to stop puma with pid ${PID}.&quot;
+        fi
+      fi
+    fi
+  else
+    log_daemon_msg &quot;--&gt; Puma isn&#39;t running in path: ${APP_ROOT}.&quot;
+  fi
+  return 0
+}
+
+# Function that sends a SIGUSR2 to the daemon/service
+#
+restart_task() {
+  if [ -e ${PIDFILE} ]; then
+    log_daemon_msg &quot;--&gt; About to restart puma in path: ${APP_ROOT} ...&quot;
+    run_pumactl restart
+  else
+    log_daemon_msg &quot;--&gt; Your puma was never playing... Let&#39;s get it out there first ...&quot;
+    start_task
+  fi
+  return 0
+}
+
+# Function that sends a SIGUSR2 to the daemon/service
+#
+status_task() {
+  if [ -e ${PIDFILE} ]; then
+    log_daemon_msg &quot;--&gt; About to status puma ${APP_ROOT} ...&quot;
+    run_pumactl status
+  else
+    log_daemon_msg &quot;---&gt; Puma isn&#39;t running in path: ${APP_ROOT}.&quot;
+  fi
+  return 0
+}
+
+case &quot;$1&quot; in
+  start)
+    [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_daemon_msg &quot;Starting ${DESC}&quot; &quot;${NAME} ...&quot;
+    start_task
+    case &quot;$?&quot; in
+      0|1) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 0 ;;
+      2) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_daemon_msg &quot;Stopping ${DESC}&quot; &quot;${NAME} ...&quot;
+    stop_task
+    case &quot;$?&quot; in
+      0|1) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 0 ;;
+      2) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 1 ;;
+    esac
+    ;;
+  status)
+    log_daemon_msg &quot;Status ${DESC}&quot; &quot;${NAME} ...&quot;
+    status_task
+    case &quot;$?&quot; in
+      0|1) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 0 ;;
+      2) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 1 ;;
+    esac
+    ;;
+  restart)
+    log_daemon_msg &quot;Restarting ${DESC}&quot; &quot;${NAME} ...&quot;
+    restart_task
+    case &quot;$?&quot; in
+      0|1) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 0 ;;
+      2) [ &quot;$VERBOSE&quot; != no ] &amp;&amp; log_end_msg 1 ;;
+    esac
+    ;;
+  *)
+    echo &quot;Usage:&quot; &gt;&amp;2
+    echo &quot;  ${SCRIPT_NAME} {start|stop|status|restart}&quot; &gt;&amp;2
+    exit 3
+    ;;
+esac
+:
+</code></pre>
+                    <p>puma.rb は、</p>
+                    <pre><code>#!/usr/bin/env puma
+
+directory &#39;/app/myarticles_staging/current&#39;
+environment &#39;staging&#39;
+
+pidfile &#39;/app/myarticles_staging/shared/tmp/pids/puma.pid&#39;
+state_path &#39;/app/myarticles_staging/shared/tmp/states/puma.state&#39;
+stdout_redirect &#39;/app/myarticles_staging/shared/log/puma_access.log&#39;, &#39;/app/myarticles_staging/shared/log/puma_error.log&#39;, true
+
+daemonize
+
+threads 4, 8
+
+bind &#39;unix:///app/myarticles_staging/shared/tmp/sockets/puma.myarticles_staging.sock&#39;
+
+activate_control_app &#39;unix:///app/myarticles_staging/shared/tmp/sockets/pumactl.myarticles_staging.sock&#39;
+
+workers &#39;4&#39;
+
+preload_app!
+
+on_worker_boot do
+  require &quot;active_record&quot;
+  ActiveRecord::Base.connection.disconnect! rescue ActiveRecord::ConnectionNotEstablished
+  ActiveRecord::Base.establish_connection(YAML.load_file(&#39;/app/myarticles_staging/shared/config/database.yml&#39;)[&#39;staging&#39;])
+end
+
+# Allow puma to be restarted by the `rails restart` command.
+plugin :tmp_restart
+</code></pre>
+                    <p>ここでは、次のような _stage.rb
+                    という名前のファイルからすべての puma
+                    設定を取得しています。</p>
+                    <pre><code>set :stage, :staging
+set :branch, :staging
+
+set :server_port, 80
+
+set :full_app_name, &quot;#{fetch(:application)}_#{fetch(:stage)}&quot;
+set :rails_env, :staging
+
+set :deploy_to, &quot;/app/#{fetch(:full_app_name)}&quot;
+
+set :puma_user, fetch(:deploy_user)
+set :puma_state, &quot;#{shared_path}/tmp/states/puma.state&quot;
+set :puma_pid, &quot;#{shared_path}/tmp/pids/puma.pid&quot;
+set :puma_rackup, -&gt; { File.join(current_path, &#39;config.ru&#39;)}
+set :puma_bind, &quot;unix://#{shared_path}/tmp/sockets/puma.#{fetch(:full_app_name)}.sock&quot;
+set :puma_default_control_app, &quot;unix://#{shared_path}/tmp/sockets/pumactl.#{fetch(:full_app_name)}.sock&quot;
+set :puma_conf, &quot;#{shared_path}/config/puma.rb&quot;
+set :puma_workers, 4
+set :puma_threads, [4, 8]
+set :puma_role, :app
+set :puma_env, :staging
+set :puma_preload_app, true
+
+set :puma_enable_socket_service, true
+set :puma_access_log, &quot;#{shared_path}/log/puma_access.log&quot;
+set :puma_error_log, &quot;#{shared_path}/log/puma_error.log&quot;
+
+set :nginx_access_log, &quot;#{shared_path}/log/nginx_access.log&quot;
+set :nginx_error_log, &quot;#{shared_path}/log/nginx_error.log&quot;
+</code></pre>
+                    <p>/etc/init.d/puma_myarticles_staging start として
+                    puma
+                    サービスを開始すると、次のように出力されます。</p>
+                    <pre><code>Starting Puma rack web server puma_myarticles_staging ...
+--&gt; Woke up puma /app/myarticles_staging/current
+[3955] Puma starting in cluster mode...
+[3955] * Version 4.3.12 (ruby 2.7.0-p0), codename: Mysterious Traveller
+[3955] * Min threads: 4, max threads: 8
+[3955] * Environment: staging
+[3955] * Process workers: 1
+[3955] * Preloading application
+[3955] * Listening on unix:///app/myarticles_staging/shared/tmp/sockets/puma.myarticles_staging.sock
+[3955] ! WARNING: Detected 1 Thread(s) started in app boot:
+[3955] ! #&lt;Thread:0x000055c692868bf8 /app/myarticles_staging/shared/bundle/ruby/2.7.0/gems/activerecord-6.1.7.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:323 sleep&gt; - /app/myarticles_staging/shared/bundle/ruby/2.7.0/gems/activerecord-6.1.7.4/lib/active_record/connection_adapters/abstract/connection_pool.rb:329:in `sleep&#39;
+[3955] * Daemonizing...
+</code></pre>
+                    <p>新しい puma pid
+                    や状態ファイルは残されません。最終的に、puma.pid と
+                    puma.state
+                    を確認したところ、ファイルが書き込まれていなかったので、puma
+                    サービス ワーカーは起動しませんでした。 rbenv exec
+                    Bundle exec Rails を実行して current_path
+                    で手動でテストしたところ、うまくいきました。</p>
+                    <p>ps ax | を使用して悪魔化された puma
+                    プロセスを確認しました。 grep puma
+                    を実行しましたが、実際の puma
+                    ワーカーが見つかりませんでした。</p>
+                    <pre><code>1516 pts/0    S+     0:00 grep --color=auto puma
+</code></pre>
+                    <p>私が間違っている可能性があることについて何か提案はありますか?前もって感謝します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>おそらく問題は、puma
+                    の起動方法にあります。ここには Puma
+                    のバグはないと確信しています。 systemctl
+                    の設定に関する詳細は投稿されていませんが、ベストプラクティスはユーザーサービスファイルを使用することです。そうすることで、puma
+                    は常に起動時に開始され、パスワードは必要ありません</p>
+                    <p>私が使用する標準的な puma
+                    構成は次のようになります</p>
+                    <pre><code># Puma can serve each request in a thread from an internal thread pool.
+# The `threads` method setting takes two numbers: a minimum and maximum.
+# Any libraries that use thread pools should be configured to match
+# the maximum value specified for Puma. Default is set to 5 threads for minimum
+# and maximum; this matches the default thread size of Active Record.
+#
+max_threads_count = ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 }
+min_threads_count = ENV.fetch(&quot;RAILS_MIN_THREADS&quot;) { max_threads_count }
+threads min_threads_count, max_threads_count
+
+# Change to match your CPU core count
+workers 0
+
+# Specifies the `port` that Puma will listen on to receive requests; default is 3000.
+#
+port ENV.fetch(&quot;PORT&quot;) { 3000 }
+
+# Specifies the `environment` that Puma will run in.
+#
+
+rails_env = ENV[&#39;RAILS_ENV&#39;] || &quot;production&quot;
+environment rails_env
+
+app_dir = File.expand_path(&quot;../..&quot;, __FILE__)
+#shared_dir = &quot;#{app_dir}/shared&quot;
+shared_dir = &quot;/home/project/apps/comtech/shared&quot; # Use your projects path
+
+# Specifies the `pidfile` that Puma will use.
+#pidfile ENV.fetch(&quot;PIDFILE&quot;) { &quot;pids/server.pid&quot; }
+
+pidfile &quot;#{shared_dir}/pids/puma.pid&quot;
+state_path &quot;#{shared_dir}/pids/puma.state&quot;
+activate_control_app
+
+# Set up socket location
+bind &quot;unix://#{shared_dir}/sockets/comtech_puma.sock&quot;
+
+on_worker_boot do
+  require &quot;active_record&quot;
+  ActiveRecord::Base.connection.disconnect! rescue ActiveRecord::ConnectionNotEstablished
+  ActiveRecord::Base.establish_connection(YAML.load_file(&quot;#{app_dir}/config/database.yml&quot;)[rails_env])
+end
+
+# Specifies the number of `workers` to boot in clustered mode.
+# Workers are forked web server processes. If using threads and workers together
+# the concurrency of the application would be max `threads` * `workers`.
+# Workers do not work on JRuby or Windows (both of which do not support
+# processes).
+#
+# workers ENV.fetch(&quot;WEB_CONCURRENCY&quot;) { 2 }
+
+# Use the `preload_app!` method when specifying a `workers` number.
+# This directive tells Puma to first boot the application and load code
+# before forking the application. This takes advantage of Copy On Write
+# process behavior so workers use less memory.
+#
+# preload_app!
+
+# Allow puma to be restarted by `rails restart` command.
+plugin :tmp_restart
+</code></pre>
+                    <p>明らかに、サーバー上のステージングに ENVIRONMENT
+                    変数を設定する必要があります。</p>
+                    <p>tmp を使用するように pids
+                    フォルダーを調整します。</p>
+                    <p>システム サービスではなくユーザー
+                    サービスを使用するには、次を参照してください。</p>
+                    <p>cd ~/.config/systemd/user
+                    フォルダーが存在しない場合はフォルダーを作成します</p>
+                    <p>nano name_of_your_puma.service
+                    を入力し、パスを適宜調整して次の内容を貼り付けます。</p>
+                    <pre><code>[Unit]
+Description=Puma Rack Server
+# Puma supports systemd&#39;s `Type=notify` and watchdog service
+# monitoring, if the [sd_notify](https://github.com/agis/ruby-sdnotify) gem is installed,
+# as of Puma 5.1 or later.
+# On earlier versions of Puma or JRuby, change this to `Type=simple` and remove
+# the `WatchdogSec` line.
+
+[Service]
+Type=simple
+
+# If your Puma process locks up, systemd&#39;s watchdog will restart it within seconds.
+#WatchdogSec=10
+RestartSec=10
+
+WorkingDirectory=/home/comtech/apps/comtech/current
+#PIDFile=/home/comtech/apps/comtech/shared/pids/puma.pid
+#User=comtech
+
+ExecStart=/home/comtech/.rvm/bin/rvm 3.1.3@comtech_cms_app do bundle exec puma -C /home/comtech/apps/comtech/current/config/puma_production.rb
+ExecStop=/home/comtech/.rvm/bin/rvm 3.1.3@comtech_cms_app do bundle exec pumactl -S /home/comtech/apps/comtech/shared/pids/puma.state stop
+ExecReload=/home/comtech/.rvm/bin/rvm [email protected]@comtech_cms_app do bundle exec pumactl -S /home/comtech/apps/comtech/shared/pids/puma.state restart
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+                    <p>それから実行します</p>
+                    <pre><code>$ systemctl --user enable name_of_your_puma.service 
+</code></pre>
+                    <p>サービスの確認へ</p>
+                    <pre><code>$ systemctl --user status
+</code></pre>
+                    <p>サービスを停止するには</p>
+                    <pre><code>$ systemctl --user stop
+</code></pre>
+                    <p>サービスを開始するには</p>
+                    <pre><code>$ systemctl --user start
+</code></pre>
+                    <p>サービスは起動時に自動的に開始され、puma
+                    が失敗した場合は puma を再起動します。 また、RVM
+                    を使用しているため、それに応じて起動コマンドを調整する必要があることにも注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

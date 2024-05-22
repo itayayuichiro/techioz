@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyハッシュでネストされたキーの値を動的に設定する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyハッシュでネストされたキーの値を動的に設定する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyハッシュでネストされたキーの値を動的に設定する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>簡単なはずですが、適切な解決策が見つかりませんでした。
+                    第 1 レベルのキーの場合:</p>
+                    <pre><code>resource.public_send(&quot;#{key}=&quot;, value)
+</code></pre>
+                    <p>しかし、foo.bar.loloの場合はどうですか？</p>
+                    <p>次のように取得できることはわかっています。</p>
+                    <pre><code>&#39;foo.bar.lolo&#39;.split(&#39;.&#39;).inject(resource, :send)
+</code></pre>
+                    <p>または</p>
+                    <pre><code>resource.instance_eval(&quot;foo.bar.lolo&quot;)
+</code></pre>
+                    <p>しかし、ネストレベルがわからないと仮定して、最後の変数に値を設定する方法は、2番目または3番目である可能性があります。</p>
+                    <p>すべてのレベルでそれを行う一般的な方法はありますか?
+                    私の例では、次のように実行できます。</p>
+                    <pre><code>resource.public_send(&quot;fofo&quot;).public_send(&quot;bar&quot;).public_send(&quot;lolo=&quot;, value)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>単なる好奇心から、ハッシュについて答えます。</p>
+                    <pre><code>hash = { a: { b: { c: 1 } } }
+def deep_set(hash, value, *keys)
+  keys[0...-1].inject(hash) do |acc, h|
+    acc.public_send(:[], h)
+  end.public_send(:[]=, keys.last, value)
+end
+
+deep_set(hash, 42, :a, :b, :c)
+#⇒ 42
+hash
+#⇒ { a: { b: { c: 42 } } }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

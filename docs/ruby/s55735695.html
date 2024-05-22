@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>開始/終了ブロックから早めに抜け出す | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "開始/終了ブロックから早めに抜け出す",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>開始/終了ブロックから早めに抜け出す</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>結果が割り当てられる変数を割り当てながら、begin/end
+                    ブロックを終了する方法が必要です。</p>
+                    <pre><code>def foo
+  @foo ||= begin
+    puts &quot;running&quot;
+
+    return &quot;leaving early&quot; if true # would be some sort of calculation
+
+    # Other calculations
+  end
+end
+</code></pre>
+                    <p>私が願っていること</p>
+                    <pre><code>&gt; foo
+running
+=&gt; leaving early
+&gt; foo
+=&gt; leaving early
+</code></pre>
+                    <p>実際に何が起こるか</p>
+                    <pre><code>&gt; foo
+running
+=&gt; leaving early
+&gt; foo
+running
+=&gt; leaving early
+</code></pre>
+                    <p><span class="citation"
+                    data-cites="foo">@foo</span> を設定せずに return
+                    がメソッド全体を終了するため、コードは機能しません。
+                    Break または Next の使用はループ内でのみ機能します。
+                    begin
+                    ブロック内で私の思考を妨げるものはありますか?</p>
+                    <p>現在はそれを行うことができますが、回避したいと考えていた方法は次のとおりです。</p>
+                    <p>ブロックの解除については関連する質問がたくさんあるようですが、この特定のバージョンに回答するものが見つかりませんでした
+                    (おそらく不可能なため)。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これらすべてのロジックを独自のメソッドに組み込むだけで、多くの争いを避けられると思います。</p>
+                    <pre><code>def foo
+  @foo ||= compute_foo
+end
+
+def compute_foo
+  puts &quot;running&quot;
+
+  return &quot;leaving early&quot; if true # would be some sort of calculation
+
+  # Other calculations
+end
+</code></pre>
+                    <p>これにより、計算がメモ化から切り離され、テストと推論が容易になります。これは、Ruby
+                    やその他の言語ではかなり一般的な設計パターンです。</p>
+                    <p>もちろん、あなたが求めていることを実行する方法はあります。最も明白な解決策は、すぐに呼び出される匿名プロシージャです。</p>
+                    <pre><code>def foo
+  @foo ||= (proc do
+    puts &quot;running&quot;
+
+    next &quot;leaving early&quot; if true # would be some sort of calculation
+
+    # Other calculations
+  end)[] # or .call or .()
+end
+</code></pre>
+                    <p>しかし、あなた自身やこのコードの将来のメンテナに有利になることは決してないでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Heroku 環境の最小限 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Heroku 環境の最小限",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Heroku 環境の最小限</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Heroku
+                    の環境を更新していますが、使用しているビルドパックの
+                    1 つは Ruby に基づいており、新しい heroku-22
+                    環境/スタックではデフォルトで利用できなくなりました
+                    (PHP アプリでも必要ありません)。</p>
+                    <p>ドキュメントから:</p>
+                    <p>ただし、Ruby
+                    の経験がまったくないので、これらのファイルに何を含めるべきかわかりません。
+                    Heroku で Ruby
+                    のインストールをトリガーするための最小限の Gemfile
+                    の有効なセットは何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>編集済み</p>
+                    <p>空の Gemfile だけでは十分ではなく、実際には
+                    Gemfile.lock も必要であることがわかりました。</p>
+                    <pre><code>-----&gt; Building on the Heroku-22 stack
+-----&gt; Using buildpacks:
+       1. heroku/python
+       2. heroku/ruby
+       3. https://github.com/thoughtbot/heroku-buildpack-mysql
+       4. heroku/php
+       5. heroku/nodejs
+-----&gt; Python app detected
+-----&gt; Using Python version specified in runtime.txt
+-----&gt; Stack has changed from heroku-20 to heroku-22, clearing cache
+-----&gt; No change in requirements detected, installing from cache
+-----&gt; Installing python-3.10.8
+-----&gt; Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+-----&gt; Installing SQLite3
+-----&gt; Installing requirements with pip
+       Collecting supervisor
+         Downloading supervisor-4.2.4-py2.py3-none-any.whl (749 kB)
+       Installing collected packages: supervisor
+       Successfully installed supervisor-4.2.4
+-----&gt; Ruby app detected
+grep: /tmp/build_bebc9aa2/Gemfile.lock: No such file or directory
+-----&gt; Compiling Ruby/NoLockfile
+!
+!     Gemfile.lock required. Please check it in.
+!
+!     Push rejected, failed to compile Ruby app.
+!     Push failed
+</code></pre>
+                    <p>空の Gemfile は Ruby
+                    のインストールをトリガーしますが、heroku/ruby
+                    パッケージ自体にはロック ファイルが必要です。</p>
+                    <p>試行錯誤の結果、次のファイルが機能することがわかりました。</p>
+                    <pre><code># Gemfile
+source &#39;https://rubygems.org&#39;
+</code></pre>
+                    <pre><code># Gemfile.lock
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+
+BUNDLED WITH
+   1.17.3
+</code></pre>
+                    <p>Gemfile.lock は、(バンドルのインストール後)
+                    バンドル
+                    インストールを実行することによって自動生成することもできます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

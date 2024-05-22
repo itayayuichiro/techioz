@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>特定のレコードを含むランダムな ActiveRecord | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "特定のレコードを含むランダムな ActiveRecord",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>特定のレコードを含むランダムな
+ActiveRecord</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>条件を満たし、一部のレコードを除外するランダムなレコードを
+                    1
+                    つ返すモデルのクラス関数を作成したいと考えています。
+                    「ランダム記事セクション」を作ろうと考えています。</p>
+                    <p>私の関数は次のようにしたいのですが</p>
+                    <pre><code>Article.randomArticle([1, 5, 10]) # array of article ids to exclude
+</code></pre>
+                    <p>いくつかの疑似コード:</p>
+                    <pre><code>ids_to_exclude = [1,2,3]
+
+loop do
+  returned_article = Article.where(published: true).sample
+  break unless ids_to_exclude.include?(returned_article.id)
+do
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>DB 固有のオプションを見てみましょう。</p>
+                    <pre><code>class Article
+  # ...
+  def self.random(limit: 10)
+    scope = Article.where(published: true)
+    # postgres, sqlite
+    scope.limit(limit).order(&#39;RANDOM()&#39;)
+    # mysql
+    scope.limit(limit).order(&#39;RAND()&#39;)
+  end
+end
+</code></pre>
+                    <p>Article.random は、データベースに 10
+                    個のランダムなレコードを取得するよう要求します。
+                    それでは、いくつかのレコードを除外するオプションを追加する方法を見てみましょう。</p>
+                    <pre><code>class Article
+  # ...
+  def self.random(limit: 10, except: nil)
+    scope = Article.where(published: true)
+    if except
+      scope = scope.where.not(id: except)
+    end 
+    scope.limit(limit).order(&#39;RANDOM()&#39;)
+  end
+end
+</code></pre>
+                    <p>これで、Article.random(例外: [1,2,3]) は、ID が
+                    [1,2,3] ではない 10 個のレコードを取得します。</p>
+                    <p>これは、rails の .where
+                    がチェーン可能なスコープを返すためです。例えば：</p>
+                    <pre><code>&gt; User.where(email: &#39;[email protected]&#39;).where.not(id: 1)
+User Load (0.7ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;email&quot; = $1 AND (&quot;users&quot;.&quot;id&quot; != $2)  [[&quot;email&quot;, &quot;[email protected]&quot;], [&quot;id&quot;, 1]]
+=&gt; #&lt;ActiveRecord::Relation []&gt;
+</code></pre>
+                    <p>ここでスコープを渡すこともできます。</p>
+                    <pre><code># cause everyone hates Bob
+Article.random(except: Article.where(author: &#39;Bob&#39;))
+</code></pre>
+                    <p>ここで DB
+                    固有のソリューションが適切な選択である理由については、「Rails
+                    Quick Tips - Random
+                    Records」を参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

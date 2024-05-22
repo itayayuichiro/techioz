@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ヘッダー付きの Ruby https POST | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ヘッダー付きの Ruby https POST",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ヘッダー付きの Ruby https POST</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で JSON を使用してヘッダー付きの Https
+                    投稿を作成するにはどうすればよいですか?</p>
+                    <p>私が試してみました：</p>
+                    <pre><code>uri = URI.parse(&quot;https://...&quot;)
+    https = Net::HTTP.new(uri.host,uri.port)
+    req = Net::HTTP::Post.new(uri.path)
+    req[&#39;foo&#39;] = bar
+    res = https.request(req)
+puts res.body
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題はjsonでした。これで私の問題は解決しました。とにかく、私の質問が明確ではなかったので、賞金はジュリに送られます</p>
+                    <pre><code>require &#39;uri&#39;
+require &#39;net/http&#39;
+require &#39;json&#39;
+
+@toSend = {
+    &quot;date&quot; =&gt; &quot;2012-07-02&quot;,
+    &quot;aaaa&quot; =&gt; &quot;bbbbb&quot;,
+    &quot;cccc&quot; =&gt; &quot;dddd&quot;
+}.to_json
+
+uri = URI(&quot;https:/...&quot;)
+https = Net::HTTP.new(uri.host, uri.port)
+https.use_ssl = true
+req = Net::HTTP::Post.new(uri, initheader = {&#39;Content-Type&#39; =&gt;&#39;application/json&#39;})
+req[&#39;foo&#39;] = &#39;bar&#39;
+req.body = &quot;[ #{@toSend} ]&quot;
+res = https.request(req)
+puts &quot;Response #{res.code} #{res.message}: #{res.body}&quot;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

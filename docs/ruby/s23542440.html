@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ここに文書化されています。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ここに文書化されています。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ここに文書化されています。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby1.8ではRubyクラスの実行はOKです。
+                    しかし、Ruby
+                    構成を更新してインタープリタを変更しようとすると、次のようになります。</p>
+                    <p>sudo update-alternatives –config Ruby</p>
+                    <p>Ruby1.9 を選択すると、Ruby
+                    クラスを実行するたびにこのエラーが発生します。</p>
+                    <pre><code>    /usr/lib/ruby/1.9.1/rubygems/custom_require.rb:36:
+in `require&#39;: cannot load such file -- cassandra (LoadError)
+from /usr/lib/ruby/1.9.1/rubygems/custom_require.rb:36:in `require&#39;
+</code></pre>
+                    <p>クラスcustom_require.rbの一部は次のとおりです。</p>
+                    <pre><code>module Kernel
+
+  if defined?(gem_original_require) then
+    # Ruby ships with a custom_require, override its require
+    remove_method :require
+  else
+    ##
+    # The Kernel#require from before RubyGems was loaded.
+
+    alias gem_original_require require
+    private :gem_original_require
+  end
+
+
+  def require path
+    if Gem.unresolved_deps.empty? or Gem.loaded_path? path then
+    #!!!!!line 36 !!!!!:  
+    gem_original_require path
+    else
+      spec = Gem::Specification.find { |s|
+        s.activated? and s.contains_requirable_file? path
+      }
+</code></pre>
+                    <p>RVM
+                    を使用すると問題が解決する可能性があると読みましたが、実際にはそれを管理する方法がわかりません。</p>
+                    <p>アイデアを教えてください。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rubygem は Ruby
+                    のバージョンによって分けられているため、Cassandra
+                    gem を再インストールする必要があります。</p>
+                    <pre><code>gem install cassandra
+</code></pre>
+                    <p>gem が 1.9 gem
+                    を指していることを確認してください。</p>
+                    <p>これを行う必要がある主な理由は、1.9
+                    ライブラリに対して C
+                    拡張機能を再構築するためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>同じクエリ内でキャスト SQL とキー/値属性を組み合わせる方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "同じクエリ内でキャスト SQL とキー/値属性を組み合わせる方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>同じクエリ内でキャスト SQL
+とキー/値属性を組み合わせる方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これら 2 つの条件をクエリの同じ params
+                    マップに結合するにはどうすればよいでしょうか?</p>
+                    <pre><code>Post.where(&#39;created_at &gt;= ?&#39;, 2.weeks.ago)
+</code></pre>
+                    <pre><code>Post.where(:site_id =&gt; site_id)
+</code></pre>
+                    <p>今までは次のように構築してきました</p>
+                    <pre><code>Post
+.where(:site_id =&gt; site_id)
+.where(&#39;created_at &gt;= ?&#39;, 2.weeks.ago)
+</code></pre>
+                    <p>でもこの状況を考えると、ちょっと行き詰まってしまった</p>
+                    <pre><code># With the addition being the sql casting query
+params = {:site_id =&gt; site_id}
+Post.where(params)
+</code></pre>
+                    <p>これをどうやって行うのか、実際には何と呼んでいいのかわかりません。何か助けはありますか？</p>
+                    <p>レール 7.0 ルビー 3.2.2</p>
+                    <h2 id="解決策">解決策</h2>
+                    <pre><code>Post
+  .where(:site_id =&gt; site_id)
+  .where(&#39;created_at &gt;= ?&#39;, 2.weeks.ago)
+</code></pre>
+                    <p>翻訳すると</p>
+                    <pre><code>params = { site_id: site_id, created_at: (2.weeks.ago..) }
+Post.where(params)
+</code></pre>
+                    <p>日付条件に無限の範囲を使用することで、Ruby on
+                    Rails は同等の SQL 条件に変換できます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

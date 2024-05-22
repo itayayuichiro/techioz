@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ブロック内での「yield」の仕組み | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ブロック内での「yield」の仕組み",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ブロック内での「yield」の仕組み</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以下のコードを理解するのが難しいです</p>
+                    <pre><code>  module MyEnumerable
+      def my_select
+        new_array = []
+        each do |value|
+          new_array &lt;&lt; value if yield(value)
+        end
+        new_array
+      end
+    end
+    
+    class Week
+      include MyEnumerable
+    
+      def initialize
+        @days = [&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;]
+      end
+      def each
+        @days.each { |day| yield day }
+      end
+    end
+    
+    week = Week.new
+    puts week.my_select { |day| day.start_with?(&quot;T&quot;) }
+    
+</code></pre>
+                    <p>プログラムの結果出力</p>
+                    <pre><code>Tuesday
+Thrusday
+</code></pre>
+                    <p>曖昧なコード</p>
+                    <pre><code>def each
+   @days.each { |day| yield day }
+end
+</code></pre>
+                    <p>1.「yield」に指定されたブロックはありませんが、コードは引き続き機能します。</p>
+                    <p>2.「yield」はブロックを与えるメソッド内で使用するものではないでしょうか？メソッド内の「yield」がブロックを呼び出すことは明らかです。</p>
+                    <p>3.ブロック内の「yield」はどのように機能しますか?</p>
+                    <p>「my_select」メソッドを次のようにリファクタリングしました</p>
+                    <pre><code>    def my_select
+        new_array = []
+        each { |value| new_array &lt;&lt; value if yield(value) }
+        new_array
+      end
+    end
+</code></pre>
+                    <p>「each」メソッドはブロックを生成します</p>
+                    <pre><code> each { |value| new_array &lt;&lt; value if yield(value) }  
+ def each
+   @days.each { |day| yield day }
+ end
+</code></pre>
+                    <p>「my_select」メソッドはブロックを生成します</p>
+                    <pre><code>week.my_select { |day| day.start_with?(&quot;T&quot;) }
+def my_select
+  new_array = []
+  each { |value| new_array &lt;&lt; value if yield(value) }
+  new_array
+end
+
+ 
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ブロックを直接渡して yield
+                    することはありません。囲んでいるメソッドを呼び出すときにブロックを渡すと、yield
+                    がそのブロックを呼び出します。例:</p>
+                    <pre><code>week = Week.new
+week.each { |day| puts day }
+#             │ 
+#             └──── from `yield day&#39;
+</code></pre>
+                    <p>はい、正確に。コード内の呼び出しは少し間接的です。
+                    MyEnumerable とその my_select
+                    メソッドを含めて、それぞれのメソッドを呼び出します。</p>
+                    <pre><code># ┌─────────────── this is your `each&#39; method
+# │
+each do |value|
+  new_array &lt;&lt; value if yield(value)
+end
+</code></pre>
+                    <p>実行する |値| …end は探していたブロックです。
+                    (my_select
+                    は独自のブロックにも値を生成するため、他のブロックも生成します)</p>
+                    <p>特別なことは何もありません。 <span
+                    class="citation"
+                    data-cites="days.each">@days.each</span> { |day|
+                    yield day } は <span class="citation"
+                    data-cites="days">@days</span> の各要素に対して
+                    yield
+                    を呼び出します。静的な配列の内容を想定すると、各メソッドは次のように書き換えることができます。</p>
+                    <pre><code>def each
+  yield &quot;Monday&quot;
+  yield &quot;Tuesday&quot;
+  yield &quot;Wednesday&quot;
+  yield &quot;Thursday&quot;
+  yield &quot;Friday&quot;
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title> を指定しない場合、 を IRB に渡すにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": " を指定しない場合、 を IRB に渡すにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2><programfile> を指定しない場合、<arguments> を
+IRB に渡すにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>以来：</p>
+                    <pre><code>irb --help
+</code></pre>
+                    <p>使用法: irb.rb [オプション] [プログラムファイル]
+                    [引数]</p>
+                    <p>プログラム ファイルをインクルードすると、ARGV
+                    に引数を渡すことができることはわかっています</p>
+                    <p>例えば：</p>
+                    <pre><code>irb test.rb A B C
+</code></pre>
+                    <p>ここで、test.irb は単に「p ARGV」です。</p>
+                    <p>生成されるもの:</p>
+                    <p>[「a」、「b」、「c」]</p>
+                    <p>DOSでprogramfileをconにする…次のことができます</p>
+                    <pre><code>irb con A B C
+con(main):001:0&gt; ARGV
+</code></pre>
+                    <p>生成されるもの:</p>
+                    <p>ARGV =&gt; [「A」、「B」、「C」]</p>
+                    <p>しかし、これはシステムに依存しており、入力をエコーするという副作用があります:-(</p>
+                    <p>私が本当に好きなものは次のようなものです</p>
+                    <pre><code>irb -- a b c
+</code></pre>
+                    <p>ところで: irb 内で ARGV
+                    を設定できることは知っていますが、私の目的は、special
+                    == irb -rSpecialLibrary”
+                    というエイリアスを作成することで、次のようなことができます。</p>
+                    <pre><code>special A B C
+&lt;input goes here&gt;
+</code></pre>
+                    <p>助言がありますか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>irb
+                    実行可能ファイルのソースを見ると、次のようになります。</p>
+                    <pre><code>#!/usr/bin/env ruby
+require &quot;irb&quot;
+
+if __FILE__ == $0
+  IRB.start(__FILE__)
+else
+  # check -e option
+  if /^-e$/ =~ $0
+    IRB.start(__FILE__)
+  else
+    IRB.setup(__FILE__)
+  end
+end
+</code></pre>
+                    <p>IRB
+                    モジュールのソースにあるものは次のとおりです。</p>
+                    <pre><code># File lib/irb/init.rb, line 15
+  def IRB.setup(ap_path)
+    IRB.init_config(ap_path)
+    IRB.init_error
+    IRB.parse_opts
+    IRB.run_config
+    IRB.load_modules
+
+    unless @CONF[:PROMPT][@CONF[:PROMPT_MODE]]
+      IRB.fail(UndefinedPromptMode, @CONF[:PROMPT_MODE])
+    end
+  end
+</code></pre>
+                    <p>parse_opts
+                    に至るまで、問題のメソッドは次のとおりです。</p>
+                    <pre><code># File lib/irb/init.rb, line 126
+  def IRB.parse_opts
+    load_path = []
+    while opt = ARGV.shift
+      case opt
+      when &quot;-f&quot;
+        @CONF[:RC] = false
+      when &quot;-m&quot;
+        @CONF[:MATH_MODE] = true
+      when &quot;-d&quot;
+        $DEBUG = true
+      when /^-r(.+)?/
+        opt = $1 || ARGV.shift
+        @CONF[:LOAD_MODULES].push opt if opt
+      when /^-I(.+)?/
+        opt = $1 || ARGV.shift
+        load_path.concat(opt.split(File::PATH_SEPARATOR)) if opt
+      when &#39;-U&#39;
+        set_encoding(&quot;UTF-8&quot;, &quot;UTF-8&quot;)
+      when /^-E(.+)?/, /^--encoding(?:=(.+))?/
+        opt = $1 || ARGV.shift
+        set_encoding(*opt.split(&#39;:&#39;, 2))
+      when &quot;--inspect&quot;
+        @CONF[:INSPECT_MODE] = true
+      when &quot;--noinspect&quot;
+        @CONF[:INSPECT_MODE] = false
+      when &quot;--readline&quot;
+        @CONF[:USE_READLINE] = true
+      when &quot;--noreadline&quot;
+        @CONF[:USE_READLINE] = false
+      when &quot;--echo&quot;
+        @CONF[:ECHO] = true
+      when &quot;--noecho&quot;
+        @CONF[:ECHO] = false
+      when &quot;--verbose&quot;
+        @CONF[:VERBOSE] = true
+      when &quot;--noverbose&quot;
+        @CONF[:VERBOSE] = false
+      when /^--prompt-mode(?:=(.+))?/, /^--prompt(?:=(.+))?/
+        opt = $1 || ARGV.shift
+        prompt_mode = opt.upcase.tr(&quot;-&quot;, &quot;_&quot;).intern
+        @CONF[:PROMPT_MODE] = prompt_mode
+      when &quot;--noprompt&quot;
+        @CONF[:PROMPT_MODE] = :NULL
+      when &quot;--inf-ruby-mode&quot;
+        @CONF[:PROMPT_MODE] = :INF_RUBY
+      when &quot;--sample-book-mode&quot;, &quot;--simple-prompt&quot;
+        @CONF[:PROMPT_MODE] = :SIMPLE
+      when &quot;--tracer&quot;
+        @CONF[:USE_TRACER] = true
+      when /^--back-trace-limit(?:=(.+))?/
+        @CONF[:BACK_TRACE_LIMIT] = ($1 || ARGV.shift).to_i
+      when /^--context-mode(?:=(.+))?/
+        @CONF[:CONTEXT_MODE] = ($1 || ARGV.shift).to_i
+      when &quot;--single-irb&quot;
+        @CONF[:SINGLE_IRB] = true
+      when /^--irb_debug=(?:=(.+))?/
+        @CONF[:DEBUG_LEVEL] = ($1 || ARGV.shift).to_i
+      when &quot;-v&quot;, &quot;--version&quot;
+        print IRB.version, &quot;\n&quot;
+        exit 0
+      when &quot;-h&quot;, &quot;--help&quot;
+        require &quot;irb/help&quot;
+        IRB.print_usage
+        exit 0
+      when &quot;--&quot;
+        if opt = ARGV.shfit
+          @CONF[:SCRIPT] = opt
+          $0 = opt
+        end
+        break
+      when /^-/
+        IRB.fail UnrecognizedSwitch, opt
+      else
+        @CONF[:SCRIPT] = opt
+        $0 = opt
+        break
+      end
+    end
+    if RUBY_VERSION &gt;= FEATURE_IOPT_CHANGE_VERSION
+      load_path.collect! do |path|
+        /\A\.\// =~ path ? path : File.expand_path(path)
+      end
+    end
+    $LOAD_PATH.unshift(*load_path)
+
+  end
+</code></pre>
+                    <p>そのオプションをスクリプト名として取得するようにハードコーディングされています
+                    (<span class="citation" data-cites="CONF">@CONF
+                    [:SCRIPT]</span> =
+                    opt)。幸いなことに、これはルビーです。私が最初に思いついたアイデアは、最初にモジュールを変更する別のスクリプトを使用して
+                    IRB を起動することでした。</p>
+                    <p>~/bin/custom-irb:</p>
+                    <pre><code>#!/usr/bin/env ruby
+require &#39;irb&#39;
+module IRB
+  class &lt;&lt; self
+    # sort of lame way to reset the parts we don&#39;t like about
+    # parse_opts after it does the parts we do like
+    def parse_opts_with_ignoring_script
+      arg = ARGV.first
+      script = $0
+      parse_opts_without_ignoring_script
+      @CONF[:SCRIPT] = nil
+      $0 = script
+      ARGV.unshift arg
+    end
+    alias_method :parse_opts_without_ignoring_script, :parse_opts
+    alias_method :parse_opts, :parse_opts_with_ignoring_script
+  end
+end
+
+if __FILE__ == $0
+  IRB.start(__FILE__)
+else
+  # check -e option
+  if /^-e$/ =~ $0
+    IRB.start(__FILE__)
+  else
+    IRB.setup(__FILE__)
+  end
+end
+</code></pre>
+                    <p>これをcustom-irb foo bar
+                    bazで起動すると、ARGVは[‘foo’, ‘bar’,
+                    ‘baz’]になります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

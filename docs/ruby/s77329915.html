@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ubuntu にインストールされている openssl が見つからないため、openssl Ruby gem のインストールが失敗する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ubuntu にインストールされている openssl が見つからないため、openssl Ruby gem のインストールが失敗する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ubuntu にインストールされている openssl
+が見つからないため、openssl Ruby gem のインストールが失敗する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はこれをやっています：</p>
+                    <pre><code>$ apt-get install -y openssl
+$ gem install openssl -- --with-openssl-include=/usr/include/openssl
+</code></pre>
+                    <p>失敗します:</p>
+                    <pre><code>...
+checking for openssl/ssl.h... yes
+checking for CRYPTO_malloc() in -lcrypto... yes
+checking for SSL_new() in -lssl... yes
+checking for LIBRESSL_VERSION_NUMBER in openssl/opensslv.h... no
+checking for OpenSSL version &gt;= 1.0.2... no
+*** extconf.rb failed ***
+Could not create Makefile due to some reason, probably lack of necessary
+libraries and/or headers.  Check the mkmf.log file for more details.  You may
+need configuration options.
+
+Provided configuration options:
+    --with-opt-dir
+    --without-opt-dir
+    --with-opt-include
+    --without-opt-include=${opt-dir}/include
+    --with-opt-lib
+    --without-opt-lib=${opt-dir}/lib
+    --with-make-prog
+    --without-make-prog
+    --srcdir=.
+    --curdir
+    --ruby=/usr/local/rvm/rubies/ruby-3.0.1/bin/$(RUBY_BASE_NAME)
+    --with-openssl-dir
+    --with-openssl-include=${openssl-dir}/include
+    --with-openssl-lib=${openssl-dir}/lib
+    --with-kerberos-dir
+    --without-kerberos-dir
+    --with-kerberos-include
+    --without-kerberos-include=${kerberos-dir}/include
+    --with-kerberos-lib
+    --without-kerberos-lib=${kerberos-dir}/lib
+    --with-nsl-dir
+    --without-nsl-dir
+    --with-nsl-include
+    --without-nsl-include=${nsl-dir}/include
+    --with-nsl-lib
+    --without-nsl-lib=${nsl-dir}/lib
+    --with-nsllib
+    --without-nsllib
+    --with-socket-dir
+    --without-socket-dir
+    --with-socket-include
+    --without-socket-include=${socket-dir}/include
+    --with-socket-lib
+    --without-socket-lib=${socket-dir}/lib
+    --with-socketlib
+    --without-socketlib
+    --with-crypto-dir
+    --without-crypto-dir
+    --with-crypto-include
+    --without-crypto-include=${crypto-dir}/include
+    --with-crypto-lib
+    --without-crypto-lib=${crypto-dir}/lib
+    --with-cryptolib
+    --without-cryptolib
+    --with-ssl-dir
+    --without-ssl-dir
+    --with-ssl-include
+    --without-ssl-include=${ssl-dir}/include
+    --with-ssl-lib
+    --without-ssl-lib=${ssl-dir}/lib
+    --with-ssllib
+    --without-ssllib
+extconf.rb:136:in `&lt;main&gt;&#39;: OpenSSL &gt;= 1.0.2 or LibreSSL &gt;= 3.1.0 is required (RuntimeError)
+</code></pre>
+                    <p>gem install
+                    を機能させるために渡す適切な引数は何ですか?ちなみに、これは機能します:</p>
+                    <pre><code>$ which openssl
+/usr/bin/openssl
+$ openssl version
+OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>行から:</p>
+                    <pre><code>--ruby=/usr/local/rvm/rubies/ruby-3.0.1/bin/$(RUBY_BASE_NAME)
+</code></pre>
+                    <p>Ruby 3.0.1 を使用していて、openssl 3
+                    をインストールしようとしているようです。3.1 より前の
+                    Ruby バージョンは openssl3
+                    に対応していません。新しい 3.1
+                    をインストールしてみるか、3.0.1 が必須の場合は
+                    openssl を 1.0 にダウングレードしてください。</p>
+                    <p>RVM
+                    を使用しているので、次のことを試してください。</p>
+                    <pre><code>rvm install 3.1.4 --with-openssl-dir=&lt;the directory you have&gt;
+</code></pre>
+                    <p>次に、openssl gem
+                    のインストールを試みることができます。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

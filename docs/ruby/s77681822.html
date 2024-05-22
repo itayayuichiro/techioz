@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveRecord は新しいインスタンスの作成時に共有モデルの ID を設定しません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveRecord は新しいインスタンスの作成時に共有モデルの ID を設定しません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveRecord
+は新しいインスタンスの作成時に共有モデルの ID を設定しません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この正確な質問をどのようにGoogleで検索するか完全にはわかりませんでしたが、要点は、いくつかのモデルがあるということです
+                    -
+                    ユーザーはアカウントに属し、評価はアカウントに属し、ユーザーと評価の両方がテーブルに
+                    account_id
+                    を持っています。同じアカウント内の別のモデルを初期化するモデルはすべて、同じアカウント
+                    ID
+                    を持つ必要があります。これは、アプリケーション内でマルチテナントの行ベースのデータ分離を確保するためです。</p>
+                    <p>私のモデルはおおよそ次のようになります。実際、アカウントに属するモデルは他にもたくさんあるので、すべてのデータが正しいアカウントに関連付けられていることを確認したいと考えています。</p>
+                    <pre><code>class User &lt; ApplicationRecord
+  has_many :assessments
+
+  default_scope { where(account_id: Account.current_id)}
+end
+
+class Assessment &lt; ApplicationRecord
+  belongs_to :user
+end
+
+class Account &lt; ApplicationRecord
+  has_many :users, dependent: :destroy
+  has_many :assessments
+  cattr_accessor :current_id
+
+  validates_uniqueness_of :name, presence: true
+end
+</code></pre>
+                    <p>このコードが機能しないのはなぜですか?</p>
+                    <pre><code>user = User.first
+a = user.assessment.create
+a.account_id == user.account_id # a.account_id is nil so this is False
+</code></pre>
+                    <pre><code>acc = Account.first
+user = acc.users.first
+a = user.assessment.create
+a.account_id == user.account_id # a.account_id is nil so this is False
+</code></pre>
+                    <p>Rails
+                    がこれを管理するはずだと考えるのは間違っていますか?
+                    1 つのモデルが別のモデルを作成し、両方のモデルに
+                    account_id
+                    フィールドがある場合に、新しいインスタンスが同じ値で作成されるようにする代替手段はありますか?</p>
+                    <p>私が考えられる唯一の代替案は、オブジェクトを作成するたびにアカウント
+                    ID を手動で設定することです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>create メソッドがユーザー
+                    オブジェクトについて何かを知る方法はありません。
+                    「後方関連付け」を作成するには、アカウント
+                    user.account をメソッドに渡す必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

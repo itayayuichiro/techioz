@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>アホイ gem が Visit に位置データを保存しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "アホイ gem が Visit に位置データを保存しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>アホイ gem が Visit
+に位置データを保存しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 4.2.6/ruby 2.3.1 アプリケーションに
+                    ahoy_matey gem をインストールし、 ahoy.trackAll();
+                    を配置しました。そして、私のapplication.jsの//=
+                    require ahoyコード。</p>
+                    <p>何らかの理由で、位置データは訪問に保存されません。誰かその理由がわかる人はいますか?
+                    gem の問題には何も見つかりませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>数か月前、私もアプリケーションで同じ問題に遭遇しました。この質問が何年も前に行われたことは知っていますが、少し時間をとって、問題を解決するために私が行ったことを共有したいと思います。</p>
+                    <p>背景といくつかの視点を提供するために、アプリケーションの使用状況を地理的に視覚化するのに役立つインタラクティブな
+                    3D
+                    地球儀を作成したいと思いました。これを実現するには、Ahoy
+                    の地理位置情報機能を有効にする必要があることがわかっていました。私の当初の計画は国ごとに視覚化することだけだったので、訪問元の国だけを取得しようとしていました。すぐにわかったのは、問題が
+                    2 つあるということです。</p>
+                    <p>Ruby on Rails
+                    を初めて使用する人を教育するために、最初に問題を特定し、変更を加えた後にトラブルシューティングを行うために私が行った手順のリストを以下に示します。</p>
+                    <p>Rails コンソールを開きます。</p>
+                    <pre><code>rails c
+</code></pre>
+                    <p>データベース (ActiveRecord) に Ahoy
+                    訪問記録をクエリします。</p>
+                    <pre><code>Ahoy::Visit.first
+</code></pre>
+                    <p>次のハッシュを返します。
+                    (明らかなプライバシー上の懸念から、以下のハッシュの一部の値は「….」に置き換えられています)</p>
+                    <pre><code> =&gt; #&lt;Ahoy::Visit id: 1, visit_token: &quot;687e8c98-1466-4adc-9224-15b4f8df18be&quot;, visitor_token: &quot;819f2a25-a8ce-4f7b-a19b-07181e1fcc53&quot;, user_id: 1, ip: &quot;.....&quot;, user_agent: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...&quot;, referrer: &quot;.....&quot;, referring_domain: &quot;.....&quot;, landing_page: &quot;.....&quot;, browser: &quot;Chrome&quot;, os: &quot;Windows&quot;, device_type: &quot;Desktop&quot;, country: nil, region: nil, city: nil, utm_source: nil, utm_medium: nil, utm_term: nil, utm_content: nil, utm_campaign: nil, app_version: nil, os_version: nil, platform: nil, started_at: &quot;2019-06-24 15:32:33&quot;, latitude: nil, longitude: nil&gt; 
+</code></pre>
+                    <p>最初に行ったのは、欠落している緯度と経度の列をデータベースに追加する移行を作成することでした
+                    (欠落している理由はわかりません)。 Ruby on Rails
+                    への移行の作成。</p>
+                    <pre><code>rails generate migration AddLatitudeAndLongitudeToAhoyVisits latitude:float longitude:float
+</code></pre>
+                    <p>移行が作成されたので、次のコマンドを実行してデータベースを更新しました。</p>
+                    <pre><code>rails db:migrate
+</code></pre>
+                    <p>次に、地理位置情報データが入力されない理由を解明する必要がありました。最終的には、構成ファイル
+                    .. 内に Sidekiq 用の 3
+                    つのキューを構成することになりました。</p>
+                    <pre><code>:schedule:
+  Acknowledged Notification Deletions:
+    cron: &#39;0 * * * *&#39;   # Runs every hour
+    class: NotificationsCleanupJob
+    description: &quot;This job runs every hour cleaning up all notifications that have been acknowledged by users.&quot; 
+
+  Certificate Renewal Notfications:
+    cron: &#39;0 0 1 * *&#39;   # Runs on the first of every month at midnight.
+    class: CertificateRenewalNotificationJob
+    description: &quot;This job checks the renewal status of user certs and sends an email notification when expiration is within 30 days.&quot; 
+
+:concurrency: 30
+:dynamic: true
+:queues:
+  - critical
+  - default
+  - low
+</code></pre>
+                    <p>Sidekiq ドキュメントを読み返してみると、Ahoy
+                    のデフォルトのキューが ahoy
+                    であることがわかりました。これは私にとって理にかなっています。したがって、この時点で私には
+                    2 つの選択肢がありました。</p>
+                    <pre><code>:schedule:
+  Acknowledged Notification Deletions:
+    cron: &#39;0 * * * *&#39;   # Runs every hour
+    class: NotificationsCleanupJob
+    description: &quot;This job runs every hour cleaning up all notifications that have been acknowledged by users.&quot; 
+
+  Certificate Renewal Notfications:
+    cron: &#39;0 0 1 * *&#39;   # Runs on the first of every month at midnight.
+    class: CertificateRenewalNotificationJob
+    description: &quot;This job checks the renewal status of user certs and sends an email notification when expiration is within 30 days.&quot; 
+
+:concurrency: 30
+:dynamic: true
+:queues:
+  - critical
+  - default
+  - low
+  - ahoy
+</code></pre>
+                    <p>私は最終的にオプション 2
+                    を選択しました。変更を実装した後、アプリケーションと
+                    Sidekiq インスタンスの両方を再起動しました。 Sidekiq
+                    インスタンスのターミナルを監視しながらアプリケーションに再度アクセスすると、すぐに
+                    Ahoy
+                    に対して次のジョブが開始されることがわかりました。</p>
+                    <pre><code>2020-04-20T15:23:46.733Z 4520 TID-gmuxo38gc Ahoy::GeocodeV2Job JID-1e053ab2e237431d0cfcb9b2 INFO: start
+2020-04-20T15:23:46.796Z 4520 TID-gmuxo38gc Ahoy::GeocodeV2Job JID-1e053ab2e237431d0cfcb9b2 INFO: done: 0.062 sec
+</code></pre>
+                    <p>その後、実際にデータベース内の地理位置情報データが表示されていることを確認したため、現在地理データがない以前の訪問をすべて更新するために、Rails
+                    コンソールで実行するコードを作成することにしました。私の場合、アクセス数は約
+                    700 件しかありませんでした (更新に約 30 秒)
+                    ので、飲み込めるほど多く噛もうとする心配はありませんでした。
+                    更新が必要な訪問数が多い場合は、必要に応じて変更できます。コピーして
+                    Rails コンソールに貼り付けて実行するだけです。</p>
+                    <pre><code>#- Gather all visits with nil longitude, this should suffice.
+visits = Ahoy::Visit.where(:longitude =&gt; nil)
+
+#- Iterate over each visit in visits and queue the GeocodeJob to get the geodata
+#- and update the record.
+visits.each do |visit|
+    #- This job actually queues another job called GeocodeV2Job that does the actual lookup.
+    Ahoy::GeocodeJob.perform_now(visit)
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

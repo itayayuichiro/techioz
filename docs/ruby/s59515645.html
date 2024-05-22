@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails - スコープ上の論理演算子、それは可能ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails - スコープ上の論理演算子、それは可能ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails -
+スコープ上の論理演算子、それは可能ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>2 つのスコープを持つゲーム (試合)
+                    を表すクラスがあります。</p>
+                    <pre><code>  scope :home_lineuped, -&gt;() { includes(:home_lineup).where(home_lineup: {lineuped: true }) }
+  scope :away_lineuped, -&gt;() { includes(:away_lineup).where(away_lineup: {lineuped: true }) }
+</code></pre>
+                    <p>結果に対して論理演算子 Not And
+                    を使用して新しいスコープを作成したいのですが、可能ですか?</p>
+                    <p>編集: どういう意味ですか?</p>
+                    <p>想像してみろ： Match.All では、ID
+                    1、2、3、4、5、6 の一致が得られます。</p>
+                    <p>Match.home_lineuped では、ID 1、2、6
+                    の一致が得られます。</p>
+                    <p>Match.away_lineuped では、ID 3、4、6
+                    の一致が得られます。</p>
+                    <p>(Match.home_lineuped AND Match.away_lineuped)
+                    の結果は次のとおりです: 6。</p>
+                    <p>したがって、Not (Match.home_lineuped AND
+                    Match.away_lineuped) の場合、ID: 1、2、3、4、および
+                    5 と一致します。</p>
+                    <p>編集終了</p>
+                    <p>よろしくお願いします、</p>
+                    <p>デビッド</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>あなたの意味は、Match.home_lineuped &amp;
+                    Match.away_lineuped および Match.all -
+                    (Match.home_lineuped &amp; Match.away_lineuped)
+                    です。</p>
+                    <p>または、新しいスコープを作成します</p>
+                    <p>スコープ :home_lineuped_and_away_lineuped,
+                    -&gt;() { include(:home_lineup,
+                    :away_lineup).where(home_lineups: {lineuped: true
+                    },away_lineups: {lineuped: true }) }</p>
+                    <p>スコープ :not_home_lineuped_and_away_lineuped,
+                    -&gt;() { include(:home_lineup,
+                    :away_lineup).where.not(home_lineups: {lineuped:
+                    true },away_lineups: {lineuped: true }) }</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

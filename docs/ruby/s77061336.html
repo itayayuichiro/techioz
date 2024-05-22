@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>VScode、WSL、Ruby、コミット時に変更済みとしてマークされるファイル | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "VScode、WSL、Ruby、コミット時に変更済みとしてマークされるファイル",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>VScode、WSL、Ruby、コミット時に変更済みとしてマークされるファイル</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私はRubyのWSL上で実行されるVScodeに取り組んでいます。コミットするたびに
+                    8
+                    つのファイルが変更済みとしてマークされますが、それらを比較しようとしても変更は表示されません。私の上司である兄は、VScode
+                    がこれらのファイルのアクセス許可を変更していると考えており、それが懸念されています。</p>
+                    <p>8つのファイルは次のとおりです。</p>
+                    <pre><code>Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+        modified:   bin/bundle
+        modified:   bin/dev
+        modified:   bin/rails
+        modified:   bin/rake
+        modified:   bin/rubocop
+        modified:   bin/rubycritic
+        modified:   bin/setup
+        modified:   release-tasks.sh
+</code></pre>
+                    <p>これらのファイルは絶対に変更したくありません。私の役割は、CSS
+                    とフロントエンドのビューに焦点を当てることです。</p>
+                    <p>質問は</p>
+                    <ol type="A">
+                    <li>変更内容を確認する方法はありますか?</li>
+                    <li>VScode
+                    がそれらを変更済みとしてマークしないようにする方法、あるいはできれば変更しない方法はありますか?</li>
+                    </ol>
+                    <p>編集2309071405</p>
+                    <p>コメントへの返信として、以下の git diff
+                    の結果を示します。許可があるようです。</p>
+                    <pre><code>fleetwoodn@DESKTOP-GSMDGGD:~/MyChange2$ git diff
+diff --git a/bin/bundle b/bin/bundle
+old mode 100755
+new mode 100644
+index b6d1327..156453a
+--- a/bin/bundle
++++ b/bin/bundle
+@@ -1,124 +1,124 @@
+-#!/usr/bin/env ruby
+-# frozen_string_literal: true
+-
+-#
+:
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>VSCode
+                    は、あなたが言及したファイルのアクセス許可を実際に変更しているようです。提供した
+                    git diff 出力は、ファイル bin/bundle がモード 100755
+                    からモード 100644
+                    に変更されたことを示しています。これは、ファイルのアクセス許可が実行可能から読み取り専用に変更されたことを意味します。</p>
+                    <p>次の行を .gitignore ファイルに追加して、VSCode
+                    が指定したファイルのアクセス許可を変更しないようにすることができます。</p>
+                    <pre><code>bin/*
+</code></pre>
+                    <p>VSCode
+                    によるこれらのファイルのアクセス許可の変更を防ぐもう
+                    1 つの方法は、gitattributes
+                    ファイルを使用することです。 gitattributes
+                    ファイルは、ファイルのアクセス許可などのファイルの属性を指定するファイルです。次の行を
+                    gitattributes ファイルに追加して、VSCode
+                    が指定したファイルのアクセス許可を変更しないようにすることができます。</p>
+                    <pre><code>* -executable
+</code></pre>
+                    <p>最後に、VSCode でファイル
+                    ウォッチャーを無効にすることもできます。ファイル
+                    ウォッチャーは、ファイルへの変更を検出し、Git
+                    ステータスを更新する責任があります。ファイル
+                    ウォッチャーを無効にするには、VSCode
+                    設定を開き、「ファイル
+                    ウォッチャー」を検索します。次に、「ファイルウォッチャーを有効にする」の横にあるチェックボックスをオフにします。</p>
+                    <p>これらの手順のいずれかを実行すると、VSCode
+                    は、指定したファイルのアクセス許可を変更しなくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

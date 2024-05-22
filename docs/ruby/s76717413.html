@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>AWSラムダでカスタムレイヤーを使用できない（Ruby 3.2.0） | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "AWSラムダでカスタムレイヤーを使用できない（Ruby 3.2.0）",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>AWSラムダでカスタムレイヤーを使用できない（Ruby
+3.2.0）</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>カスタムレイヤー (pg gem) を使用してラムダ
+                    (ランタイム: Ruby 3.2)
+                    を実行するときに問題が発生します。</p>
+                    <p>このドキュメントの Ruby
+                    ファイル構造に従ってカスタム レイヤー (.zip)
+                    を作成しました。</p>
+                    <pre><code>pg.zip
+└ ruby/gems/3.2.0/
+               | build_info
+               | cache
+               | doc
+               | extensions
+               | gems
+               | └ pg-1.5.3
+               └ specifications
+                 └ pg-1.5.3.gemspec
+</code></pre>
+                    <p>このカスタム
+                    レイヤーはすでにラムダに追加されています。</p>
+                    <p>テストしたところ、エラーが発生しました:</p>
+                    <pre><code>{
+  &quot;errorMessage&quot;: &quot;cannot load such file -- pg&quot;,
+  &quot;errorType&quot;: &quot;Init&lt;LoadError&gt;&quot;,
+  &quot;stackTrace&quot;: [
+    &quot;/var/lang/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/lang/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/task/lambda_function.rb:2:in `&lt;top (required)&gt;&#39;&quot;,
+    &quot;/var/lang/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;,
+    &quot;/var/lang/lib/ruby/3.2.0/rubygems/core_ext/kernel_require.rb:59:in `require&#39;&quot;
+  ]
+}
+</code></pre>
+                    <p>[email protected] がインストールされた Mac
+                    (x86_64) でパッケージをビルドしました。</p>
+                    <p>Ruby
+                    スクリプトはローカルで実行するとうまく機能しました。</p>
+                    <p>質問:</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ruby
+                    3.2ランタイムでラムダレイヤーを使用した場合も同様のエラーに直面しました。</p>
+                    <p>QNS へ:</p>
+                    <p>それを解決するために私がとった手順は次のとおりです。</p>
+                    <p>Dockerfile</p>
+                    <pre><code>FROM public.ecr.aws/lambda/ruby:3.2
+
+RUN yum install -y amazon-linux-extras \
+    &amp;&amp; amazon-linux-extras enable postgresql14 \
+    &amp;&amp; yum group install &quot;Development Tools&quot; -y
+
+RUN yum install -y postgresql postgresql-devel
+
+ADD Gemfile Gemfile.lock ${LAMBDA_TASK_ROOT}
+
+ENV GEM_HOME=${LAMBDA_TASK_ROOT}
+
+RUN bundle config set without &#39;development test&#39;
+RUN bundle config set path &#39;vendor/bundle&#39;
+
+RUN bundle install
+</code></pre>
+                    <p>Gemfile</p>
+                    <pre><code># frozen_string_literal: true
+
+source &#39;https://rubygems.org&#39;
+
+gem &#39;pg&#39;
+</code></pre>
+                    <pre><code>#!/bin/sh -e
+
+rm -rf $DIST_DIR
+mkdir -p &quot;$DIST_DIR/lib&quot;
+mkdir -p &quot;$DIST_DIR/ruby/gems&quot;
+
+cd &quot;$SOURCE_DIR&quot; &gt;/dev/null || exit
+
+docker build -t ruby-builder -f Dockerfile .
+CONTAINER=$(docker run -d ruby-builder)
+
+# See https://northsail.io/articles/aws-lambda-ruby-2-7-pg-gem-libldap-error
+# for what to libpq binaries to copy for Amazon Linux 2
+docker cp \
+  $CONTAINER:/usr/lib64/libpq.so.5.14 \
+  $DIST_DIR/lib/libpq.so.5
+
+docker cp \
+  $CONTAINER:/usr/lib64/libldap_r-2.4.so.2.10.7 \
+  $DIST_DIR/lib/libldap_r-2.4.so.2
+
+docker cp \
+  $CONTAINER:/usr/lib64/liblber-2.4.so.2.10.7 \
+  $DIST_DIR/lib/liblber-2.4.so.2
+
+docker cp \
+  $CONTAINER:/usr/lib64/libsasl2.so.3.0.0 \
+  $DIST_DIR/lib/libsasl2.so.3
+
+docker cp \
+  $CONTAINER:/usr/lib64/libssl3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libsmime3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libnss3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libnssutil3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/var/task/vendor/bundle/ruby/3.2.0 \
+  $DIST_DIR/ruby/gems/3.2.0
+
+docker stop $CONTAINER
+docker rm $CONTAINER
+</code></pre>
+                    <p>docker cp コマンドは、Amazon Linux 2
+                    で実行されている lambda 環境で実行する場合に、pg gem
+                    に必要な不足しているネイティブ拡張ファイルをコピーするために使用されます。</p>
+                    <p>結果のレイヤーの内容は次のようになります。</p>
+                    <pre><code>├── lib
+│   ├── liblber-2.4.so.2
+│   ├── libldap_r-2.4.so.2
+│   ├── libnss3.so
+│   ├── libnssutil3.so
+│   ├── libpq.so.5
+│   ├── libsasl2.so.3
+│   ├── libsmime3.so
+│   └── libssl3.so
+└── ruby
+    └── gems
+        └── 3.2.0
+            ├── bin
+            │   ├── bundle
+            │   └── bundler
+            ├── build_info
+            ├── cache
+            │   ├── bundler-2.4.6.gem
+            │   └── pg-1.5.3.gem
+            ├── doc
+            ├── extensions
+            │   └── aarch64-linux
+            ├── gems
+            │   ├── bundler-2.4.6
+            │   └── pg-1.5.3
+            ├── plugins
+            └── specifications
+                ├── bundler-2.4.6.gemspec
+                └── pg-1.5.3.gemspec
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

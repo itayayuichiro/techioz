@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ハッシュの配列を反復処理し、その数を数えます。の価値が現れましたか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ハッシュの配列を反復処理し、その数を数えます。の価値が現れましたか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+ハッシュの配列を反復処理し、その数を数えます。の価値が現れましたか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>構造を持つハッシュの Ruby 配列があります</p>
+                    <pre><code>[{:fruit=&gt;&quot;apple&quot;}, {:fruit=&gt;&quot;apple&quot;}, {:fruit=&gt;&quot;apple&quot;}, {:fruit=&gt;&quot;banana&quot;}, {:fruit=&gt;&quot;banana&quot;}, {:fruit=&gt;&quot;pineapple&quot;}].
+</code></pre>
+                    <p>次のような最終ハッシュが必要です。</p>
+                    <pre><code>{:apple =&gt; 3,:banana=&gt; 2,:pineapple=&gt;1}
+</code></pre>
+                    <p>これを実現するにはどうすればよいでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このようなヒストグラムを計算するための通常のトリックは、Enumerable#group_by
+                    を使用し、次に結果の配列をそのサイズに
+                    Enumerable#map
+                    して、最後にハッシュに変換することです。</p>
+                    <pre><code>ary = [{ fruit: &#39;apple&#39; }, { fruit: &#39;apple&#39; }, { fruit: &#39;apple&#39; }, 
+  { fruit: &#39;banana&#39; }, { fruit: &#39;banana&#39; }, { fruit: &#39;pineapple&#39; }]
+
+ary.
+  group_by {|h| h.values.first }.
+  map {|fruit, ary| [fruit.to_sym, ary.size]}.
+  to_h
+# =&gt; { apple: 3, banana: 2, pineapple: 1 }
+</code></pre>
+                    <p>しかし、もっと良い方法があります。MultiSet
+                    と呼ばれるデータ構造は、まさに必要なことを実行します。残念ながら、Ruby
+                    コア ライブラリまたは stdlib
+                    にはそのようなものはありませんが、いくつかの実装が浮遊しているのを見つけることができます。</p>
+                    <pre><code>Multiset[*ary.map {|el| el.values.first.to_sym}]
+# =&gt; #&lt;Multiset:#3 :apple, #2 :banana, #1 :pineapple&gt;
+</code></pre>
+                    <p>ただし、シンボルから文字列へのハッシュの配列などのデータ構造がある場合、ほとんどの場合、そこに出てくるオブジェクトが存在します。結局のところ、Ruby
+                    はオブジェクト指向言語であり、シンボルのハッシュの配列を文字列に変換する言語ではありません。</p>
+                    <pre><code>class Fruit
+  attr_reader :name
+
+  def ==(other)
+    name == other.name
+  end
+
+  def eql?(other)
+    name.eql?(other.name)
+  end
+
+  def hash
+    name.hash
+  end
+
+  def to_s
+    name
+  end
+
+  def inspect
+    &quot;#&lt;Fruit: #{name}&gt;&quot;
+  end
+
+  private
+
+  attr_writer :name
+
+  def initialize(name)
+    self.name = name
+  end
+end
+
+Multiset[Fruit.new(&#39;apple&#39;), Fruit.new(&#39;apple&#39;), Fruit.new(&#39;apple&#39;), 
+  Fruit.new(&#39;banana&#39;), Fruit.new(&#39;banana&#39;), Fruit.new(&#39;pineapple&#39;)]
+# =&gt; #&lt;Multiset:#3 #&lt;Fruit: apple&gt;, #2 #&lt;Fruit: banana&gt;, #1 #&lt;Fruit: pineapple&gt;&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

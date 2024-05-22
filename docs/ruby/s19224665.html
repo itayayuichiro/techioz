@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Object::try が nil オブジェクトに送信された場合に機能するのはなぜですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Object::try が nil オブジェクトに送信された場合に機能するのはなぜですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Object::try が nil
+オブジェクトに送信された場合に機能するのはなぜですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby で nil
+                    オブジェクトのメソッドを呼び出そうとすると、NoMethodError
+                    例外が発生し、次のメッセージが表示されます。</p>
+                    <pre><code>&quot;undefined method ‘...’ for nil:NilClass&quot;
+</code></pre>
+                    <p>ただし、Rails には、nil
+                    オブジェクトに送信された場合に nil を返す try
+                    メソッドがあります。</p>
+                    <pre><code>require &#39;rubygems&#39;
+require &#39;active_support/all&#39;
+
+nil.try(:nonexisting_method) # no NoMethodError exception anymore
+</code></pre>
+                    <p>では、その例外を防ぐために try
+                    は内部的にどのように機能するのでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActiveSupport 4.0.0 では 2 つの try
+                    メソッドが定義されています。1 つはオブジェクト
+                    インスタンス用です。</p>
+                    <pre><code>class Object
+  def try(*a, &amp;b)
+    if a.empty? &amp;&amp; block_given?
+      yield self
+    else
+      public_send(*a, &amp;b) if respond_to?(a.first)
+    end
+  end
+end
+</code></pre>
+                    <p>もう 1 つは NilClass インスタンス (nil
+                    オブジェクト) 用です。</p>
+                    <pre><code>class NilClass
+  def try(*args)
+    nil
+  end
+end
+</code></pre>
+                    <p>ここで、nil を返すメソッドを定義する Object
+                    インスタンス (Ruby
+                    の他のすべてのものと同様、実際には Object
+                    から継承する nil を除く) があるとします。</p>
+                    <pre><code>class Test
+  def returns_nil
+    nil
+  end
+end
+</code></pre>
+                    <p>したがって、Test.new.try(:returns_nil) または
+                    Test.new.not_existing_method
+                    を実行すると、Object#try が呼び出され、パブリック
+                    メソッド (response_to?)
+                    が存在するかどうかがチェックされます。実行する場合はメソッド
+                    (public_send) を呼び出します。そうでない場合は nil
+                    を返します (他の行はありません)。</p>
+                    <p>nil
+                    を返すこれらのメソッドをもう一度呼び出してみると、次のようになります。</p>
+                    <pre><code>Test.new.try(:returns_nil).try(:any_other_method)
+Test.new.try(:not_existing_method).try(:any_other_method)
+</code></pre>
+                    <p>NilClass#try を呼び出します。これは nil#try
+                    であり、単にすべてを無視して nil
+                    を返します。したがって、他のすべての試行は nil
+                    インスタンスで呼び出され、nil を返します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

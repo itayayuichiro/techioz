@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>これをきれいに書く方法はありますか？ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "これをきれいに書く方法はありますか？",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>これをきれいに書く方法はありますか？</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>したがって、機能を無効または有効にするフラグがあります。そして、必要な変数に基づいてフラグを切り替えます</p>
+                    <p>flag_a、flag_b は私の 2
+                    つの機能フラグで、変数入力文字列は
+                    none、all、flag_a、flag_b
+                    を入力文字列として指定でき、さらに flag_c や flag_d
+                    などのフラグを追加することもできます。</p>
+                    <pre><code>def input
+  variable = stdin &quot;value&quot;
+  update_flag(value.upcase)
+end
+
+def update_flag(value)
+ case value
+ when &quot;ALL&quot;
+    toggle_flag(flag_a, true)
+    toogle_flag(flag_b, true)
+ when &quot;FLAG_A&quot;
+    toggle_flag(flag_a, true)
+    toogle_flag(flag_b, false)
+ when &quot;FLAG_B&quot;
+    toggle_flag(flag_a, false)
+    toogle_flag(flag_b, true)
+ when &quot;NONE&quot;
+    toggle_flag(flag_a, flase)
+    toogle_flag(flag_b, false)
+end
+
+def toggle_flag(name, flag)
+  if flag
+    Featureflag.user(@id).enable(name.to_sym)
+  else
+    Featureflag.user(@id).disable(name.to_sym)
+  end
+end 
+</code></pre>
+                    <p>この入力が入力としてコンソールを介してのみ送信される変数に値を送信する方法が必要です。</p>
+                    <p>柔軟な方法で簡単にできるように、ドライかつ楽観的なものにするよう努める
+                    注「入力は入力としてコンソールを介してのみ送信されます」
+                    また、flag_C
+                    を追加する場合は、複数の入力を取得する方法が必要になります。これらの入力は有効にする必要があり、REST
+                    は無効にする必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これには when
+                    条件は必要ありません。次のように、フラグ名を使用して、機能を有効にする必要があるか無効にする必要があるかを確認するだけです。</p>
+                    <pre><code>def input
+  variable = stdin &quot;value&quot;
+  update_flag(value.upcase)
+end
+
+def update_flag(value)
+  toggle_flag(&quot;flag_a&quot;, value)
+  toggle_flag(&quot;flag_b&quot;, value)
+end
+
+def enable_feature?(name, flag)
+  return true if flag == &quot;BOTH&quot;
+  return false if flag == &quot;NONE&quot;
+
+  flag.downcase == name
+end
+
+def toggle_flag(name, flag)
+  if enable_feature?(name, flag)
+    Featureflag.user(@id).enable(name.to_sym)
+  else
+    Featureflag.user(@id).disable(name.to_sym)
+  end
+end
+
+</code></pre>
+                    <p>アップデート：</p>
+                    <p>提案によると:</p>
+                    <p>より大きな case ステートメントの場合</p>
+                    <pre><code>FLAGS = [
+  &quot;flag_a&quot;,
+  &quot;flag_b&quot;,
+  &quot;flag_c&quot;,
+]
+
+def input
+  value = prompt_input(&quot;Enter value:&quot;).upcase
+  update_flags(value)
+end
+
+def update_flag(value)
+  FLAGS.each do { |flag_name| toggle_flag(flag_name, value) }
+end
+
+def enable_feature?(name, flag)
+  return true if flag == &quot;BOTH&quot; || flag == &quot;ALL&quot;
+  return false if flag == &quot;NONE&quot;
+
+  flag.downcase == name
+end
+
+def toggle_flag(name, flag)
+  if enable_feature?(name, flag)
+    Featureflag.user(@id).enable(name.to_sym)
+  else
+    Featureflag.user(@id).disable(name.to_sym)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

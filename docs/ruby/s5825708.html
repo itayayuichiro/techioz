@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby クラスの別のクラスのインスタンスと通信する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby クラスの別のクラスのインスタンスと通信する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+クラスの別のクラスのインスタンスと通信する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>これはおそらく以前に回答されていると思いますが、ボード検索を使用して解決策を見つけるための適切な語彙がありません。</p>
+                    <p>私が達成したいのは、別のクラスのクラスのインスタンスのメソッドを呼び出すことです。</p>
+                    <p>この粗雑な例は、私が達成したいことを示していると思います。</p>
+                    <pre><code>class ClassA
+  def method_a
+    return &#39;first example&#39;
+  end
+
+  def method_b
+    return &#39;second example&#39;
+  end
+end
+
+class ClassB
+  def initialize
+    object = classA.new
+  end
+end
+
+the_example = classB.new
+the_example.[whatever-I’m-missing-to-talk-with-object].method_b 
+# should return &#39;second exampe&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>object
+                    は、初期化の呼び出し後にスコープ外にならないようにインスタンス変数である必要があるため、代わりに
+                    <span class="citation"
+                    data-cites="object">@object</span>
+                    と呼び出します。</p>
+                    <p>次に、classB の定義の外で <span class="citation"
+                    data-cites="object">@object</span>
+                    にアクセスできるようにする必要があるため、それを宣言する必要があります。</p>
+                    <pre><code>class ClassB
+  attr_reader :object # lets you call &#39;some_instance_of_classb.object&#39;
+  def initialize
+    @object = ClassA.new
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

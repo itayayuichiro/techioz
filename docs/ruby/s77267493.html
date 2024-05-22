@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>正規表現を使用して別の文字が接頭辞として付いていない場合、文字を許可しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "正規表現を使用して別の文字が接頭辞として付いていない場合、文字を許可しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>正規表現を使用して別の文字が接頭辞として付いていない場合、文字を許可しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の正規表現をコードに組み込みました。</p>
+                    <pre><code>.gsub(/(^|[^*])(\*\*)([^*]+)(\*\*)($|[^*])/m, &#39;\1*\3*\5&#39;) # bold
+</code></pre>
+                    <p>私が直面している問題は、\3 ブロック ([^*]+
+                    として定義) では現在、テキスト内にアスタリスク *
+                    を使用できないことです。</p>
+                    <p>私の目的は、エスケープ文字
+                     が前にある場合にのみアスタリスクを許可するように正規表現を変更することです。この変更を実現するための適切なアプローチは何ですか?</p>
+                    <p>例: <strong>hello * world</strong> <em>hello *
+                    world</em> と出力したい</p>
+                    <p>しかし、現在の正規表現では何も変更せずにテキストを取得しました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このような状況では、展開された
+                    [^*\]<em>(?:.[^*\]</em>)* を使用できます。</p>
+                    <pre><code>.gsub(/(^|[^*])(\*\*)([^*\\]*(?:\\.[^*\\]*)*)(\*\*)($|[^*])/m, &#39;\1*\3*\5&#39;) # bold
+</code></pre>
+                    <p>正規表現のデモを参照してください。さらに最適化できるものは、</p>
+                    <pre><code>.gsub(/(?&lt;!\*)\*\*([^*\\]*(?:\\.[^*\\]*)*)\*\*(?!\*)/m, &#39;*\1*&#39;) 
+</code></pre>
+                    <p>この正規表現のデモを参照してください</p>
+                    <p>詳細：</p>
+                    <p>Ruby のデモを参照してください。</p>
+                    <pre><code>text = &#39;**hello \* world**&#39;
+puts text.gsub(/(?&lt;!\*)\*\*([^*\\]*(?:\\.[^*\\]*)*)\*\*(?!\*)/m, &#39;*\1*&#39;) 
+# =&gt; *hello \* world*
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

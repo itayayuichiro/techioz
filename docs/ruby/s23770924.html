@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで例外をキャッチした後に（同じ例外を）再発生させる | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで例外をキャッチした後に（同じ例外を）再発生させる",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで例外をキャッチした後に（同じ例外を）再発生させる</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>例外をキャッチして Ruby
+                    のスキルを向上させようとしています。複数のメソッド呼び出しがある場合に、同じ種類の例外が再発生するのが一般的かどうかを知りたいです。それでは、次のコードは意味をなすでしょうか?同じ種類の例外を再発生させても問題ありませんか、それとも
+                    process
+                    メソッドでキャッチしない方がよいでしょうか?</p>
+                    <pre><code>class Logo
+  def process
+    begin
+      @processed_logo = LogoProcessor::create_image(self.src)
+    rescue CustomException
+      raise CustomException
+    end
+  end
+end
+
+module LogoProcessor
+  def self.create_image
+    raise CustomException if some_condition
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>実際にエラーを処理することなく、エラーが発生したことだけを知りたい場合があります。</p>
+                    <p>多くの場合、エラーの処理を担当するのはオブジェクトのユーザー、つまり呼び出し元です。エラーには興味があるが、その責任を負いたくない場合はどうすればよいでしょうか?エラーをレスキューし、必要なことをすべて実行してから、何も起こらなかったかのように信号をスタックに伝播します。</p>
+                    <p>たとえば、エラー
+                    メッセージをログに記録し、呼び出し元に対処してもらいたい場合はどうすればよいでしょうか。</p>
+                    <pre><code>begin
+  this_will_fail!
+rescue Failure =&gt; error
+  log.error error.message
+  raise
+end
+</code></pre>
+                    <p>引数を指定せずに raise
+                    を呼び出すと、最後のエラーが発生します。私たちの場合、エラーが再発生しています。</p>
+                    <p>質問で示した例では、エラーを再発生させる必要はありません。単純にスタック上に自然に伝播させることもできます。あなたの例の唯一の違いは、最後のエラー
+                    オブジェクトを再生成するのではなく、新しいエラー
+                    オブジェクトを作成してそれを生成していることです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

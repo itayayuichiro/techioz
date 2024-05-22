@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ハッシュから再帰的に連結文字列を生成するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ハッシュから再帰的に連結文字列を生成するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ハッシュから再帰的に連結文字列を生成するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のような複雑なハッシュ構造があります
+                    (数多くあります)。</p>
+                    <pre><code>hash = {&quot;en-us&quot;=&gt;
+  {:learn_more=&gt;&quot;Learn more&quot;,
+   :non_apple_desktop=&gt;&quot;To redeem, open this link.&quot;,
+   :value_prop_safety=&gt;&quot;&quot;,
+   :storage_size=&gt;
+    {:apple_tv_1_month_tms=&gt;
+      {:cta=&gt;&quot;Offer&quot;,
+       :details=&gt;&quot;Get a 1-month subscription!.&quot;,
+       :disclaimer=&gt;&quot;This offer expires on December 10, 2021.&quot;,
+       :header=&gt;&quot;Watch The Morning Show &quot;,
+       :normal_price=&gt;&quot;$2.99&quot;}
+      }
+    }
+  }
+</code></pre>
+                    <p>私がやりたいのは、ハッシュ構造に基づいて次の文字列出力を生成する関数を作成することです。</p>
+                    <pre><code>en-us.storage_size.apple_tv_1_month_tms.cta: Offer
+en-us.storage_size.apple_tv_1_month_tms.details: Get a 1-month subscription!.
+en-us.storage_size.apple_tv_1_month_tms.disclaimer: This offer expires on December 10, 2021.
+en-us.storage_size.apple_tv_1_month_tms.header: Watch The Morning Show
+en-us.storage_size.apple_tv_1_month_tms.normal_price: $2.99
+en-us.learn_more: Learn more
+en-us.non_apple_desktop: To redeem, open this link.
+en-us.value_prop_safety: 
+</code></pre>
+                    <p>私はこれをある程度達成する別のスタックオーバーフローの質問からこの再帰関数を使用しました。</p>
+                    <pre><code>def show(hash, current_path = &#39;&#39;)
+  string = &#39;&#39;
+  hash.each do |k,v|
+    if v.respond_to?(:each)
+      current_path += &quot;#{k}.&quot;
+      show v, current_path
+    else
+      string += &quot;#{current_path}#{k}: #{v}&quot; + &quot;\n&quot;
+    end
+  end
+  string
+end
+</code></pre>
+                    <p>メソッドの本体に Puts
+                    ステートメントを配置すると、目的の結果が 1
+                    行ずつ表示されます。必要なのは、出力を CSV
+                    に書き込むため、出力全体を取得することです。現在のバージョンでは機能しないようです。</p>
+                    <p>irb に puts show(hash)
+                    を配置した場合、出力は得られません。要約すると、私は次のことをしようとしています:</p>
+                    <pre><code>show(hash) -----&gt;
+
+en-us.storage_size.apple_tv_1_month_tms.cta: Offer
+en-us.storage_size.apple_tv_1_month_tms.details: Get a 1-month subscription!.
+en-us.storage_size.apple_tv_1_month_tms.disclaimer: This offer expires on December 10, 2021.
+en-us.storage_size.apple_tv_1_month_tms.header: Watch The Morning Show
+en-us.storage_size.apple_tv_1_month_tms.normal_price: $2.99
+en-us.learn_more: Learn more
+en-us.non_apple_desktop: To redeem, open this link.
+en-us.value_prop_safety: 
+</code></pre>
+                    <p>これは簡単な再帰的なタスクのはずですが、正確にどこが間違っているのかを特定できません。ご協力をよろしくお願いいたします。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私の意見では、i18n gem
+                    を使用する方がはるかに便利です</p>
+                    <p>I18n::Backend::Flatten# flatten_translations
+                    メソッドがあります。翻訳のハッシュ
+                    (キーはロケール、値は別のハッシュ)
+                    を受け取り、必要に応じてすべての翻訳をフラット化したハッシュを返します。</p>
+                    <p>結果のハッシュを文字列に変換するだけで完了です</p>
+                    <pre><code>require &quot;i18n/backend/flatten&quot;
+
+include I18n::Backend::Flatten
+
+locale_hash = {&quot;en-us&quot;=&gt;
+  {:learn_more=&gt;&quot;Learn more&quot;,
+   :non_apple_desktop=&gt;&quot;To redeem, open this link.&quot;,
+   :value_prop_safety=&gt;&quot;&quot;,
+   :storage_size=&gt;
+    {:apple_tv_1_month_tms=&gt;
+      {:cta=&gt;&quot;Offer&quot;,
+       :details=&gt;&quot;Get a 1-month subscription!.&quot;,
+       :disclaimer=&gt;&quot;This offer expires on December 10, 2021.&quot;,
+       :header=&gt;&quot;Watch The Morning Show &quot;,
+       :normal_price=&gt;&quot;$2.99&quot;}
+      }
+    }
+  }
+
+
+puts flatten_translations(nil, locale_hash, nil, nil).
+       map { |k, v| &quot;#{k}: #{v}&quot; }.
+       join(&quot;\n&quot;)
+
+# will print
+# en-us.learn_more: Learn more
+# en-us.non_apple_desktop: To redeem, open this link.
+# en-us.value_prop_safety: 
+# en-us.storage_size.apple_tv_1_month_tms.cta: Offer
+# en-us.storage_size.apple_tv_1_month_tms.details: Get a 1-month subscription!.
+# en-us.storage_size.apple_tv_1_month_tms.disclaimer: This offer expires on December 10, 2021.
+# en-us.storage_size.apple_tv_1_month_tms.header: Watch The Morning Show 
+# en-us.storage_size.apple_tv_1_month_tms.normal_price: $2.99
+</code></pre>
+                    <p>もちろん、メインオブジェクトではなく、サービスオブジェクトに含める方が良いです</p>
+                    <pre><code>require &quot;i18n/backend/flatten&quot;
+
+class StringifyLocaleHash
+  include I18n::Backend::Flatten
+
+  attr_reader :locale_hash
+
+  def self.call(locale_hash)
+    new(locale_hash).call
+  end
+
+  def initialize(locale_hash)
+    @locale_hash = locale_hash
+  end
+
+  def call
+    flatten_translations(nil, locale_hash, nil, nil).
+      map { |k, v| &quot;#{k}: #{v}&quot; }.
+      join(&quot;\n&quot;)
+  end
+end
+
+# To get string call such way
+StringifyLocaleHash.(locale_hash)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

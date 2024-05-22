@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Postgres gem の AWS Lambda レイヤーが機能しない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Postgres gem の AWS Lambda レイヤーが機能しない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Postgres gem の AWS Lambda
+レイヤーが機能しない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この投稿をガイドとして使用して、Ruby
+                    上で実行される AWS Lambda 用の Postgres
+                    レイヤーを構築しようとしていますが、機能しません。</p>
+                    <p>これが Dockerfile
+                    です。これを機能させるために、RUN
+                    バンドル設定cache_all true と RUN
+                    バンドルパッケージを追加しました。 RUN env
+                    ARCHFLAGS=“-arch aarch64” gem install pg
+                    も試しましたが、まだ機能しませんでした。</p>
+                    <pre><code>FROM public.ecr.aws/lambda/ruby:3.2
+
+RUN yum install -y amazon-linux-extras \
+    &amp;&amp; amazon-linux-extras enable postgresql14 \
+    &amp;&amp; yum group install &quot;Development Tools&quot; -y
+
+RUN yum install -y postgresql postgresql-devel
+
+ADD Gemfile Gemfile.lock ${LAMBDA_TASK_ROOT}
+
+ENV GEM_HOME=${LAMBDA_TASK_ROOT}
+
+RUN bundle config cache_all true
+RUN bundle config set path &#39;vendor/bundle&#39;
+
+RUN bundle install
+RUN bundle package
+</code></pre>
+                    <p>これがスクリプトです</p>
+                    <pre><code>#!/bin/sh -e
+
+DIST_DIR=&quot;pg&quot;
+rm -rf $DIST_DIR
+mkdir -p &quot;$DIST_DIR/lib&quot;
+mkdir -p &quot;$DIST_DIR/ruby/gems&quot;
+
+cd &quot;$SOURCE_DIR&quot; &gt;/dev/null || exit
+
+docker build -t ruby-builder -f Dockerfile .
+CONTAINER=$(docker run -d ruby-builder)
+
+# See https://northsail.io/articles/aws-lambda-ruby-2-7-pg-gem-libldap-error
+# for what to libpq binaries to copy for Amazon Linux 2
+docker cp \
+  $CONTAINER:/usr/lib64/libpq.so.5.14 \
+  $DIST_DIR/lib/libpq.so.5
+
+docker cp \
+  $CONTAINER:/usr/lib64/libldap_r-2.4.so.2.10.7 \
+  $DIST_DIR/lib/libldap_r-2.4.so.2
+
+docker cp \
+  $CONTAINER:/usr/lib64/liblber-2.4.so.2.10.7 \
+  $DIST_DIR/lib/liblber-2.4.so.2
+
+docker cp \
+  $CONTAINER:/usr/lib64/libsasl2.so.3.0.0 \
+  $DIST_DIR/lib/libsasl2.so.3
+
+docker cp \
+  $CONTAINER:/usr/lib64/libssl3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libsmime3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libnss3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/usr/lib64/libnssutil3.so \
+  $DIST_DIR/lib/
+
+docker cp \
+  $CONTAINER:/var/task/vendor/bundle/ruby/3.2.0 \
+  $DIST_DIR/ruby/gems/3.2.0
+
+docker stop $CONTAINER
+docker rm $CONTAINER
+</code></pre>
+                    <p>生成されたフォルダー
+                    ツリーは次のようになります。</p>
+                    <pre><code>.
+├── lib
+└── ruby
+    └── gems
+        └── 3.2.0
+            ├── bin
+            ├── build_info
+            ├── cache
+            ├── doc
+            ├── extensions
+            │   └── aarch64-linux
+            │       └── 3.2.0
+            ├── gems
+            │   ├── bundler-2.4.17
+            │   │   ├── exe
+            │   │   └── lib
+            │   └── pg-1.5.4
+            │       ├── certs
+            │       ├── ext
+            │       ├── lib
+            │       ├── misc
+            │       ├── rakelib
+            │       ├── sample
+            │       └── translation
+            ├── plugins
+            └── specifications
+</code></pre>
+                    <p>これは、レイヤー内の gem
+                    が機能しているかどうかをテストするラムダ関数です。</p>
+                    <pre><code>require &#39;json&#39;
+require &#39;pg&#39;
+
+def lambda_handler(event:, context:)
+    { statusCode: 200, body: {postgres_client_version: PG.library_version}.to_json }
+end
+</code></pre>
+                    <p>そして、これがエラーメッセージです:</p>
+                    <pre><code>Test Event Name
+test
+
+Response
+{
+  &quot;errorMessage&quot;: &quot;cannot load such file -- pg&quot;,
+  &quot;errorType&quot;: &quot;Init&lt;LoadError&gt;&quot;,
+  &quot;stackTrace&quot;: [
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;/var/task/lambda_function.rb:2:in `&lt;top (required)&gt;&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;
+  ]
+}
+
+Function Logs
+Ignoring pg-1.5.4 because its extensions are not built. Try: gem pristine pg --version 1.5.4
+Init error when loading handler lambda_function.lambda_handler
+{
+  &quot;errorMessage&quot;: &quot;cannot load such file -- pg&quot;,
+  &quot;errorType&quot;: &quot;Init&lt;LoadError&gt;&quot;,
+  &quot;stackTrace&quot;: [
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;/var/task/lambda_function.rb:2:in `&lt;top (required)&gt;&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;
+  ]
+}
+INIT_REPORT Init Duration: 324.56 ms    Phase: init Status: error   Error Type: Runtime.ExitError
+Ignoring pg-1.5.4 because its extensions are not built. Try: gem pristine pg --version 1.5.4
+Init error when loading handler lambda_function.lambda_handler
+{
+  &quot;errorMessage&quot;: &quot;cannot load such file -- pg&quot;,
+  &quot;errorType&quot;: &quot;Init&lt;LoadError&gt;&quot;,
+  &quot;stackTrace&quot;: [
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;/var/task/lambda_function.rb:2:in `&lt;top (required)&gt;&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;,
+    &quot;&lt;internal:/var/lang/lib/ruby/site_ruby/3.2.0/rubygems/core_ext/kernel_require.rb&gt;:86:in `require&#39;&quot;
+  ]
+}
+INIT_REPORT Init Duration: 2500.61 ms   Phase: invoke   Status: error   Error Type: Runtime.ExitError
+START RequestId: 2ab0555b-bde9-4cb1-a0d4-ee0d2fe2d0b1 Version: $LATEST
+Unknown application error occurred
+Runtime.Unknown
+END RequestId: 2ab0555b-bde9-4cb1-a0d4-ee0d2fe2d0b1
+REPORT RequestId: 2ab0555b-bde9-4cb1-a0d4-ee0d2fe2d0b1  Duration: 2520.07 ms    Billed Duration: 2521 ms    Memory Size: 128 MB Max Memory Used: 16 MB
+
+</code></pre>
+                    <p>PG
+                    のネイティブ拡張機能がインストールされていないか、別のアーキテクチャ用にインストールされているようですが、現時点ではそれを修正する方法がわからず、かなり混乱しています。</p>
+                    <p>これを機能させる方法についてのアドバイスをいただければ幸いです。
+                    ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>別の Docker
+                    イメージを使用すると機能しました。</p>
+                    <pre><code>FROM public.ecr.aws/sam/build-ruby3.2:latest-x86_64
+</code></pre>
+                    <p>どうやら、以前のものはアーキテクチャが異なっており、間違った依存関係がインストールされていたようです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails AjaxDatatablesRails::ActiveRecord 同じモデルに LEFT JOIN すると検索エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails AjaxDatatablesRails::ActiveRecord 同じモデルに LEFT JOIN すると検索エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails AjaxDatatablesRails::ActiveRecord
+同じモデルに LEFT JOIN すると検索エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のトランザクション モデルには、在庫室モデル
+                    オブジェクトを参照する 2
+                    つのフィールドがありました。これにより、検索時にエラーが発生します。これらのフィールドのいずれかによる検索または並べ替えでは、最初の
+                    left_join からのデータのみが使用されます。</p>
+                    <pre><code>class Transaction &lt; ApplicationRecord
+  belongs_to :stored_product
+  belongs_to :user
+  belongs_to :from_stockroom, class_name: &#39;Stockroom&#39;, foreign_key: &#39;from_stockroom_id&#39;, optional: true
+  belongs_to :to_stockroom, class_name: &#39;Stockroom&#39;, foreign_key: &#39;to_stockroom_id&#39;, optional: true
+  attr_accessor :user_selection
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私のトランザクション モデルには、在庫室モデル
+                    オブジェクトを参照する 2
+                    つのフィールドがありました。これにより、検索時にエラーが発生します。これらのフィールドのいずれかによる検索または並べ替えでは、最初の
+                    left_join からのデータのみが使用されます。</p>
+                    <pre><code>class TransactionsDatatable &lt; AjaxDatatablesRails::ActiveRecord
+  extend Forwardable
+  def_delegators :@view, :current_user
+
+  def initialize(params, opts = {})
+    @view = opts[:view_context]
+    super
+  end
+
+  def view_columns
+    @view_columns ||= {
+      id: { source: &#39;Transaction.id&#39;, cond: :eq, searchable: true },
+      stored_product_id: { source: &#39;StoredProduct.name&#39;, searchable: true },
+      user_id: { source: &#39;User.name&#39;, cond: :like, searchable: true },
+      from_stockroom_id: { source: &#39;from_stockroom_name&#39;, cond: :like, searchable: true, orderable: true },
+      to_stockroom_id: { source: &#39;to_stockroom_name&#39;, cond: :like, searchable: true, orderable: true },
+      quantity: { source: &#39;Transaction.quantity&#39;, searchable: false, orderable: false },
+      comment: { source: &#39;Transaction.comment&#39;, cond: :like, searchable: true, orderable: false },
+      created_at: { source: &#39;Transaction.created_at&#39;, searchable: false }
+    }
+  end
+
+  def data
+    records.map do |record|
+      {
+        id: record.id,
+        stored_product_id: record.stored_product.name,
+        user_id: record.user.name,
+        from_stockroom_id: record.from_stockroom.present? ? record.from_stockroom.name : &#39;Поставка&#39;,
+        to_stockroom_id: record.to_stockroom.present? ? record.to_stockroom.name : &#39;Списание&#39;,
+        quantity: record.quantity,
+        comment: record.comment,
+        created_at: record.created_at.strftime(&#39;%d.%m.%Y&#39;),
+        DT_RowId: record.id
+      }
+    end
+  end
+
+  def get_raw_records
+    Transaction.where(deleted: false)
+               .joins(:stored_product, :user)
+               .joins(&#39;LEFT JOIN stockrooms AS from_stockrooms ON from_stockrooms.id = transactions.from_stockroom_id&#39;)
+               .joins(&#39;LEFT JOIN stockrooms AS to_stockrooms ON to_stockrooms.id = transactions.to_stockroom_id&#39;)
+               .select(&#39;transactions.*, from_stockrooms.name as from_stockroom_name, to_stockrooms.name as to_stockroom_name&#39;)
+  end
+
+  def filter_records(records)
+    to_search_value = params[:columns][&#39;4&#39;][&#39;search&#39;][&#39;value&#39;]
+    from_search_value = params[:columns][&#39;3&#39;][&#39;search&#39;][&#39;value&#39;]
+    multiple_search_value = params[&#39;search&#39;][&#39;value&#39;]
+    records = records.where(&#39;LOWER(from_stockrooms.name) LIKE ?&#39;, &quot;%#{from_search_value.downcase}%&quot;) if from_search_value.present?
+    records = records.where(&#39;LOWER(to_stockrooms.name) LIKE ?&#39;, &quot;%#{to_search_value.downcase}%&quot;) if to_search_value.present?
+
+    return records.where(build_conditions) unless multiple_search_value.present?
+    
+    records.where(build_conditions)
+           .or(records.where(build_conditions_for_selected_columns).and(stockrooms_colums_search(records,multiple_search_value)))
+  end
+
+  def stockrooms_colums_search(records, multiple_search_value)
+    records.where(&#39;LOWER(to_stockrooms.name) LIKE ?&#39;, &quot;%#{multiple_search_value.downcase}%&quot;)
+           .or(records.where(&#39;LOWER(from_stockrooms.name) LIKE ?&#39;, &quot;%#{multiple_search_value.downcase}%&quot;))
+  end
+end
+</code></pre>
+                    <p>params[:columns][“4”][“search”][“value”]
+                    は、検索可能なすべての列ではなく単一列での検索に使用されます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

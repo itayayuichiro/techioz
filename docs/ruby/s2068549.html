@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mongomapper クエリ収集の問題 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mongomapper クエリ収集の問題",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mongomapper クエリ収集の問題</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザー has_many
+                    ミーティングを定義すると、自動的に「user_id」が作成されます。
+                    User
+                    コレクションに関連付けるキーと値のペア。何も走れないことを除けば
+                    mongo_mapper は、nil または []
+                    を返さずに、この値を使用して検索します。</p>
+                    <p>Meeting.first(:user_id =&gt; “1234”)</p>
+                    <p>Meeting.all(:user_id =&gt; “1234”)</p>
+                    <p>Meeting.find(:user_id =&gt; “1234”)</p>
+                    <p>すべて nil
+                    を返します。別の構文はありますか?基本的に、自動生成された関連付けられた
+                    ObjectId
+                    に対してクエリを実行することはできません。</p>
+                    <pre><code>
+
+# Methods
+
+class User
+  include MongoMapper::Document
+
+  key :user_name, String, :required =&gt; true
+  key :password, String
+
+  many :meetings
+end
+
+class Meeting
+  include MongoMapper::Document
+
+  key :name, String, :required =&gt; true
+  key :count, Integer, :default =&gt; 1
+end
+
+
+# Sinatra
+
+get &#39;/add&#39; do
+  user = User.new
+  user.meetings  &quot;foobar&quot;) #should read: Meeting.new(:name =&gt; &quot;foobar&quot;)
+  user.save
+end
+
+get &#39;/find&#39; do
+  test = Meeting.first(:user_id =&gt; &quot;4b4f9d6d348f82370b000001&quot;) #this is the _id of the newly create user
+  p test # WTF! returns []
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ジミーが Meeting.all
+                    の確認について述べたように、何もないと思います。</p>
+                    <p>上記の例に基づいて、いくつかの潜在的な問題がわかります。
+                    - ユーザーには :user_name
+                    が必要なので、保存されません -
+                    必須の名前を設定していないため、保存されることはありません
+                    - 会議も保存されません - もう 1 つ、ミーティングを
+                    user.meetings に連結する必要があります。</p>
+                    <p>これはmongo_mapper 0.6.10で動作します</p>
+                    <pre><code>require &#39;rubygems&#39;
+require &#39;mongo_mapper&#39;
+MongoMapper.database = &quot;meetings&quot;
+
+class User
+  include MongoMapper::Document
+
+  key :user_name, String, :required =&gt; true
+  key :password, String
+
+  many :meetings
+end
+
+class Meeting
+  include MongoMapper::Document
+
+  key :name, String, :required =&gt; true
+  key :count, Integer, :default =&gt; 1
+end
+
+user = User.create(:user_name =&gt; &quot;Rubyist&quot;)
+user.meetings  &lt;&lt; Meeting.create(:name =&gt; &quot;foobar&quot;)
+user.save
+
+Meeting.first(:user_id =&gt; user.id)
+User.find(user.id).meetings
+</code></pre>
+                    <p>もうお気づきかもしれませんが、お役に立てば幸いです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

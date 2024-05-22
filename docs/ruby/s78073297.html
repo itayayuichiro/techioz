@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>月の日付の背景色を確認する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "月の日付の背景色を確認する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>月の日付の背景色を確認する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は毎日の出席を示すカレンダーを持っています。各日付は異なる色で表示されます
+                    (例:
+                    従業員が出席している場合は緑色、不在の場合は赤色、休日の場合は灰色)。ステータスに応じて正しい色を選択します。私はwatir
+                    Seleniumで以下のコードを試しました:</p>
+                    <pre><code>require &#39;color&#39;
+
+def get_current_month_and_year_from_calendar(browser)  
+  calendar_title_element = @browser.span(class: &#39;calendar-title&#39;)
+  calendar_title = calendar_title_element.text
+  month, year = calendar_title.split(&#39; &#39;)
+  [month, year.to_i]
+end
+
+backward_button = @browser.element(xpath: &#39;/html/body/div/section/div[2]/div/div/div[2]/div[1]/div/div/div/a[1]&#39;)
+
+current_month, current_year = get_current_month_and_year_from_calendar(@browser)
+target_month = &quot;January&quot;
+target_year = 2024
+
+while !(current_month == target_month &amp;&amp; current_year == target_year)
+  backward_button.click
+  sleep 1
+  current_month, current_year = get_current_month_and_year_from_calendar(@browser)
+end
+
+def check_attendance_for_month(browser)
+  month_calendar = @browser.elements(xpath: &quot;//table[@class=&#39;simple-calendar&#39;]//td[contains(@class,&#39;current-month&#39;)]&quot;)
+  
+  month_calendar.each do |day|
+    color = get_color_for_day(day)
+    if day_is_present?(color)
+      puts &quot;Day #{day.text} is present&quot;
+    elsif day_is_Work_From_Home?(color)
+      puts &quot;Day #{day.text} is Work From Home&quot;
+    elsif day_is_CompOff_Present?(color)
+      puts &quot;Day #{day.text} is CompOff and Present&quot;
+    else
+      puts &quot;Day #{day.text} has an unknown color&quot;
+    end
+  end
+end
+
+def get_color_for_day(day_element)
+  color_style = day_element.style(&#39;background-color&#39;)
+  parse_color(color_style)
+end
+
+def parse_color(color_style)
+  rgb_match = color_style.match(/\Argba?\((\d+),\s*(\d+),\s*(\d+)/)
+  if rgb_match
+    red = rgb_match[1].to_i
+    green = rgb_match[2].to_i
+    blue = rgb_match[3].to_i
+    return [red, green, blue]
+  end
+  nil
+end
+
+def day_is_present?(color)
+  present_color = [0, 128, 0]  # Green
+  compare_colors(color, present_color)
+end
+
+def day_is_CompOff_Present?(color)
+  compOff_present_color = [255, 165, 0]  # Orange
+  compare_colors(color, compOff_present_color)
+end
+
+def day_is_Work_From_Home?(color)
+  work_from_home_color = [0, 0, 255]  # Blue
+  compare_colors(color, work_from_home_color)
+end
+
+def compare_colors(color, target_color)
+  color &amp;&amp; color == target_color
+end
+
+check_attendance_for_month(@browser)
+
+end
+</code></pre>
+                    <p>このコードは、カレンダーを現在の月から 2024 年 1
+                    月に移動しますが、必要なその日の色は表示されません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>私が見た問題の 1 つは、get_color_for_day()
+                    が色を返さないことです。に変更します</p>
+                    <pre><code>def get_color_for_day(day_element)
+  color_style = day_element.style(&#39;background-color&#39;)
+  return parse_color(color_style)
+end
+</code></pre>
+                    <p>そして少なくともそのバグは修正されるでしょう。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

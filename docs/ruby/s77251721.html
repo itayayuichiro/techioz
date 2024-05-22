@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>なぜ「rails new」でプロジェクトが作成され、そのプロジェクトには bin/rails も実行可能になるのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "なぜ「rails new」でプロジェクトが作成され、そのプロジェクトには bin/rails も実行可能になるのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>なぜ「rails
+new」でプロジェクトが作成され、そのプロジェクトには bin/rails
+も実行可能になるのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails
+                    の世界への第一歩を踏み出します。私はコンテナ内で開発を行っており、そこで
+                    Ruby インタープリタが動作しています。</p>
+                    <p>公式ドキュメントには、Rails を gem
+                    インストールしてから新しいプロジェクトを作成する必要があると記載されています。新しいプロジェクトには
+                    bin/rails もあり、私の「グローバル」rails
+                    実行可能ファイルとまったく同じバージョンです。これは混乱を招きます。</p>
+                    <p>レールは新しいプロジェクトの足場を築くためにのみ必要だと思いますね?その場合、「グローバル」
+                    Rails gem を必要としない方法で Rails
+                    をインストールできますか?スケルトンの Github
+                    リポジトリのようなものですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    を実行すると、現在インストールされている最新バージョンが実行されます。複数の
+                    gem
+                    バージョンを同時にインストールできます。たとえば、これは私が現在
+                    Rails に使用しているものです (Ruby バージョンの 1
+                    つ)。</p>
+                    <pre><code>$ gem list | ag &quot;^rails\s&quot;
+rails (7.1.0, 7.0.4.3, 7.0.4.2, 7.0.4.1, 6.1.7.6, 6.1.7.3, 6.1.7, 6.1.6, 6.1.5, 6.1.4.6, 6.1.4.1, 6.1.4, 6.1.0.rc1, 6.0.6.1, 6.0.3.4, 6.0.0, 5.2.8.1, 5.0.7.2, 4.2.11.3)
+</code></pre>
+                    <p>レールを実行すると最新バージョンが得られます。</p>
+                    <pre><code>$ rails -v
+Rails 7.1.0
+</code></pre>
+                    <p>数年前のプロジェクトがある場合は、Rails v5.2.8.1
+                    を使用する必要があります。 bin/rails
+                    は、そのプロジェクトに正しいバージョンの Rails
+                    を使用していることを確認します。</p>
+                    <pre><code>$ cd ~/code/SO/rails_five 
+$ bin/rails -v
+Rails 5.2.8.1
+
+# depending on your shell config (rbenv), this does automagically work (although, super slow for some reason)
+$ rails -v
+Rails 5.2.8.1
+</code></pre>
+                    <p>bin/rails - Bundle exec Rails
+                    と同等であり、数年後の自分も含め、プロジェクトを使用する全員が正しいバージョンの
+                    Rails
+                    を使用していることを確認するためにあります。グローバル
+                    バージョンは常に変更されます。</p>
+                    <p>Rails のバージョンが 100
+                    万ある場合は、新しいプロジェクトに使用するバージョンを指定するための特別な構文があります。</p>
+                    <pre><code>$ rails _5.2.8.1_ new rails_five 
+</code></pre>
+                    <p>php
+                    については門外漢なので、プロジェクトを開始する前に「composer.json」に何が入っているかを知っておく必要がありますか?いくつかの
+                    gem を含むディレクトリと Gemfile を作成し、bundle
+                    install を実行できます。さて、どうするでしょうか?
+                    Rails プロジェクトには、rails new
+                    によって生成されるかなりの構造があります。これらすべてを手動で行う必要はありません。また、バンドル
+                    インストールでは gem がインストールされる
+                    (別名ダウンロードされる)
+                    だけであり、それが理にかなっている場合は、プロジェクト構造は生成されません。</p>
+                    <p>レールの場合は次のようにします。</p>
+                    <pre><code>gem install rails
+rails new my_project
+cd my_project
+# use bin/rails from now on for years to come
+</code></pre>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://bundler.io/v2.4/man/bundle-binstubs.1.html</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

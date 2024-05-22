@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Mongodb Mongoid のデータ挿入速度の向上 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Mongodb Mongoid のデータ挿入速度の向上",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Mongodb Mongoid のデータ挿入速度の向上</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>MongoDB に 2,000,000 行のデータを 1
+                    行ずつ挿入する必要がありますが、挿入数が 200,000
+                    に達すると非常に遅くなります。Mongoid
+                    を使用していますが、挿入前にデータ検証が必要なので一括挿入を使用できるかどうかわかりません。このプロセスを高速化するにはどうすればよいですか?
+                    助けてくれて本当にありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>パフォーマンスを大幅に向上させるには、Moped::Collection#insert
+                    によるバッチ挿入を試してください。 #valid?
+                    を明示的に呼び出す必要があります。あなた自身。
+                    data_rows が Mongoid モデルの MyModel
+                    オブジェクトの配列であると仮定して、次のようなことを試してください。</p>
+                    <pre><code>slice_size = 1000    
+data_rows.each_slice(slice_size) do |slice|
+  slice.each{|data_row| raise &quot;validation error&quot; unless data_row.valid?}
+  MyModel.collection.insert(slice.collect{|data_row| data_row.serializable_hash})
+end
+</code></pre>
+                    <p>インポート データを「生の」非 Mongoid
+                    モデル形式でインターセプトできる場合は、ハッシュの配列を挿入することで一部のオーバーヘッドを回避できますが、その場合は独自のカスタム検証をプログラムする必要があり、Mongoid
+                    モデル検証を使用できなくなります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

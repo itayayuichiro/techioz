@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails - 抽象クラスの Rspec テストを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails - 抽象クラスの Rspec テストを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails - 抽象クラスの Rspec
+テストを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は、DB
+                    に含まれるすべてのモデルに特定のフィールドがあることを確認する検証を含めるために、ApplicationRecord
+                    の一般的な機能を更新する必要があるプロジェクトに取り組んでいます。私はこれを次の方法で設定しました。</p>
+                    <pre><code>class MyCustomApplicationRecordClass &lt; ApplicationRecord
+    self.abstract_class = true
+    validate :custom_validation
+
+
+    def custom_validation
+        ...
+    end
+end
+</code></pre>
+                    <p>次に、モデルは次の方法でこのクラスを継承します。</p>
+                    <pre><code>class MyModel &lt; MyCustomApplicationRecordClass
+...
+end
+</code></pre>
+                    <p>検証は期待どおりに機能し、MyCustomApplicationRecordClass
+                    から継承する各クラスの機能が機能していることを確認するテストを作成できますが、このクラスの検証が期待どおりに動作していることを確認するテストを作成する方法に苦労しています。
+                    「テスト」クラスを作成しようとしましたが、テストクラスがデータベース内のテーブルに対応していないというエラーが表示されました（もちろん、対応していません）。この検証が予想どおりに実行されていることをテストする最良の方法は何ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この回答はオプションを提供します。抽象クラスをロードする
+                    TestClass
+                    を作成する場合、スキーマのロードをオフにすることができます。これにより、エラー
+                    メッセージが表示されなくなり、抽象クラスをテストできるようになります。</p>
+                    <pre><code>class TestClass &lt; MyCustomApplicationRecordClass
+    def self.load_schema!
+         @columns_hash = {}
+    end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

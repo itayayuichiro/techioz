@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>引数の数が間違っています (指定された値は 1、期待値は 0、必須キーワード: io、ファイル名) - Active Storage | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "引数の数が間違っています (指定された値は 1、期待値は 0、必須キーワード: io、ファイル名) - Active Storage",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>引数の数が間違っています (指定された値は
+1、期待値は 0、必須キーワード: io、ファイル名) - Active Storage</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails バージョンを 7.1.2
+                    にアップグレードした後、アクティブ
+                    ストレージで問題が発生しました。このコードを実行しようとしています:</p>
+                    <pre><code>banner = Banner.new
+img_url = &quot;https://t3.ftcdn.net/jpg/04/75/78/56/360_F_475785604_HDtTcxBFA0Av87F7JoFmpircCcatQ22b.jpg&quot;
+picture = URI.open(img_url, {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE})
+banner.img_v2.attach(io: picture, filename: File.basename(picture), key: &quot;banners/v2/#{File.basename(picture)}.png&quot;)
+banner.save
+</code></pre>
+                    <p>そして、banner.saveまたはbanner.img_v2.urlで次のエラーが発生します。</p>
+                    <pre><code>/.rbenv/versions/3.2.2/lib/ruby/gems/3.2.0/gems/activestorage-7.1.2/app/models/active_storage/blob.rb:87:in `build_after_unfurling&#39;: wrong number of arguments (given 1, expected 0; required keywords: io, filename) (ArgumentError)
+</code></pre>
+                    <p>この問題は私に最も近いものを見つけましたが、役に立ちませんでした。助けや提案をしていただきありがとうございます。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rails
+                    6と互換性のあるアクティブストレージのイニシャライザを使用していることがわかりました。ソースコードと解決策はここで見つけます。</p>
+                    <p>エラーは次の行から発生します。</p>
+                    <pre><code>when Hash
+  ActiveStorage::Blob.build_after_unfurling({ metadata: { acl: acl } }.deep_merge(attachable))
+</code></pre>
+                    <p>修正：</p>
+                    <pre><code>when Hash
+  ActiveStorage::Blob.build_after_unfurling \
+    io: attachable[:io],
+    filename: attachable[:filename],
+    content_type: attachable[:content_type],
+    metadata: { acl: acl }
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

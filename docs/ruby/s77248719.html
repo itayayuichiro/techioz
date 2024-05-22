@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby でクイズ ゲームを作成しています。答えをチェックしてスコアを与えるテスト メソッドがあります。このエラー # が発生します。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby でクイズ ゲームを作成しています。答えをチェックしてスコアを与えるテスト メソッドがあります。このエラー # が発生します。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby でクイズ
+ゲームを作成しています。答えをチェックしてスコアを与えるテスト
+メソッドがあります。このエラー #<Question:0x0000022164ee9210>
+が発生します。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このエラー #<Question:0x0000022164ee9210>
+                    が発生します。私の知る限り、コードには何も問題はありません。</p>
+                    <pre><code>prompt1 =  &quot;Roses are what, \n a) Blue ,\n b) Red \n c)Orrange&quot;
+prompt2 =  &quot;Voilets are what, \n a) Blue ,\n b) Red \n c)Orrange&quot;
+prompt3 =  &quot;I love who ?, \n a)Them ,\n b) everyone \n c)You&quot;
+</code></pre>
+                    <p>ここは質問クラスです</p>
+                    <pre><code>class Question 
+  attr_accessor :prompt, :answer
+  def initialize(prompt,answer)
+    @prompt = prompt
+    @answer = answer 
+  end
+  
+end
+questions = [
+  Question.new(prompt1,&quot;b&quot;),
+  Question.new(prompt2, &quot;a&quot;),
+  Question.new(prompt3,&quot;c&quot;)
+
+]
+</code></pre>
+                    <p>答えを確認するテスト機能です。
+                    そして結果を表示します。</p>
+                    <pre><code>def testing (questions)
+  answer = &quot;&quot;
+  score = 0
+  for question in questions
+    puts question
+    answer = gets.chomp()
+    if answer == question.answer
+      score +=1 
+    end
+  end
+  puts &quot;\n You got #{score} questions right. out of #{questions.length} questions. &quot;
+end
+
+testing(questions)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードにエラーはありません。表示されているのは、puts
+                    経由でカスタム
+                    オブジェクトを印刷するデフォルトの動作です。</p>
+                    <p>その理由は次のとおりです。 put
+                    を呼び出すと、IO#puts
+                    に従って、次の単純なルールを使用して、指定されたオブジェクトが
+                    stdout に出力されます。</p>
+                    <p>オブジェクトは文字列でも配列でもないため、puts
+                    はその to_s メソッドを呼び出します。</p>
+                    <p>カスタム クラス (Question クラスなど)
+                    には、デフォルトでスーパークラスとして Object
+                    があります。これは、次のような Object#to_s
+                    を含む、Object
+                    からすべてのメソッドを継承することを意味します。</p>
+                    <p>残念ながら、表現は少し誤解を招きます。 to_s
+                    は実際には何も出力せず、単に文字列を返すだけです。</p>
+                    <p>ただし、この文字列は
+                    #<Question:0x0000022164ee9210>
+                    で表示されているものとまったく同じです。 – Question
+                    はオブジェクトのクラスで、0x0000022164ee9210
+                    はエンコードされたオブジェクト ID です。</p>
+                    <p>質問に他のもの (プロンプトなど)
+                    を出力したい場合は、クラスで to_s
+                    をオーバーライドできます。</p>
+                    <pre><code>class Question
+  # ...
+
+  def to_s
+    prompt
+  end
+end
+</code></pre>
+                    <p>上記の結果は次のようになります。</p>
+                    <pre><code>question = Question.new(&quot;Roses are ...\n a) Blue\n b) Red\n c) Orange&quot;, &quot;b&quot;)
+puts question
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>Roses are ...
+ a) Blue
+ b) Red
+ c) Orange
+</code></pre>
+                    <p>to_s
+                    を実装するときは、文字列を返すだけであることに注意してください。それ自体では何も出力しないでください。つまり、to_s
+                    内で put を呼び出さないでください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

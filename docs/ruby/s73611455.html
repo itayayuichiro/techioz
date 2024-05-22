@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 7 で破棄するのではなくアクションを表示するようにリダイレクトします。 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 7 で破棄するのではなくアクションを表示するようにリダイレクトします。",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 7
+で破棄するのではなくアクションを表示するようにリダイレクトします。</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rubyのバージョンは3.1.2、Railsのバージョンは7.0.3.1です。</p>
+                    <p>ユーザーを削除すると、ユーザーのコントローラーのアクションを破棄するのではなく、アクションを表示するようにリダイレクトされます。
+                    ユーザー向けのルート</p>
+                    <pre><code>resources :users
+</code></pre>
+                    <p>アプリ/コントローラー/users_controller.rb</p>
+                    <pre><code>before_action :set_user, only: %i[ destroy ]
+def destroy
+    @user.destroy
+    respond_to do |format|
+    format.html { redirect_to users_url, notice: &quot;User was successfully destroyed.&quot; }
+      format.json { head :no_content }
+    end
+end
+
+private
+    def set_user
+      @user = User.find(params[:id])
+    end
+</code></pre>
+                    <p>app/views/users/index.html.erb</p>
+                    <pre><code>&lt;% @users.each do |user| %&gt;
+    &lt;div id=&quot;users&quot;&gt;
+        &lt;%= render user %&gt;
+    &lt;% end %&gt;
+&lt;/div&gt;
+</code></pre>
+                    <p>app/views/users/_user.html.erb</p>
+                    <pre><code>&lt;p&gt;
+  &lt;%= link_to &quot;Destroy this user&quot;, user, method: :delete %&gt;
+&lt;/p&gt;
+</code></pre>
+                    <p>ユーザーを削除できません。</p>
+                    <p>以下のリンクをたどりましたが、それも私のプロジェクトでは機能しません
+                    link_to ヘルパーはまだ get
+                    リクエストを実行しています</p>
+                    <p>ありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>フォームによる魔法の軽減</p>
+                    <pre><code>&lt;%= button_to &quot;Destroy this user&quot;, user, method: :delete %&gt;
+</code></pre>
+                    <p>またはリンクを使用したその他の魔法</p>
+                    <pre><code>&lt;%= link_to &quot;Destroy this user&quot;, user, data: { turbo_method: :delete } %&gt;
+</code></pre>
+                    <p>そして、redirect_to users_url に status:
+                    :see_other を追加することを忘れないでください。</p>
+                    <p>Rails 7はそのように動作します</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ルビに二重引用符を挿入するには gsub を使用します | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ルビに二重引用符を挿入するには gsub を使用します",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ルビに二重引用符を挿入するには gsub
+を使用します</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>「foo&amp;bar」を「foo」,「bar」に変換したいと思います。</p>
+                    <p>gsubでこれをやろうとしていますが、うまくいきません。</p>
+                    <pre><code>2.3.0 :036 &gt; string = &quot;foo&amp;bar&quot;
+ =&gt; &quot;foo&amp;bar&quot;
+2.3.0 :037 &gt; string.gsub(&quot;&amp;&quot;, &quot;\&quot;&quot;)
+2.3.0 :038?&gt;
+</code></pre>
+                    <p>あらゆる種類の特殊文字をエスケープしてみました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>さあ、どうぞ</p>
+                    <pre><code>2.2.3 :008 &gt; string = &quot;foo&amp;bar&quot;
+ =&gt; &quot;foo&amp;bar&quot; 
+2.2.3 :009 &gt; string = string.split(&#39;&amp;&#39;)
+ =&gt; [&quot;foo&quot;, &quot;bar&quot;] 
+2.2.3 :010 &gt; string.to_s
+ =&gt; &quot;[\&quot;foo\&quot;, \&quot;bar\&quot;]&quot; 
+2.2.3 :013 &gt; string.to_s.gsub(/\[|\]/,&#39;&#39;)
+=&gt; &quot;\&quot;foo\&quot;, \&quot;bar\&quot;&quot; 
+</code></pre>
+                    <p>パフォーマンス向上のためのアップデート</p>
+                    <p>私の友人の <span class="citation"
+                    data-cites="engineersmnky">@engineersmnky</span>
+                    がコメントで言ったように、double gsub
+                    の方が優れており、彼の言う通りです。ただし、パフォーマンスを向上させるためのさらに優れた方法があります。以下のベンチマークを参照してください。</p>
+                    <pre><code>require &#39;benchmark&#39;
+
+TO_TEST = &#39;foo&amp;bar&#39;.split(&#39;&amp;&#39;).to_s * 999999
+
+def replace_with_regex
+  puts &#39;replace_with_regex: &#39; + (Benchmark.realtime { TO_TEST.gsub(/[\[\]]/, &#39;&#39;) }).to_s
+end
+
+def replace_no_regex
+  puts &#39;replace_no_regex: &#39; + (Benchmark.realtime { TO_TEST.gsub(&#39;[&#39;, &#39;&#39;).gsub(&#39;]&#39;, &#39;&#39;) }).to_s
+end
+
+def replace_with_delete
+  puts &#39;replace_with_delete: &#39; + (Benchmark.realtime { TO_TEST.delete(&#39;[]&#39;) }).to_s
+end
+</code></pre>
+                    <p>結果</p>
+                    <pre><code>replace_with_regex: 0.48356830099987747
+replace_no_regex: 0.29740285399998356
+replace_with_delete: 0.0289891009999792
+</code></pre>
+                    <p>したがって、.delete(‘[]’)
+                    を使用する必要があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

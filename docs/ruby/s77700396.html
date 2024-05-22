@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>StaleObjectError に対して、rescue_from 内で ActionController アクションを再試行するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "StaleObjectError に対して、rescue_from 内で ActionController アクションを再試行するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>StaleObjectError に対して、rescue_from 内で
+ActionController アクションを再試行するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次のようなことをしたいです:</p>
+                    <pre><code>MyController &lt; ApplicationController
+  rescue_from ActiveRecord::StaleObjectError, :retry
+</code></pre>
+                    <p>ユーザーと管理者が同じオブジェクトを同時に更新することがあり、衝突することがあります。アクションの有効期間はかなり短く、再試行で成功するはずなので、クライアントを関与させずに試してみることをお勧めします。</p>
+                    <p>これがスタック内の別の層でも発生しても問題ありません。おそらくラックのどこかでしょうか？</p>
+                    <p>Rails API
+                    で再試行メソッドを探しましたが、何も見つかりませんでした。インターネット検索や
+                    Rails
+                    ディスカッション検索も無駄でした。もちろん、次のようなコードをコントローラーに入れることもできますが、それをどこにも複製せずに、すべてのアクションに対して実行したいと考えています。</p>
+                    <pre><code>def myaction
+  # do stuff
+rescue ActiveRecord::StaleObjectError
+  retry
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下で試すことができます</p>
+                    <pre><code>class MyController &lt; ApplicationController
+  rescue_from ActiveRecord::StaleObjectError, with: : retry_after_stale_object_error
+
+  def myaction
+    retry_on_stale_object_error do
+      # do stuff
+    end
+  end
+
+  private
+
+  def handle_stale_object_error
+    # Any addition stuff on failure if you want
+    retry
+  end
+
+  def retry_on_stale_object_error
+    tries = 1
+
+    begin
+      yield
+    rescue ActiveRecord::StaleObjectError
+      tries += 1
+      retry if tries &lt; 3
+      # can add if retry attempts are over
+      raise
+    end
+  end
+end
+</code></pre>
+                    <p>これがお役に立てば幸いです。 参照</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>VSCode Ruby デバッガで 127.0.0.1 p1234 に複数のアクティブな接続が表示されるのはなぜですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "VSCode Ruby デバッガで 127.0.0.1 p1234 に複数のアクティブな接続が表示されるのはなぜですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>VSCode Ruby デバッガで 127.0.0.1 p1234
+に複数のアクティブな接続が表示されるのはなぜですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>VSCode で Ruby
+                    プログラムをデバッグできないエラーが発生する</p>
+                    <pre><code>ECONNREFUSED ::1:1234
+</code></pre>
+                    <p>デバッグコンソールでは、最初のデバッグセッションを終了せずにデバッグセッションを開始したときに発生するのと同じエラーが発生すると思います。通常、再起動または再起動によって問題が解決します。私の場合、何度も再起動し、一度電源を切りました。また、ネットワークのリセットに関するWeb上のいくつかの投稿にも従いましたが、助けになりませんでした。</p>
+                    <p>電源を切った後、vscode を実行する前に
+                    (最初に何も実行しません) netstat -a
+                    を実行したところ、127.0.0.1:1234
+                    に対してアクティビティが表示されませんでした。</p>
+                    <p>vscode
+                    とコマンドを実行すると、アクティブな接続が表示されます。</p>
+                    <pre><code> TCP    127.0.0.1:1234         XPS:0                  LISTENING 
+</code></pre>
+                    <p>netstat -a は、vscode
+                    が終了した後も同じことを報告します。注 netstat -b
+                    では、そのポートでのアクティビティが表示されません。</p>
+                    <p>私が行った最後のステップは、vscode
+                    を再インストールし、Ruby、VSCode rdgb、VSCode Ruby
+                    を除くすべての拡張機能を無効にすることでした。結果は</p>
+                    <pre><code>Fatal exception in DebugThread loop: Only one usage of each socket address (protocol/network address/port) is normally permitted. - bind(2) for &quot;127.0.0.1&quot; port 1234
+</code></pre>
+                    <p>実行中のプログラムは</p>
+                    <pre><code>puts  &quot;starting&quot;; exit
+</code></pre>
+                    <p>そしてlaunch.jsonは</p>
+                    <pre><code>{
+            &quot;name&quot;: &quot;MAIN&quot;,
+            &quot;type&quot;: &quot;Ruby&quot;,
+            &quot;request&quot;: &quot;launch&quot;,
+            &quot;cwd&quot;: &quot;${workspaceRoot}&quot;,
+            &quot;program&quot;: &quot;${workspaceRoot}/main.rb&quot;
+        },
+</code></pre>
+                    <p>他のプログラムをデバッグすると
+                    (変更されておらず、以前は問題がありませんでした)、同じ結果が得られますが、デバッグ
+                    モードではない場合は完了するまで実行されます。</p>
+                    <p>私も約 2
+                    年前に同様の問題を抱えていましたが、数日間複数のことを試した後、問題が修正された理由を特定できないまま、単に問題が消えてしまいました。</p>
+                    <p>問題が発生する前は、Gemfile
+                    を使用して更新を制御する記事を参照しながら、バンドラーのインストールを実行することがリモート関連で実行されていました。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>この質問を書いているときに sysinternals
+                    を調べたところ、次のような tcpview
+                    が見つかりました。</p>
+                    <pre><code>ruby.exe,18668,TCP,Listen,127.0.0.1,1234,0.0.0.0,0,9/16/2023 12:33:37 PM,ruby.exe,,,,
+</code></pre>
+                    <p>tcpviewを使用してプロセスを強制終了し（メインのVSCODEウィンドウが終了していないことに注意してください）、vscodeを再実行すると、</p>
+                    <pre><code>C:/Ruby32-x64/lib/ruby/gems/3.2.0/gems/ruby-debug-ide-0.7.3/lib/ruby-debug-ide.rb:106: warning: undefining the allocator of T_DATA class Debase::Context
+</code></pre>
+                    <p>どのようなエラーなのかはわかりませんが、この問題とは関係ありません。</p>
+                    <p>プログラムはデバッグ
+                    モードで複数回実行されて完了したため、問題に対する暫定的な解決策のように見えます。</p>
+                    <p>注意 tcpview netstat -a
+                    でプロセスを強制終了すると、127.0.1 ポート 1234
+                    でのアクティビティが報告されなくなります。</p>
+                    <p>注: 最初に終了せずに誤って 2 番目のデバッグ
+                    プロセスを実行した場合には、良い解決策のように見えます。これを証明するために、ブレークポイントで停止した状態で新しいデバッグセッションを複数回開始してみました。複数接続エラーは一度も発生しませんでした。問題が解決されたようです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

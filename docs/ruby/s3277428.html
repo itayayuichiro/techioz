@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails: Ruby コードを YAML 構成ファイルに入れることはできますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails: Ruby コードを YAML 構成ファイルに入れることはできますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails: Ruby コードを YAML
+構成ファイルに入れることはできますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>amazon_s3.yml
+                    設定ファイルで次のようなことをしたいと思います。</p>
+                    <pre><code>access_key_id: ENV[&#39;S3_KEY&#39;]
+secret_access_key: ENV[&#39;S3_SECRET&#39;]
+</code></pre>
+                    <p>…しかし、これがうまくいかないことはわかっています。可能かどうかはわかりませんが、Ruby
+                    コードを YAML ファイルに入れることはできますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>通常は/直接ではありません。なぜこれを言ったかというと、Ruby
+                    の結果を使用するには、ファイルをロードする前に最初に
+                    ERB
+                    などを使用する必要があるからです。コードに関しては、次のようなものから始める必要があります。</p>
+                    <pre><code>loaded_data = YAML.load_file(&quot;my-file.yml&quot;)
+</code></pre>
+                    <p>あるいは</p>
+                    <pre><code>loaded_data = YAML.load(File.read(&quot;my-file.yml&quot;))
+</code></pre>
+                    <p>に：</p>
+                    <pre><code>loaded_data = YAML.load(ERB.new(File.read(&quot;my-file.yml&quot;)).result)
+</code></pre>
+                    <p>この特定のケースでは、ファイルをロードしているものを確認する必要があります。場合によっては、
+                    環境から直接ロードするようにすでに設計されているか、次のいずれかを行う必要がある場合があります。</p>
+                    <p>amazon_s3.yml
+                    を使用するプラグインがいくつかあるため、それを使用しているライブラリを投稿する価値があるかもしれません。あるいは、簡単にグーグルで調べたところ、AWS
+                    ライブラリでは AMAZON_ACCESS_KEY_ID と
+                    AMAZON_SECRET_ACCESS_KEY
+                    を環境変数として定義できると思います。それらを箱から取り出します。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

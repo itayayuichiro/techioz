@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ncurses でウィンドウ メニューを作成する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ncurses でウィンドウ メニューを作成する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ncurses でウィンドウ
+メニューを作成する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ncurses
+                    にさまざまなインターフェイスと選択したインターフェイスのインターフェイス構成をリストする小さなメニューを作成して、Ruby
+                    と ncurses をもう少し学ぼうとしています。</p>
+                    <p>私が学びたい ncurses
+                    ライブラリにはドキュメントもメニュー例も実際には存在しないため、NCurses
+                    Programming HowTo から学ぼうとします。</p>
+                    <p>私が持っているコードは、起動時に次の画面を生成します
+                    (foo
+                    が選択されていますが見つかりません)。カーソルはサブウィンドウの
+                    2/2 (x/y) にあります。</p>
+                    <pre><code> ┌────────────────────────────────────────┐
+ │                                        │
+ │ &gt;                                      │
+ │                                        │
+ │   bar                                  │
+ │                                        │
+ └────────────────────────────────────────┘
+</code></pre>
+                    <p>そして、もう 1 つを選択すると
+                    (バーは選択されていますが、マーカーに置き換えられます)、カーソルはサブウィンドウの
+                    2/2 (x/y) にあります。</p>
+                    <pre><code> ┌────────────────────────────────────────┐
+ │                                        │
+ │   foo                                  │
+ │                                        │
+ │ &gt;   &gt;                                  │
+ │                                        │
+ └────────────────────────────────────────┘
+</code></pre>
+                    <p>ここで問題となるのは、どこにエラーがあるのか、それともライブラリに問題があるのかということです。</p>
+                    <p>よろしくお願いします。</p>
+                    <pre><code>#!/usr/bin/ruby
+
+require &#39;ncurses&#39;
+
+$number_of_mgmt_devices = 2
+
+# start ncurses
+stdscr = Ncurses.initscr
+Ncurses.cbreak
+Ncurses.noecho
+stdscr.keypad(true)
+
+$foobar = Hash(:foo =&gt; &quot;AAAAA&quot;, :bar =&gt; &quot;BBBBB&quot;)
+
+# create window and grab keyboard control
+length = $number_of_mgmt_devices * 2 + 1
+width = 40
+devicesMenuWin = Ncurses.newwin(length+2, width + 2, 6, 1)
+devicesMenuWin.keypad(true)
+
+# create choices
+choices = []
+$foobar.each do |key, info| 
+    choices.append(Ncurses::Menu::ITEM.new(&quot;#{key}&quot;, &quot;#{info}&quot;))
+end
+
+# create and configure menu
+devicesMenu = Ncurses::Menu::MENU.new(choices)
+devicesMenu.opts_off(Ncurses::Menu::O_SHOWDESC)
+devicesMenu.opts_off(Ncurses::Menu::O_NONCYCLIC)
+
+#associate windows with menu
+devicesMenu.win = devicesMenuWin
+devicesMenu.sub = devicesMenuWin.derwin(length, width, 2, 2)
+
+devicesMenu.set_spacing(0, 2, 0)
+
+devicesMenu.mark = &quot; &gt; &quot;
+
+Ncurses.box(devicesMenuWin, 0, 0)
+devicesMenu.post
+devicesMenuWin.refresh
+
+begin
+    while c = devicesMenuWin.wgetch; c != &quot;o&quot;
+        case c
+        when Ncurses::KEY_UP
+            devicesMenu.driver(Ncurses::Menu::REQ_PREV_ITEM)
+        when Ncurses::KEY_DOWN
+            devicesMenu.driver(Ncurses::Menu::REQ_NEXT_ITEM)
+        end
+        devicesMenuWin.wrefresh
+    end
+ensure
+    devicesMenu.unpost
+    Ncurses.echo
+    Ncurses.nocbreak
+    Ncurses.nl
+    Ncurses.endwin
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>なぜテキストベースのメニューのために ncurses
+                    という苦労をする必要があるのでしょうか?
+                    インストールが面倒で、Windows
+                    にインストールして問題を再現できませんでした。
+                    現在、依存関係のない Ruby GUI ライブラリがあります。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://rubygems.org/gems/glimmer-dsl-libui/versions/0.7.8
+                    ここに例を示します</p>
+                    <pre><code>require &#39;glimmer-dsl-libui&#39;
+include Glimmer
+
+menu(&#39;Actions&#39;) {
+  menu_item(&#39;Choice 1&#39;) {on_clicked {msg_box &quot;Choice 1&quot;}}
+  menu_item(&#39;Choice 2&#39;) {on_clicked {msg_box &quot;Choice 2&quot;}}
+  quit_menu_item
+}
+
+window {
+  title &#39;Menu testing&#39;
+  content_size 300, 200
+  on_closing {puts &#39;Bye Bye&#39;}
+}.show
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby/Faraday: 応答本文を翻訳して解析するにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby/Faraday: 応答本文を翻訳して解析するにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby/Faraday:
+応答本文を翻訳して解析するにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>API接続にはFaraday
+                    gemを使用しています。私の呼び出しからの応答の本文は次のようになります。</p>
+                    <p>「 { “稼働時間”: “112795”, “started_at”:
+                    “2021-32-14 17:32:11”, “バージョン”: “2.0.4”,
+                    「画面」: [ { 「インデックス」: 0、 “名前”: “.”,
+                    「幅」: 2560、 「高さ」: 1342、 “is_primary”: true
+                    }] }”</p>
+                    <p>この応答で .to_json
+                    を呼び出そうとすると、次のエラーが発生します。</p>
+                    <p>JSON.parse() では次のエラーが発生します。</p>
+                    <pre><code>JSON::ParserError: 809: unexpected token at &#39;﻿{
+  &quot;uptime&quot;: &quot;112851&quot;,
+  &quot;started_at&quot;: &quot;2021-32-14 17:32:11&quot;,
+  &quot;version&quot;: &quot;2.0.4&quot;,
+  &quot;screens&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;name&quot;: &quot;\\\\.\\DISPLAY1&quot;,
+      &quot;width&quot;: 2560,
+      &quot;height&quot;: 1342,
+      &quot;is_primary&quot;: true
+    }
+  ]
+}&#39;
+</code></pre>
+                    <p>この応答を適切な形式に変換し、標準の Ruby キー
+                    ペア
+                    ハッシュとして利用し、そのキーによって値を取得する方法はありますか?</p>
+                    <p>PS: これが役立つかどうかはわかりませんが、Faraday
+                    を使用する前は HTTParty gem
+                    を使用しており、応答は適切にコード化されているようでした。これは次のとおりです。この
+                    Encoding::UnknownConversionError:
+                    エラーは表示されませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>以下のスニペットで試すことができます</p>
+                    <pre><code>clean_body = response_body.sub(/^\xEF\xBB\xBF/, &#39;&#39;);
+clean_body.encode!(&#39;UTF-8&#39;, &#39;binary&#39;, invalid: :replace, undef: :replace, replace: &#39;&#39;); 
+parsed_hash = JSON.parse(clean_body)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

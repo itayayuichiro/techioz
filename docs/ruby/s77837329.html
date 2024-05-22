@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rspec - 追加の gem を使用せずにエラーが発生したときに再試行をテストする方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rspec - 追加の gem を使用せずにエラーが発生したときに再試行をテストする方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rspec - 追加の gem
+を使用せずにエラーが発生したときに再試行をテストする方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のコード</p>
+                    <pre><code>
+def make_error
+  raise StandardError, &#39;err&#39;
+end
+
+class Bob
+  def bar(thing)
+    puts thing
+  end
+end
+
+def foo
+  [&#39;a&#39;, &#39;b&#39;].each do |x|
+    retry_counter = 5
+    begin
+      bar(x)
+      make_error
+    rescue StandardError =&gt; e
+      if retry_counter.positive?
+        retry_counter -= 1
+        retry
+      else
+        raise e
+      end
+    end
+  end
+end
+</code></pre>
+                    <p>Rスペックコード</p>
+                    <pre><code>...
+it &#39;adds and retries the emails to the digest store&#39; do
+  expect(Bob).to receive(:bar).exactly(6).times.with(&#39;a&#39;)
+  expect{ foo }.to raise_error(StandardError)
+end
+</code></pre>
+                    <p>しかし、エラーが発生しないため、上記のテストは失敗します。最初の期待値を削除すると、エラー期待値の上昇は成功しますが、再試行ロジックもテストしたいと考えています。最初の期待値だけを持っている場合、再試行は行われず、1
+                    回の反復を行った後にコードが終了します。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>コードを実行すると、次の結果が得られます。</p>
+                    <pre><code>Failures:                                                                                                                                             
+                                                                                                                                                      
+  1) foo adds and retries the emails to the digest store                                                                                              
+     Failure/Error: expect(Bob).to receive(:bar).exactly(6).times.with(&#39;a&#39;)                                                                           
+                                                                                                                                                      
+       (Bob (class)).bar(&quot;a&quot;)                                                                                                                         
+           expected: 6 times with arguments: (&quot;a&quot;)                                                                                                    
+           received: 0 times
+</code></pre>
+                    <p>これは、例外の発生に関するロジックや再試行ロジックとは何の関係もありません。</p>
+                    <p>問題は、bar がクラス Bob のインスタンス
+                    メソッドであることです。したがって、foo
+                    メソッド内から直接 (bar(x))
+                    を呼び出すことはできません。</p>
+                    <p>メソッドが呼び出されず、依然として例外が発生しているため、仕様の期待は失敗していますが、期待していたものではありません。</p>
+                    <pre><code>NoMethodError:
+       undefined method `bar&#39; for #&lt;RSpec::ExampleGroups::Foo &quot;adds and retries the emails to the digest store&quot;
+</code></pre>
+                    <p>このコードをどのように「修正」すべきかは完全には明確ではありませんが、retry
+                    と Expect(….).to
+                    accept(:bar).exactly(6).times.with(‘a’
+                    を使用する設定を実証するためです。 )
+                    は実際に機能します。有効なデモンストレーションを次に示します。</p>
+                    <pre><code>def make_error
+  raise StandardError, &#39;err&#39;
+end
+
+class Bob
+  def self.bar(thing)
+    puts thing
+  end
+end
+
+def foo
+  [&#39;a&#39;, &#39;b&#39;].each do |x|
+    retry_counter = 5
+    begin
+      Bob.bar(x)
+      make_error
+    rescue StandardError =&gt; e
+      if retry_counter.positive?
+        retry_counter -= 1
+        retry
+      else
+        raise e
+      end
+    end
+  end
+end
+
+RSpec.describe &#39;foo&#39; do
+  it &#39;adds and retries the emails to the digest store&#39; do
+    expect(Bob).to receive(:bar).exactly(6).times.with(&#39;a&#39;)
+    expect{ foo }.to raise_error(StandardError)
+  end
+end
+</code></pre>
+                    <p>余談ですが、これは、StandardError
+                    に依存する代わりにカスタム例外クラスを使用することが推奨事項であると考えられる理由を示す好例です。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

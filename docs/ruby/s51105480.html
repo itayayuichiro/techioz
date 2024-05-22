@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>接続がタイムアウトしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "接続がタイムアウトしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>接続がタイムアウトしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>単純な接続オブジェクトがあります</p>
+                    <pre><code>require &#39;net/sftp&#39;
+@con = Net::SFTP.start(@@host, @@username, :password =&gt; @@password
+...
+@con.upload!(filepath, destination)
+</code></pre>
+                    <p>これは、フォルダーにドロップされるファイルをリッスンするスクリプトにあります。ファイルが収集され、リモート
+                    SFPT
+                    サーバーにアップロードされます。すべて正常に動作しますが、スクリプトを長時間実行し続けると壊れて、次のエラーがスローされるようです。</p>
+                    <pre><code>exception while processing events: Write to the server failed
+</code></pre>
+                    <p>これは、一定の時間が経過するとアイドル状態の接続が切断されるために起こるとしか考えられません。
+                    接続を無期限に開いたままにしておく方法はありますか?それとも制限ですか？</p>
+                    <p>それが不可能な場合、エラーを処理できる方法はありますか?何かのようなもの：</p>
+                    <pre><code>begin
+    @con.upload!(filepath, destination)
+rescue Net::SFTPStatusException =&gt; e
+    if e.code == 7 //connection lost code
+        @con.{reconnect}//Whatever this would look like
+    end
+    else
+        raise
+    end
+end
+</code></pre>
+                    <p>エラー コード 7
+                    が正しいかどうか、または接続オブジェクトを再接続する方法がわかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>これは SFTP を使用するため、つまり SSH
+                    経由でプロキシされるため、接続を開いたままにするために
+                    X
+                    秒ごとに「ping」を送信できる可能性があります。これは、~/.ssh/config
+                    または /etc/ssh/sshd_config の ServerAliveInterval
+                    を使用して実行できます。次に例を示します。</p>
+                    <pre><code>Host *
+  ServerAliveInterval 240
+</code></pre>
+                    <p>また、Net::SFTP.start
+                    に渡されるオプションはすべて Net::SSH.start
+                    に渡されるため、verbose: :debug
+                    などのオプションを使用して、何が起こっているかに関する詳細情報を取得できることにも注意してください。</p>
+                    <p>別のオプションは、接続をアクティブに保つためにファイルがアップロードされるのを待つループ内のディレクトリ内のファイルをリストするようなことを行うことです。同じホストへの
+                    SSH
+                    接続が共有されている場合は、これを別のスレッドで実行できる場合もあります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

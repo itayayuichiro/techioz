@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby on Rails のジョブとして電子メールを送信する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby on Rails のジョブとして電子メールを送信する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby on Rails
+のジョブとして電子メールを送信する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>クライアントにメールを送信するためのメーラーを作成しました。現時点ではまだテスト中ですが、動作させることができませんでした。
+                    Redis、Sidekiq、rails_mailerを読みましたが、まだ何も読みません。
+                    Sidekiq UI
+                    のキューにメールが入っているのはわかりますが、メールを受信できません。</p>
+                    <p>これが私のコードの流れです。</p>
+                    <pre><code>      def send_workorder_message
+        if params.has_key?(:to_send_email)
+          WorkorderMessage::WorkorderMessageJob.perform_in(10.seconds, @curr_user, params[:message])
+        end
+      endv
+</code></pre>
+                    <pre><code>    
+class WorkorderMessage::WorkorderMessageJob
+  # include SuckerPunch::Job
+  include Sidekiq::Worker
+  sidekiq_options queue: &#39;mailers&#39;
+
+  def perform(user, message)
+    Spree::WorkorderMailer.workorder_send_to_email(user, message).deliver_now
+
+
+    # ActiveRecord::Base.connection_pool.with_connection do
+    
+    # end
+
+  end
+end
+</code></pre>
+                    <pre><code>    class WorkorderMailer &lt; BaseMailer
+    def workorder_send_to_email(to_user, message)
+      ActiveRecord::Base.connection_pool.with_connection do
+
+        subject = &quot;sample message mailer&quot;
+
+        @message = message
+        @user = to_user
+
+        mail(
+          to: @user.email,
+          # &#39;reply-to&#39;: Spree::Store.current.support_address,
+          from: Spree::Store.current.support_address,
+          subject: subject
+        )
+      end
+    end
+  end
+</code></pre>
+                    <p>プレビュー メーラーを使用すると、UI
+                    が正常に動作していることがわかります。</p>
+                    <p>また、sidekiq ビューにこの User Obj
+                    が表示されていることにも気付きました。それは普通ですか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Sidekiq
+                    のドキュメントによると、渡す引数は、ここで渡しているユーザーのような完全な
+                    Ruby オブジェクトではなく、JSON
+                    にクリーンにシリアル化されるプリミティブである必要があります。</p>
+                    <p>ジョブ内で ID でユーザーを検索し、ユーザー
+                    オブジェクト全体ではなく ID
+                    のみを渡すように変更することをお勧めします。</p>
+                    <pre><code># pass @curr_user.id instead of @curr_user
+WorkorderMessage::WorkorderMessageJob.perform_in(10.seconds, @curr_user.id, params[:message])
+
+# accept the ID instead of user here
+def perform(user_id, message)
+
+  # get the user object here
+  user = User.find(user_id)
+
+  # send the mail
+  mail(
+    to: user.email,
+    #...
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

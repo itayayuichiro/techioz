@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Web スクレイピング (鋸) - クリーンアップ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Web スクレイピング (鋸) - クリーンアップ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Web スクレイピング (鋸) -
+クリーンアップ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ウェブサイトからデータを取得する方法を実験しています。</p>
+                    <p>これは私が数日間の調査を経てまとめたものですが、Nokogiri
+                    からの出力は私が期待するほど「きれい」ではありません。配列を印刷すると、出力に大量の改行「/n」が表示されます。</p>
+                    <pre><code>require &#39;httparty&#39;
+require &#39;nokogiri&#39;
+require &#39;open-uri&#39;
+require &#39;pry&#39;
+require &#39;csv&#39;
+
+# Assigning the page to scrape
+page = HTTParty.get(&#39;http://www.realtor.com/realestateandhomes-search/Atlanta_GA/type-single-family-home/price-na-500000&#39;)
+
+# Transform the http response into a Nokogiri in order to parse it
+parse_page = Nokogiri::HTML(page)
+
+# Create an empty array for property details
+details_array = []
+parse_page.css(&#39;div.srp-item-body&#39;).map do |d|
+    property_details = d.text
+    details_array.push(property_details)
+end
+
+Pry.start(binding)
+</code></pre>
+                    <p>Pry で、details_array または address_array
+                    を表示すると、出力は次のようになります。</p>
+                    <pre><code>[2] pry(main)&gt; details_array
+=&gt; [&quot;\n      \n        \n          \n                2265 Tanglewood Cir NE,\n            Atlanta,\n            GA\n            30345\n \n        \n\n        \n          Dresden East\n        \n        \n\n            $289,900\n          \n          \n            \n        3 bd\n                2 ba\n                1,566 sq ft\n             
+0.3 acres lot\n            \n          \n        \n          \n            Single Family Home\n          \n        \n          \n            \n  
+Brokered by Re/Max Town And Country\n            \n          \n       
+\n        \n          \n            Brokered by \n            Re/Max
+Town And Country\n          \n        \n      \n    &quot;,  &quot;\n      \n   
+\n          \n                2141 Dunwoody Gln,\n           
+Atlanta,\n            GA\n            30338\n          \n        \n\n 
+\n          \n            $469,900\n          \n          \n          
+\n                4 bd\n                3 ba\n                2,850 sq
+ft\n                0.3 acres lot\n                2 car\n           
+\n          \n        \n          \n            Single Family Home\n  
+\n        \n          \n            \n              Brokered by
+Buckhead Home Realty Llc\n            \n          \n        \n       
+\n          \n            Brokered by \n            Buckhead Home
+Realty Llc\n          \n        \n      \n    &quot;,  &quot;\n      \n       
+\n          \n                1048 Martin St SE,\n           
+Atlanta,\n            GA\n            30315\n          \n        \n\n 
+\n          Intown South\n          Peoplestown\n        \n        \n 
+\n            $164,900\n          \n          \n            \n        
+5 bd\n                3 ba\n                2,376 sq ft\n             
+7,405 sq ft lot\n            \n          \n        \n          \n     
+Single Family Home\n          \n        \n          \n            \n  
+Brokered by Greenlet Llc\n            \n          \n        \n       
+\n          \n            Brokered by \n            Greenlet Llc\n    
+\n        \n      \n    &quot;,  &quot;\n      \n        \n          \n         
+1048 Martin St SE,\n            Atlanta,\n            GA\n           
+30315\n          \n        \n\n        \n          Intown South\n     
+Peoplestown\n        \n        \n          \n            $164,900\n   
+\n          \n            \n                5 bd\n                3
+ba\n                2,055 sq ft\n                7,584 sq ft lot\n    
+\n          \n        \n          \n            Single Family Home\n  
+\n        \n          \n            \n              Brokered by
+Greenlet, Llc\n            \n          \n        \n        \n         
+\n            Brokered by \n            Greenlet, Llc\n          \n   
+\n      \n    &quot;,  &quot;\n      \n        \n          \n               
+1991 Woodbine Ter NE,\n            Atlanta,\n            GA\n         
+30329\n          \n        \n\n        \n          Sagamore Hills\n   
+\n        \n          \n            $299,900\n          \n          \n
+\n                3 bd\n                1+ ba\n                1,449
+sq ft\n                0.8 acres lot\n            \n          \n      
+\n          \n            Single Family Home\n          \n        \n  
+\n           :
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>セレクターを使用してドキュメントを十分に掘り下げていないようです。このことを考慮：</p>
+                    <pre><code>require &#39;nokogiri&#39;
+
+doc = Nokogiri::HTML(&lt;&lt;EOT)
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;div&gt;
+      &lt;p&gt;foo&lt;/p&gt;
+      &lt;p&gt;bar&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+EOT
+
+doc.search(&#39;div&#39;).map(&amp;:text) # =&gt; [&quot;\n      foo\n      bar\n    &quot;]
+</code></pre>
+                    親タグのテキストを確認すると、HTML
+                    のフォーマットに使用されるテキスト ノードと、目的の
+                    <p>
+                    <p>ノードのテキストの両方が得られます。</p>
+                    <p>必要な実際のノードまでドリルダウンしてそのテキストを取得すると、タグ間の書式設定が削除されます。</p>
+                    <pre><code>doc.search(&#39;div p&#39;).map(&amp;:text) # =&gt; [&quot;foo&quot;, &quot;bar&quot;]
+</code></pre>
+                    <p>「スクレイピング時にノードからのすべてのテキストの結合を回避する方法」も参照してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

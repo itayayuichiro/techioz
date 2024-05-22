@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails アプリで「heroku run rake db:merge」を実行すると YAML 構文エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails アプリで「heroku run rake db:merge」を実行すると YAML 構文エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails アプリで「heroku run rake
+db:merge」を実行すると YAML 構文エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>この問題のすべての解決策を何時間も探しましたが、うまくいきません。</p>
+                    <p>Rails アプリがあり、それを Heroku
+                    にデプロイしようとしていますが、heroku run rake
+                    db:merge を実行すると、次のエラーが発生します。</p>
+                    <pre><code>rake aborted!
+YAML syntax error occurred while parsing /app/config/database.yml. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Error: (&lt;unknown&gt;): did not find expected key while parsing a block mapping at line 7 column 3
+</code></pre>
+                    <p>すでに YAML バリデーターを使用して、database.yml
+                    を検証しましたが、まだ機能しません。これは次のようになります。</p>
+                    <pre><code># database.yml
+--- 
+default: 
+  adapter: postgresql
+  encoding: unicode
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+development: 
+  adapter: postgresql
+  database: chamada_development
+  encoding: unicode
+  password: &quot;&lt;%= ENV[&#39;CHAMADA_DATABASE_PASSWORD&#39;] %&gt;&quot;
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  username: chamada
+production: 
+  adapter: postgresql
+  database: chamada_production
+  encoding: unicode
+  password: &quot;&lt;%= ENV[&#39;CHAMADA_DATABASE_PASSWORD&#39;] %&gt;&quot;
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+  username: chamada
+test: 
+  adapter: postgresql
+  database: chamada_test
+  encoding: unicode
+  pool: &lt;%= ENV.fetch(&quot;RAILS_MAX_THREADS&quot;) { 5 } %&gt;
+
+</code></pre>
+                    <p>どうすればこれを解決できますか?私は見当もつかない。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>行内で一重引用符を使用する</p>
+                    <pre><code>  password: &lt;%= ENV[&#39;CHAMADA_DATABASE_PASSWORD&#39;] %&gt;
+</code></pre>
+                    <p>二重引用符を使用しているため、次のようになります。</p>
+                    <p>“&lt;%= ENV[” CHAMADA_DATABASE_PASSWORD ”]
+                    %&gt;”</p>
+                    <p>だからこそエラーが出る。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

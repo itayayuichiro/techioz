@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Railsでテストを実行する際の未定義のメソッド | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Railsでテストを実行する際の未定義のメソッド",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Railsでテストを実行する際の未定義のメソッド</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>そこで、プログラムのテストを作成して実行したいと考えています。
+                    bin/rails テスト test/models/inventory_test.rb</p>
+                    <p>エラーが発生する</p>
+                    <pre><code># Running:
+
+E
+
+Error:
+InventoryTest#test_quantity_should_not_be_negative:
+NoMethodError: undefined method `variations&#39; for #&lt;#&lt;Class:0x000000010862c9e8&gt;:0x000000010864a290&gt;
+    test/fixtures/inventories.yml:2:in `get_binding&#39;
+</code></pre>
+                    <p>ここで、モデルに基づいてフィクスチャを作成しました。inventories.yml
+                    は次のようになります。</p>
+                    <pre><code>
+one:
+  variation_id: &lt;%= variations(:one) %&gt;
+  warehouse_id: &lt;%= warehouses(:one) %&gt;
+  quantity: 50
+  updated_by_user_id: &lt;%= users(:one) %&gt;
+  product_id: &lt;%= products(:one) %&gt;
+  created_at: &lt;%= fake_time %&gt;
+  updated_at: &lt;%= fake_time %&gt;
+
+two:
+  variation_id: &lt;%= variations(:two) %&gt;
+  warehouse_id: &lt;%= warehouses(:two) %&gt;
+  quantity: 100
+  updated_by_user_id: &lt;%= users(:two) %&gt;
+  product_id: &lt;%= products(:two) %&gt;
+  created_at: &lt;%= fake_time %&gt;
+  updated_at: &lt;%= fake_time %&gt;
+
+
+</code></pre>
+                    <p>なぜバリエーションメソッドを取得しようとするのかわかりません。私はバリエーションメソッドを持っていませんし、これをデバッグする方法もわかりません。あらゆることを試しました。</p>
+                    <p>私のインベントリモデルは次のようになります。</p>
+                    <pre><code>class Inventory &lt; ApplicationRecord
+  belongs_to :product
+  belongs_to :warehouse
+  belongs_to :variation
+  belongs_to :updated_by, class_name: &quot;User&quot;, foreign_key: &quot;updated_by_user_id&quot;
+
+  has_many :inventory_transactions
+
+  validates :quantity, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  has_one :restock_alert, dependent: :destroy
+  after_save :check_restock_alert
+
+  def check_restock_alert
+    if self.quantity &lt;= self.restock_alert.threshold
+      self.restock_alert.update(status: RestockAlert::TRIGGERED)
+    elsif self.quantity &gt; self.restock_alert.threshold
+      self.restock_alert.update(status: RestockAlert::PENDING)
+    end
+  end
+  
+end
+
+
+
+</code></pre>
+                    <p>他のフィクスチャでvariation_id:
+                    oneなどを作成しようとすると、他の問題が発生します。
+                    これは私が解決策に最も近いように感じますが、私が持っていないバリエーションメソッドをチェックします。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>inventories.yml ファイルで .erb
+                    構文が必要ないため、なぜそれを使用しているのかわかりません。フィクスチャでは、それほど多くの作業を行わなくても、関連付けを介して相互に参照するレコードを作成できます。したがって、次のファイルがあるとします。</p>
+                    <pre><code>one:
+  variation_id: &lt;%= variations(:one) %&gt;
+  warehouse_id: &lt;%= warehouses(:one) %&gt;
+  quantity: 50
+  updated_by_user_id: &lt;%= users(:one) %&gt;
+  product_id: &lt;%= products(:one) %&gt;
+  created_at: &lt;%= fake_time %&gt;
+  updated_at: &lt;%= fake_time %&gt;
+</code></pre>
+                    <p>次のようなvariations.ymlがある場合:</p>
+                    <pre><code>one:
+   foo: bar
+   ...
+</code></pre>
+                    <p>これを行う必要があるのは、inventory.yml
+                    内だけです。</p>
+                    <pre><code>one:
+  variation: one
+  warehouse: one #assumes a warehouses.yml with a record with that name
+  quantity: 50
+  updated_by_user: one
+  product: one
+  created_at: &lt;%= fake_time %&gt;
+  updated_at: &lt;%= fake_time %&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

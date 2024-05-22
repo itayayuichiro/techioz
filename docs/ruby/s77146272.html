@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Bundle exec を使用して Ruby 3 (rvm を使用) でスクリプトを実行すると LoadError が発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Bundle exec を使用して Ruby 3 (rvm を使用) でスクリプトを実行すると LoadError が発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Bundle exec を使用して Ruby 3 (rvm を使用)
+でスクリプトを実行すると LoadError が発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の Ruby スクリプトでは、activesupport gem
+                    が必要な場合に LoadError
+                    が発生しますが、それ以外はインストールされていることが示されています。
+                    Bundle exec で実行しても、rvm do
+                    で実行しても、同じエラーが発生します。</p>
+                    <pre><code>$ cat Gemfile | grep activesupport
+gem &#39;activesupport&#39;
+
+$ bundle show activesupport
+/Users/2b-software-mac/.rvm/gems/ruby-3.1.2/gems/activesupport-7.0.6
+
+$ bundle exec ruby my_ruby_script.rb
+Can I find the gem?
+#&lt;Bundler::StubSpecification name=activesupport version=7.0.6 platform=ruby&gt;
+Can I require the gem?
+my_ruby_script.rb:4:in `require&#39;: cannot load such file -- activesupport (LoadError)
+    from my_ruby_script.rb:4:in `&lt;main&gt;&#39;
+</code></pre>
+                    <pre><code>puts &#39;Can I find the gem?&#39;
+puts Gem::Specification.find_all{ |g| g.name.include? &#39;activesupport&#39; }
+puts &#39;Can I require the gem?&#39;
+require &#39;activesupport&#39;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>gem は次のようにロードする必要があります
+                    (アンダースコアに注意してください)。</p>
+                    <pre><code>require &quot;active_support&quot;
+</code></pre>
+                    <p>Rails ガイドでスタンドアロン アクティブ
+                    サポートについてお読みください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

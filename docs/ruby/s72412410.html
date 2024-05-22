@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>JSON::ParserError: Rails Rspec の ’ に予期しないトークンが含まれています | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "JSON::ParserError: Rails Rspec の ’ に予期しないトークンが含まれています",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>JSON::ParserError: Rails Rspec の ’
+に予期しないトークンが含まれています</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rspec
+                    にかなりの問題があります。したがって、基本的に私が望むのは、API
+                    にリクエストを送信し、適切な応答を得ることです。データを
+                    API
+                    エンドポイントに送信し、送信内容を入力すると、すべてのデータが正しく送信されているように見えますが、応答レベルでは、必要なパラメーターを送信していないと表示されます。
+                    (ビデオデッキも使ってテストしています)</p>
+                    <p>「rails_helper」が必要</p>
+                    <pre><code>describe &#39;Create Vendor&#39;, type: :request do
+  let(:user) { create(:alter_user) }
+  let(:vendor_attributes) do
+    {
+      #These are all the required parameters
+      vendor: {
+        token: &#39;&#39;,
+        refcode: &#39;&#39;,
+        request_type: &#39;renters&#39;,
+        first_name: &#39;Tony&#39;,
+        last_name: &#39;Stark&#39;,
+        phone: &#39;6504881234&#39;,
+        phone_type: &#39;mobile&#39;,
+        email: &#39;[email protected]&#39;,
+        address1: &#39;123 Main Street&#39;,
+        address_city: &#39;Palo Alto&#39;,
+        address_state: &#39;CA&#39;,
+        address_zip: &#39;94301&#39;,
+        DOB: &#39;1982-10-27&#39;
+      }
+    }
+  end
+
+  after do
+    VCR.eject_cassette
+  end
+
+  it &#39;creates a vendor&#39; do
+    VCR.use_cassette(&#39;create_vendor&#39;) do
+      post &#39;/api/v2/vendor&#39;, params: vendor_attributes.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;, Authorization: &quot;Token token=#{user.key}&quot;}
+      response_body = JSON.parse(response.body)
+      expect(response_body[&#39;refcode&#39;]).to eq(&#39;corp-api-test&#39;)
+    end
+  end
+
+  it &#39;fails if the vendor is missing attributes&#39; do
+    VCR.use_cassette(&#39;create_vendor_missing_attributes&#39;) do
+      post &#39;/api/v2/vendor&#39;, params: {vendor: {last_name: &#39;Stark&#39;, phone: &#39;6504881234&#39;}}.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;, Authorization: &quot;Token token=#{user.key}&quot;}
+      expect(response.status).to eq(422)
+    end
+  end
+
+  it &#39;requires Authorization token header&#39; do
+    post &#39;/api/v2/vendor&#39;, params: vendor_attributes.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;}
+    expect(response.status).to eq(401)
+  end
+end
+</code></pre>
+                    <pre><code>Create Vendor
+Post Request----: {&quot;request_type&quot;:&quot;renters&quot;,&quot;first_name&quot;:&quot;Tony&quot;,&quot;last_name&quot;:&quot;Stark&quot;,&quot;phone&quot;:&quot;6504881234&quot;,&quot;phone_type&quot;:&quot;mobile&quot;,&quot;email&quot;:&quot;[email protected]&quot;,&quot;address1&quot;:&quot;123 Main Street&quot;,&quot;address_city&quot;:&quot;Palo Alto&quot;,&quot;address_state&quot;:&quot;CA&quot;,&quot;address_zip&quot;:&quot;94301&quot;,&quot;DOB&quot;:&quot;1982-10-27&quot;,&quot;token&quot;:&quot;6ed469496be882f0163c453627fbcac15b773733db123a7c2faf68f42ea7586a&quot;,&quot;refcode&quot;:&quot;corp-api-test&quot;}
+
+-----------------------------------------------------
+Response----: {:action=&gt;&quot;new_vendor&quot;, :user_hash=&gt;&quot;e59871c35edb7f622c97acfcc20955e9&quot;, :result=&gt;&quot;success&quot;, :agent_phone=&gt;&quot;888-888-8888&quot;, :vendor_uuid=&gt;&quot;242992518092902061&quot;, :policy_shell_uuids=&gt;{&quot;RENT&quot;=&gt;&quot;243548182003445420&quot;}, :marketing_headline=&gt;&quot;Test Marketing Headline&quot;, :marketing_content=&gt;&quot;&lt;ul&gt;&lt;li&gt;Test Marketing Content&lt;/li&gt;&lt;/ul&gt;&quot;}
+
+-----------------------------------------------------
+It was successful
+  creates a vendor (FAILED - 1)
+Post Request----: {&quot;last_name&quot;:&quot;Stark&quot;,&quot;phone&quot;:&quot;6504881234&quot;,&quot;token&quot;:&quot;6ed469496be882f0163c453627fbcac15b773733db123a7c2faf68f42ea7586a&quot;,&quot;refcode&quot;:&quot;corp-api-test&quot;}
+
+-----------------------------------------------------
+Response----: {:result=&gt;&quot;error&quot;, :message=&gt;&quot;missing fields: first_name is a required field, email is a required field, address1 is a required field, address_city is a required field, address_state is a required field, address_zip is a required field, DOB is a required field, phone_type is a required field&quot;}
+
+-----------------------------------------------------
+  fails if the vendor is missing attributes
+  requires Authorization token header
+
+Failures:
+
+  1) Create Vendor creates a vendor
+     Failure/Error: response_body = JSON.parse(response.body)
+
+     JSON::ParserError:
+       809: unexpected token at &#39;&#39;
+     # ./spec/requests/create_vendor_spec.rb:34:in `block (3 levels) in &lt;top (required)&gt;&#39;
+     # ./spec/requests/create_vendor_spec.rb:32:in `block (2 levels) in &lt;top (required)&gt;&#39;
+     # ./spec/spec_helper.rb:85:in `block (3 levels) in &lt;top (required)&gt;&#39;
+     # ./spec/spec_helper.rb:84:in `block (2 levels) in &lt;top (required)&gt;&#39;
+</code></pre>
+                    <p>ここでわかるように、API
+                    に送信したものを印刷すると、データは送信されますが、ベンダーの作成に失敗します。</p>
+                    <pre><code>def corp_new_vendor_v2
+    arguments = create_vendor_arguments
+    https = Net::HTTP.new(VENDOR_CREATE_VENDOR_URI.host, VENDOR_CREATE_VENDOR_URI.port)
+    https.use_ssl = true
+    post_request = Net::HTTP::Post.new(VENDOR_CREATE_VENDOR_URI)
+    post_request[&#39;Content-Type&#39;] = &#39;application/json&#39;
+    post_request.body = JSON.dump(arguments)
+    
+    print &quot;Post Request----: #{post_request.body}\n\n&quot;
+    print &quot;-----------------------------------------------------\n&quot;
+    response = JSON.parse(https.request(post_request).read_body).symbolize_keys
+    print &quot;Response----: #{response}\n\n&quot;
+    print &quot;-----------------------------------------------------\n&quot;
+    if response[:result] == &#39;success&#39;
+      puts &#39;It was successful&#39;
+    else
+      render json: { error: response[:message] }, status: :unprocessable_entity
+    end
+  end
+
+  # This is used once we touch the new vendor endpoint, and response with a response
+  def create_vendor_attributes(response)
+    response.slice(:action, :user_hash, :result, :vendor_uuid, :policy_shell_uuids, :refcode, :return_URL)
+  end
+
+  def create_vendor_params
+    params.require(:vendor).permit(
+      :request_type, :first_name, :last_name, :phone, :phone_type, :email, :address1, :address_city, :address_state, :address_zip, :DOB
+    )
+  end
+
+  def create_vendor_arguments
+    create_vendor_params.to_h.merge(token: CORP_RENTER_TOKEN, refcode: CORP_REFCODE)
+  end
+end
+</code></pre>
+                    <p>ここで何が足りないのでしょうか？私の仕様ではすべてを送信していますが、par
+                    JSON エラーを受け取り続けます。</p>
+                    <p>よろしくお願いします！</p>
+                    <pre><code>Create Vendor
+# here it sends all the data as in the unit testing
+Post Request (Unit Test)----: {&quot;request_type&quot;:&quot;renters&quot;,&quot;first_name&quot;:&quot;Tony&quot;,&quot;last_name&quot;:&quot;Stark&quot;,&quot;phone&quot;:&quot;6504881234&quot;,&quot;phone_type&quot;:&quot;mobile&quot;,&quot;email&quot;:&quot;[email protected]&quot;,&quot;address1&quot;:&quot;123 Main Street&quot;,&quot;address_city&quot;:&quot;Palo Alto&quot;,&quot;address_state&quot;:&quot;CA&quot;,&quot;address_zip&quot;:&quot;94301&quot;,&quot;DOB&quot;:&quot;1982-10-27&quot;,&quot;token&quot;:&quot;6ed469496be882f0163c453627fbcac15b773733db123a7c2faf68f42ea7586a&quot;,&quot;refcode&quot;:&quot;corp-api-test&quot;}
+
+-----------------------------------------------------
+# And here it responds correctly
+Response----(Unit Test): {:action=&gt;&quot;new_vendor&quot;, :user_hash=&gt;&quot;e59871c35edb7f622c97acfcc20955e9&quot;, :result=&gt;&quot;success&quot;, :agent_phone=&gt;&quot;888-888-8888&quot;, :vendor_uuid=&gt;&quot;242992518092902061&quot;, :policy_shell_uuids=&gt;{&quot;RENT&quot;=&gt;&quot;243548182003445420&quot;}, :marketing_headline=&gt;&quot;Test Marketing Headline&quot;, :marketing_content=&gt;&quot;&lt;ul&gt;&lt;li&gt;Test Marketing Content&lt;/li&gt;&lt;/ul&gt;&quot;}
+
+-----------------------------------------------------
+  creates a vendor (FAILED - 1)
+    # Here for some reason it only sends two parameters
+Post Request----(Not Unit Test): {&quot;last_name&quot;:&quot;Stark&quot;,&quot;phone&quot;:&quot;6504881234&quot;,&quot;token&quot;:&quot;6ed469496be882f0163c453627fbcac15b773733db123a7c2faf68f42ea7586a&quot;,&quot;refcode&quot;:&quot;corp-api-test&quot;}
+
+-----------------------------------------------------
+    # And obviously the server response with an error cause it&#39;s not sending all the required data.
+Response----(Not Unit Test): {:result=&gt;&quot;error&quot;, :message=&gt;&quot;missing fields: first_name is a required field, email is a required field, address1 is a required field, address_city is a required field, address_state is a required field, address_zip is a required field, DOB is a required field, phone_type is a required field&quot;}
+</code></pre>
+                    <pre><code>def create
+    vendor_new_vendor_v2
+end
+</code></pre>
+                    <p>これら 2
+                    つのメソッドを使用してパラメータを送信します</p>
+                    <pre><code>  def create_vendor_params
+    params.require(:vendor).permit(
+      :request_type, :first_name, :last_name, :phone, :phone_type, :email, :address1, :address_city, :address_state, :address_zip, :DOB
+    )
+  end
+
+  def create_vendor_arguments
+    create_vendor_params.to_h.merge(token: CORP_RENTER_TOKEN, refcode: CORP_REFCODE)
+  end
+</code></pre>
+                    <pre><code>  it &#39;creates a vendor&#39; do
+    VCR.use_cassette(&#39;create_vendor&#39;) do
+      post &#39;/api/v2/vendor&#39;, params: vendor_attributes.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;, Authorization: &quot;Token token=#{user.key}&quot;}
+      response_body = JSON.parse(response.body)
+      expect(response_body[&#39;refcode&#39;]).to eq(&#39;corp-api-test&#39;)
+    end
+  end
+
+
+#I just saw that these two `last_name`and `phone`are being printed on the puts I did above. 
+  it &#39;fails if the vendor is missing attributes&#39; do
+    VCR.use_cassette(&#39;create_vendor_missing_attributes&#39;) do
+      post &#39;/api/v2/vendor&#39;, params: {vendor: {last_name: &#39;Stark&#39;, phone: &#39;6504881234&#39;}}.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;, Authorization: &quot;Token token=#{user.key}&quot;}
+      expect(response.status).to eq(422)
+    end
+  end
+
+  it &#39;requires Authorization token header&#39; do
+    post &#39;/api/v2/vendor&#39;, params: vendor_attributes.to_json, headers: {&#39;Content-Type&#39; =&gt; &#39;application/json&#39;}
+    expect(response.status).to eq(401)
+  end
+end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>成功するための render :json がありません。</p>
+                    <p>次のようにコントローラーを更新します</p>
+                    <pre><code>if response[:result] == &#39;success&#39;
+      render json: response, status: :ok
+    else
+      render json: { error: response[:message] }, status: :unprocessable_entity
+    end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

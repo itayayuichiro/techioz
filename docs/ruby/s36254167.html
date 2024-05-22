@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby ArgumentError: 不明なキーワードですが、理由はわかりません | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby ArgumentError: 不明なキーワードですが、理由はわかりません",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby ArgumentError:
+不明なキーワードですが、理由はわかりません</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>シンプルな Ruby on Rails
+                    プラグインを作成しようとしています。 redcarpetable
+                    関数が render_opts
+                    のハッシュを使用して呼び出されると、「ArgumentError:
+                    不明なキーワード:
+                    render_opts」が発生します。関数のコード:</p>
+                    <pre><code>def redcarpetable(*fields, renderer: :default, as: [nil], prefix: &quot;rendered&quot;, render_opts: {})
+    fields.each do |field|
+      if fields.count &gt; 1
+        define_method &quot;#{prefix}_#{field}&quot; do
+        Carpet::Rendering.render(read_attribute(field), renderer_opts: render_opts, rc_renderer: renderer).html_safe
+        end # End defining the method dynamically.
+      else
+        if as[0]
+          as.each do |method_name|
+            define_method &quot;#{method_name}&quot; do
+            Carpet::Rendering.render(read_attribute(field), render_opts: render_opts, rc_renderer: renderer).html_safe
+            end # End defining the method dynamically.
+          end
+        else
+          define_method &quot;rendered_#{field}&quot; do
+          Carpet::Rendering.render(read_attribute(field), render_opts: render_opts, rc_renderer: renderer).html_safe
+          end # End defining the method dynamically.
+        end
+      end
+    end # End the fields loop.
+  end # End the redcarpet method.
+</code></pre>
+                    <p>関数の呼び出し方法:</p>
+                    <pre><code>redcarpetable :name, renderer: :simple_parser, as: [:cool_name, :rendered_name], render_opts: {:generate_toc_data: true}
+</code></pre>
+                    <p>レンダリング
+                    オプションのハッシュを許可するには、関数宣言に何を行う必要がありますか?完全なコード
+                    (十分に文書化されていない、またはまだリファクタリングされていません)
+                    はここにあります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Carpet::Rendering を次のように呼び出します。</p>
+                    <pre><code>Carpet::Rendering.render(read_attribute(field), 
+  render_opts: render_opts, rc_renderer: renderer
+).html_safe
+</code></pre>
+                    <p>ただし、このオプションは実際には renderer_opts
+                    と呼ばれます。次のように変更するだけです。</p>
+                    <pre><code>Carpet::Rendering.render(read_attribute(field), 
+  renderer_opts: render_opts, rc_renderer: renderer
+).html_safe
+</code></pre>
+                    <p>メソッドのシグネチャでも変更したい場合があります。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

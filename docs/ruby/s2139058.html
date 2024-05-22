@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>テキストファイルに文字列を挿入する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "テキストファイルに文字列を挿入する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>テキストファイルに文字列を挿入する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>文字列を追加したい構成ファイルがあります。そのように：</p>
+                    <pre><code>line1
+line2
+line3
+line4
+</code></pre>
+                    <p>新しい文字列は追加するのではなく、ファイルの途中に書き込む必要があります。したがって、ファイル内の特定の位置（または文字列）を探しており、それが見つかったら、新しい文字列を挿入します。</p>
+                    <pre><code>file = File.open(path,&quot;r+&quot;)
+while (!file.eof?)
+  line = file.readline
+  if (line.downcase.starts_with?(&quot;line1&quot;))
+    file.write(&quot;Some nice little sentence&quot;)
+  end
+end
+</code></pre>
+                    <p>問題は、Ruby
+                    がその位置の行を新しいテキストで上書きするため、結果は次のようになります。</p>
+                    <pre><code>line1
+Some nice little sentence
+line3
+line4
+</code></pre>
+                    <p>私が望むのは「本物の」挿入です。</p>
+                    <pre><code>line1
+Some nice little sentence
+line2
+line3
+line4
+</code></pre>
+                    <p>どうすればこれを達成できるでしょうか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ファイルが小さい場合、最も簡単な方法は次のとおりだと思います。</p>
+                    <p>これが Rails が舞台裏で行う方法です。</p>
+                    <p>または、次のように 1
+                    行ずつコピーし、元のファイルを mv
+                    で上書きすることもできます。</p>
+                    <pre><code>require &#39;fileutils&#39;
+
+tempfile=File.open(&quot;file.tmp&quot;, &#39;w&#39;)
+f=File.new(&quot;file.txt&quot;)
+f.each do |line|
+  tempfile&lt;&lt;line
+  if line.downcase=~/^line2/
+    tempfile &lt;&lt; &quot;Some nice little sentence\n&quot;
+  end
+end
+f.close
+tempfile.close
+
+FileUtils.mv(&quot;file.tmp&quot;, &quot;file.txt&quot;)
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

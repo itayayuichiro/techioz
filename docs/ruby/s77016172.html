@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby Thread オブジェクトでコードのブロックをラップする | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby Thread オブジェクトでコードのブロックをラップする",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby Thread
+オブジェクトでコードのブロックをラップする</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>コードの一部を Thread.new ブロック
+                    ステートメントにグローバルに挿入する必要がある gem
+                    機能を実装する必要があります。その理由についての議論はここでやめましょう:)</p>
+                    <p>次のように定義すると:</p>
+                    <pre><code>module MyThread 
+
+    def new(*args, &amp;block)
+        puts &quot;i&#39;m in Thread.new&quot;
+        super(*args, &amp;block)
+    end
+
+end
+
+Thread.singleton_class.prepend MyThread
+</code></pre>
+                    <p>そして以下を作成します:</p>
+                    <pre><code>t = Thread.new {
+    puts &quot;I&#39;m async thread&quot;
+}
+t.join
+</code></pre>
+                    <p>両方のメッセージが表示されます。問題は、メインスレッドから新しいスレッドに何かを渡す必要があるため、そのようなシナリオではブロックを変更する必要があるという問題があります。それがないと、MyThread.new
+                    に何かを入れても、メインスレッドでのみ実行されます。通常、Ruby
+                    コードを読み取ることでそのようなものをリバース
+                    エンジニアリングできますが、Thread は Ruby
+                    で定義されておらず、見たとおり、Ruby
+                    のラッパーのない純粋な C API です。</p>
+                    <p>したがって、問題は、メインスレッドからグローバルに新しいスレッドに何かを渡し、そこでブロックをラップする新しいスレッドコードを定義するオプションがあるかどうかです。おそらく本当に汚いハックがないわけではありませんが、何かが欠けているかもしれません。</p>
+                    <p>事前にお願いします！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題を正しく理解していれば、モジュールによって「挿入」されたコードはメインスレッドで実行されます:
+                    (.new ではなく #initialize
+                    にパッチを当てるためにコードを少し簡略化しました)</p>
+                    <pre><code>module MyThread
+  def initialize(*args, &amp;block)
+    puts &quot;Module is #{Thread.current}&quot;
+    super(*args, &amp;block)
+  end
+end
+Thread.prepend MyThread
+
+puts &quot;  Main is #{Thread.current}&quot;
+Thread.new { puts &quot; Block is #{Thread.current}&quot; }.join
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>  Main is #&lt;Thread:0x00007f88e807bc78 run&gt;
+Module is #&lt;Thread:0x00007f88e807bc78 run&gt;
+ Block is #&lt;Thread:0x00007f88e20cc7c8 test.rb:10 run&gt;
+</code></pre>
+                    <p>…しかし、ブロックと同じように、他のスレッドで実行したいとします。</p>
+                    <p>そのためには、それを super
+                    に渡すブロックに移動する必要があります。ブロック引数は変更できないため、新しいブロックを作成し、渡されたブロックを内部から呼び出す必要があります。</p>
+                    <pre><code>module MyThread
+  def initialize(*args, &amp;block)
+    super(*args) do |*inner_args|
+      puts &quot;Module is #{Thread.current}&quot;
+      block.call(*inner_args)
+    end
+  end
+end
+Thread.prepend MyThread
+
+puts &quot;  Main is #{Thread.current}&quot;
+Thread.new { puts &quot; Block is #{Thread.current}&quot; }.join
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>  Main is #&lt;Thread:0x00007f927907bc88 run&gt;
+Module is #&lt;Thread:0x00007f926203fb50 test.rb:3 run&gt;
+ Block is #&lt;Thread:0x00007f926203fb50 test.rb:3 run&gt;
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

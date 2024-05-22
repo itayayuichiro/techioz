@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>MacOS で rbenv を使用して JRuby をインストールすると OpenSSL エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "MacOS で rbenv を使用して JRuby をインストールすると OpenSSL エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>MacOS で rbenv を使用して JRuby
+をインストールすると OpenSSL エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>rbenv install jruby-9.4.2.0
+                    を実行すると、次のエラーが発生します。エラーには、OpenSSL
+                    が利用できないことが示されていますが、私の知る限り、OpenSSL
+                    は複数の場所と形式で利用可能です
+                    (下記の「バージョン」を参照)。 OpenSSL 3+ と OpenSSL
+                    1.1
+                    の両方ですべてを試しました。私の何が間違っているのでしょうか？</p>
+                    <pre><code>/var/folders/nm/c044zc5d5b505n42t9v7z4dr0000gt/T/ruby-build.20230926153740.4346.GaTTYO/jruby-9.4.2.0 /var/folders/nm/c044zc5d5b505n42t9v7z4dr0000gt/T/ruby-build.20230926153740.4346.GaTTYO ~
+ERROR:  While executing gem ... (Gem::Exception)
+    OpenSSL is not available. Install OpenSSL and rebuild Ruby (preferred) or use non-HTTPS sources
+    /Users/2b-software-mac/.rbenv/versions/jruby-9.4.2.0/lib/ruby/stdlib/rubygems/request.rb:47:in `configure_connection_for_https&#39;
+    /Users/2b-software-mac/.rbenv/versions/jruby-9.4.2.0/lib/ruby/stdlib/rubygems/request/https_pool.rb:6:in `setup_connection&#39;
+    ...
+    /Users/2b-software-mac/.rbenv/versions/jruby-9.4.2.0/bin/jgem:21:in `&lt;main&gt;&#39;
+    org/jruby/RubyKernel.java:1091:in `load&#39;
+    gem:4:in `&lt;main&gt;&#39;
+</code></pre>
+                    <p>こことここで述べたようにRUBY_CONFIGURE_OPTSを指定しようとしましたが、うまくいきませんでした。</p>
+                    <p>MacOS 13.5.2 (M2)</p>
+                    <pre><code>$ openssl version
+OpenSSL 3.1.3 19 Sep 2023 (Library: OpenSSL 3.1.3 19 Sep 2023)
+
+$ gem info openssl 
+openssl (3.2.0, 3.0.0)
+
+$ gem info jruby-openssl     
+jruby-openssl (0.9.4)
+
+$ java --version
+openjdk 21 2023-09-19
+OpenJDK Runtime Environment Homebrew (build 21)
+OpenJDK 64-Bit Server VM Homebrew (build 21, mixed mode, sharing)
+
+$ rbenv -v
+rbenv 1.2.0
+
+$ ruby-build --version
+ruby-build 20230919
+
+$ rbenv global
+3.1.2
+
+$ ruby -v
+ruby 3.1.2p20 (2022-04-12 revision 4491bb740a) [arm64-darwin22]
+
+$ brew list openssl
+/opt/homebrew/Cellar/openssl@3/3.1.3/.bottle/etc/ (7 files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/bin/c_rehash
+/opt/homebrew/Cellar/openssl@3/3.1.3/bin/openssl
+/opt/homebrew/Cellar/openssl@3/3.1.3/include/openssl/ (135 files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/libcrypto.3.dylib
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/libssl.3.dylib
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/engines-3/ (3 files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/ossl-modules/legacy.dylib
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/pkgconfig/ (3 files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/lib/ (4 other files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/share/doc/ (798 files)
+/opt/homebrew/Cellar/openssl@3/3.1.3/share/man/ (5533 files)
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>醸造インストールopenssl</p>
+                    <p>~/.bash_profile にエクスポート</p>
+                    <p>import
+                    PKG_CONFIG_PATH=“/usr/local/opt/openssl/lib/pkgconfig”</p>
+                    <p>rbenvのリハッシュ</p>
+                    <p>rbenv インストール jruby-9.4.2.0</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

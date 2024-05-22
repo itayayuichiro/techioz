@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>驚くほど複雑な ActiveRecord 関係 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "驚くほど複雑な ActiveRecord 関係",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>驚くほど複雑な ActiveRecord 関係</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ユーザーモデルがあります。ユーザーは多くの
+                    EmailAddresses を持っており、そのうちの 1
+                    つを、primary_email_address
+                    として選択します。これが、私が電子メールを送信するアドレスです。ユーザーは常に少なくとも
+                    1 つの電子メール
+                    アドレスを持っている必要があり、プライマリ電子メール
+                    アドレスを設定する必要があります。プライマリ電子メール
+                    アドレスは破棄できますが、その後、新しいプライマリ電子メール
+                    アドレスをユーザーに割り当てる必要があります。</p>
+                    <p>これに対処するのは驚くほど難しい状況であることが判明しており、私が試した解決策にはどれも満足できない要素がありました。これは非常に一般的な問題のクラスのようです
+                    (A には多くの B があり、その B の 1
+                    つは特別です)。それをきれいに解決する方法を知りたいと思っています。</p>
+                    <p>何かのようなもの：</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  has_many :email_addresses, inverse_of: :user
+
+  validates :has_exactly_one_primary_email_address
+
+  def primary_email_address
+    email_addresses.where(is_primary:true).first
+  end
+
+  def has_exactly_one_primary_email_address
+    # ...
+  end
+end
+
+class EmailAddress &lt; ActiveRecord::Base
+  belongs_to :user, inverse_of: :email_addresses
+
+  before_destroy :check_not_users_only_email_address
+  after_destroy :reassign_user_primary_email_address_if_necessary
+
+  # the logic for both these methods should live on the user but you get the idea
+  def reassign_user_primary_email_address_if_necessary
+    # ...
+  end
+
+  def check_not_users_only_email_address
+    # ...
+  end
+end
+</code></pre>
+                    <p>ユーザーがプライマリ電子メール アドレスを 1
+                    つだけ持つことが非常に重要であり、これを複数の電子メール
+                    アドレス
+                    レコードにわたって検証する必要があるのは良くないと思われるため、これは概念的に厄介です。また、ActiveRecord
+                    トランザクションは、ユーザーがプライマリ電子メール
+                    アドレスなしで行き詰まることのないように意味するものであることはわかっていますが、それは災難を招くレシピのように思えます。プライマリ電子メール
+                    アドレスは基本的にユーザーに属するものであり、このロジックを
+                    EmailAddress
+                    モデルに組み込むのは理想的ではありません。</p>
+                    <p>何かのようなもの：</p>
+                    <pre><code>class User &lt; ActiveRecord::Base
+  has_many :email_addresses, inverse_of: :user
+  belongs_to :primary_email_address
+
+  validates_presence_of :primary_email_address
+end
+
+class EmailAddress &lt; ActiveRecord::Base
+  belongs_to :user, inverse_of: :email_addresses
+
+  before_destroy :check_not_users_only_email_address
+  after_destroy :reassign_user_primary_email_address_if_necessary
+
+  # the logic for both these methods should live on the user but you get the idea
+  def reassign_user_primary_email_address_if_necessary
+    # ...
+  end
+
+  def check_not_users_only_email_address
+    # ...
+  end
+end
+</code></pre>
+                    <p>これは、プライマリ電子メール アドレスを 1
+                    つだけ持つユーザーの検証がはるかに簡単で、ユーザー
+                    モデルとより緊密に結合されているため、より優れています。しかし、現在、逆関数に関して厄介な問題が発生しています。
+                    user.primary_email_address は、user.email_addresses
+                    配列内の同じレコードと同じインスタンスを参照しないため、メモリ内のインスタンスに正しいデータがあることを確認するには、大量の再ロードが必要です。</p>
+                    <pre><code>&gt; u = User.last
+&gt; u.email_addresses.map(&amp;:email)
+=&gt; [&quot;[email protected]&quot;, &quot;[email protected]&quot;]
+&gt; u.primary_email_address.destroy
+=&gt; true
+&gt; u.email_addresses.map(&amp;:email)
+=&gt; [&quot;[email protected]&quot;, &quot;[email protected]&quot;]
+&gt; u.reload
+&gt; u.email_addresses.map(&amp;:email)
+=&gt; [&quot;[email protected]&quot;]
+</code></pre>
+                    <p>これにより、after_destroy
+                    フックやその他の状況で多くの問題が発生します。これは、User
+                    モデルの少し厄介なbelongs_to :primary_email_address
+                    行が原因であるようです。 EmailAddresses と Users
+                    が、これら 2 つの異なる ActiveRecord 関係 (has_many
+                    :email_addresses/belongs_to :user およびbelongs_to
+                    :primary_email_address)
+                    によって関連付けられるのは少し奇妙です。</p>
+                    <p>技術的には両方とも機能する 2 つのソリューション
+                    (現在 2 番目のソリューションを使用しています)
+                    ですが、どちらも直感的ではなく、時間がかかる欠陥があります。これを適切に解決する方法についての良いアイデアをぜひ聞きたいです。ありがとう。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>多少異なりますが、最初のアプローチを使用することをお勧めします。電子メール
+                    アドレスでの変更が行われるため、その電子メール
+                    アドレスにトリガー
+                    コールバックを設定しないようにする方法は実際にはありません。ただし、以前のように複雑にする必要はありません。</p>
+                    <p>ユーザーの EmailAddresses
+                    のコレクション全体に対してチェックを行う必要があるため、データベースの内容を使用して状態が有効かどうかを判断する必要があります。after_save
+                    と after_destroy
+                    を使用すると、これを簡単に行うことができます。</p>
+                    <pre><code>class EmailAdress &lt; AR::Base
+  belongs_to :user, :inverse_of :email_addresses
+
+  scope :primary, where(:primary =&gt; true)
+
+  after_save :ensure_single_primary_email
+  after_destroy :ensure_primary_email_exists
+
+  def ensure_single_primary_email
+    user.verify_primary_email(self) if new_record? || primary_changed?
+  end
+
+  def ensure_primary_email_exists
+    user.ensure_primary_email
+  end
+end
+
+class User &lt; AR::Base
+  has_many :email_addresses, :inverse_of =&gt; :user, :dependent =&gt; :destroy
+  attr_accessible :primary_email_address
+
+  validates_presence_of :primary_email_address
+
+  def primary_email_address
+    if association(:email_addresses).loaded? 
+      email_addresses.detect(&amp;:primary?)
+    else
+      email_addresses.primary.first
+    end
+  end
+
+  def primary_email_address=(email)
+    email.primary = true
+    email_addresses &lt;&lt; email
+  end
+
+  def verify_primary_email(email)
+    if email.primary? &amp;&amp; email_addresses.primary.count &gt; 1
+      raise &quot;Only one primary email can exist for a user&quot;
+    elsif !email.primary? &amp;&amp; !email_addresses.primary.exists?
+      raise &quot;A user must have one primary email&quot;
+    end
+  end
+
+  def ensure_primary_email
+    return if email_addresses.primary.exists?
+    raise &#39;Missing primary email&#39; if !email_addresses.exists?
+    email_addresses.first.update_attribute(:primary, true)
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

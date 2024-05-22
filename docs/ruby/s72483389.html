@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>OR 演算子で配列の項目を使用する ActiveRecord Where 句 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "OR 演算子で配列の項目を使用する ActiveRecord Where 句",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>OR 演算子で配列の項目を使用する ActiveRecord
+Where 句</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>このような配列があります</p>
+                    <pre><code>arr = %w[android ios]
+</code></pre>
+                    <p>そして、以下のようなクエリの Where
+                    句でこれらの値を使用したいと考えています。</p>
+                    <pre><code>SELECT * FROM controls
+WHERE company_id = &#39;12345&#39; AND (ios &gt; 13 OR android &gt; 14)
+</code></pre>
+                    <p>ここで、( )
+                    内のフィールドは配列の値です。つまり、配列に値が 1
+                    つだけある場合は、次のようになります。</p>
+                    <pre><code> WHERE company_id = &#39;12345&#39; AND (ios &gt; 13)
+</code></pre>
+                    <p>例えば</p>
+                    <p>Ruby on
+                    RailsのActiveRecordを使用することは可能ですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>このように配列ではなくハッシュが必要なようです</p>
+                    <pre><code>more_than = {
+  ios: 13,
+  android: 14
+}
+</code></pre>
+                    <p>プレースホルダーを含む配列から
+                    sanitize_sql_for_conditions を使用して SQL
+                    条件文字列を構築できます</p>
+                    <pre><code>sql_condition_array =
+  more_than.each_with_object([]) do |(atr, value), sql_array|
+    if sql_array.empty?
+      sql_array[0] = &quot;#{atr} &gt; ?&quot;
+    else
+      sql_array[0] &lt;&lt; &quot; OR #{atr} &gt; ?&quot;
+    end
+
+    sql_array &lt;&lt; value
+  end
+# =&gt; [&quot;ios &gt; ? OR android &gt; ?&quot;, 13, 14]
+
+sql_condition = Control.sanitize_sql_for_conditions(sql_condition_array)
+# =&gt; &quot;ios &gt; 13 OR android &gt; 14&quot;
+</code></pre>
+                    <p>または直接かもしれません</p>
+                    <pre><code>sql_condition = more_than.map { |atr, value| &quot;#{atr} &gt; #{value}&quot; }.join(&quot; OR &quot;)
+# =&gt; &quot;ios &gt; 13 OR android &gt; 14&quot;
+</code></pre>
+                    <p>その後</p>
+                    <pre><code>Control.where(company_id: 12345).where(sql_condition)
+</code></pre>
+                    <p>クエリは次のようになります。</p>
+                    <pre><code>SELECT &quot;controls&quot;.* FROM &quot;controls&quot;
+WHERE &quot;controls&quot;.&quot;company_id&quot; = 12345
+AND (ios &gt; 13 OR android &gt; 14);
+</code></pre>
+                    <p>そのハッシュが 1
+                    つの要素のみで構成される場合、次のように OR
+                    は使用されません。</p>
+                    <pre><code>SELECT &quot;controls&quot;.* FROM &quot;controls&quot;
+WHERE &quot;controls&quot;.&quot;company_id&quot; = 12345
+AND (ios &gt; 13);
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

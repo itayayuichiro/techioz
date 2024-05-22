@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Sidekiq からの警告をデバッグするにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Sidekiq からの警告をデバッグするにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Sidekiq
+からの警告をデバッグするにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby on Rails アプリから次のログがあります。</p>
+                    <pre><code>- NoMethodError (undefined method `encode` for nil:NilClass
+-       redirect_to &quot;/post_message#token=#{@secret.encode(token)}&quot;
+-                                                 ^^^^^^^):
+- app/controllers/canvas_test_controller.rb:126:in `redirect_token`
+- I, [2023-08-22T10:21:40.643432 #25]  INFO -- : [3cc2fde2-4da9-451b-973e-15c8fe93d91d] [Rollbar] Scheduling item
+- pid=25 tid=3a1x WARN: Job arguments to Rollbar::Delay::Sidekiq do not serialize to JSON safely. This will raise an error in
+- Sidekiq 7.0. See https://github.com/mperham/sidekiq/wiki/Best-Practices or raise an error today
+- by calling `Sidekiq.strict_args!` during Sidekiq initialization.
+</code></pre>
+                    <p>ロールバーをテストするために意図的にこのエラーを発生させましたが、なぜ
+                    Sidekiq 警告が表示されるのですか:
+                    Rollbar::Delay::Sidekiq へのジョブ引数が JSON
+                    に安全にシリアル化されません。</p>
+                    <p>Sidekiq のベスト
+                    プラクティスをコードに適用しましたが、このエラーは次の原因で発生しているようです。
+                    ロールバー::ディレイ::サイドキック。</p>
+                    <p>私は次の gem を使用しています。</p>
+                    <pre><code>rollbar (3.4.0)
+sidekiq (6.5.6)
+</code></pre>
+                    <p>Sidekiq と Rollbar
+                    の両方を最新バージョンに更新しようとしましたが、同じ警告が表示されます。これをデバッグするにはどうすればよいですか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p><span class="citation"
+                    data-cites="cschroedさん">@cschroedさん</span>、ありがとうございます。ロールバーのドキュメント
+                    https://docs.rollbar.com/docs/sidekiq-integration
+                    を調べ、ロールバーの設定に config.async_json_payload
+                    = true を追加すると問題が解決しました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby のメソッドのブールフラグは何をするのでしょうか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby のメソッドのブールフラグは何をするのでしょうか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby
+のメソッドのブールフラグは何をするのでしょうか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby の Ractor.select
+                    メソッドの移動フラグの動作を理解しようとしています。
+                    メソッドのシグネチャ:
+                    https://ruby-doc.org/3.2.1/Ractor.html#method-c-current</p>
+                    <p>ドキュメント内の関数の移動フラグの説明では、フラグが次のように説明されています。</p>
+                    <pre><code>move boolean flag defines whether yielded value should be copied (default) or moved.
+</code></pre>
+                    <p>このステートメントは、Rust
+                    のような所有権モデルが導入されている言語では意味を成します。でも、それが
+                    Ruby
+                    にとって何を意味するのか理解しようとしている</p>
+                    <p>このフラグの効果を実験するためにコードを実行しました。</p>
+                    <pre><code>should_move = true
+
+puts &quot;MOVE: #{should_move}&quot;
+r1 = Ractor.new do
+  data = [{name: &quot;tom&quot;}, {name: &quot;dick&quot;}, {name: &quot;harry&quot;}]
+  puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data[0].object_id}&quot;
+  Ractor.yield(data)
+  sleep 2
+  puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data[0].object_id}&quot;
+end
+
+ractor, value = Ractor.select(r1, move: should_move)
+
+
+puts &quot;[OUTSIDE RACTOR] value is: #{value} and value[0] object_id is: #{value[0].object_id}&quot;
+p ractor
+
+sleep 3
+
+</code></pre>
+                    <p>上記のコードでは、 should_move = true と
+                    should_move = false の両方で出力は同じでした。</p>
+                    <pre><code>MOVE: true
+main.rb:4: warning: Ractor is experimental, and the behavior may change in future versions of Ruby! Also there are many implementation issues.
+[INSIDE RACTOR (before move)] data value is [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}] and data object id is :60
+[OUTSIDE RACTOR (after move)] value is: [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}] and value[0] object_id is: 80
+#&lt;Ractor:#2 main.rb:4 blocking&gt;
+[INSIDE RACTOR (after move)] data value is [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}] and data object id is :60
+</code></pre>
+                    <p>そして同じことを実行してみましたが、今回は次のようにラクター内のデータ変数を整数値に設定しました。</p>
+                    <pre><code>should_move = true
+
+puts &quot;MOVE: #{should_move}&quot;
+r1 = Ractor.new do
+  data = 12
+  puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data.object_id}&quot;
+  Ractor.yield(data)
+  sleep 2
+  puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data.object_id}&quot;
+end
+
+ractor, value = Ractor.select(r1, move: should_move)
+
+
+puts &quot;[OUTSIDE RACTOR] value is: #{value} and value object_id is: #{value.object_id}&quot;
+p ractor
+
+sleep 3
+
+</code></pre>
+                    <p>今回、この場合の出力は次のようになりました。</p>
+                    <pre><code>MOVE: false
+main.rb:4: warning: Ractor is experimental, and the behavior may change in future versions of Ruby! Also there are many implementation issues.
+[INSIDE RACTOR (before move)] data value is 12 and data object id is :25
+[OUTSIDE RACTOR (after move)] value is: 12 and value[0] object_id is: 25
+#&lt;Ractor:#2 main.rb:4 blocking&gt;
+[INSIDE RACTOR (after move)] data value is 12 and data object id is :25
+</code></pre>
+                    <p>この場合も、移動フラグの状態は出力に影響しませんでした。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Ractor::select
+                    のコンテキストで移動が何を行うか、またそれがどのような影響を与えるかを見逃していると思います</p>
+                    <p>move
+                    を実行すると、送信されたオブジェクトに送信者がアクセスできなくなります。これは、例を少し変更することで確認できます。</p>
+                    <pre><code>r1 = Ractor.new do
+  data = [{name: &quot;tom&quot;}, {name: &quot;dick&quot;}, {name: &quot;harry&quot;}]
+  puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data[0].object_id}&quot;
+  Ractor.yield(data, move: true)
+  begin 
+    puts &quot;[INSIDE RACTOR] data value is #{data} and data object id is :#{data[0].object_id}&quot;
+  rescue Ractor::MovedError =&gt; e 
+    puts
+    puts &quot;data is no longer accessible because it was moved&quot;
+  end 
+end
+
+Ractor.select(r1)
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>[INSIDE RACTOR] data value is [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}] and data object id is :740
+
+data is no longer accessible because it was moved
+</code></pre>
+                    <p>これは、メッセージ データが move:true を指定して
+                    yield 経由で送信されるためです。</p>
+                    <p>Ractor::select では、移動は yield_value
+                    に対応します。</p>
+                    <pre><code>data = [{name: &quot;tom&quot;}, {name: &quot;dick&quot;}, {name: &quot;harry&quot;}]
+r1 = Ractor.new(Ractor.current) do |main|
+  puts &quot;Received from main: #{main.take}&quot;
+end
+
+puts &quot;Ractor.select with yield_value: #{data} and move: true&quot;
+
+Ractor.select(r1, yield_value: data, move: true)
+
+begin 
+  puts &quot;Can access data: #{data}&quot;
+rescue Ractor::MovedError =&gt; e 
+  puts
+  puts &quot;data is no longer accessible because it was moved&quot;
+end 
+</code></pre>
+                    <p>出力：</p>
+                    <pre><code>Ractor.select with yield_value: [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}] and move: true
+Received from main: [{:name=&gt;&quot;tom&quot;}, {:name=&gt;&quot;dick&quot;}, {:name=&gt;&quot;harry&quot;}]
+
+data is no longer accessible because it was moved
+</code></pre>
+                    <p>これは、利回り値が移動され、送信者がアクセスできなくなるためです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

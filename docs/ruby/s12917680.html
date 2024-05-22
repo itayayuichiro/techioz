@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>モジュール内のクラスメソッドにエイリアスを付けるにはどうすればよいですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "モジュール内のクラスメソッドにエイリアスを付けるにはどうすればよいですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>モジュール内のクラスメソッドにエイリアスを付けるにはどうすればよいですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私は Ruby v1.9.2 と Ruby on Rails v3.2.2 gem
+                    を使用しています。次のモジュールがありました</p>
+                    <pre><code>module MyModule
+  extend ActiveSupport::Concern
+
+  included do
+    def self.my_method(arg1, arg2)
+      ...
+    end
+  end
+end
+</code></pre>
+                    <p>そして、クラスメソッド my_method
+                    の別名を付けたかったのです。そこで、次の（機能しない）コードを記述しました。</p>
+                    <pre><code>module MyModule
+  extend ActiveSupport::Concern
+
+  included do
+    def self.my_method(arg1, arg2)
+      ...
+    end
+
+    # Note: the following code doesn&#39;t work (it raises &quot;NameError: undefined
+    # local variable or method `new_name&#39; for #&lt;Class:0x00000101412b00&gt;&quot;).
+    def self.alias_class_method(new_name, old_name)
+      class &lt;&lt; self
+        alias_method new_name, old_name
+      end
+    end
+
+    alias_class_method :my_new_method, :my_method
+  end
+end
+</code></pre>
+                    <p>言い換えれば、MyModule 全体で使用できる
+                    alias_class_method
+                    メソッドを追加するために、何らかの方法で Module
+                    クラスを拡張しようと考えました。ただし、これを動作させ、すべての
+                    Ruby on Rails
+                    アプリケーションで利用できるようにしたいと考えています。</p>
+                    <p>しかし、より重要なことは、クラスを拡張する必要がないように、私が達成しようとしているものを実現する
+                    Ruby の機能はあるのかということです。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>次のように、define_singleton_method
+                    を使用して古いメソッドを新しい名前でラップすることができます。</p>
+                    <pre><code>module MyModule
+  def alias_class_method(new_name, old_name)
+    define_singleton_method(new_name) { old_name }
+  end
+end
+
+class MyClass
+  def my_method
+    puts &quot;my method&quot;
+  end
+end
+
+MyClass.extend(MyModule)
+MyClass.alias_class_method(:my_new_method, :my_method)
+MyClass.my_new_method     # =&gt; &quot;my method&quot;
+</code></pre>
+                    <p>コメントに答えると、すべてのクラスを手動で拡張する必要はありません。
+                    define_singleton_method は Object
+                    クラスに実装されます。したがって、単純に Object
+                    クラスを拡張すれば、すべてのクラスで使用可能なメソッドが必要になります…</p>
+                    <pre><code>Object.extend(MyModule)
+</code></pre>
+                    <p>これをRailsアプリのイニシャライザに入れれば準備完了です…</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

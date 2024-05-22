@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActionController::RoutingError を Sentry のエラーとして分類する方法 | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActionController::RoutingError を Sentry のエラーとして分類する方法",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActionController::RoutingError を Sentry
+のエラーとして分類する方法</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rails 6.1 アプリケーションには、Ruby 用の新しい
+                    Sentry (Raven ではありません) を使用しています。</p>
+                    <pre><code>gem &quot;sentry-ruby&quot;
+gem &quot;sentry-rails&quot;
+</code></pre>
+                    <p>ユーザーが ActionController::RoutingError
+                    をトリガーしたときのトランザクションを確認できますが、これらを
+                    Sentry でエラーとして表示したいと考えています。
+                    ActionController::RoutingError
+                    が「無視」または「除外」エラーとして表示されません。</p>
+                    <pre><code>&gt; Sentry::Configuration::IGNORE_DEFAULT
+ =&gt; [&quot;Mongoid::Errors::DocumentNotFound&quot;, &quot;Rack::QueryParser::InvalidParameterError&quot;, &quot;Rack::QueryParser::ParameterTypeError&quot;, &quot;Sinatra::NotFound&quot;] 
+</code></pre>
+                    <p>Sentry.rb 初期化ファイルの Excluded_Exceptions
+                    をクリアしようとしましたが、効果はありませんでした。</p>
+                    <pre><code>Sentry.init do |config|
+  ...
+  config.excluded_exceptions = []
+end
+</code></pre>
+                    <p>これらがエラーとして送信されるように Sentry
+                    を設定するにはどうすればよいですか?また、ミドルウェア
+                    (ActionDispatch?、ActionPack?)
+                    を変更して、必要に応じて Sentry.capture_message
+                    を追加できるとも考えましたが、その方法がわかりません。</p>
+                    <p>ErrorController または ApplicationController
+                    にリダイレクトする「キャッチオール」ルートは必要ありません。</p>
+                    <p>’*path’ と一致:
+                    “application#handle_route_error”、経由: :all</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>問題は、このエラーが Rails
+                    でデフォルトで処理され、「Not
+                    Found」応答で救済されることです。</p>
+                    <p>もちろん、ルーターを使用してそのようなエラー
+                    (「見つからない」、「処理できないエンティティ」、「内部サーバー
+                    エラー」など) を手動で処理し、ErrorsController
+                    などの特定のアクションで応答することもできます。そこからSentryにメッセージを送信できます</p>
+                    <p>しかし、そのような決定は望まないので、ミドルウェアまたは正確に
+                    ActionController::RoutingError
+                    にモンキーパッチを適用することができます。このエラーのソースを見つけて、次のように初期化子を追加します</p>
+                    <pre><code># config/initializers/handle_routing_error.rb
+
+module ActionController
+  class RoutingError &lt; ActionControllerError
+    attr_reader :failures
+    def initialize(message, failures = [])
+      Sentry.capture_message(message) # or Sentry.capture_error(self)
+
+      super(message)
+      @failures = failures
+    end
+  end
+end
+</code></pre>
+                    <p>通常、モンキーパッチはハックであり、良い解決策ではありませんが、うまくいきます</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

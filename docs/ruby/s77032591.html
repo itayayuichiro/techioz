@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで2つの配列に同じ要素が任意の順序で含まれているかどうかを確認し、同じインデックスで同じ要素が取得されるかどうかを確認する方法はありますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで2つの配列に同じ要素が任意の順序で含まれているかどうかを確認し、同じインデックスで同じ要素が取得されるかどうかを確認する方法はありますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで2つの配列に同じ要素が任意の順序で含まれているかどうかを確認し、同じインデックスで同じ要素が取得されるかどうかを確認する方法はありますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <pre><code>arr = [1,4,6,3]
+arr2 = [3,4,3,6]
+
+arr.each do |item|
+ p &quot;X&quot; if arr2.include?(item)
+end
+</code></pre>
+                    <p>しかし、上記は要素が見つかった場合にのみ X
+                    を返しますが、両方の配列に同じインデックスに同じ要素が含まれている場合に「O」を返し、複数の要素が見つかった場合に
+                    X を繰り返したくないのです。</p>
+                    <p>eachwithindexを使用してみましたが、結果が得られませんでした</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>いくつかのヘルパー
+                    メソッドを備えたクラスにロジックをラップします。</p>
+                    <pre><code>class CodeBreaker
+  def initialize(guess, code)
+    @guess = guess
+    @code = code
+    @numbers = Set.new(code)
+
+    return if guess.size == code.size
+
+    raise ArgumentError, &#39;guess and code need to share the same size&#39;
+  end
+
+  def hint 
+    guess.map.with_index do |number, index|
+      mark_when_equal_at_index(index) || mark_when_number_in_code(number) || &#39;-&#39;
+    end
+  end
+
+  private
+
+  attr_reader :guess, :code, :numbers
+
+  def mark_when_equal_at_index(index)
+    &#39;O&#39; if guess[index] == code[index]
+  end
+
+  def mark_when_number_in_code(number)
+    &#39;X&#39; if code.include?(number)
+  end
+end
+
+code_breaker = CodeBreaker.new([1, 4, 6, 3], [3, 4, 3, 6])
+code_breaker.hint
+#=&gt; [&quot;-&quot;, &quot;O&quot;, &quot;X&quot;, &quot;X&quot;]
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

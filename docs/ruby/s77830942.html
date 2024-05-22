@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>マネージド ID を使用して Azure Cognitive Search に接続中に認証が取得されない | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "マネージド ID を使用して Azure Cognitive Search に接続中に認証が取得されない",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>マネージド ID を使用して Azure Cognitive
+Search に接続中に認証が取得されない</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby On Rails アプリケーションのマネージド ID
+                    を使用して Azure Cognitive Search (ACS)
+                    にアクセスしようとしています。</p>
+                    <p>以下は使用されたスクリプトです</p>
+                    <pre><code>COGNITIVE_SEARCH_BASE_URL = &quot;https://#{VaultService.get_secret(&#39;COGNITIVE-SEARCH-SERVICE-NAME&#39;)}.search.windows.net&quot;.freeze
+API_VERSION = &#39;2020-06-30&#39;.freeze
+endpoint = &quot;#{COGNITIVE_SEARCH_BASE_URL}/indexes/temp/docs/$count?api-version=#{API_VERSION}&quot;
+api_url = URI(endpoint)
+https = Net::HTTP.new(api_url.host, api_url.port)
+https.use_ssl = true
+
+request = Net::HTTP::Get.new(api_url)
+request[&quot;Content-Type&quot;] = &quot;application/json&quot;
+request[&quot;Authorization&quot;] =  AzureAd::ManagedIdentityTokenProvider.new(&#39;https://search.azure.com&#39;, client_id: ENV[&#39;AKS_MANAGED_IDENTITY_ID&#39;]).get_authentication_header
+request = https.request(request)
+JSON.parse(request.read_body)
+</code></pre>
+                    <p>ベアラー
+                    トークンは、次の参照を適用して生成されます:-
+                    https://github.com/Azure/azure-sdk-for-ruby/blob/master/runtime/ms_rest_azure/lib/ms_rest_azure/credentials/msi_token_provider.rb</p>
+                    <p>マネージド ID には、ACS
+                    のロールに対して次のアクセス権があります:-</p>
+                    <p>以下は、RBAC
+                    アクセスを使用するために行われた設定です。</p>
+                    <p>このドキュメントに従いました:-
+                    https://learn.microsoft.com/en-us/azure/search/search-security-rbac?tabs=config-svc-rest%2Croles-portal%2Ctest-rest%2Ccustom-role-portal
+                    %2Cdisable-keys-rest#test-role-assignments</p>
+                    <p>上記のスクリプトを実行すると、401
+                    不正エラーが発生します。
+                    誰か私がここで間違っていることを助けてくれませんか？</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>今は機能しています。ロールがマネージド ID
+                    に割り当てられるまでに 10
+                    分ほどかかったと思います。先ほどは、1
+                    分程度かかるだろうと予想していました。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

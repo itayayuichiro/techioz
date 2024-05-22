@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>RSpec - ある属性が別の属性より小さい (または大きい) かどうかをテストするにはどうすればよいですか | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "RSpec - ある属性が別の属性より小さい (または大きい) かどうかをテストするにはどうすればよいですか",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>RSpec - ある属性が別の属性より小さい
+(または大きい) かどうかをテストするにはどうすればよいですか</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>私のアプリでは車のモデルが必要です。</p>
+                    <p>とりわけ、date_from と date_till の 2
+                    つのフィールドがあります
+                    (誰かがそれを使用していた期間を指定するため)。</p>
+                    <p>そして、date_from が date_till
+                    以下であるべきであることをモデルで検証したいと考えています。</p>
+                    <p>私のmodel_spec.rbドラフトは次のようになります。</p>
+                    <pre><code>require &#39;spec_helper&#39;
+
+describe Car do
+  it {should validate_presence_of(:model)}
+  it {should validate_presence_of(:made)}
+
+  it &quot;should have date_till only if it has date_from&quot;
+  its &quot;date_till should be &gt;= date_from&quot;
+end
+</code></pre>
+                    <p>明らかに、date_till を date_from
+                    よりも大きく設定する「長い」テストを作成するだけでよく、モデルは無効でなければなりません。しかし、おそらくそれを行うためのいくつかのエレガントな方法があるでしょうか?</p>
+                    <p>では、(RSpec マッチャーを使用して)
+                    あるフィールドが別のフィールドより大きくないことを検証するにはどうすればよいでしょうか?</p>
+                    <p>更新: <span class="citation"
+                    data-cites="itsnikolayの回答を見て">@itsnikolayの回答を見て</span>、次のようにコード化しました。</p>
+                    <pre><code>it &quot;does not allow date_till less than date_from&quot; do
+  subject.date_from = Date.today
+  subject.date_till = Date.today - 1.day
+
+  subject.valid?.should be_false
+end
+</code></pre>
+                    <p>マッチャーなしでそれを行う必要がありました。まあ、悲劇ではありません:)</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>一般に、 should ではなく、expect
+                    を使用することをお勧めします。</p>
+                    <p>例えば：</p>
+                    <pre><code>  expect(@car.date_from).to be &lt;= @car.date_till
+</code></pre>
+                    <p>リソース： - BetterSpec の例 - Rspec
+                    ドキュメント</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ActiveSupport::TimeWithZone を使用して UTC をユーザー定義のタイムゾーンに変換する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ActiveSupport::TimeWithZone を使用して UTC をユーザー定義のタイムゾーンに変換する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ActiveSupport::TimeWithZone を使用して UTC
+をユーザー定義のタイムゾーンに変換する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Rake タスクの一部として、UTC
+                    時間をユーザーのタイムゾーンの同等の時間に変換する必要があります。私がやりたいのは、UTC
+                    タイムスタンプを午前 0
+                    時に変更し、ユーザーのタイムゾーンで午前 0
+                    時になるようにタイムスタンプを再作成することです。</p>
+                    <p>UTC 時間を変換する</p>
+                    <pre><code>Wed, 01 Mar 2017 00:00:00 UTC +00:00
+</code></pre>
+                    <p>夏時間 (春/夏) を適用する場合は、東部夏時間 (EDT)
+                    まで</p>
+                    <pre><code>Wed, 01 Mar 2017 04:00:00 UTC +00:00
+</code></pre>
+                    <pre><code>zone = ActiveSupport::TimeZone.new(&quot;Eastern Time (US &amp; Canada)&quot;)
+time = &quot;Wed, 01 Mar 2017 00:00:00 UTC +00:00&quot;
+time.in_time_zone(zone)
+=&gt; Tue, 28 Feb 2017 19:00:00.000000000 EST -05:00
+</code></pre>
+                    <p>Rails はすべてのタイムスタンプを UTC
+                    に変換し直すため、上記の内容はデータベースに Wed, 01
+                    Mar 2017 00:00:00 UTC +00:00
+                    として保存されます。ただし、ユーザーのタイムゾーンでの本当の
+                    1 日の始まりであるため、2017 年 3 月 1 日水曜日
+                    04:00:00 UTC +00:00 を取得する必要があります。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>ActiveSupport::TimeZone#parse
+                    を使用して、タイムゾーンに関連する文字列を解析できます。
+                    「UTC
+                    +00:00」のようなタイムゾーン指定子は必ず省略してください。</p>
+                    <pre><code>zone = ActiveSupport::TimeZone.new(&quot;Eastern Time (US &amp; Canada)&quot;)
+
+time = zone.parse(&quot;Wed, 01 Mar 2017 00:00:00&quot;)
+#=&gt; Wed, 01 Mar 2017 00:00:00.000000000 EST -05:00
+
+time.utc
+#=&gt; 2017-03-01 05:00:00 UTC
+</code></pre>
+                    <p>utc
+                    への最後の呼び出しは説明のみを目的としており、Rails
+                    はデータベースの時間を節約するときにこの変換を自動的に実行します。</p>
+                    <p>数値入力の場合:</p>
+                    <pre><code>time = zone.local(2017, 3, 1)
+#=&gt; Wed, 01 Mar 2017 00:00:00.000000000 EST -05:00
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

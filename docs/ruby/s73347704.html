@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rails 6 で Importmaps を使用して ActionCable を設定するにはどうすればよいですか? (MRIとJruby) | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rails 6 で Importmaps を使用して ActionCable を設定するにはどうすればよいですか? (MRIとJruby)",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rails 6 で Importmaps を使用して ActionCable
+を設定するにはどうすればよいですか? (MRIとJruby)</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Actioncable - 概要。</p>
+                    <p>私はjruby 9.2.16（したがってruby 2.5.7）とrails
+                    6.1.6.1を使用しています。</p>
+                    <p>Actioncable が開発中のみなのか、SSL (wss)
+                    なしでのみ使用できるのか、単純なクライアント側で使用できるかどうかはわかりません。</p>
+                    <pre><code>var ws = new WebSocket(&#39;ws://0.0.0.0:3000/channels&#39;);
+ws.onmessage = function(e){ console.log(e.data); }
+</code></pre>
+                    <p>しかし、少なくとも実稼働環境で wss
+                    を使用して「チャネルからのストリーミング」を実行することはできませんでした。これはローカルで動作するためです（ターミナルで「redis-cli」が開始され、次に「monitor」が表示されます）。</p>
+                    <p>そこで、actioncable クライアント
+                    スクリプトを実装しようとしたため、8
+                    日が無駄になってしまいました。</p>
+                    <p>しかし結局のところ、importmap
+                    が行うことはすべて、JavaScript
+                    ファイルをロードするという、車輪の再発明のように私には見えます。何か、手動で簡単に実行できます。
+                    モジュールのインポートも簡単なJavaScriptで可能です。それでは、最終的にブラウザが動作する
+                    JavaScript ファイルとは何でしょうか?</p>
+                    <p>そのファイルやその生成場所の説明が見つかりません。あるいは、それが単なるリンクであるのか、あるいは何らかの方法でコンパイルする必要があるのかもわかりません。しかし、私には、importmap
+                    が完全に冗長で、物事を非常に複雑にするだけのように見えます。文字列「xyz」を書くメリットがわかりません。文字列「xyz」は、別の文字列「xyz_2」に設定するために面倒な方法で変換されますが、これも見つからない可能性があります。変数がある場合は、action_cable_meta_tag
+                    のような同じ考え方を使用して直接ロードできます。</p>
+                    <p>技術的には、Actioncable は Faye
+                    が以前に行ったことを行っているだけです。では、なぜ車輪の再発明としか思えない、いわゆる「現代的」な方法が必要なのでしょうか？</p>
+                    <p>そこで、アクションケーブルの取り付け方法を、不要なツールを使わずに簡単にわかりやすく説明したいと思います。</p>
+                    <p>しかし、まずは自分で動作させる必要があります。したがって、問題は次のとおりです。</p>
+                    <pre><code>GET http://0.0.0.0:3000/actioncable.esm.js net::ERR_ABORTED 404 (Not Found)
+</code></pre>
+                    <p>みなさん、アイデアをありがとう！</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、importmap-rails から:</p>
+                    <p>勝負を受けて立つ。今のところは mri を使用します
+                    (後で、何か奇妙なことが起こるかどうかを確認するために、あなたのバージョンで試してみます)。</p>
+                    <pre><code>$ rails _6.1.6.1_ new cable --skip-javascript
+$ cd cable
+
+# https://github.com/rails/importmap-rails#installation
+
+$ bin/bundle add importmap-rails
+$ bin/rails importmap:install
+
+# ActionCable guide seems rather crusty. Until this section:
+# https://guides.rubyonrails.org/v6.1/action_cable_overview.html#connect-consumer
+# A generator for the client side js is mentioned in the code comment.
+
+$ bin/rails g channel chat
+
+# Oops, generated server side rb as well.
+# This should really be at the start of the guide.
+</code></pre>
+                    <pre><code># app/channels/chat_channel.rb
+
+class ChatChannel &lt; ApplicationCable::Channel
+  def subscribed
+    # NOTE: just keep it simple
+    stream_from &quot;some_channel&quot;
+  end
+end
+</code></pre>
+                    <p>app/javascript
+                    ディレクトリは一般的であるように見えます。これは、shakapacker、jsbundling-rails、importmap-rails
+                    などで使用されるすべての Javascript
+                    のものに当てはまります。ここで少し説明しました:
+                    https://stackoverflow.com/a/73174481/207090</p>
+                    <pre><code>// app/javascript/channels/chat_channel.js
+
+import consumer from &quot;./consumer&quot;
+
+consumer.subscriptions.create(&quot;ChatChannel&quot;, {
+  connected() {
+    // NOTE: We have to check if our set up is online first,
+    //       before chatting and authenticating or anything else.
+    console.log(&quot;ChatChannel connected&quot;)
+  },
+
+  disconnected() {},
+  received(data) {}
+});
+</code></pre>
+                    <p>メッセージをブロードキャストするには、アプリ内のどこかでこれを呼び出します[原文ママ]。</p>
+                    <pre><code>ActionCable.server.broadcast(&quot;some_channel&quot;, &quot;some message&quot;)
+</code></pre>
+                    <p>さて、とにかくコントローラーを作成する必要があります。</p>
+                    <pre><code>$ bin/rails g scaffold Message content
+$ bin/rails db:migrate
+$ open http://localhost:3000/messages
+$ bin/rails s
+</code></pre>
+                    <p>また、ページに読み込むには、チャンネルをどこかにインポートする必要があります。レイアウト内の
+                    javascript_importmap_tags
+                    はアプリケーションのみをインポートします。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/importmap-rails#usage</p>
+                    <pre><code>&lt;script type=&quot;module&quot;&gt;import &quot;application&quot;&lt;/script&gt;
+&lt;!--                          ^            --&gt;
+&lt;!-- this imports the pinned `application` --&gt;
+</code></pre>
+                    <p>application.js
+                    にチャネルをインポートするのは理にかなっています。
+                    require があるため、./channels/index
+                    をインポートできません。ノードを機能させるにはノードを使用するか、すべてのチャンネルをインポートするために何か他のことをする必要があります。手動の方法が最も簡単です。</p>
+                    <pre><code>// app/javascript/channels/index.js
+// NOTE: it works a little differently with importmaps that I haven&#39;t mentioned yet.
+//       skip this index file for now, and import channels in application.js
+
+// app/javascript/application.js
+import &quot;./channels/chat_channel&quot;
+</code></pre>
+                    <p>ブラウザコンソールに <span class="citation"
+                    data-cites="rails/actioncable">@rails/actioncable</span>
+                    が欠落していると表示されます。まだ誰もインストールするように言っていません。
+                    pin コマンドを使用して追加します。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/importmap-rails#using-npm-packages-via-javascript-cdns</p>
+                    <pre><code>$ bin/importmap pin @rails/actioncable
+</code></pre>
+                    <p>ブラウザを更新します。</p>
+                    <pre><code>ChatChannel connected                                          chat_channel:5
+</code></pre>
+                    <p>ページに JavaScript
+                    が追加されました。ブロードキャストしてみましょう:</p>
+                    <pre><code># app/controllers/messages_controller.rb
+
+# POST /messages
+def create
+  @message = Message.create(message_params)
+  ActionCable.server.broadcast(&quot;some_channel&quot;, @message.content)
+end
+</code></pre>
+                    <pre><code>&lt;!-- app/views/messages/index.html.erb --&gt;
+
+&lt;div id=&quot;chat&quot;&gt;&lt;/div&gt; &lt;!-- output for broadcasted messages --&gt;
+
+&lt;!-- since I have no rails ujs, for my purposes: bushcraft { remote: true } --&gt;
+&lt;!--                                                 v                      --&gt;
+&lt;%= form_with model: Message.new, html: { onsubmit: &quot;remote(event, this)&quot; } do |f| %&gt;
+  &lt;%= f.text_field :content %&gt;
+  &lt;%= f.submit %&gt;
+&lt;% end %&gt;
+
+&lt;script type=&quot;text/javascript&quot;&gt;
+  // you can skip this, I assume you have `rails_ujs` installed or `turbo`.
+  // { remote: true } or { local: false } is all you need on the form.
+  function remote(e, form) {
+    e.preventDefault();
+    fetch(form.action, {method: form.method, body: new FormData(form)})
+    form[&quot;message[content]&quot;].value = &quot;&quot;
+  }
+&lt;/script&gt;
+</code></pre>
+                    <p>私たちはつながっていることを知っています。フォームは、「some_channel」にブロードキャストしている場所を更新せずに、MessagesController#create
+                    に送信されます。残っているのは、ページにデータを出力することだけです。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://guides.rubyonrails.org/v6.1/action_cable_overview.html#client-server-interactions-subscriptions</p>
+                    <pre><code>// app/javascript/channels/chat_channel.js
+
+// update received() function
+received(data) {
+  document.querySelector(&quot;#chat&quot;)
+    .insertAdjacentHTML(&quot;beforeend&quot;, `&lt;p&gt;${data}&lt;/p&gt;`)
+}
+</code></pre>
+                    <p>アクションケーブルが完成しました。次に、importmaps
+                    を修正しましょう。</p>
+                    <p>これまで言及しなかった点ですが、理解することが非常に重要です。</p>
+                    <p>すべてが機能しますが、開発段階でのみ、その理由をここで説明しました。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/73136675/207090</p>
+                    <p>URL
+                    と相対パスまたは絶対パスはマッピングされず、さらに重要なことに、アセット
+                    パイプライン スプロケットをバイパスします。実際に
+                    importmaps を使用するには、app/javascript/channels
+                    内のすべてのファイルをマップ (別名固定)
+                    し、インポート時に固定された名前のみで参照する必要があります。</p>
+                    <pre><code># config/importmap.rb
+
+# NOTE: luckily there is a command to help with bulk pins
+pin_all_from &quot;app/javascript/channels&quot;, under: &quot;channels&quot;
+
+pin &quot;application&quot;, preload: true
+pin &quot;@rails/actioncable&quot;, to: &quot;https://ga.jspm.io/npm:@rails/[email protected]/app/assets/javascripts/actioncable.esm.js&quot;
+# NOTE: the big reveal -&gt; follow me -&gt;------------------------------------------------------------------^^^^^^^^^^^^^^^^^^
+
+# NOTE: this only works in rails 7+
+# pin &quot;@rails/actioncable&quot;, to: &quot;actioncable.esm.js&quot;
+# `actioncable.esm.js` is in the asset pipeline so to speak and can be found here:
+# https://github.com/rails/rails/tree/v7.0.3.1/actioncable/app/assets/javascripts
+</code></pre>
+                    <p>pin と pin_all_from
+                    については、以下を参照してください。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://stackoverflow.com/a/72855705/207090</p>
+                    <p>これにより作成されるインポートマップはブラウザまたはターミナルで確認できます。</p>
+                    <pre><code>$ bin/importmap json
+{
+  &quot;imports&quot;: {
+     &quot;application&quot;:           &quot;/assets/application-3ac17ae8a9bbfcdc9571d7ffac88746f5a76b18c149fdaf02fa7ed721b3e7c49.js&quot;,
+     &quot;@rails/actioncable&quot;:    &quot;https://ga.jspm.io/npm:@rails/[email protected]/app/assets/javascripts/actioncable.esm.js&quot;,
+     &quot;channels&quot;:              &quot;/assets/channels/index-78e712d4a980790be34a2e859a2bd9a1121f9f3b508bd3f7de89889ff75828a0.js&quot;,
+     &quot;channels/chat_channel&quot;: &quot;/assets/channels/chat_channel-0a2f983da2629a4d7edef5b7f05a494670df3f99ec6a22a2e2fee91a5d1c1d05.js&quot;,
+     &quot;channels/consumer&quot;:     &quot;/assets/channels/consumer-b0ce945e7ae055dba9cceb062a47080dd9c7794a600762c19d38dbde3ba8ff0d.js&quot;
+  }#    ^                        ^
+}  #    |                        |
+   #  names you use             urls browser uses
+   #    |   to import            ^   to actually get it
+   #    |                        |
+   #    `---&gt; importmaped to ----&#39;
+</code></pre>
+                    <p>importmaps 情報 (importmap-rails gem
+                    ではありません):
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/WICG/import-maps</p>
+                    <p>Importmaps は何もインポートせず、名前を URL
+                    にマップします。
+                    /name、./name、../name、http://js.cdn/name の URL
+                    のように名前を作成すると、マップするものは何もありません。</p>
+                    <pre><code>import &quot;channels/chat_channel&quot;
+
+// stays unchanged and is now the same as
+
+import &quot;/assets/channels/chat_channel-0a2f983da2629a4d7edef5b7f05a494670df3f99ec6a22a2e2fee91a5d1c1d05.js&quot;
+
+// because we have an importmap for &quot;channels/chat_channel&quot;
+</code></pre>
+                    <p>ファイルの更新時にダイジェスト
+                    ハッシュが変更され、ブラウザーのキャッシュが無効になるため
+                    (これはスプロケットによって処理されます)、js
+                    ファイル内で絶対パスを含む 2
+                    番目の形式を使用することは望ましくありません。</p>
+                    <p>すべてのインポートを変換します。</p>
+                    <pre><code>import consumer from &quot;./consumer&quot;
+import &quot;./channels/chat_channel&quot;
+</code></pre>
+                    <p>ピン留めされた名前と一致させるには:</p>
+                    <pre><code>import consumer from &quot;channels/consumer&quot;
+import &quot;channels/chat_channel&quot;
+
+// import &quot;channels&quot; // is mapped to `channels/index`
+// TODO: want to auto import channels in index file?
+//       just get all the pins named *_channel and import them,
+//       like stumulus-loading does for controllers:
+//       https://github.com/hotwired/stimulus-rails/blob/v1.1.0/app/assets/javascripts/stimulus-loading.js#L8
+</code></pre>
+                    <p>jrubyでも同じ設定です。それをインストールして、Gemfile
+                    を更新しました。</p>
+                    <pre><code># Gemfile
+ruby &quot;2.5.7&quot;, engine: &quot;jruby&quot;, engine_version: &quot;9.2.16.0&quot;
+gem &quot;activerecord-jdbcsqlite3-adapter&quot;
+gem &quot;importmap-rails&quot;, &quot;&lt; 0.8&quot; # after version 0.8.0 ruby &gt;= 2.7 is required
+</code></pre>
+                    <p>サーバー起動時の最初のエラー:</p>
+                    <pre><code>NoMethodError: private method `importmap=&#39; called for #&lt;Cable::Application:0x496a31da&gt;
+</code></pre>
+                    <p>importmap= メソッドはここで定義されています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://github.com/rails/importmap-rails/blob/v0.7.6/lib/importmap/engine.rb#L4</p>
+                    <pre><code>Rails::Application.send(:attr_accessor, :importmap)
+</code></pre>
+                    <p>jruby では、次のように使用する場合にプライベート
+                    メソッドを定義します。</p>
+                    <pre><code>&gt;&gt; A = Class.new
+&gt;&gt; A.attr_accessor(:m)
+&gt;&gt; A.new.m
+NoMethodError (private method &#39;m&#39; called for #&lt;A:0x5f2f577&gt;)
+</code></pre>
+                    <p>修正するには、アプリの定義をオーバーライドするか、これらのメソッドをパブリックにすることです。</p>
+                    <pre><code># config/application.rb
+
+module Cable
+  class Application &lt; Rails::Application
+    # make them public
+    public :importmap, :importmap=
+
+    config.load_defaults 6.1
+  end
+end
+</code></pre>
+                    <p>Ruby 2.5 は 2021 年 4 月 5
+                    日に廃止されました。最新の gem が古い Ruby
+                    バージョンと適切に動作することは期待できません。それでおしまい。他に問題はありません。
+                    mri よりかなり遅れている jruby
+                    を使用しているため、いずれにせよ、ある程度の後退は予想されるはずです。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

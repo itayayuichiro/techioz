@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで月を加算することと月を秒に変換することの違いは何ですか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで月を加算することと月を秒に変換することの違いは何ですか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで月を加算することと月を秒に変換することの違いは何ですか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>答えなければならない質問があります。</p>
+                    <p>現在の時刻は 2023/7/1 です。この日付を 14
+                    か月後に表示したいと思います。</p>
+                    <p>2 つの方法がありますが、それぞれ 2
+                    つの異なる結果が得られます。この違いを指摘していただけますか?</p>
+                    <p>オプション 1: 14
+                    か月を秒に変換し、現在の日付に追加します。</p>
+                    <pre><code>[22] pry(main)&gt; (Time.zone.parse(&quot;1/7/2023&quot;) + 14.months.to_i).to_s
+=&gt; &quot;2024-08-30 02:47:24 +0900&quot;
+</code></pre>
+                    <p>オプション 2: 現在の日付に月を直接加算する</p>
+                    <pre><code>[23] pry(main)&gt; (Time.zone.parse(&quot;1/7/2023&quot;) + 14.months).to_s
+=&gt; &quot;2024-09-01 00:00:00 +0900&quot;
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>まず、Time.zone は Ruby
+                    の関数ではありません。</p>
+                    <p>Rails
+                    https://api.rubyonrails.org/classes/Time.html#method-c-zone
+                    から来ています</p>
+                    <p>Time.zone.parse の結果は
+                    ActiveSupport::TimeWithZone</p>
+                    <pre><code>Time.zone.parse(&quot;1/7/2023&quot;).class
+=&gt; ActiveSupport::TimeWithZone
+</code></pre>
+                    <p>したがって、クラスのドキュメントを調べてみると、
+                    + メソッドがあります</p>
+                    <p>https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveSupport/TimeWithZone.html#method-i-2B</p>
+                    <p>ドキュメントを見ると、こう書かれていました</p>
+                    <pre><code>    # For instance, a time + 24.hours will advance exactly 24 hours, while a
+    # time + 1.day will advance 23-25 hours, depending on the day.
+    #
+    #   now + 24.hours      # =&gt; Mon, 03 Nov 2014 00:26:28.725182881 EST -05:00
+    #   now + 1.day         # =&gt; Mon, 03 Nov 2014 01:26:28.725182881 EST -05:00
+</code></pre>
+                    <p>これを見ると、24.hour はちょうど 24
+                    時間進みますが、1.day では 23 ～ 25
+                    時間進みます。同じロジックを使用する場合、月を秒に変換すると、より正確に進みます。</p>
+                    <pre><code>irb(main):005:0&gt; (Time.zone.parse(&quot;1/7/2023&quot;) + 14.months.to_i)
+=&gt; Fri, 30 Aug 2024 02:47:24.000000000 UTC +00:00
+irb(main):006:0&gt; Time.zone.parse(&quot;1/7/2023&quot;) + 14.months
+=&gt; Sun, 01 Sep 2024 00:00:00.000000000 UTC +00:00
+</code></pre>
+                    <p>私が間違っていたら修正してください、ありがとう</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

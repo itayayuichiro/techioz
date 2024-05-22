@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>一致を使用して HTML ドキュメントの一部を抽出する Ruby の正規表現ヘルプ | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "一致を使用して HTML ドキュメントの一部を抽出する Ruby の正規表現ヘルプ",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>一致を使用して HTML
+ドキュメントの一部を抽出する Ruby の正規表現ヘルプ</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>次の形式の HTML ドキュメントがあります。</p>
+                    <pre><code>&lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;span class=&quot;fullName&quot;&gt;Bill Gussio&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Contact&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Phone&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Home&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Work&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr valign=&quot;top&quot;&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;Screen Name:&lt;/span&gt; &lt;span&gt;bhjiggy&lt;/span&gt;&lt;br&gt;&lt;span&gt;Email 1:&lt;/span&gt; &lt;span&gt;[email protected]&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;Mobile: &lt;/span&gt;&lt;span&gt;2404173223&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;NY&lt;/span&gt;&lt;br&gt;&lt;span&gt;New York&lt;/span&gt;&lt;br&gt;&lt;span&gt;78642&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;MD&lt;/span&gt;&lt;br&gt;&lt;span&gt;Owings Mills&lt;/span&gt;&lt;br&gt;&lt;span&gt;21093&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    
+    &lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;hr class=&quot;contactSeparator&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+
+    &lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;span class=&quot;fullName&quot;&gt;Eddie Osefo&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Contact&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Phone&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Home&lt;/td&gt;
+        &lt;td class=&quot;sectionHeader&quot;&gt;Work&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr valign=&quot;top&quot;&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;Screen Name:&lt;/span&gt; &lt;span&gt;eddieOS&lt;/span&gt;&lt;br&gt;&lt;span&gt;Email 1:&lt;/span&gt; &lt;span&gt;[email protected]&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;sectionContent&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    
+    &lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;hr class=&quot;contactSeparator&quot;&gt;&lt;/td&gt;&lt;/tr&gt;
+</code></pre>
+                    <p>したがって、連絡先情報の塊と「連絡先の区切り文字」が交互に表示されます。連絡先情報を取得したいので、最初の障害は連絡先セパレーター間のチャンクを取得することです。
+                    Rubularを使用した正規表現はすでに理解しています。それは次のとおりです。</p>
+                    <pre><code>/&lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;span class=&quot;fullName&quot;&gt;((.|\s)*?)&lt;hr class=&quot;contactSeparator&quot;&gt;/
+</code></pre>
+                    <p>Rubular
+                    をチェックして、チャンクが分離されていることを確認できます。</p>
+                    <p>しかし、私の大きな問題は、Ruby
+                    コードで問題が発生していることです。組み込みの match
+                    関数を使用してプリントを作成しましたが、期待した結果が得られません。コードは次のとおりです。</p>
+                    <pre><code>page = agent.get uri.to_s    
+chunks = page.body.match(/&lt;tr&gt;&lt;td colspan=&quot;4&quot;&gt;&lt;span class=&quot;fullName&quot;&gt;((.|\s)*?)&lt;hr class=&quot;contactSeparator&quot;&gt;/).captures
+        
+chunks.each do |chunk|
+   puts &quot;new chunk: &quot; + chunk.inspect
+end
+</code></pre>
+                    <p>page.body は、Mechanize によって取得された HTML
+                    ドキュメントの本体にすぎないことに注意してください。
+                    HTML
+                    ドキュメントははるかに大きくなりますが、この形式になっています。したがって、予期しない出力は以下のようになります。</p>
+                    <pre><code>new chunk: &quot;Bill Gussio&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;\r\n\t&lt;tr&gt;\r\n\t\t&lt;td class=\&quot;sectionHeader\&quot;&gt;Contact&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionHeader\&quot;&gt;Phone&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionHeader\&quot;&gt;Home&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionHeader\&quot;&gt;Work&lt;/td&gt;\r\n\t&lt;/tr&gt;\r\n\t&lt;tr valign=\&quot;top\&quot;&gt;\r\n\t\t&lt;td class=\&quot;sectionContent\&quot;&gt;&lt;span&gt;Screen Name:&lt;/span&gt; &lt;span&gt;bhjiggy&lt;/span&gt;&lt;br&gt;&lt;span&gt;Email 1:&lt;/span&gt; &lt;span&gt;[email protected]&lt;/span&gt;&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionContent\&quot;&gt;&lt;span&gt;Mobile: &lt;/span&gt;&lt;span&gt;2404173223&lt;/span&gt;&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionContent\&quot;&gt;&lt;span&gt;NY&lt;/span&gt;&lt;br&gt;&lt;span&gt;New York&lt;/span&gt;&lt;br&gt;&lt;span&gt;78642&lt;/span&gt;&lt;/td&gt;\r\n\t\t&lt;td class=\&quot;sectionContent\&quot;&gt;&lt;span&gt;MD&lt;/span&gt;&lt;br&gt;&lt;span&gt;Owings Mills&lt;/span&gt;&lt;br&gt;&lt;span&gt;21093&lt;/span&gt;&lt;/td&gt;\r\n\t&lt;/tr&gt;\r\n\t\r\n\t&lt;tr&gt;&lt;td colspan=\&quot;4\&quot;&gt;&quot;
+new chunk: &quot;&gt;&quot;
+</code></pre>
+                    <p>ここで私にとって驚きが2つあります。</p>
+                    <p>ここの問題を誰かが見ることができますか?</p>
+                    <p>あるいは、無料の AOL
+                    連絡先輸入業者を誰かが知っていれば、それは素晴らしいことです。
+                    Blackbook を使用していますが、AOL
+                    では失敗し続けるため、修正しようとしています。残念ながら、AOL
+                    にはまだ連絡先 API がありません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>「正規表現を使用して XML と HTML
+                    を解析するのが難しい理由の例をいくつか挙げていただけますか?」を参照してください。
+                    なぜこれが悪い考えなのか。代わりに HTML
+                    パーサーを使用してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

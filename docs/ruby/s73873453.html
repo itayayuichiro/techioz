@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Rubyで値の繰り返しを合計し、キーの2つの値に加算する方法は? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Rubyで値の繰り返しを合計し、キーの2つの値に加算する方法は?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Rubyで値の繰り返しを合計し、キーの2つの値に加算する方法は?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>ディレクトリ上の拡張子の種類ごとに 1
+                    つのキーを持つハッシュを作成しようとしています。すべてのキーに
+                    2
+                    つの値を追加します。拡張子が繰り返される回数と、その拡張子を持つすべてのファイルの合計サイズです。</p>
+                    <p>これに似たもの:</p>
+                    <p>{“.md” =&gt; {“ext_reps” =&gt; 6、“ext_size_sum”
+                    =&gt; 2350}、“.txt” =&gt; {“ext_reps” =&gt;
+                    3、“ext_size_sum” =&gt; 1300}}</p>
+                    <p>しかし、私はこのステップで行き詰まっています:</p>
+                    <pre><code>hash = Hash.new{|hsh,key| hsh[key] = {}}
+ext_reps = 0
+ext_size_sum = 0
+
+Dir.glob(&quot;/home/computer/Desktop/**/*.*&quot;).each do |file|
+  hash[File.extname(file)].store &quot;ext_reps&quot;, ext_reps
+  hash[File.extname(file)].store &quot;ext_size_sum&quot;, ext_size_sum 
+end
+
+p hash
+</code></pre>
+                    <p>この結果:</p>
+                    <p>{“.md” =&gt; {“ext_reps” =&gt; 0, “ext_size_sum”
+                    =&gt; 0}, “.txt” =&gt; {“ext_reps” =&gt; 0,
+                    “ext_size_sum” =&gt; 0}}</p>
+                    <p>そして、ext_repsとext_siz_sumをインクリメントする方法が見つかりません</p>
+                    <p>ありがとう</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>描画されたファイル名の拡張子とファイルサイズが次のとおりであるとします。</p>
+                    <pre><code>files = [{ ext: &#39;a&#39;, size: 10 },
+         { ext: &#39;b&#39;, size: 20 },
+         { ext: &#39;a&#39;, size: 30 },
+         { ext: &#39;c&#39;, size: 40 },
+         { ext: &#39;b&#39;, size: 50 },
+         { ext: &#39;a&#39;, size: 60 }]
+</code></pre>
+                    <p>Hash#group_by と Hash#transform_values
+                    を使用できます。</p>
+                    <pre><code>files.group_by { |h| h[:ext] }.
+      transform_values do |arr|
+        { &quot;ext_reps&quot;=&gt;arr.size, &quot;ext_size_sum&quot;=&gt;arr.sum { |h| h[:size] } }
+      end
+        #=&gt; {&quot;a&quot;=&gt;{&quot;ext_reps&quot;=&gt;3, &quot;ext_size_sum&quot;=&gt;100},
+        #    &quot;b&quot;=&gt;{&quot;ext_reps&quot;=&gt;2, &quot;ext_size_sum&quot;=&gt;70},
+        #    &quot;c&quot;=&gt;{&quot;ext_reps&quot;=&gt;1, &quot;ext_size_sum&quot;=&gt;40}}
+</code></pre>
+                    <p>なお、最初の計算は以下の通りです。</p>
+                    <pre><code>files.group_by { |h| h[:ext] }
+  #=&gt; {&quot;a&quot;=&gt;[{:ext=&gt;&quot;a&quot;, :size=&gt;10}, {:ext=&gt;&quot;a&quot;, :size=&gt;30},
+  #          {:ext=&gt;&quot;a&quot;, :size=&gt;60}],
+  #    &quot;b&quot;=&gt;[{:ext=&gt;&quot;b&quot;, :size=&gt;20}, {:ext=&gt;&quot;b&quot;, :size=&gt;50}],
+  #    &quot;c&quot;=&gt;[{:ext=&gt;&quot;c&quot;, :size=&gt;40}]}
+</code></pre>
+                    <p>もう 1
+                    つの方法は、マージされる両方のハッシュに存在するキーの値を計算するブロックを使用する
+                    Hash#update (別名 Hash#merge!) および Hash#merge
+                    の形式を使用することです。
+                    (hにキーkがない場合、キーkを持つキーと値のペアが構築中のハッシュ(h)にマージされるとき、Rubyはそのブロックを参照しません。)</p>
+                    <p>マージされるハッシュの共通キーの値を返すブロックの
+                    3
+                    つのパラメーターの説明については、ドキュメントを参照してください。</p>
+                    <pre><code>files.each_with_object({}) do |g,h|
+   h.update(g[:ext]=&gt;{&quot;ext_reps&quot;=&gt;1, &quot;ext_size_sum&quot;=&gt;g[:size]}) do |_k,o,n|
+     o.merge(n) { |_kk, oo, nn| oo + nn }
+   end
+end
+  #=&gt; {&quot;a&quot;=&gt;{&quot;ext_reps&quot;=&gt;3, &quot;ext_size_sum&quot;=&gt;100},
+  #    &quot;b&quot;=&gt;{&quot;ext_reps&quot;=&gt;2, &quot;ext_size_sum&quot;=&gt;70},
+  #    &quot;c&quot;=&gt;{&quot;ext_reps&quot;=&gt;1, &quot;ext_size_sum&quot;=&gt;40}}
+</code></pre>
+                    <p>「外側」ハッシュと「内側」ハッシュの共通キー
+                    (それぞれ _k と _kk)
+                    の名前は、ブロック計算で使用されないことを読者に示すためにアンダースコアで始まる名前を選択しました。これは一般的な慣例です。</p>
+                    <p>このアプローチでは、group_by
+                    によって作成されるものと同様の一時ハッシュの作成が回避されるため、最初のアプローチよりも使用するメモリが少なくなる傾向があることに注意してください。</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>Ruby で make install を実行中に RVM エラーが発生する | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "Ruby で make install を実行中に RVM エラーが発生する",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>Ruby で make install を実行中に RVM
+エラーが発生する</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>Ruby 2.7.2
+                    のインストール中に次のエラーが発生します。</p>
+                    <pre><code>Error running &#39;__rvm_make -j10&#39;,
+please read /Users/rifa.fauzi/.rvm/log/1692949367_ruby-2.7.2/make.log
+
+There has been an error while running make. Halting the installation.
+</code></pre>
+                    <p>make.log
+                    ファイルを確認すると、次のようなエラーが発生しました。</p>
+                    <pre><code>    CFLAGS = -w -ggdb3 -Wno-error=implicit-function-declaration -std=gnu99  -fno-common -pipe 
+compiling error.c
+compiling regerror.c
+./miniruby -I./lib -I. -I.ext/common  ./tool/transform_mjit_header.rb &quot;gcc  -w -ggdb3 -Wno-error=implicit-function-declaration -std=gnu99  -fno-common -pipe &quot; rb_mjit_header.h .ext/include/arm64-darwin22/rb_mjit_min_header-2.7.2.h
+compiling dataerror.c
+ossl_pkey_rsa.c:942:5: error: use of undeclared identifier &#39;RSA_SSLV23_PADDING&#39;
+1 error generated.
+make[2]: *** [ossl_pkey_rsa.o] Error 1
+make[1]: *** [ext/openssl/all] Error 2
+make: *** [build-ext] Error 2
+</code></pre>
+                    <p>参考までに、RVM (rvm install 2.7.2) を使用して
+                    Ruby をインストールしました。
+                    https://rvm.io/rvm/security#alternatives</p>
+                    <p>すでにエラーについてグーグルで調べていますが、まだ解決策が見つかりません。</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>openssl 3 は多くのアプリに必要であるため、Ruby
+                    に影響を与えずに適切なバージョンを見つける方法を示したいとします。</p>
+                    <pre><code>brew install [email protected]
+PKG_CONFIG_PATH=$(brew --prefix [email protected])/lib/pkgconfig rvm install 2.7.2
+</code></pre>
+                    <p>これが最悪の理由は、UNIX システムで C
+                    ライブラリを探す方法が 2
+                    つあるためです。標準名を試すか、ヘッダー ファイル
+                    (コンパイラへの -I フラグ) とライブラリ パス
+                    (コンパイラへの -L フラグ)
+                    の両方へのパスを指定します。成功するために必要なパスは
+                    2
+                    つあり、バージョンが一致しない場合は、比較的わかりにくいあらゆる種類のエラーが発生する可能性があるため、誰かが
+                    pkg-config
+                    というスクリプトを発明しました。これを実行すると、pkg-config
+                    –libs openssl が表示されます。最後に openssl
+                    をリンクするためのフラグを指定し、pkg-config –cflags
+                    openssl は openssl を使用するソース
+                    ファイルをコンパイルするためのフラグを指定します。</p>
+                    <p>Ruby の –with-openssl-dir
+                    は、最初にディレクトリを設定します。手動で -L と -I
+                    をコンパイラに設定します。少し古いやり方で、pkg-config
+                    以前に行われる一般的な方法です。私の知る限り、それは
+                    autoconf から始まり、ruby
+                    はその宿題をコピーしました。すべて順調です。</p>
+                    <p>openssl 拡張機能の extconf.rb は、「Windows
+                    の場合はこれを試し、pkgconfig
+                    ファイルがある場合はそれを使用し、そうでない場合は
+                    –with-openssl-dir
+                    フラグを使用して、いつもの場所を試してみて、何かうまくいくといいのですが」</p>
+                    <p>そして、そこでは pkgconfig
+                    が最初に来ていることに気づくかもしれません。したがって、openssl
+                    に pkgconfig がある場合、 with flag
+                    は何も行いません。</p>
+                    <p>openssl 1.1で追加されたと思います。</p>
+                    <p>したがって、1.0 がメインの openssl
+                    である場合は正常に動作します。
+                    1.1がメインのときは問題なく動作しました。 openssl 2
+                    と 3 が登場すると、1.1 の pkgconfig
+                    ファイルはプライベートの homebrew
+                    ディレクトリに隠蔽されました。</p>
+                    <p>–with-openssl-dir フラグは有効ですが、openssl に
+                    pkgconfig がある場合は実際には何も行いません。</p>
+                    <p>したがって、pkg-config
+                    が受け入れる環境変数を持つ正しい pkgconfig
+                    を強制的に使用すると、ruby extconf.rb は正しい
+                    openssl を見つけます。</p>
+                    <p>次のように、それがどのように影響するかを確認できます。</p>
+                    <pre><code>:; pkg-config --cflags openssl
+-I/opt/homebrew/Cellar/openssl@3/3.2.0/include
+
+:; PKG_CONFIG_PATH=$(brew --prefix [email protected])/lib/pkgconfig pkg-config --cflags openssl
+-I/opt/homebrew/Cellar/[email protected]/1.1.1w/include
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>単一の期待値でカスタム例外をテストしますか? | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "単一の期待値でカスタム例外をテストしますか?",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>単一の期待値でカスタム例外をテストしますか?</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>入力で例外を発生させるテストしたい関数がありますが、その例外には単なるメッセージ以外の情報も含まれているため、それもテストしたいと考えています。そこで、rspec
+                    ドキュメントにあるように、次のようなことを行いました。</p>
+                    <pre><code>it &#39;raises the correct exception&#39; do
+   expect { my_call }.to raise_error do |error|
+     expect(error.some_field).to eq(&#39;some data&#39;)
+   end
+end
+</code></pre>
+                    <p>これはうまく機能しますが、RSpec/MultipleExpectations
+                    警官と衝突します。</p>
+                    <pre><code>RSpec/MultipleExpectations: Example has too many expectations [2/1]
+</code></pre>
+                    <p>私の知る限り、複数の期待なしに、このようにブロック形式で
+                    raise_error
+                    を使用することは不可能です。仕様内でレスキューを伴うひどいことをせずに、例外を通常どおりに仕様できるように、発生した例外を何らかの方法でサンプルの外に保存する方法はありますか?それともカスタムの
+                    raise_custom_error
+                    マッチャーを使用する必要がありますか?</p>
+                    <h2 id="解決策">解決策</h2>
+                    <p>Rubocop はデフォルトで、ブロックごとに期待値が 1
+                    つだけであるという警告を有効にしていると思います。これをrubocop.ymlに追加して無効にできます。</p>
+                    <pre><code># Disables &quot;Too many expectations.&quot;
+RSpec/MultipleExpectations:
+  Enabled: false
+</code></pre>
+                    <p>または、特定の仕様に対してのみ無効にしたい場合は、次のようなコメントを追加して無効にすることができます。コメントでルール名を使用すると、この方法で任意のrubocopルールを無効にできることに注意してください。</p>
+                    <pre><code># rubocop:disable RSpec/MultipleExpectations
+it &#39;raises the correct exception&#39; do
+  expect { my_call }.to raise_error do |error|
+    expect(error.some_field).to eq(&#39;some data&#39;)
+  end
+end
+# rubocop:enable RSpec/MultipleExpectations
+
+it &#39;does something else&#39; do
+  expect(true).to be true
+end
+</code></pre>
+                    <p>Rubocop
+                    の構文オプションの詳細については、この回答を参照してください</p>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

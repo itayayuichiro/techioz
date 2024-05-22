@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style.css">
+  <title>ミニテストでポストリクエスト後に Current.user が nil に設定される | Techioz</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1637770322917058"
+     crossorigin="anonymous"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DRM1ZRNLDN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DRM1ZRNLDN');
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "headline": "ミニテストでポストリクエスト後に Current.user が nil に設定される",
+  "author": {
+    "@type": "Person",
+    "address": "",
+    "email": null,
+    "identifier": "masyumaroking",
+    "name": "masyumaroking"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "masyumaroking"
+  }
+}
+</script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <header>
+    <div class="container">
+        <h1>Techioz Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Articles</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+        <article>
+                      <h2>ミニテストでポストリクエスト後に Current.user
+が nil に設定される</h2>
+                    <h2 id="概要">概要</h2>
+                    <p>現在の属性を使用しています。
+                    https://translate.google.com/translate?hl=ja&amp;sl=en&amp;tl=ja&amp;u=https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html</p>
+                    <pre><code>class Current &lt; ActiveSupport::CurrentAttributes
+  attribute :account, :user
+  attribute :request_id, :user_agent, :ip_address
+
+  resets { Time.zone = nil }
+
+  def user=(user)
+    super
+    self.account = user.account
+    Time.zone    = user.time_zone
+  end
+end
+</code></pre>
+                    <p>Minitest
+                    を使用してポストリクエストを行うと、Current
+                    が空のハッシュに設定されます。取得リクエストは問題ありません。これはバックグラウンド
+                    ジョブで発生するはずであることがわかりました:
+                    https://github.com/rails/rails/issues/36298 -
+                    最後の投稿のハックは機能しますが、他のオプションがあるかどうかを調べたいと思います。</p>
+                    <p>しかし、投稿リクエストでなぜそれが起こるのかわかりません。</p>
+                    <p>テスト例:</p>
+                    <pre><code>  test &quot;create new contact&quot; do
+    Current.user = users(:standard_user)
+
+    new_contact_params = {contact: {first_name: &quot;first name&quot;, last_name: &quot;last name&quot;}}
+    post contacts_path, params: new_contact_params
+    
+    Current.user # Current user is nil here so I can&#39;t do something like Current.user.contacts.any?
+
+    assert_response :success
+  end
+</code></pre>
+                    <h2 id="解決策">解決策</h2>
+                    <p>テストで Current.user が nil
+                    である理由は、Minitest がメイン アプリケーション
+                    スレッドとは別のスレッドで実行されるためです。投稿リクエストを行うと、リクエストはメイン
+                    アプリケーション
+                    スレッドによって処理されますが、CurrentAttributes
+                    オブジェクトは別のスレッドでは使用できません。</p>
+                    <p>これを修正するには、Minitest の around
+                    フックを使用して、メイン アプリケーション
+                    スレッドでリクエストを実行します。以下に例を示します。</p>
+                    <pre><code>class CreateContactTest &lt; ActiveSupport::TestCase
+  test &quot;create new contact&quot; do
+    Current.user = users(:standard_user)
+
+    around do |example|
+      in_main_thread do
+        example.run
+      end
+    end
+
+    new_contact_params = {contact: {first_name: &quot;first name&quot;, last_name: &quot;last name&quot;}}
+    post contacts_path, params: new_contact_params
+
+    assert_response :success
+    assert Current.user.contacts.any?
+  end
+end
+</code></pre>
+        </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+        <p>&copy; 2024 Techioz. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
